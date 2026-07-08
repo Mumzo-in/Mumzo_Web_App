@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 const points = [
-  { k: "1000s", v: "of SKUs across every baby category" },
+  { k: "100s", v: "of SKUs across every baby category" },
   { k: "All sizes", v: "from newborn to age 5, always in stock" },
   { k: "All stages", v: "pregnancy, infant, toddler, preschool" },
 ];
@@ -41,8 +41,8 @@ export default function WhyMumzo() {
           Traditional quick-commerce apps carry a handful of baby SKUs — a
           couple of onesie sizes, one brand of formula, two teethers. Mumzo
           is different. We stock the deep, dedicated shelf you'd expect from
-          a baby specialist — every size, every stage, every essential — and
-          bring it to your door in minutes.
+          a baby specialist — hundreds of SKUs, every size, every stage, every
+          essential — and bring it to your door in minutes.
         </motion.p>
 
         <div className="mt-14 grid md:grid-cols-3 gap-6">
