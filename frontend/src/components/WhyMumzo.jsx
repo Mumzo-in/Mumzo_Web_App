@@ -38,10 +38,10 @@ export default function WhyMumzo() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="mt-8 max-w-2xl text-base md:text-lg text-foreground/70 leading-relaxed"
         >
-          Traditional quick-commerce apps carry a handful of baby SKUs — a
-          couple of onesie sizes, one brand of formula, two teethers. Mumzo
-          is different. We stock the deep, dedicated shelf you'd expect from
-          a baby specialist — hundreds of SKUs, every size, every stage, every
+          Traditional quick-commerce apps carry a handful of baby SKUs, a
+          couple of sizes and only a few known brands. Mumzo is different.
+          We stock the deep, dedicated shelf you'd expect from a baby
+          specialist — hundreds of SKUs, every size, every stage, every
           essential — and bring it to your door in minutes.
         </motion.p>
 
