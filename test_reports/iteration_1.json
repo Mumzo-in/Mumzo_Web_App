@@ -1,0 +1,25 @@
+{
+  "summary": "First full test pass for Mumzo waitlist landing. Backend (6/6) and frontend (all critical flows) working end-to-end. No blockers.",
+  "tested_scope": ["backend", "frontend", "integration"],
+  "passed": [
+    "GET /api/ returns Mumzo welcome message (200)",
+    "POST /api/waitlist with all 5 valid fields returns id/position/message (200, position=2)",
+    "POST /api/waitlist duplicate email returns same id with 'already on the list' message (idempotent)",
+    "POST /api/waitlist invalid email returns 422 with pydantic email validation error",
+    "GET /api/waitlist/count returns integer count (2) matching created entries",
+    "GET /api/waitlist returns entry list with no _id leak (only id/name/email/address/baby_name/baby_age/created_at)",
+    "Frontend loads at REACT_APP_BACKEND_URL and hero-section text 'The deepest' visible after animation",
+    "site-nav visible; nav-cta click scrolls page (0 -> 7654px) to waitlist section",
+    "waitlist-form renders all 5 inputs + submit (name, email, baby-name, address, baby-age, submit)",
+    "Valid submission shows waitlist-success card with 'Position #3' and welcome message; sonner toast appears",
+    "Duplicate email submission shows success card with 'already on the list' style message + matching toast",
+    "Empty submit (only name filled) surfaces toast and preserves entered form value (not cleared)",
+    "All required sections rendered in DOM: chapter-01/02/03, categories-section, hyderabad-banner, how-section, site-footer"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "notes": "REACT_APP_BACKEND_URL in /app/frontend/.env is https://mumzo-hyderabad.preview.emergentagent.com (different from URL in review request); used the .env value as instructed. Framer-motion animations settle within ~2.5s. No console errors observed."
+}
