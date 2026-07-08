@@ -7,7 +7,6 @@ module.exports = {
       fontFamily: {
         editorial: ['Fraunces', 'serif'],
         body: ['Manrope', 'sans-serif'],
-        hand: ['Caveat', 'cursive'],
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -27,9 +26,10 @@ module.exports = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        peach: 'hsl(var(--peach))',
-        sage: 'hsl(var(--sage))',
-        cream: 'hsl(var(--cream))',
+        blush: 'hsl(var(--blush))',
+        rose: 'hsl(var(--rose))',
+        pinkDeep: 'hsl(var(--pink-deep))',
+        pinkSoft: 'hsl(var(--pink-soft))',
         ink: 'hsl(var(--ink))',
       },
       keyframes: {

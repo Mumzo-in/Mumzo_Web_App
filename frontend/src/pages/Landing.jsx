@@ -1,25 +1,21 @@
 import Nav from "@/components/Nav";
-import KineticHero from "@/components/KineticHero";
-import TrustStrip from "@/components/TrustStrip";
-import ManifestoChapters from "@/components/ManifestoChapters";
-import EditorialMarquee from "@/components/EditorialMarquee";
-import CategoryShowcase from "@/components/CategoryShowcase";
-import HyderabadBanner from "@/components/HyderabadBanner";
-import HowItWorks from "@/components/HowItWorks";
+import Hero from "@/components/Hero";
+import WhyMumzo from "@/components/WhyMumzo";
+import OurServices from "@/components/OurServices";
+import Subscribe from "@/components/Subscribe";
+import LaunchCity from "@/components/LaunchCity";
 import WaitlistSection from "@/components/WaitlistSection";
 import Footer from "@/components/Footer";
 
 export default function Landing() {
   return (
-    <main data-testid="mumzo-landing" className="relative">
+    <main data-testid="mumzo-landing" className="relative bg-background">
       <Nav />
-      <KineticHero />
-      <TrustStrip />
-      <ManifestoChapters />
-      <EditorialMarquee />
-      <CategoryShowcase />
-      <HyderabadBanner />
-      <HowItWorks />
+      <Hero />
+      <WhyMumzo />
+      <OurServices />
+      <Subscribe />
+      <LaunchCity />
       <WaitlistSection />
       <Footer />
     </main>

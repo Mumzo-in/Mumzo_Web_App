@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700&family=Caveat:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,39 +6,38 @@
 
 @layer base {
   :root {
-    /* Mumzo warm-pastel tokens */
-    --background: 36 40% 98%;      /* #FDFBF7 cream */
-    --foreground: 246 35% 17%;     /* #1F1B3A ink */
+    /* Mumzo — Pink minimal tokens */
+    --background: 20 45% 98%;        /* #FEF8F5 soft blush cream */
+    --foreground: 345 30% 15%;       /* #2D1720 deep plum */
     --card: 0 0% 100%;
-    --card-foreground: 246 35% 17%;
+    --card-foreground: 345 30% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 246 35% 17%;
-    --primary: 246 35% 17%;
-    --primary-foreground: 36 40% 98%;
-    --secondary: 30 88% 90%;       /* peach */
-    --secondary-foreground: 246 35% 17%;
-    --muted: 42 33% 94%;
-    --muted-foreground: 246 15% 40%;
-    --accent: 105 15% 86%;         /* sage */
-    --accent-foreground: 246 35% 17%;
+    --popover-foreground: 345 30% 15%;
+    --primary: 345 55% 55%;          /* #C85277 dusty rose */
+    --primary-foreground: 20 45% 98%;
+    --secondary: 350 80% 94%;        /* pale blush */
+    --secondary-foreground: 345 30% 15%;
+    --muted: 20 30% 96%;
+    --muted-foreground: 345 15% 40%;
+    --accent: 350 75% 90%;
+    --accent-foreground: 345 30% 15%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 38 22% 88%;          /* #E5E0D8 */
-    --input: 38 22% 88%;
-    --ring: 246 35% 17%;
+    --border: 350 30% 90%;
+    --input: 350 30% 90%;
+    --ring: 345 55% 55%;
     --radius: 1rem;
 
-    /* Bespoke */
-    --peach: 30 96% 90%;           /* #FDE2CE */
-    --sage: 100 18% 86%;           /* #D8E2D5 */
-    --cream: 42 33% 94%;           /* #F6F3EC */
-    --ink: 246 35% 17%;
+    /* Bespoke pink shades */
+    --blush: 350 80% 94%;         /* #FCE1E6 pale blush */
+    --rose: 345 70% 82%;          /* #F1B3C2 rose */
+    --pink-deep: 345 55% 55%;     /* #C85277 dusty rose */
+    --pink-soft: 20 60% 96%;      /* #FDF1EC warm cream */
+    --ink: 345 30% 15%;
   }
 }
 
-* {
-  border-color: hsl(var(--border));
-}
+* { border-color: hsl(var(--border)); }
 
 html, body {
   margin: 0;
@@ -55,6 +54,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Fraunces', ui-serif, Georgia, serif;
   font-optical-sizing: auto;
   letter-spacing: -0.02em;
+  font-weight: 300;
 }
 
 /* Lenis */
@@ -63,59 +63,43 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-/* Grain overlay */
-.mumzo-grain::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 60;
-  opacity: 0.4;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.11 0 0 0 0 0.23 0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-/* Editorial helpers */
 .font-editorial { font-family: 'Fraunces', serif; }
-.font-hand { font-family: 'Caveat', cursive; }
 .font-body { font-family: 'Manrope', sans-serif; }
 
-.mask-reveal { overflow: hidden; display: block; }
-
+/* Buttons */
 .mumzo-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.9rem 1.5rem;
+  padding: 0.9rem 1.6rem;
   border-radius: 9999px;
-  background: hsl(var(--ink));
-  color: hsl(var(--background));
+  background: hsl(var(--pink-deep));
+  color: white;
   font-weight: 500;
   font-family: 'Manrope', sans-serif;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s;
-  will-change: transform;
+  transition: background-color 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.mumzo-btn:hover { transform: translateY(-2px) scale(1.02); }
-.mumzo-btn:active { transform: translateY(0) scale(0.98); }
+.mumzo-btn:hover { background: hsl(345 60% 48%); transform: translateY(-1px); }
+.mumzo-btn:active { transform: translateY(0); }
 
 .mumzo-btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1.4rem;
   border-radius: 9999px;
   border: 1px solid hsl(var(--border));
   background: transparent;
   color: hsl(var(--foreground));
   font-weight: 500;
-  transition: background-color 0.3s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.3s, transform 0.3s;
 }
-.mumzo-btn-ghost:hover { background: hsl(var(--cream)); transform: translateY(-1px); }
+.mumzo-btn-ghost:hover { background: hsl(var(--blush)); }
 
 .mumzo-input {
   width: 100%;
-  padding: 1rem 1.25rem;
-  border-radius: 9999px;
+  padding: 0.95rem 1.25rem;
+  border-radius: 14px;
   background: white;
   border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
@@ -124,25 +108,31 @@ html.lenis, html.lenis body { height: auto; }
 }
 .mumzo-input:focus {
   outline: none;
-  border-color: hsl(var(--ink));
-  box-shadow: 0 0 0 4px hsl(var(--peach));
+  border-color: hsl(var(--pink-deep));
+  box-shadow: 0 0 0 4px hsl(var(--blush));
 }
-.mumzo-input::placeholder { color: hsl(246 15% 55%); }
+.mumzo-input::placeholder { color: hsl(345 10% 60%); }
 
-/* Selection */
-::selection { background: hsl(var(--peach)); color: hsl(var(--ink)); }
+::selection { background: hsl(var(--blush)); color: hsl(var(--ink)); }
 
-/* Clip-path shapes */
-.clip-arch { clip-path: path('M 0 200 Q 0 0 200 0 Q 400 0 400 200 L 400 500 L 0 500 Z'); }
-.clip-pill { border-radius: 9999px; }
-
-/* Slow spin */
-@keyframes slowspin { to { transform: rotate(360deg); } }
-.animate-slowspin { animation: slowspin 22s linear infinite; }
-
-/* No-scrollbar for marquee wrappers */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: hsl(var(--pink-deep));
+  font-weight: 500;
+}
+.kicker::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: hsl(var(--pink-deep));
+}
 
 @layer base {
   [data-debug-wrapper="true"] { display: contents !important; }

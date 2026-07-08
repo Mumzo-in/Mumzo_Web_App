@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import MumzoLogo from "@/components/MumzoLogo";
+
+const LOGO = "https://customer-assets.emergentagent.com/job_mumzo-hyderabad/artifacts/6aohy5d4_Screenshot%202026-07-08%20at%2010.27.12%E2%80%AFPM.png";
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -19,23 +20,23 @@ export default function Nav() {
   return (
     <motion.header
       data-testid="site-nav"
-      initial={{ y: -30, opacity: 0 }}
+      initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-      className={`fixed top-0 inset-x-0 z-50 transition-colors duration-500 ${
-        scrolled ? "backdrop-blur-xl bg-background/75 border-b border-border/60" : "bg-transparent"
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-colors duration-300 ${
+        scrolled ? "backdrop-blur-md bg-background/85 border-b border-border/50" : "bg-transparent"
       }`}
     >
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
         <a href="/" data-testid="logo-link" className="flex items-center">
-          <MumzoLogo size={36} />
+          <img src={LOGO} alt="Mumzo" className="h-8 w-auto" />
         </a>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm text-foreground/80">
-          <button data-testid="nav-manifesto" onClick={() => scrollTo("manifesto")} className="hover:text-foreground transition-colors">Manifesto</button>
-          <button data-testid="nav-categories" onClick={() => scrollTo("categories")} className="hover:text-foreground transition-colors">Categories</button>
-          <button data-testid="nav-how" onClick={() => scrollTo("how")} className="hover:text-foreground transition-colors">How it works</button>
-          <button data-testid="nav-hyderabad" onClick={() => scrollTo("hyderabad")} className="hover:text-foreground transition-colors">Hyderabad</button>
+        <nav className="hidden md:flex items-center gap-8 text-sm text-foreground/75">
+          <button data-testid="nav-why" onClick={() => scrollTo("why")} className="hover:text-pinkDeep transition-colors">Why Mumzo</button>
+          <button data-testid="nav-services" onClick={() => scrollTo("services")} className="hover:text-pinkDeep transition-colors">Services</button>
+          <button data-testid="nav-subscribe" onClick={() => scrollTo("subscribe")} className="hover:text-pinkDeep transition-colors">Subscribe</button>
+          <button data-testid="nav-city" onClick={() => scrollTo("city")} className="hover:text-pinkDeep transition-colors">Launch city</button>
         </nav>
 
         <button
@@ -43,8 +44,7 @@ export default function Nav() {
           onClick={() => scrollTo("waitlist")}
           className="mumzo-btn text-sm"
         >
-          Join the waitlist
-          <span aria-hidden>→</span>
+          Join waitlist
         </button>
       </div>
     </motion.header>
