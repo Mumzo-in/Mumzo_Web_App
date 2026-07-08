@@ -11,7 +11,7 @@ export default function Footer() {
           </span>
         </div>
         <div className="text-sm text-foreground/60 flex flex-wrap gap-6">
-          <span>hello@mumzo.in</span>
+          <span>admin@mumzo.in</span>
           <span>© {new Date().getFullYear()} Mumzo</span>
         </div>
       </div>
