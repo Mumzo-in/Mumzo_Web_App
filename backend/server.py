@@ -14,25 +14,35 @@ import re
 # Hyderabad + Secunderabad pincodes fall in 500xxx and 501xxx (Telangana)
 HYDERABAD_PINCODE_RE = re.compile(r"^(500|501)\d{3}$")
 
-# Google Sheets webhook (Apps Script Web App URL) — set in backend/.env as GOOGLE_SHEETS_WEBHOOK_URL
-SHEETS_WEBHOOK_URL = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
-
 
 async def push_to_sheets(entry: dict) -> None:
     """Fire-and-forget POST to a Google Apps Script Web App that appends the row
     to a Google Sheet. Non-blocking: failures are logged but never break the API.
     """
-    if not SHEETS_WEBHOOK_URL:
+    log = logging.getLogger(__name__)
+    url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+    if not url:
+        print("[sheets] no webhook URL configured — skipping")
         return
+    print(f"[sheets] posting entry for {entry.get('email')}")
     try:
-        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as http:
-            r = await http.post(SHEETS_WEBHOOK_URL, json=entry)
-            if r.status_code >= 400:
-                logging.getLogger(__name__).warning(
-                    "Sheets webhook returned %s: %s", r.status_code, r.text[:200]
-                )
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as http:
+            r = await http.post(url, json=entry)
+            preview = r.text[:200].replace("\n", " ")
+            broken = (
+                r.status_code >= 400
+                or "<!DOCTYPE" in r.text[:40]
+                or "Page Not Found" in r.text[:400]
+            )
+            if broken:
+                print(f"[sheets] FAILED status={r.status_code} body={preview}")
+                log.warning("Sheets webhook FAILED status=%s body=%s", r.status_code, preview)
+            else:
+                print(f"[sheets] OK status={r.status_code} body={preview}")
+                log.info("Sheets webhook OK status=%s", r.status_code)
     except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).warning("Sheets webhook failed: %s", exc)
+        print(f"[sheets] EXCEPTION {exc}")
+        log.warning("Sheets webhook exception: %s", exc)
 import uuid
 from datetime import datetime, timezone
 
@@ -53,7 +63,7 @@ api_router = APIRouter(prefix="/api")
 class WaitlistCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     email: EmailStr
-    address: str = Field(..., min_length=3, max_length=500)
+    address: str = Field(..., min_length=1, max_length=500)
     pincode: str = Field(..., min_length=6, max_length=6)
     baby_name: str = Field(..., min_length=1, max_length=120)
     baby_age: str = Field(..., min_length=1, max_length=40)
