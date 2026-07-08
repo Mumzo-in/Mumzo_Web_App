@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mumzo — Everything for baby. In minutes.</title>
+  <meta name="description" content="Mumzo is a quick-commerce store built for moms — from pregnancy through age 5. Thousands of SKUs, delivered to your door in minutes. Launching in Hyderabad." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='18' fill='%23C85277' opacity='0.14'/%3E%3Cpath d='M20 44 V26 Q20 20 26 20 T32 26 V44 M32 26 Q32 20 38 20 T44 26 V44' stroke='%232D1720' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3Cpath d='M46 20 c1.6 -3 6 -3 6 1 c0 3 -3 5 -6 8 c-3 -3 -6 -5 -6 -8 c0 -4 4.4 -4 6 -1z' fill='%23C85277'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- ============================================================
+       CONFIG — replace the URL below with your Apps Script Web App URL
+       Get it from your Apps Script → Deploy → New deployment → Web app.
+       Data goes straight from the browser into your Google Sheet.
+       ============================================================ -->
+  <script>
+    window.MUMZO_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx1ll8yM3v7w3UYJZTVqArgIIywkJt1zBCvW9DhGtZ4zUfjdznOoovaYGqI0k7twPyQ/exec";
+  </script>
+
+  <style>
+    :root {
+      --bg: #FEF8F5;
+      --fg: #2D1720;
+      --ink: #2D1720;
+      --pink: #C85277;
+      --pink-dark: #A93F63;
+      --blush: #FCE1E6;
+      --rose: #F1B3C2;
+      --pink-soft: #FDF1EC;
+      --border: rgba(45, 23, 32, 0.10);
+      --shadow: 0 30px 80px rgba(45, 23, 32, 0.06);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 300; letter-spacing: -0.02em; margin: 0; }
+    p { margin: 0; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; }
+    ::selection { background: var(--blush); color: var(--ink); }
+
+    /* Layout */
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .section { padding: 96px 0; }
+    @media (max-width: 720px) { .section { padding: 64px 0; } }
+
+    /* Nav */
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 50;
+      transition: background-color .3s, border-bottom-color .3s, backdrop-filter .3s;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      background: rgba(254, 248, 245, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom-color: rgba(45, 23, 32, 0.06);
+    }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; padding: 16px 24px; max-width: 1120px; margin: 0 auto; }
+    .logo { display: inline-flex; align-items: center; color: var(--ink); }
+    .nav-links { display: none; gap: 32px; font-size: 14px; color: rgba(45,23,32,0.75); }
+    .nav-links button { color: inherit; font-size: 14px; padding: 4px 0; transition: color .3s; }
+    .nav-links button:hover { color: var(--pink); }
+    @media (min-width: 768px) { .nav-links { display: inline-flex; } }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 26px; border-radius: 9999px;
+      background: var(--pink); color: white; font-weight: 500; font-size: 15px;
+      transition: background-color .3s ease, transform .35s cubic-bezier(.16,1,.3,1);
+    }
+    .btn:hover { background: var(--pink-dark); transform: translateY(-1px); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px; border-radius: 9999px;
+      border: 1px solid var(--border); color: var(--fg); font-weight: 500; font-size: 14px;
+      background: transparent; transition: background-color .3s, transform .3s;
+    }
+    .btn-ghost:hover { background: var(--blush); }
+
+    /* Kicker eyebrow */
+    .kicker {
+      display: inline-flex; align-items: center; gap: 12px;
+      font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--pink); font-weight: 500;
+    }
+    .kicker::before { content: ""; display: inline-block; width: 24px; height: 1px; background: var(--pink); }
+
+    /* Hero */
+    .hero { position: relative; padding-top: 152px; padding-bottom: 96px; text-align: center; overflow: hidden; }
+    .hero-blob { position:absolute; top:-96px; left:50%; transform: translateX(-50%); width: 720px; height: 520px; border-radius: 50%; background: var(--blush); filter: blur(80px); opacity: .7; pointer-events: none; }
+    .hero .wrap { position: relative; max-width: 760px; }
+    .hero .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 9999px;
+      background: var(--blush); border: 1px solid rgba(241,179,194,0.5);
+      color: var(--pink); font-size: 13px; font-weight: 500;
+    }
+    .hero .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pink); animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(1.4); } }
+
+    .hero h1 { margin-top: 32px; font-size: clamp(42px, 8vw, 88px); line-height: 1.02; }
+    .hero h1 em { font-style: italic; color: var(--pink); font-weight: 400; }
+    .hero p.lead { margin: 32px auto 0; max-width: 560px; font-size: 17px; color: rgba(45,23,32,0.7); }
+    .hero .cta-row { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+    /* Fade-up base */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
+    .reveal.on { opacity: 1; transform: translateY(0); }
+    .reveal.d1 { transition-delay: .08s; }
+    .reveal.d2 { transition-delay: .16s; }
+    .reveal.d3 { transition-delay: .24s; }
+
+    /* Why + shared section headers */
+    .section h2 { margin-top: 24px; font-size: clamp(34px, 5vw, 60px); line-height: 1.05; max-width: 640px; }
+    .section h2 em { font-style: italic; color: var(--pink); font-weight: 400; }
+    .section .lead-p { margin-top: 32px; max-width: 640px; font-size: 17px; color: rgba(45,23,32,0.7); }
+
+    /* Grid cards */
+    .grid { margin-top: 56px; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 20px; }
+    @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
+    .card {
+      background: white; border: 1px solid var(--border); border-radius: 24px;
+      padding: 32px; transition: border-color .3s;
+    }
+    .card:hover { border-color: rgba(241,179,194,0.6); }
+    .card .k { font-family: 'Fraunces', serif; font-size: 44px; color: var(--pink); line-height: 1; font-weight: 300; }
+    .card p { margin-top: 16px; font-size: 15px; color: rgba(45,23,32,0.7); }
+
+    /* Services / Chips */
+    .bg-soft { background: var(--pink-soft); }
+    .bg-blush { background: var(--blush); }
+    .chips { margin-top: 56px; display: flex; flex-wrap: wrap; gap: 12px; }
+    .chip {
+      padding: 10px 20px; border-radius: 9999px; background: white; border: 1px solid var(--border);
+      font-size: 15px; color: rgba(45,23,32,0.85); transition: all .3s;
+    }
+    .chip:hover { border-color: var(--pink); color: var(--pink); }
+    .chip.blush { background: var(--blush); border-color: rgba(241,179,194,0.5); }
+
+    /* Subscribe cards */
+    .sub-card { background: white; border: 1px solid var(--border); border-radius: 24px; padding: 32px; }
+    .sub-card .n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%; background: var(--blush);
+      color: var(--pink); font-size: 13px; font-weight: 600;
+    }
+    .sub-card .h {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .sub-card .h .tag { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: rgba(45,23,32,0.5); }
+    .sub-card h3 { font-family: 'Fraunces', serif; font-size: 26px; line-height: 1.15; margin: 0; }
+    .sub-card p { margin-top: 12px; color: rgba(45,23,32,0.7); font-size: 15px; }
+    .sub-tags { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; }
+    .sub-tag { padding: 6px 16px; border-radius: 9999px; background: white; border: 1px solid var(--border); color: rgba(45,23,32,0.7); }
+
+    /* Waitlist */
+    #waitlist { background: var(--blush); padding-top: 96px; padding-bottom: 96px; }
+    #waitlist .wrap { max-width: 640px; }
+    #waitlist .head { text-align: center; }
+    #waitlist h2 { margin-left: auto; margin-right: auto; }
+    .form-card {
+      margin-top: 48px; background: white; border: 1px solid var(--border);
+      border-radius: 28px; padding: 40px;
+    }
+    @media (max-width: 720px) { .form-card { padding: 28px; } }
+    .form-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 16px; }
+    @media (min-width: 640px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+    .fld { display: flex; flex-direction: column; gap: 8px; }
+    .fld.full { grid-column: 1 / -1; }
+    .fld label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(45,23,32,0.6); }
+    .fld input {
+      width: 100%; padding: 14px 18px; border-radius: 14px; background: white;
+      border: 1px solid var(--border); color: var(--fg); font-family: inherit; font-size: 15px;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .fld input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 4px var(--blush); }
+    .fld input.invalid { border-color: #E11D48; }
+    .fld .hint { font-size: 12px; color: #E11D48; padding: 0 4px; }
+    .fld .phone { display: flex; gap: 8px; align-items: center; }
+    .fld .phone .cc {
+      padding: 12px 14px; border-radius: 12px; background: var(--blush); font-size: 14px;
+      font-weight: 500; color: rgba(45,23,32,0.8); flex-shrink: 0;
+    }
+    .banner { margin-top: 20px; padding: 20px; border-radius: 16px; display: flex; gap: 12px; }
+    .banner.hyd { background: var(--blush); border: 1px solid rgba(241,179,194,0.4); }
+    .banner.other { background: var(--pink-soft); border: 1px solid var(--border); }
+    .banner .icon { font-size: 20px; line-height: 1; }
+    .banner .t { font-family: 'Fraunces', serif; font-size: 18px; line-height: 1.3; margin: 0; }
+    .banner .hyd-t { color: var(--pink); }
+    .banner .sub { margin-top: 6px; font-size: 14px; color: rgba(45,23,32,0.7); }
+    .submit-btn { margin-top: 32px; width: 100%; padding: 16px; font-size: 16px; }
+    .submit-note { margin-top: 20px; font-size: 12px; color: rgba(45,23,32,0.5); text-align: center; }
+    .success-card { text-align: center; padding: 40px 32px; background: white; border: 1px solid var(--border); border-radius: 28px; margin-top: 48px; }
+    .success-card h3 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 32px; margin: 20px 0 0; }
+    .success-card p { margin-top: 16px; color: rgba(45,23,32,0.7); max-width: 480px; margin-left: auto; margin-right: auto; }
+    .success-card .pos { margin-top: 20px; font-size: 14px; color: rgba(45,23,32,0.6); }
+
+    /* Footer */
+    footer { padding: 56px 0; border-top: 1px solid var(--border); }
+    footer .inner { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: center; }
+    footer .brand { display: flex; align-items: center; gap: 16px; color: var(--fg); }
+    footer .brand .txt { font-size: 14px; color: rgba(45,23,32,0.6); }
+    footer .meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 14px; color: rgba(45,23,32,0.6); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+             background: var(--ink); color: var(--bg);
+             padding: 14px 22px; border-radius: 9999px; font-size: 14px; font-weight: 500;
+             z-index: 100; opacity: 0; pointer-events: none;
+             transition: opacity .3s, transform .3s cubic-bezier(.16,1,.3,1); max-width: 90vw; text-align: center;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { background: #7A1030; }
+  </style>
+</head>
+<body>
+
+<!-- =============== NAV =============== -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="logo" href="/" aria-label="Mumzo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" height="36" role="img">
+        <rect x="2" y="8" width="48" height="48" rx="14" fill="#C85277" opacity="0.14"/>
+        <path d="M14 42 V26 Q14 20 19 20 T24 26 V42 M24 26 Q24 20 29 20 T34 26 V42"
+              stroke="#2D1720" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M38 22 c1 -2 4 -2 4 0.6 c0 2 -2 3.4 -4 5.4 c-2 -2 -4 -3.4 -4 -5.4 c0 -2.6 3 -2.6 4 0z" fill="#C85277"/>
+        <text x="62" y="44" font-family="Fraunces, serif" font-size="34" font-style="italic" font-weight="500" letter-spacing="-0.5" fill="#2D1720">mumzo</text>
+        <circle cx="98" cy="18" r="2.4" fill="#C85277"/>
+      </svg>
+    </a>
+    <nav class="nav-links">
+      <button onclick="scrollToId('why')">Why Mumzo</button>
+      <button onclick="scrollToId('services')">Services</button>
+      <button onclick="scrollToId('subscribe')">Subscribe</button>
+      <button onclick="scrollToId('city')">Launch city</button>
+    </nav>
+    <button class="btn" onclick="scrollToId('waitlist')" style="padding: 10px 20px; font-size: 14px;">Join waitlist</button>
+  </div>
+</header>
+
+<!-- =============== HERO =============== -->
+<section class="hero">
+  <div class="hero-blob" aria-hidden="true"></div>
+  <div class="wrap">
+    <span class="badge reveal on"><span class="dot"></span> Launching soon in Hyderabad</span>
+    <h1 class="reveal d1 on">Everything for baby.<br /><em>In minutes.</em></h1>
+    <p class="lead reveal d2 on">Mumzo is a quick-commerce store built for moms — from pregnancy through age 5. Hundreds of SKUs. Every size. Delivered to your door in minutes.</p>
+    <div class="cta-row reveal d3 on">
+      <button class="btn" onclick="scrollToId('waitlist')">Join the waitlist →</button>
+      <button class="btn-ghost" onclick="scrollToId('why')">Why Mumzo?</button>
+    </div>
+  </div>
+</section>
+
+<!-- =============== WHY =============== -->
+<section id="why" class="section">
+  <div class="wrap">
+    <span class="kicker reveal">Why Mumzo</span>
+    <h2 class="reveal">The widest baby shelf <br /><em>in your city.</em></h2>
+    <p class="lead-p reveal">Traditional quick-commerce apps carry a handful of baby SKUs, a couple of sizes and only a few known brands. Mumzo is different. We stock the deep, dedicated shelf you'd expect from a baby specialist — hundreds of SKUs, every size, every stage, every essential — and bring it to your door in minutes.</p>
+    <div class="grid">
+      <div class="card reveal d1"><div class="k">100s</div><p>of SKUs across every baby category</p></div>
+      <div class="card reveal d2"><div class="k">All sizes</div><p>from newborn to age 5, always in stock</p></div>
+      <div class="card reveal d3"><div class="k">All stages</div><p>pregnancy, infant, toddler, preschool</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== SERVICES =============== -->
+<section id="services" class="section bg-soft">
+  <div class="wrap">
+    <span class="kicker reveal">Our Services</span>
+    <h2 class="reveal">From <em>bump</em> to age five.</h2>
+    <p class="lead-p reveal">A wide range of baby and mom products — right from pregnancy till your kid turns five — delivered to your doorstep within minutes. One store for every stage.</p>
+    <div class="chips">
+      <span class="chip reveal">Pregnancy essentials</span>
+      <span class="chip reveal d1">Newborn care</span>
+      <span class="chip reveal d1">Formula &amp; feeding</span>
+      <span class="chip reveal d2">Diapers &amp; hygiene</span>
+      <span class="chip reveal d2">Baby clothing (0–5Y)</span>
+      <span class="chip reveal d3">Toys &amp; learning</span>
+      <span class="chip reveal d3">Wellness &amp; skincare</span>
+      <span class="chip reveal d3">Gear &amp; travel</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============== SUBSCRIBE =============== -->
+<section id="subscribe" class="section bg-soft" style="padding-top: 0;">
+  <div class="wrap" style="padding-top: 48px; border-top: 1px solid var(--border);">
+    <span class="kicker reveal">Subscribe &amp; Forget</span>
+    <h2 class="reveal">Set it once. <em>Never think again.</em></h2>
+    <p class="lead-p reveal">Subscribe to the products you burn through — diapers, wet wipes, baby food — and we'll deliver them to your home on a timely schedule. Pause, skip, or change anytime. One less thing on the mental load.</p>
+    <div class="grid">
+      <div class="sub-card reveal d1">
+        <div class="h"><span class="n">01</span><span class="tag">Auto-deliver</span></div>
+        <h3>Diapers</h3><p>Right size, right time. Never run out at 2 AM.</p>
+      </div>
+      <div class="sub-card reveal d2">
+        <div class="h"><span class="n">02</span><span class="tag">Auto-deliver</span></div>
+        <h3>Wet wipes</h3><p>Restocked before the last pack is empty.</p>
+      </div>
+      <div class="sub-card reveal d3">
+        <div class="h"><span class="n">03</span><span class="tag">Auto-deliver</span></div>
+        <h3>Baby food</h3><p>Purées, snacks, formula — delivered like clockwork.</p>
+      </div>
+    </div>
+    <div class="sub-tags reveal">
+      <span class="sub-tag">Weekly</span>
+      <span class="sub-tag">Fortnightly</span>
+      <span class="sub-tag">Monthly</span>
+      <span class="sub-tag">Pause anytime</span>
+      <span class="sub-tag">Skip a delivery</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============== LAUNCH CITY =============== -->
+<section id="city" class="section">
+  <div class="wrap">
+    <span class="kicker reveal">Launch City</span>
+    <h2 class="reveal">Starting where home is — <br /><em>Hyderabad.</em></h2>
+    <p class="lead-p reveal">We're launching first across Hyderabad's key neighbourhoods — with fast, careful delivery. New cities next.</p>
+    <div class="chips">
+      <span class="chip blush reveal">Banjara Hills</span>
+      <span class="chip blush reveal">Jubilee Hills</span>
+      <span class="chip blush reveal d1">Gachibowli</span>
+      <span class="chip blush reveal d1">Kondapur</span>
+      <span class="chip blush reveal d2">HITEC City</span>
+      <span class="chip blush reveal d2">Madhapur</span>
+      <span class="chip blush reveal d3">Kompally</span>
+      <span class="chip blush reveal d3">Kukatpally</span>
+      <span class="chip blush reveal d3">Financial District</span>
+      <span class="chip blush reveal d3">Manikonda</span>
+    </div>
+    <p class="reveal" style="margin-top: 40px; font-size: 14px; color: rgba(45,23,32,0.5);">Not in Hyderabad? Join the waitlist below and we'll ping you when we come to your city.</p>
+  </div>
+</section>
+
+<!-- =============== WAITLIST =============== -->
+<section id="waitlist">
+  <div class="wrap">
+    <div class="head">
+      <span class="kicker reveal">Join the Waitlist</span>
+      <h2 class="reveal">Be first at <em>the door.</em></h2>
+      <p class="lead-p reveal" style="margin-left: auto; margin-right: auto;">Drop your details and we'll ping you the moment Mumzo goes live in your area.</p>
+    </div>
+
+    <!-- Form -->
+    <form id="waitlist-form" class="form-card reveal" novalidate>
+      <div class="form-grid">
+        <div class="fld full">
+          <label for="f-name">Your name</label>
+          <input id="f-name" type="text" placeholder="e.g. Ananya Reddy" required />
+        </div>
+
+        <div class="fld full">
+          <label for="f-phone">Mobile number</label>
+          <div class="phone">
+            <span class="cc">+91</span>
+            <input id="f-phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit mobile" required />
+          </div>
+          <span id="phone-error" class="hint" style="display:none;">Enter a valid 10-digit Indian mobile number.</span>
+        </div>
+
+        <div class="fld full">
+          <label for="f-pincode">Pincode</label>
+          <input id="f-pincode" type="text" inputmode="numeric" maxlength="6" placeholder="e.g. 500033" required />
+        </div>
+      </div>
+
+      <!-- Dynamic banner (fills in based on pincode) -->
+      <div id="banner-slot"></div>
+
+      <!-- Hyderabad-only extra fields -->
+      <div id="hyd-fields" class="form-grid" style="margin-top: 20px;">
+        <div class="fld full">
+          <label for="f-address">Delivery address</label>
+          <input id="f-address" type="text" placeholder="Flat, building, area" />
+        </div>
+        <div class="fld">
+          <label for="f-baby-name">Baby's name</label>
+          <input id="f-baby-name" type="text" placeholder="e.g. Kabir" />
+        </div>
+        <div class="fld">
+          <label for="f-baby-age">Baby's age</label>
+          <input id="f-baby-age" type="text" placeholder="e.g. 6 months" />
+        </div>
+      </div>
+
+      <button id="submit-btn" type="submit" class="btn submit-btn">Join the waitlist →</button>
+      <p class="submit-note">By joining, you agree to hear from us about Mumzo's launch. We'll never share your details.</p>
+    </form>
+
+    <!-- Success card (hidden by default) -->
+    <div id="success" class="success-card" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56" style="color: var(--pink);">
+        <rect x="4" y="4" width="56" height="56" rx="18" fill="#C85277" opacity="0.14"/>
+        <path d="M20 44 V26 Q20 20 26 20 T32 26 V44 M32 26 Q32 20 38 20 T44 26 V44"
+              stroke="#2D1720" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M46 20 c1.6 -3 6 -3 6 1 c0 3 -3 5 -6 8 c-3 -3 -6 -5 -6 -8 c0 -4 4.4 -4 6 -1z" fill="#C85277"/>
+      </svg>
+      <h3 id="success-title">You're on the list, mama.</h3>
+      <p id="success-msg">Welcome to the Mumzo family. We'll see you soon in Hyderabad.</p>
+      <p id="success-pos" class="pos"></p>
+      <button class="btn-ghost" style="margin-top: 28px;" onclick="resetForm()">Add another baby</button>
+    </div>
+  </div>
+</section>
+
+<!-- =============== FOOTER =============== -->
+<footer>
+  <div class="wrap inner">
+    <div class="brand">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" height="28">
+        <rect x="2" y="8" width="48" height="48" rx="14" fill="#C85277" opacity="0.14"/>
+        <path d="M14 42 V26 Q14 20 19 20 T24 26 V42 M24 26 Q24 20 29 20 T34 26 V42"
+              stroke="#2D1720" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M38 22 c1 -2 4 -2 4 0.6 c0 2 -2 3.4 -4 5.4 c-2 -2 -4 -3.4 -4 -5.4 c0 -2.6 3 -2.6 4 0z" fill="#C85277"/>
+        <text x="62" y="44" font-family="Fraunces, serif" font-size="34" font-style="italic" font-weight="500" letter-spacing="-0.5" fill="#2D1720">mumzo</text>
+        <circle cx="98" cy="18" r="2.4" fill="#C85277"/>
+      </svg>
+      <span class="txt">Delivered with love. Starting in Hyderabad.</span>
+    </div>
+    <div class="meta">
+      <span>admin@mumzo.in</span>
+      <span>© <span id="year"></span> Mumzo</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* Year */
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* Smooth scroll */
+  function scrollToId(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* Nav shrink on scroll */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 40) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  /* Reveal-on-scroll for elements marked .reveal */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('on');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* Toast */
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg, isError=false) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  /* Waitlist form logic */
+  const HYD_PIN = /^(500|501)\d{3}$/;
+  const PHONE_RE = /^[6-9]\d{9}$/;
+
+  const $name = document.getElementById('f-name');
+  const $phone = document.getElementById('f-phone');
+  const $pincode = document.getElementById('f-pincode');
+  const $address = document.getElementById('f-address');
+  const $babyName = document.getElementById('f-baby-name');
+  const $babyAge = document.getElementById('f-baby-age');
+  const $submit = document.getElementById('submit-btn');
+  const $bannerSlot = document.getElementById('banner-slot');
+  const $hydFields = document.getElementById('hyd-fields');
+  const $phoneErr = document.getElementById('phone-error');
+  const $form = document.getElementById('waitlist-form');
+  const $success = document.getElementById('success');
+  const $successTitle = document.getElementById('success-title');
+  const $successMsg = document.getElementById('success-msg');
+  const $successPos = document.getElementById('success-pos');
+
+  /* Phone: strip non-digits, validate */
+  $phone.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    validatePhone();
+  });
+  function validatePhone() {
+    const v = $phone.value.trim();
+    if (v.length === 0) { $phone.classList.remove('invalid'); $phoneErr.style.display = 'none'; return true; }
+    const ok = PHONE_RE.test(v);
+    $phone.classList.toggle('invalid', !ok);
+    $phoneErr.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+
+  /* Pincode: strip to digits, live banner + gate */
+  $pincode.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    updatePinBanner();
+  });
+  function updatePinBanner() {
+    const v = $pincode.value.trim();
+    const pinValid = /^\d{6}$/.test(v);
+    const isHyd = HYD_PIN.test(v);
+    if (!pinValid) {
+      $bannerSlot.innerHTML = '';
+      $hydFields.style.display = '';
+      $submit.textContent = 'Join the waitlist →';
+      return;
+    }
+    if (isHyd) {
+      $bannerSlot.innerHTML = `
+        <div class="banner hyd">
+          <span class="icon">♡</span>
+          <div>
+            <p class="t hyd-t">You're in Hyderabad — we launch here first.</p>
+            <p class="sub">A few more details so we can pack your first delivery with care.</p>
+          </div>
+        </div>`;
+      $hydFields.style.display = '';
+      $submit.textContent = 'Join the waitlist →';
+    } else {
+      $bannerSlot.innerHTML = `
+        <div class="banner other">
+          <span class="icon">✈</span>
+          <div>
+            <p class="t">We're only in Hyderabad right now.</p>
+            <p class="sub">Leave your name, phone and pincode — we'll notify you the moment Mumzo launches in your city. No baby details needed.</p>
+          </div>
+        </div>`;
+      $hydFields.style.display = 'none';
+      $submit.textContent = 'Notify me in my city';
+    }
+  }
+
+  /* Simple UUID */
+  function uid() {
+    return (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+           'xxxxxxxxxxxx4xxx'.replace(/[xy]/g, c => {
+             const r = Math.random() * 16 | 0;
+             return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+           });
+  }
+
+  /* Submit */
+  $form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $name.value.trim();
+    const phone = $phone.value.trim();
+    const pincode = $pincode.value.trim();
+    if (!name || !phone || !pincode) return showToast('Please fill in your name, phone and pincode.', true);
+    if (!validatePhone()) return showToast('Enter a valid 10-digit mobile number.', true);
+    if (!/^\d{6}$/.test(pincode)) return showToast('Please enter a valid 6-digit pincode.', true);
+
+    const isHyd = HYD_PIN.test(pincode);
+    if (isHyd) {
+      if (!$address.value.trim() || !$babyName.value.trim() || !$babyAge.value.trim()) {
+        return showToast('Please fill in every field, mama.', true);
+      }
+    }
+
+    const payload = {
+      id: uid(),
+      name,
+      phone,
+      address: isHyd ? $address.value.trim() : '—',
+      pincode,
+      baby_name: isHyd ? $babyName.value.trim() : '—',
+      baby_age: isHyd ? $babyAge.value.trim() : '—',
+      is_hyderabad: isHyd,
+      created_at: new Date().toISOString(),
+    };
+
+    $submit.disabled = true;
+    $submit.textContent = 'Joining…';
+
+    try {
+      // Google Apps Script accepts simple POSTs (text/plain avoids CORS preflight).
+      await fetch(window.MUMZO_SHEETS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+
+      // Show success
+      if (isHyd) {
+        $successTitle.textContent = "You're on the list, mama.";
+        $successMsg.textContent = "Welcome to the Mumzo family. We'll see you soon in Hyderabad.";
+        $successPos.textContent = "You've joined our growing family of Hyderabad mamas.";
+      } else {
+        $successTitle.textContent = "We'll come to you, mama.";
+        $successMsg.textContent = "We're not in your city yet, but you're on our future-cities list. We'll ping you the moment Mumzo comes near you.";
+        $successPos.textContent = "On the future-cities list.";
+      }
+      $form.style.display = 'none';
+      $success.style.display = 'block';
+      showToast(isHyd ? "You're on the list!" : "We'll notify you soon!");
+      window.scrollTo({ top: document.getElementById('waitlist').offsetTop - 40, behavior: 'smooth' });
+    } catch (err) {
+      showToast('Something went wrong. Try again.', true);
+      $submit.disabled = false;
+      $submit.textContent = isHyd ? 'Join the waitlist →' : 'Notify me in my city';
+    }
+  });
+
+  function resetForm() {
+    $form.reset();
+    $form.style.display = '';
+    $success.style.display = 'none';
+    $bannerSlot.innerHTML = '';
+    $hydFields.style.display = '';
+    $submit.disabled = false;
+    $submit.textContent = 'Join the waitlist →';
+    scrollToId('waitlist');
+  }
+</script>
+</body>
+</html>
