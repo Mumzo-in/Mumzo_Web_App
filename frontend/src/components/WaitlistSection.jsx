@@ -41,6 +41,7 @@ export default function WaitlistSection() {
     try {
       const { data } = await axios.post(`${API}/waitlist`, form);
       setSuccess(data);
+      toast.dismiss();
       toast.success(data.message || "You're on the list!");
       setForm(initial);
     } catch (err) {

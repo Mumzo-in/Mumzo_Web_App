@@ -167,6 +167,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+@app.on_event("startup")
+async def migrate_waitlist():
+    """Backfill legacy waitlist docs missing the `pincode` / `is_hyderabad` fields
+    (added later). Keeps the strict response model happy without dropping data."""
+    try:
+        result = await db.waitlist.update_many(
+            {"pincode": {"$exists": False}},
+            {"$set": {"pincode": "000000", "is_hyderabad": False}},
+        )
+        if result.modified_count:
+            logger.info(f"Backfilled {result.modified_count} legacy waitlist docs with pincode.")
+        # Ensure unique index on email for correctness under race conditions
+        await db.waitlist.create_index("email", unique=True)
+    except Exception as exc:  # pragma: no cover
+        logger.warning(f"Waitlist migration skipped: {exc}")
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
