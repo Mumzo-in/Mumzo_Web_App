@@ -16,6 +16,18 @@ const initial = {
 };
 
 const HYD_PIN = /^(500|501)\d{3}$/;
+// Reasonable email sense-check (not a full RFC parser; catches typos and obvious garbage)
+const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const COMMON_TYPOS = {
+  "gmial.com": "gmail.com",
+  "gmai.com": "gmail.com",
+  "gmail.co": "gmail.com",
+  "gnail.com": "gmail.com",
+  "yaho.com": "yahoo.com",
+  "yahooo.com": "yahoo.com",
+  "hotmial.com": "hotmail.com",
+  "outlok.com": "outlook.com",
+};
 
 export default function WaitlistSection() {
   const [form, setForm] = useState(initial);
@@ -23,6 +35,14 @@ export default function WaitlistSection() {
   const [success, setSuccess] = useState(null);
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const email = form.email.trim();
+  const emailTouched = email.length > 0;
+  const emailValid = EMAIL_RE.test(email);
+  const emailDomain = email.split("@")[1]?.toLowerCase() || "";
+  const emailSuggestion = COMMON_TYPOS[emailDomain]
+    ? `${email.split("@")[0]}@${COMMON_TYPOS[emailDomain]}`
+    : null;
 
   const pin = form.pincode.trim();
   const pinValid = /^\d{6}$/.test(pin);
@@ -33,6 +53,10 @@ export default function WaitlistSection() {
     e.preventDefault();
     if (!form.name || !form.email || !form.pincode) {
       toast.error("Please fill in your name, email and pincode.");
+      return;
+    }
+    if (!emailValid) {
+      toast.error("That email doesn't look right. Please double-check.");
       return;
     }
     if (!pinValid) {
@@ -150,9 +174,26 @@ export default function WaitlistSection() {
                     placeholder="you@hello.com"
                     value={form.email}
                     onChange={update("email")}
-                    className="mumzo-input"
+                    className={`mumzo-input ${emailTouched && !emailValid ? "!border-destructive !shadow-none" : ""}`}
                     required
+                    autoComplete="email"
+                    aria-invalid={emailTouched && !emailValid}
                   />
+                  {emailTouched && !emailValid && (
+                    <span data-testid="email-error" className="text-xs text-destructive px-1">
+                      Please enter a valid email address (e.g. name@example.com).
+                    </span>
+                  )}
+                  {emailValid && emailSuggestion && (
+                    <button
+                      type="button"
+                      data-testid="email-suggestion"
+                      onClick={() => setForm((f) => ({ ...f, email: emailSuggestion }))}
+                      className="text-xs text-pinkDeep px-1 self-start hover:underline"
+                    >
+                      Did you mean <b>{emailSuggestion}</b>?
+                    </button>
+                  )}
                 </label>
                 <label className="flex flex-col gap-2 md:col-span-2">
                   <span className="text-xs uppercase tracking-widest text-foreground/60">Pincode</span>
@@ -276,9 +317,9 @@ export default function WaitlistSection() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (emailTouched && !emailValid)}
                 data-testid="waitlist-submit"
-                className="mt-8 mumzo-btn text-base w-full justify-center disabled:opacity-60"
+                className="mt-8 mumzo-btn text-base w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? "Joining…" : isFuture ? "Notify me in my city" : "Join the waitlist →"}
               </button>
