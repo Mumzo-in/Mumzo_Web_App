@@ -136,8 +136,12 @@ export default function WaitlistSection() {
               <p className="mt-4 text-foreground/70 max-w-md mx-auto" data-testid="waitlist-success-message">
                 {success.message}
               </p>
-              <p className="mt-6 text-sm text-foreground/50">
-                {success.is_hyderabad ? `Position #${success.position}` : "On the future-cities list"}
+              <p className="mt-6 text-sm text-foreground/60">
+                {success.is_hyderabad
+                  ? success.position === 1
+                    ? "You're our very first mama on the list. 🌸"
+                    : `You've joined ${success.position - 1} other ${success.position - 1 === 1 ? "mama" : "mamas"} on the list.`
+                  : "On the future-cities list"}
               </p>
               <button
                 onClick={() => setSuccess(null)}
