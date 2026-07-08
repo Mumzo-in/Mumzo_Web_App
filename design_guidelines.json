@@ -1,0 +1,110 @@
+{
+  "theme": "light",
+  "brand": {
+    "name": "Mumzo",
+    "vibe": "Warm, playful, soft pastels, nurturing, premium, craft-driven",
+    "logo_url": "https://customer-assets.emergentagent.com/job_mumzo-hyderabad/artifacts/6aohy5d4_Screenshot%202026-07-08%20at%2010.27.12%E2%80%AFPM.png"
+  },
+  "typography": {
+    "heading_font": "Fraunces, serif",
+    "body_font": "Manrope, sans-serif",
+    "accent_font": "Caveat, cursive",
+    "font_weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "guidelines": "Headings must use Fraunces with tight tracking (tracking-tighter) to feel editorial. Body copy in Manrope for clean legibility. Add 'Caveat' for hand-drawn, playful accent notes."
+  },
+  "colors": {
+    "background": "#FDFBF7",
+    "foreground": "#1F1B3A",
+    "primary": "#1F1B3A",
+    "primary_foreground": "#FDFBF7",
+    "accent_peach": "#FDE2CE",
+    "accent_sage": "#D8E2D5",
+    "accent_cream": "#F6F3EC",
+    "surface": "#FFFFFF",
+    "border": "#E5E0D8"
+  },
+  "visual_enhancers": {
+    "border_radius": "Extensive use of rounded corners. Buttons and tags should be pill-shaped (rounded-full). Product frames should use rounded-3xl or arched clipping.",
+    "shadows": "Warm, ambient, diffuse shadows. Example: shadow-[0_12px_40px_rgb(31,27,58,0.08)]",
+    "textures": "Add a global fixed SVG grain/noise overlay (opacity-40, pointer-events-none, mix-blend-multiply) to give a tactile, printed feel.",
+    "borders": "Delicate structural lines (1px solid #E5E0D8).",
+    "shapes": "Clipped frames (pill shapes, arches) for all product photography to break the standard rectangle."
+  },
+  "layouts": {
+    "navigation": "Sticky, glassmorphic header (backdrop-blur-xl bg-[#FDFBF7]/80). Logo left, minimal links, pill-shaped primary CTA right. Z-index 50.",
+    "hero": "Min-h-[90vh] center-aligned layout. Dominated by oversized Fraunces typography. Line-by-line reveal. Floating clipped images drifting in space via framer-motion parallax.",
+    "marquee": "Full-width editorial ribbon. Pale sage background, massive Fraunces text separated by middle dots, moving slowly.",
+    "manifesto_chapters": "Asymmetric bento grid or staggering left-right sections. Numbered 01, 02, 03 using massive (text-[12vw]) pale absolute-positioned numerals behind the text.",
+    "product_showcase": "Curated grid of spotlight product photos (clothes, toys, food) in clipped frames. High-quality imagery, breathing room (p-12).",
+    "hyderabad_banner": "High-impact block, likely using the peach accent background. Emphasizing 'Launching in Hyderabad initially'.",
+    "waitlist_form": "Centered, narrow container (max-w-md). Inputs must have pill-shape borders and soft focus states. Fields: Name, Email, Address, Baby's Name, Baby's Age."
+  },
+  "motion": {
+    "scroll_engine": "Must install and configure @studio-freight/react-lenis for premium momentum scrolling.",
+    "hero_reveal": "Framer Motion: Wrap text lines in overflow-hidden divs. Animate the text spans inside from {y: '100%'} to {y: '0%'} with a smooth ease (e.g., [0.16, 1, 0.3, 1]).",
+    "scroll_reveals": "Sections use whileInView animations (opacity 0 -> 1, y 30 -> 0) to glide into place.",
+    "parallax": "Use useScroll and useTransform for floating elements in the hero and chapter numbers moving at different speeds than the scroll."
+  },
+  "images": {
+    "logo": {
+      "url": "https://customer-assets.emergentagent.com/job_mumzo-hyderabad/artifacts/6aohy5d4_Screenshot%202026-07-08%20at%2010.27.12%E2%80%AFPM.png",
+      "description": "Mumzo Logo"
+    },
+    "hero_mom_baby": {
+      "url": "https://images.unsplash.com/photo-1560707854-fb9a10eeaace?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxtb20lMjBhbmQlMjBiYWJ5JTIwbG92aW5nJTIwd2FybXxlbnwwfHx8fDE3ODM1MzAzMDV8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Mom carrying baby smiling, warm edit"
+    },
+    "product_clothes": {
+      "url": "https://images.unsplash.com/photo-1622290319146-7b63df48a635?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwyfHxiYWJ5JTIwY2xvdGhlcyUyMHBhc3RlbCUyMGZsYXRsYXl8ZW58MHx8fHwxNzgzNTMwMzA1fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Pastel baby clothes flatlay"
+    },
+    "product_toys": {
+      "url": "https://images.unsplash.com/photo-1600978398568-48175fd97cce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwyfHx3b29kZW4lMjBiYWJ5JTIwdG95cyUyMG5ldXRyYWx8ZW58MHx8fHwxNzgzNTMwMzA1fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Neutral wooden baby toys"
+    },
+    "product_food": {
+      "url": "https://images.unsplash.com/photo-1633306002612-cbb98bb0a65d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwyfHxvcmdhbmljJTIwYmFieSUyMGZvb2QlMjBib3dsfGVufDB8fHx8MTc4MzUzMDMwNXww&ixlib=rb-4.1.0&q=85",
+      "description": "Organic baby food being fed"
+    }
+  },
+  "components": [
+    {
+      "name": "KineticHero",
+      "instructions": "Build a large H1 with text 'The deepest depth of SKUs. Delivered with love.' Mask each line using framer-motion. Include drifting floating images (use hero_mom_baby and product_clothes) in clipped arch/pill shapes."
+    },
+    {
+      "name": "EditorialMarquee",
+      "instructions": "Use react-fast-marquee. Text: 'Delivered with love · to your doorstep · in Hyderabad · 10 minute delivery ·'. Large italic/serif font, Sage background."
+    },
+    {
+      "name": "ManifestoChapters",
+      "instructions": "Create 3 chapters (01. The Problem, 02. The Solution, 03. The Promise). Alternate layouts (image left/text right). Use massive typography for the numbers and place them in the background. Use the Caveat font for a small hand-drawn note in one of the chapters."
+    },
+    {
+      "name": "WaitlistForm",
+      "instructions": "Fields: name, email, address, baby_name, baby_age. Use native HTML + Tailwind for standard text inputs, but style them beautifully with rounded-full, border-border, and focus:ring-primary. Include a submit button that says 'Join the Waitlist' with a subtle hover scale."
+    }
+  ],
+  "accessibility": {
+    "contrast": "Ensure the navy text (#1F1B3A) passes WCAG AA against #FDFBF7, #FDE2CE, and #D8E2D5.",
+    "aria": "Add aria-labels to the marquee and any purely decorative images.",
+    "testing": "All interactive elements (buttons, inputs) must include data-testid attributes."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You MUST read this JSON and apply its instructions precisely.",
+    "Theme: DO NOT default to a dark mode or standard tech aesthetic. This is a warm, pastel, premium maternal brand. Stick strictly to the colors provided.",
+    "Typography: Import Fraunces, Manrope, and Caveat from Google Fonts in index.css. Apply Fraunces to all h1-h6 tags.",
+    "Layouts: Avoid Shadcn Card components for the main layout. Build custom asymmetrical sections and grids using Tailwind HTML.",
+    "Motion: Install and implement @studio-freight/react-lenis at the root App level. Install framer-motion and use it for all scroll reveals and the kinetic hero.",
+    "Hero: The line-by-line reveal is critical for the 'Awwwards' feel. Wrap text in overflow-hidden, animate inner spans.",
+    "Textures: Inject an SVG noise/grain overlay spanning the entire viewport to kill the 'digital flatness'.",
+    "DO NOT apply transition: all globally. Use specific transition-colors or transition-transform.",
+    "Do not use default icons unless necessary; rely heavily on the typography and provided Unsplash imagery."
+  ]
+}
