@@ -1,9 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
+import httpx
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
 from typing import List, Optional
@@ -11,6 +13,26 @@ import re
 
 # Hyderabad + Secunderabad pincodes fall in 500xxx and 501xxx (Telangana)
 HYDERABAD_PINCODE_RE = re.compile(r"^(500|501)\d{3}$")
+
+# Google Sheets webhook (Apps Script Web App URL) — set in backend/.env as GOOGLE_SHEETS_WEBHOOK_URL
+SHEETS_WEBHOOK_URL = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+
+
+async def push_to_sheets(entry: dict) -> None:
+    """Fire-and-forget POST to a Google Apps Script Web App that appends the row
+    to a Google Sheet. Non-blocking: failures are logged but never break the API.
+    """
+    if not SHEETS_WEBHOOK_URL:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as http:
+            r = await http.post(SHEETS_WEBHOOK_URL, json=entry)
+            if r.status_code >= 400:
+                logging.getLogger(__name__).warning(
+                    "Sheets webhook returned %s: %s", r.status_code, r.text[:200]
+                )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("Sheets webhook failed: %s", exc)
 import uuid
 from datetime import datetime, timezone
 
@@ -73,7 +95,7 @@ async def root():
 
 
 @api_router.post("/waitlist", response_model=WaitlistResponse)
-async def join_waitlist(payload: WaitlistCreate):
+async def join_waitlist(payload: WaitlistCreate, background_tasks: BackgroundTasks):
     is_hyderabad = bool(HYDERABAD_PINCODE_RE.match(payload.pincode))
 
     # Check dupe by email
@@ -107,6 +129,20 @@ async def join_waitlist(payload: WaitlistCreate):
 
     await db.waitlist.insert_one(doc)
     position = await db.waitlist.count_documents({})
+
+    # Fire-and-forget Google Sheets webhook
+    background_tasks.add_task(push_to_sheets, {
+        "id": entry.id,
+        "name": entry.name,
+        "email": entry.email,
+        "address": entry.address,
+        "pincode": entry.pincode,
+        "baby_name": entry.baby_name,
+        "baby_age": entry.baby_age,
+        "is_hyderabad": is_hyderabad,
+        "position": position,
+        "created_at": doc["created_at"],
+    })
 
     if is_hyderabad:
         message = "Welcome to the Mumzo family. We'll see you soon in Hyderabad."

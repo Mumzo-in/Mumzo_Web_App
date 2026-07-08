@@ -1,7 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import MumzoLogo from "@/components/MumzoLogo";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -26,20 +27,34 @@ export default function WaitlistSection() {
   const pin = form.pincode.trim();
   const pinValid = /^\d{6}$/.test(pin);
   const pinIsHyd = HYD_PIN.test(pin);
+  const isFuture = pinValid && !pinIsHyd;
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.address || !form.pincode || !form.baby_name || !form.baby_age) {
-      toast.error("Please fill in every field, mama.");
+    if (!form.name || !form.email || !form.pincode) {
+      toast.error("Please fill in your name, email and pincode.");
       return;
     }
     if (!pinValid) {
       toast.error("Please enter a valid 6-digit pincode.");
       return;
     }
+    // For Hyderabad — require the full form. For future-cities — name + email + pincode is enough.
+    if (pinIsHyd && (!form.address || !form.baby_name || !form.baby_age)) {
+      toast.error("Please fill in every field, mama.");
+      return;
+    }
     setLoading(true);
     try {
-      const { data } = await axios.post(`${API}/waitlist`, form);
+      const payload = pinIsHyd
+        ? form
+        : {
+            ...form,
+            address: form.address || "—",
+            baby_name: form.baby_name || "—",
+            baby_age: form.baby_age || "—",
+          };
+      const { data } = await axios.post(`${API}/waitlist`, payload);
       setSuccess(data);
       toast.dismiss();
       toast.success(data.message || "You're on the list!");
@@ -86,8 +101,8 @@ export default function WaitlistSection() {
               data-testid="waitlist-success"
               className="p-10 md:p-12 rounded-3xl bg-white border border-border/70 text-center"
             >
-              <div className="mx-auto w-14 h-14 rounded-full bg-blush flex items-center justify-center mb-6">
-                <span className="text-2xl">{success.is_hyderabad ? "♡" : "✈"}</span>
+              <div className="mx-auto mb-6 text-pinkDeep">
+                <MumzoLogo variant="mark" height={56} />
               </div>
               <h3 className="font-editorial text-3xl md:text-4xl leading-tight" data-testid="waitlist-success-title">
                 {success.is_hyderabad
@@ -140,18 +155,6 @@ export default function WaitlistSection() {
                   />
                 </label>
                 <label className="flex flex-col gap-2 md:col-span-2">
-                  <span className="text-xs uppercase tracking-widest text-foreground/60">Delivery address</span>
-                  <input
-                    data-testid="waitlist-address"
-                    type="text"
-                    placeholder="Flat, building, area"
-                    value={form.address}
-                    onChange={update("address")}
-                    className="mumzo-input"
-                    required
-                  />
-                </label>
-                <label className="flex flex-col gap-2">
                   <span className="text-xs uppercase tracking-widest text-foreground/60">Pincode</span>
                   <input
                     data-testid="waitlist-pincode"
@@ -165,45 +168,111 @@ export default function WaitlistSection() {
                     required
                   />
                 </label>
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs uppercase tracking-widest text-foreground/60">Baby's name</span>
-                  <input
-                    data-testid="waitlist-baby-name"
-                    type="text"
-                    placeholder="e.g. Kabir"
-                    value={form.baby_name}
-                    onChange={update("baby_name")}
-                    className="mumzo-input"
-                    required
-                  />
-                </label>
-                <label className="flex flex-col gap-2 md:col-span-2">
-                  <span className="text-xs uppercase tracking-widest text-foreground/60">Baby's age</span>
-                  <input
-                    data-testid="waitlist-baby-age"
-                    type="text"
-                    placeholder="e.g. 6 months"
-                    value={form.baby_age}
-                    onChange={update("baby_age")}
-                    className="mumzo-input"
-                    required
-                  />
-                </label>
               </div>
 
-              {pinValid && (
-                <div
-                  data-testid={pinIsHyd ? "pin-hint-hyderabad" : "pin-hint-other"}
-                  className={`mt-5 px-4 py-2.5 rounded-full text-sm inline-flex items-center gap-2 ${
-                    pinIsHyd ? "bg-blush text-pinkDeep" : "bg-pinkSoft text-foreground/80 border border-border/70"
-                  }`}
-                >
-                  <span aria-hidden>{pinIsHyd ? "♡" : "✈"}</span>
-                  {pinIsHyd
-                    ? "You're in Hyderabad — we launch here first."
-                    : "Not in Hyderabad — we'll notify when we come to you."}
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {isFuture && (
+                  <motion.div
+                    key="future"
+                    initial={{ opacity: 0, y: -8, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -8, height: 0 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    data-testid="pin-hint-other"
+                    className="mt-5 overflow-hidden"
+                  >
+                    <div className="p-5 rounded-2xl bg-pinkSoft border border-rose/40 flex gap-3">
+                      <span className="text-xl leading-none" aria-hidden>✈</span>
+                      <div>
+                        <p className="font-editorial text-lg leading-snug">
+                          We're only in Hyderabad right now.
+                        </p>
+                        <p className="mt-1.5 text-sm text-foreground/70 leading-relaxed">
+                          Leave your name, email and pincode — we'll notify you
+                          the moment Mumzo launches in your city. No baby details
+                          needed.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                {pinValid && pinIsHyd && (
+                  <motion.div
+                    key="hyd"
+                    initial={{ opacity: 0, y: -8, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -8, height: 0 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    data-testid="pin-hint-hyderabad"
+                    className="mt-5 overflow-hidden"
+                  >
+                    <div className="p-5 rounded-2xl bg-blush border border-rose/40 flex gap-3">
+                      <span className="text-xl leading-none text-pinkDeep" aria-hidden>♡</span>
+                      <div>
+                        <p className="font-editorial text-lg leading-snug text-pinkDeep">
+                          You're in Hyderabad — we launch here first.
+                        </p>
+                        <p className="mt-1.5 text-sm text-foreground/70 leading-relaxed">
+                          A few more details so we can pack your first delivery
+                          with care.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence initial={false}>
+                {(!pinValid || pinIsHyd) && (
+                  <motion.div
+                    key="hyd-fields"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-5 grid md:grid-cols-2 gap-4">
+                      <label className="flex flex-col gap-2 md:col-span-2">
+                        <span className="text-xs uppercase tracking-widest text-foreground/60">Delivery address</span>
+                        <input
+                          data-testid="waitlist-address"
+                          type="text"
+                          placeholder="Flat, building, area"
+                          value={form.address}
+                          onChange={update("address")}
+                          className="mumzo-input"
+                          required={pinIsHyd || !pinValid}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-widest text-foreground/60">Baby's name</span>
+                        <input
+                          data-testid="waitlist-baby-name"
+                          type="text"
+                          placeholder="e.g. Kabir"
+                          value={form.baby_name}
+                          onChange={update("baby_name")}
+                          className="mumzo-input"
+                          required={pinIsHyd || !pinValid}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-widest text-foreground/60">Baby's age</span>
+                        <input
+                          data-testid="waitlist-baby-age"
+                          type="text"
+                          placeholder="e.g. 6 months"
+                          value={form.baby_age}
+                          onChange={update("baby_age")}
+                          className="mumzo-input"
+                          required={pinIsHyd || !pinValid}
+                        />
+                      </label>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <button
                 type="submit"
@@ -211,7 +280,7 @@ export default function WaitlistSection() {
                 data-testid="waitlist-submit"
                 className="mt-8 mumzo-btn text-base w-full justify-center disabled:opacity-60"
               >
-                {loading ? "Joining…" : pinValid && !pinIsHyd ? "Notify me in my city" : "Join the waitlist →"}
+                {loading ? "Joining…" : isFuture ? "Notify me in my city" : "Join the waitlist →"}
               </button>
 
               <p className="mt-5 text-xs text-foreground/50 text-center">
