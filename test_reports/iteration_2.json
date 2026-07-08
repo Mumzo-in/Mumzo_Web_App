@@ -1,0 +1,78 @@
+{
+  "summary": "Pincode-gate feature tested end-to-end. Backend: 17/18 pytest cases passing (all pincode-gate specs pass). Frontend: 7/7 playwright checks passing (input stripping, sage/peach hints, conditional CTA, sage/peach success cards, client-side invalid-pin toast with no API call). ONE real backend bug found: GET /api/waitlist returns 500 due to legacy DB entries created before the pincode column existed.",
+  "tested_scope": ["backend", "frontend", "integration"],
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/waitlist",
+        "issue": "Returns 500 ResponseValidationError because ~3 legacy waitlist docs in MongoDB (created before pincode field was added) fail Pydantic validation on `pincode` (missing). Traceback in /var/log/supervisor/backend.err.log confirms 3 missing-pincode validation errors. New entries created during this test iteration are fine — only pre-existing docs from iteration_1 break the list endpoint.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Waitlist success card (peach)",
+        "issues": ["Sonner toast from the previous submission can linger on screen when the user immediately submits a second entry (see screenshot: 'Welcome to the Mumzo family…' toast still visible under the 'We'll come to you' peach card). Minor UX polish — consider dismissing prior toasts before showing next success."]
+      }
+    ]
+  },
+  "backend_verified_scenarios": [
+    "POST /api/waitlist pincode=500033 -> is_hyderabad=true, welcome msg mentioning Hyderabad",
+    "POST /api/waitlist pincode=501101 -> is_hyderabad=true (501xxx range covered)",
+    "POST /api/waitlist pincode=400001 -> is_hyderabad=false, future-cities msg",
+    "POST /api/waitlist pincode=560001 -> is_hyderabad=false",
+    "POST /api/waitlist pincode='12' -> 422",
+    "POST /api/waitlist pincode='5000AB' -> 422",
+    "POST /api/waitlist without pincode -> 422",
+    "POST /api/waitlist duplicate email preserves ORIGINAL is_hyderabad=true even when new payload is non-Hyd",
+    "POST /api/waitlist duplicate email preserves ORIGINAL is_hyderabad=false even when new payload is Hyd",
+    "GET /api/waitlist/pincode-check?pincode=500001 -> {valid:true,is_hyderabad:true}",
+    "GET /api/waitlist/pincode-check?pincode=501500 -> {valid:true,is_hyderabad:true}",
+    "GET /api/waitlist/pincode-check?pincode=560001 -> {valid:true,is_hyderabad:false}",
+    "GET /api/waitlist/pincode-check?pincode=12 -> {valid:false,is_hyderabad:false}",
+    "GET /api/waitlist/pincode-check?pincode=5000AB -> {valid:false}",
+    "GET /api/waitlist/pincode-check?pincode=499999 -> {valid:true,is_hyderabad:false} (boundary)",
+    "GET /api/waitlist/pincode-check?pincode=502000 -> {valid:true,is_hyderabad:false} (boundary)",
+    "GET /api/ -> 200 Mumzo welcome message"
+  ],
+  "frontend_verified_scenarios": [
+    "waitlist-form + waitlist-pincode render at REACT_APP_BACKEND_URL",
+    "Typing '50a0b0c33xxx' into pincode strips non-digits and caps to '500033'",
+    "Typing '500033' reveals data-testid='pin-hint-hyderabad' with sage bg and text 'You\\'re in Hyderabad'",
+    "Typing '560001' reveals data-testid='pin-hint-other' with peach bg, CTA text becomes 'Notify me in my city'",
+    "Typing 3-digit '123' hides both hint pills",
+    "Submitting with pincode='123' triggers sonner toast 'Please enter a valid 6-digit pincode.' and makes NO POST /api/waitlist call (verified via page.on('request') listener)",
+    "Valid Hyderabad submission (500033) shows waitlist-success card with bg-[hsl(var(--sage))] and title 'You\\'re on the list, mama.'",
+    "Valid non-Hyd submission (400001) shows waitlist-success card with bg-[hsl(var(--peach))] and title 'We\\'ll come to you, mama.'"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_waitlist_pincode.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix GET /api/waitlist 500: either (a) make `pincode` Optional in WaitlistEntry response model, (b) migrate legacy docs to add a placeholder pincode (e.g., empty string or 'unknown'), or (c) filter/backfill in the list endpoint. Preferred: run a one-time migration `db.waitlist.update_many({pincode:{$exists:false}},{$set:{pincode:'000000',is_hyderabad:false}})`.",
+    "(Minor) Dismiss prior sonner toasts before showing next success toast to avoid stale message overlap."
+  ],
+  "critical_code_review_comments": [
+    "WaitlistEntry response model is strict on `pincode` but the collection can contain legacy docs — either enforce a migration on startup or relax the field. This is causing the /api/waitlist 500.",
+    "server.py `find_one({'email': payload.email.lower()})` — good, but write path uses `payload.email.lower().strip()`; read path only lowercases (no strip). Minor: if any legacy row has a trailing-space email, dedup will miss it. Safe for now.",
+    "Duplicate-email path (line 82) recomputes `count = count_documents({})` and returns it as `position`. This is technically the current total, not the original position of the existing entry. Acceptable, but semantically 'position' is misleading for a duplicate.",
+    "server.py stores `created_at` as ISO string via `doc['created_at'] = doc['created_at'].isoformat()` then list endpoint parses back — works, but consider using native BSON datetime for consistency.",
+    "No index on `email` in `db.waitlist` — duplicate detection is O(n) on every submit. Add unique index for correctness under race conditions."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_waitlist_pincode.py (new pytest suite for pincode gate)"
+  ],
+  "success_rate": {"backend": "94% (17/18 — the failing case is a pre-existing legacy-data bug on GET /api/waitlist, not the pincode feature itself)", "frontend": "100% (7/7 pincode-gate UI checks)"},
+  "test_credentials": "N/A (no auth in this app)",
+  "seed_data_creation": "Created ~7 fresh test entries with TEST_-prefixed unique emails (TEST_hyd_*, TEST_sec_*, TEST_mum_*, TEST_blr_*, TEST_dup_*, TEST_dup2_*, plus ui_hyd_* and ui_other_* from playwright run). All entries include the new pincode + is_hyderabad fields.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend pincode-gate feature works exactly per spec including the tricky duplicate-email flag-preservation case. The one remaining 500 on GET /api/waitlist is caused by legacy iteration_1 docs that lack the `pincode` field — the main agent needs to either backfill those docs or relax the response model. Once fixed, rerun /app/backend/tests/test_waitlist_pincode.py to confirm 18/18. Frontend pincode UX (strip/cap, sage/peach hints, conditional CTA, sage/peach success cards, client-side invalid-pin toast) is fully working — no retest needed unless the form markup changes.",
+  "rca_of_the_issue": "GET /api/waitlist 500 root cause: In iteration_1 the WaitlistEntry model did NOT have a `pincode` field, so ~3 docs got persisted without it. Iteration_2 added `pincode: str` (non-optional) to WaitlistEntry and used it as `response_model=List[WaitlistEntry]` on the list endpoint. FastAPI's serialize_response now runs Pydantic validation on every returned doc and raises ResponseValidationError for each legacy doc missing `pincode`. Reproduction: `curl -s $REACT_APP_BACKEND_URL/api/waitlist` -> 500. Mitigation options ranked: (1) db.waitlist.update_many({pincode:{$exists:false}},{$set:{pincode:'000000',is_hyderabad:false}}) as one-shot startup migration, (2) make `pincode: Optional[str] = None` in WaitlistEntry, (3) drop response_model and return dicts."
+}
