@@ -9,9 +9,12 @@ const initial = {
   name: "",
   email: "",
   address: "",
+  pincode: "",
   baby_name: "",
   baby_age: "",
 };
+
+const HYD_PIN = /^(500|501)\d{3}$/;
 
 export default function WaitlistSection() {
   const [form, setForm] = useState(initial);
@@ -20,10 +23,18 @@ export default function WaitlistSection() {
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const pin = form.pincode.trim();
+  const pinValid = /^\d{6}$/.test(pin);
+  const pinIsHyd = HYD_PIN.test(pin);
+
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.address || !form.baby_name || !form.baby_age) {
+    if (!form.name || !form.email || !form.address || !form.pincode || !form.baby_name || !form.baby_age) {
       toast.error("Please fill in every field, mama.");
+      return;
+    }
+    if (!pinValid) {
+      toast.error("Please enter a valid 6-digit pincode.");
       return;
     }
     setLoading(true);
@@ -77,19 +88,23 @@ export default function WaitlistSection() {
             {success ? (
               <div
                 data-testid="waitlist-success"
-                className="p-10 md:p-14 rounded-[32px] bg-[hsl(var(--sage))] border border-border/60 text-center"
+                className={`p-10 md:p-14 rounded-[32px] border border-border/60 text-center ${
+                  success.is_hyderabad ? "bg-[hsl(var(--sage))]" : "bg-[hsl(var(--peach))]"
+                }`}
               >
                 <div className="mx-auto w-14 h-14 rounded-full bg-background flex items-center justify-center border border-border/60 mb-6">
-                  <span className="text-2xl">✿</span>
+                  <span className="text-2xl">{success.is_hyderabad ? "✿" : "✈"}</span>
                 </div>
-                <h3 className="font-editorial text-3xl md:text-4xl leading-tight">
-                  You're on the list, mama.
+                <h3 className="font-editorial text-3xl md:text-4xl leading-tight" data-testid="waitlist-success-title">
+                  {success.is_hyderabad
+                    ? "You're on the list, mama."
+                    : "We'll come to you, mama."}
                 </h3>
-                <p className="mt-4 text-foreground/75 max-w-md mx-auto">
+                <p className="mt-4 text-foreground/75 max-w-md mx-auto" data-testid="waitlist-success-message">
                   {success.message}
                 </p>
                 <p className="mt-6 text-sm text-foreground/60">
-                  Position #{success.position}
+                  {success.is_hyderabad ? `Position #${success.position}` : "On the future-cities list"}
                 </p>
                 <button
                   onClick={() => setSuccess(null)}
@@ -143,18 +158,45 @@ export default function WaitlistSection() {
                     />
                   </label>
                   <label className="flex flex-col gap-2 md:col-span-2">
-                    <span className="text-xs uppercase tracking-widest text-foreground/60">Delivery address (Hyderabad)</span>
+                    <span className="text-xs uppercase tracking-widest text-foreground/60">Delivery address</span>
                     <input
                       data-testid="waitlist-address"
                       type="text"
-                      placeholder="Flat, building, area, pincode"
+                      placeholder="Flat, building, area"
                       value={form.address}
                       onChange={update("address")}
                       className="mumzo-input"
                       required
                     />
                   </label>
-                  <label className="flex flex-col gap-2 md:col-span-2">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-widest text-foreground/60">Pincode</span>
+                    <input
+                      data-testid="waitlist-pincode"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="e.g. 500033"
+                      value={form.pincode}
+                      onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
+                      className="mumzo-input"
+                      required
+                    />
+                    {pinValid && (
+                      <span
+                        data-testid={pinIsHyd ? "pin-hint-hyderabad" : "pin-hint-other"}
+                        className={`mt-1 text-xs px-3 py-1 rounded-full inline-flex items-center gap-2 self-start ${
+                          pinIsHyd ? "bg-[hsl(var(--sage))]" : "bg-[hsl(var(--peach))]"
+                        }`}
+                      >
+                        <span aria-hidden>{pinIsHyd ? "✿" : "✈"}</span>
+                        {pinIsHyd
+                          ? "You're in Hyderabad — we launch here first."
+                          : "Not in Hyderabad — we'll notify when we come to you."}
+                      </span>
+                    )}
+                  </label>
+                  <label className="flex flex-col gap-2">
                     <span className="text-xs uppercase tracking-widest text-foreground/60">Baby's age</span>
                     <input
                       data-testid="waitlist-baby-age"
@@ -179,7 +221,7 @@ export default function WaitlistSection() {
                     data-testid="waitlist-submit"
                     className="mumzo-btn text-base disabled:opacity-60"
                   >
-                    {loading ? "Joining…" : "Join the waitlist"}
+                    {loading ? "Joining…" : pinValid && !pinIsHyd ? "Notify me in my city" : "Join the waitlist"}
                     <span aria-hidden>→</span>
                   </button>
                 </div>

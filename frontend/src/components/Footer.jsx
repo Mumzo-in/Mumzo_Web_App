@@ -1,4 +1,4 @@
-const LOGO = "https://customer-assets.emergentagent.com/job_mumzo-hyderabad/artifacts/6aohy5d4_Screenshot%202026-07-08%20at%2010.27.12%E2%80%AFPM.png";
+import MumzoLogo from "@/components/MumzoLogo";
 
 export default function Footer() {
   return (
@@ -6,9 +6,7 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
         <div className="grid md:grid-cols-12 gap-10 items-start pb-16 border-b border-background/10">
           <div className="md:col-span-6">
-            <div className="inline-block bg-background rounded-2xl p-3">
-              <img src={LOGO} alt="Mumzo" className="h-9 w-auto" />
-            </div>
+            <MumzoLogo size={44} variant="dark" />
             <h3 className="mt-8 font-editorial text-5xl md:text-7xl leading-[0.95] tracking-tighter">
               Built by moms, <br /> for moms.
             </h3>

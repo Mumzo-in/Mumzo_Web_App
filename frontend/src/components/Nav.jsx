@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
-const LOGO = "https://customer-assets.emergentagent.com/job_mumzo-hyderabad/artifacts/6aohy5d4_Screenshot%202026-07-08%20at%2010.27.12%E2%80%AFPM.png";
+import { motion } from "framer-motion";
+import MumzoLogo from "@/components/MumzoLogo";
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -28,8 +27,8 @@ export default function Nav() {
       }`}
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
-        <a href="/" data-testid="logo-link" className="flex items-center gap-2">
-          <img src={LOGO} alt="Mumzo" className="h-8 md:h-9 w-auto" />
+        <a href="/" data-testid="logo-link" className="flex items-center">
+          <MumzoLogo size={36} />
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-foreground/80">
