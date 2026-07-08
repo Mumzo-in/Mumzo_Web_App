@@ -7,7 +7,7 @@ import logging
 import asyncio
 import httpx
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import List, Optional
 import re
 
@@ -24,7 +24,7 @@ async def push_to_sheets(entry: dict) -> None:
     if not url:
         print("[sheets] no webhook URL configured — skipping")
         return
-    print(f"[sheets] posting entry for {entry.get('email')}")
+    print(f"[sheets] posting entry for {entry.get('phone')}")
     try:
         async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as http:
             r = await http.post(url, json=entry)
@@ -62,11 +62,20 @@ api_router = APIRouter(prefix="/api")
 # ---------- Models ----------
 class WaitlistCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
-    email: EmailStr
+    phone: str = Field(..., min_length=10, max_length=15)
     address: str = Field(..., min_length=1, max_length=500)
     pincode: str = Field(..., min_length=6, max_length=6)
     baby_name: str = Field(..., min_length=1, max_length=120)
     baby_age: str = Field(..., min_length=1, max_length=40)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        digits = re.sub(r"\D", "", v)
+        if len(digits) < 10 or len(digits) > 13:
+            raise ValueError("Enter a valid mobile number.")
+        # Normalize Indian 10-digit numbers, keep +country prefix if longer
+        return digits[-10:] if len(digits) == 10 else digits
 
     @field_validator("pincode")
     @classmethod
@@ -82,7 +91,7 @@ class WaitlistEntry(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    email: str
+    phone: str
     address: str
     pincode: str
     baby_name: str
@@ -108,8 +117,8 @@ async def root():
 async def join_waitlist(payload: WaitlistCreate, background_tasks: BackgroundTasks):
     is_hyderabad = bool(HYDERABAD_PINCODE_RE.match(payload.pincode))
 
-    # Check dupe by email
-    existing = await db.waitlist.find_one({"email": payload.email.lower()})
+    # Check dupe by phone
+    existing = await db.waitlist.find_one({"phone": payload.phone})
     if existing:
         count = await db.waitlist.count_documents({})
         existing_hyd = bool(existing.get("is_hyderabad"))
@@ -126,7 +135,7 @@ async def join_waitlist(payload: WaitlistCreate, background_tasks: BackgroundTas
 
     entry = WaitlistEntry(
         name=payload.name.strip(),
-        email=payload.email.lower().strip(),
+        phone=payload.phone.strip(),
         address=payload.address.strip(),
         pincode=payload.pincode.strip(),
         baby_name=payload.baby_name.strip(),
@@ -144,7 +153,7 @@ async def join_waitlist(payload: WaitlistCreate, background_tasks: BackgroundTas
     background_tasks.add_task(push_to_sheets, {
         "id": entry.id,
         "name": entry.name,
-        "email": entry.email,
+        "phone": entry.phone,
         "address": entry.address,
         "pincode": entry.pincode,
         "baby_name": entry.baby_name,
@@ -215,17 +224,23 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def migrate_waitlist():
-    """Backfill legacy waitlist docs missing the `pincode` / `is_hyderabad` fields
-    (added later). Keeps the strict response model happy without dropping data."""
+    """Backfill legacy waitlist docs to the current schema."""
     try:
-        result = await db.waitlist.update_many(
+        # Legacy pincode backfill
+        await db.waitlist.update_many(
             {"pincode": {"$exists": False}},
             {"$set": {"pincode": "000000", "is_hyderabad": False}},
         )
-        if result.modified_count:
-            logger.info(f"Backfilled {result.modified_count} legacy waitlist docs with pincode.")
-        # Ensure unique index on email for correctness under race conditions
-        await db.waitlist.create_index("email", unique=True)
+        # Give each legacy `email`-only doc a unique placeholder phone based on id
+        async for d in db.waitlist.find({"phone": {"$exists": False}}, {"id": 1}):
+            uniq = "L" + (d.get("id", "") or str(uuid.uuid4()))[:12]
+            await db.waitlist.update_one({"_id": d["_id"]}, {"$set": {"phone": uniq}})
+        # Drop the old unique-email index if present
+        try:
+            await db.waitlist.drop_index("email_1")
+        except Exception:
+            pass
+        await db.waitlist.create_index("phone", unique=True)
     except Exception as exc:  # pragma: no cover
         logger.warning(f"Waitlist migration skipped: {exc}")
 
