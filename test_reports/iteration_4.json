@@ -1,0 +1,26 @@
+{
+  "summary": "Verified that /index-standalone.html correctly posts a `phone` field (not `email`) to the Google Apps Script webhook. Intercepted outbound POSTs via Playwright page.on('request') for both Hyderabad (pincode 500034) and non-Hyderabad (pincode 560001) submissions. All 22 payload assertions passed. Our client-side code is doing its job correctly — the bug is on the user's Apps Script side (still referencing d.email).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "No changes needed on our side. Confirm to user that the deployed standalone HTML sends `phone` in the JSON body. User must update their Apps Script to read d.phone instead of d.email and redeploy (New deployment) for the change to take effect."
+  ],
+  "critical_code_review_comments": [
+    "index-standalone.html payload correctly includes: id, name, phone, address, pincode, baby_name, baby_age, is_hyderabad, created_at. No `email` key is sent.",
+    "fetch uses mode:'no-cors' with Content-Type 'text/plain;charset=utf-8' — this is standard for Apps Script Web Apps to avoid CORS preflight while still delivering the body. Apps Script's doPost receives it via e.postData.contents.",
+    "Consider adding data-testid attributes to form inputs (#f-name, #f-phone, #f-pincode, #submit-btn, #success) for future automated testing robustness — currently only #id selectors are available."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "100%"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None. Two test submissions were sent (fire-and-forget, mode:'no-cors') to the Apps Script webhook using unique phones 9876543211 (Hyderabad) and 9123456780 (Bengaluru). These may appear as rows in the linked Google Sheet if the Apps Script writes them.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Standalone HTML lives at /app/frontend/public/index-standalone.html. Public URL: {REACT_APP_BACKEND_URL}/index-standalone.html. The waitlist form fires a no-cors POST to window.MUMZO_SHEETS_URL (Google Apps Script). The payload uses `phone` (10-digit) — NOT `email`. HYD pincode regex is /^(500|501)\\d{3}$/. Non-Hyd submissions fill address/baby_name/baby_age with the em-dash character '—'.",
+  "rca of the issue": "User reported phone not saving to Google Sheet from deployed Hostinger site. RCA: user's Apps Script code still references d.email from the previous schema, while our frontend now sends d.phone. Verified via network interception that our HTML sends `phone` correctly in both HYD and non-HYD flows. Mitigation: user must edit Apps Script (doPost) to use d.phone and redeploy as a new version (Apps Script Web Apps require a new deployment for changes to be picked up)."
+}
