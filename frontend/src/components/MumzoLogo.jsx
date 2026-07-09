@@ -42,7 +42,7 @@ export default function MumzoLogo({
   const H = height || 40;
   // ViewBox chosen so mark + wordmark align on a common baseline
   return (
-    <svg {...commonProps} viewBox="0 0 240 64" height={H}>
+    <svg {...commonProps} viewBox="0 0 260 64" height={H}>
       {/* Mark */}
       <rect x="2" y="8" width="48" height="48" rx="14" fill={accent} opacity="0.14" />
       <path

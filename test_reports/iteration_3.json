@@ -1,0 +1,35 @@
+{
+  "summary": "Verified the mumzo logo clipping bug fix on the live React site + standalone HTML + regenerated static PNG/JPG assets. Nav + footer wordmark SVGs on the React site render viewBox=0 0 260 64 with 'mumzo' fully visible ('o' intact). Regenerated /logos/mumzo-insta-square.{png,jpg} and /logos/mumzo-wordmark-transparent.{png,jpg} all return 200 and show the complete wordmark with no right-edge clipping. Waitlist form regression pass: form submitted successfully with unique Hyderabad phone (500034 pincode), success card uses the mark-only variant (viewBox 0 0 64 64, no wordmark text) as expected, backend POST /api/waitlist returned 200 (counter incremented to 27). One minor deviation from the stated fix: standalone HTML nav SVG viewBox is still 0 0 240 64 (not updated to 0 0 260 64) - however visually 'mumzo' is NOT clipped there because the italic text bbox ends at x=172, still within the 240 unit viewBox.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/.screenshots/nav_logo.png",
+    "/app/.screenshots/footer_logo.png",
+    "/app/.screenshots/standalone_nav_logo.png",
+    "/app/.screenshots/standalone_footer_logo.png",
+    "/app/.screenshots/assets/wordmark.png",
+    "/app/.screenshots/assets/insta.jpg",
+    "/app/.screenshots/success_state.png"
+  ],
+  "action_items": [
+    "MINOR (optional): /app/frontend/public/index-standalone.html line 234 still declares viewBox='0 0 240 64' on the nav <svg>. The fix summary said this should have been updated to '0 0 260 64' along with the footer SVG. Visually there is no clipping today (text mumzo width~110 starts at x=62 -> ends at x=172, well inside 240), but for consistency with MumzoLogo.jsx / mumzo-logo.svg / footer SVG, update it to '0 0 260 64'."
+  ],
+  "critical_code_review_comments": [
+    "Standalone nav SVG viewBox not updated to match the rest of the codebase (frontend/public/index-standalone.html:234 still uses 0 0 240 64). Not a user-visible bug but an inconsistency with the stated fix scope."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A - no auth on this app; waitlist form uses unique phone number per submission",
+  "seed_data_creation": "Submitted 1 test waitlist entry: name=Test, phone=9204176865, pincode=500034, address='Test address', baby_name=Test, baby_age='6 months'",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bug fix verified. Nav + footer wordmark on React site render at viewBox 0 0 260 64 with text 'mumzo' bbox width=110/112 starting at x=62 -> ends within safe margin. Static logo assets all 200 OK. Only nit: standalone HTML nav SVG line 234 still declares viewBox '0 0 240 64' — not visually clipped but not matching the stated fix. Waitlist form working end-to-end.",
+  "rca of the issue": "Original bug: italic 'o' was clipped because SVG viewBox width (240) was too narrow relative to italic serif text width + lean. Fix: expanded viewBox to 260 (React + mumzo-logo.svg + standalone footer) and 280 (render-insta/render-transparent templates), then re-rasterized PNG/JPG assets. Verified via bounding-box inspection: text.getBBox() width ~= 110 starting at x=62, so max x ~= 172 which is comfortably inside the new 260 unit viewBox; also comfortably inside the still-240 standalone nav viewBox (which is why the standalone nav does not show a visual regression despite not being updated)."
+}
