@@ -598,9 +598,13 @@
     $submit.textContent = 'Joining…';
 
     try {
-      // Google Apps Script accepts simple POSTs (text/plain avoids CORS preflight).
+      // Google Apps Script Web Apps 302-redirect the response, which the browser
+      // treats as an opaque cross-origin response. Using mode:'no-cors' lets the
+      // POST still hit Apps Script (appending the row) while the browser doesn't
+      // throw on the unreadable redirect response.
       await fetch(window.MUMZO_SHEETS_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload),
       });
