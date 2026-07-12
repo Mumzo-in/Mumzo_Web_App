@@ -10,6 +10,7 @@ import ShopCategory from "@/pages/shop/Category";
 import ShopProduct from "@/pages/shop/Product";
 import ShopCart from "@/pages/shop/Cart";
 import ShopOrderSuccess from "@/pages/shop/OrderSuccess";
+import ShopProfile from "@/pages/shop/Profile";
 import WebLayout from "@/pages/web/WebLayout";
 import WebHome from "@/pages/web/Home";
 import WebCategory from "@/pages/web/Category";
@@ -53,6 +54,7 @@ function App() {
               <Route path="product/:id" element={<ShopProduct />} />
               <Route path="cart" element={<ShopCart />} />
               <Route path="order/success" element={<ShopOrderSuccess />} />
+              <Route path="profile" element={<ShopProfile />} />
             </Route>
             <Route path="/web" element={<WebLayout />}>
               <Route index element={<WebHome />} />
