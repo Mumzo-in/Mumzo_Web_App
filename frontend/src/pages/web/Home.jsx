@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { categories, products } from "../shop/data";
 import WebProductCard from "./WebProductCard";
 
@@ -8,53 +7,13 @@ const bestsellers = products.filter(p => p.bestseller).slice(0, 8);
 export default function WebHome() {
   return (
     <div data-testid="web-home" className="max-w-[1280px] mx-auto px-6 lg:px-8">
-      {/* Hero */}
+      {/* Hero — minimal */}
       <section className="relative mt-6 lg:mt-10 rounded-[36px] overflow-hidden bg-gradient-to-br from-blush via-pinkSoft to-background border border-border/60">
-        <div className="grid md:grid-cols-2 gap-8 items-center p-8 md:p-14">
-          <div>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-rose/40 text-xs text-pinkDeep font-semibold">
-              Now shopping in Hyderabad
-            </span>
-            <h1 className="mt-6 font-editorial text-5xl lg:text-6xl leading-[1.02] tracking-tight">
-              Everything for baby. <br />
-              <span className="italic text-pinkDeep">Delivered with love.</span>
-            </h1>
-            <p className="mt-6 text-base text-foreground/70 max-w-lg leading-relaxed">
-              A quick-commerce store built for moms — hundreds of products across diapers, formula,
-              clothing, toys and more.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/web/category/baby-food"
-                data-testid="hero-cta-shop"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-pinkDeep text-white text-sm font-semibold hover:bg-[#A93F63] transition-colors"
-              >
-                Start shopping <ArrowRight size={16} />
-              </Link>
-              <Link
-                to="/web/category/diapers"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white border border-border/70 text-sm font-semibold hover:border-pinkDeep hover:text-pinkDeep transition-colors"
-              >
-                Diapers · from ₹499
-              </Link>
-            </div>
-          </div>
-
-          {/* Hero image collage */}
-          <div className="relative hidden md:block h-[440px]">
-            <img
-              src="https://images.unsplash.com/photo-1560707854-fb9a10eeaace?w=800&q=80"
-              className="absolute right-0 top-0 w-[62%] h-[70%] object-cover rounded-3xl shadow-[0_30px_60px_rgba(45,23,32,0.15)]"
-              alt=""
-            />
-            <img
-              src="https://images.unsplash.com/photo-1622290319146-7b63df48a635?w=600&q=80"
-              className="absolute left-0 bottom-0 w-[52%] h-[52%] object-cover rounded-[9999px_9999px_32px_32px] shadow-[0_20px_50px_rgba(45,23,32,0.12)]"
-              alt=""
-            />
-            <div className="absolute left-6 top-10 w-24 h-24 rounded-full bg-pinkDeep/15 blur-2xl" />
-            <div className="absolute right-4 bottom-6 w-32 h-32 rounded-full bg-rose/40 blur-3xl" />
-          </div>
+        <div className="px-8 md:px-14 py-20 md:py-28 text-center">
+          <h1 className="font-editorial text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto">
+            Everything for mom and baby, <br className="hidden md:block" />
+            <span className="italic text-pinkDeep">delivered with love.</span>
+          </h1>
         </div>
       </section>
 
