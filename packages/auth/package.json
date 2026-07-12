@@ -1,0 +1,24 @@
+{
+  "name": "@mumzo_app/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@mumzo_app/db": "workspace:*",
+    "@mumzo_app/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mumzo_app/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
