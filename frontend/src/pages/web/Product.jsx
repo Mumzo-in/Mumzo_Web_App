@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Heart, Share2, Star, Truck, ShieldCheck, RotateCcw, Minus, Plus } from "lucide-react";
+import { Heart, Share2, Star, Minus, Plus } from "lucide-react";
 import { findProduct, findCategory, productsInCategory } from "../shop/data";
 import { useCart, rupee } from "../shop/CartContext";
 import WebProductCard from "./WebProductCard";
@@ -92,7 +92,7 @@ export default function WebProduct() {
               </>
             )}
           </div>
-          <p className="text-xs text-foreground/55 mt-1">Inclusive of all taxes · Free delivery over ₹299</p>
+          <p className="text-xs text-foreground/55 mt-1">Inclusive of all taxes</p>
 
           {needsSize && (
             <div className="mt-8">
@@ -134,20 +134,7 @@ export default function WebProduct() {
             </button>
           </div>
 
-          {/* Trust row */}
-          <div className="mt-8 grid grid-cols-3 gap-3">
-            {[
-              { Ic: Truck, k: "12-min delivery", v: "To your door" },
-              { Ic: ShieldCheck, k: "Authentic", v: "Every product" },
-              { Ic: RotateCcw, k: "Easy returns", v: "Within 7 days" },
-            ].map(({ Ic, k, v }) => (
-              <div key={k} className="p-3 rounded-2xl bg-pinkSoft border border-border/50">
-                <Ic size={18} className="text-pinkDeep" />
-                <p className="mt-2 text-xs font-semibold">{k}</p>
-                <p className="text-[11px] text-foreground/60">{v}</p>
-              </div>
-            ))}
-          </div>
+          {/* Trust row removed */}
 
           {/* About */}
           <div className="mt-10 pt-6 border-t border-border/60">

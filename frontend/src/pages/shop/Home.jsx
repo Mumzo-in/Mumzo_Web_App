@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Search, MapPin, Bell, Clock, ChevronRight } from "lucide-react";
+import { Search, MapPin, Bell, ChevronRight } from "lucide-react";
 import { categories, products } from "./data";
 import ProductCard from "./components/ProductCard";
 
@@ -33,17 +33,6 @@ export default function Home() {
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-foreground/45"
             placeholder="Search diapers, formula, wipes…"
           />
-        </div>
-
-        {/* Delivery banner */}
-        <div className="mt-5 flex items-center gap-3 p-3 rounded-2xl bg-white border border-rose/40">
-          <div className="w-11 h-11 rounded-xl bg-blush flex items-center justify-center text-pinkDeep">
-            <Clock size={20} />
-          </div>
-          <div className="flex-1 leading-tight">
-            <p className="font-editorial italic text-lg text-foreground">Delivered in 12 minutes</p>
-            <p className="text-xs text-foreground/60">to your door, with love ♡</p>
-          </div>
         </div>
       </header>
 
@@ -88,24 +77,6 @@ export default function Home() {
           {bestsellers.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
-        </div>
-      </section>
-
-      {/* Trust strip */}
-      <section className="px-5 pt-8">
-        <div className="grid grid-cols-3 gap-2 p-4 rounded-2xl bg-pinkSoft border border-border/60 text-center">
-          <div>
-            <p className="font-editorial text-xl text-pinkDeep">100s</p>
-            <p className="text-[10px] text-foreground/65 leading-tight">of SKUs</p>
-          </div>
-          <div>
-            <p className="font-editorial text-xl text-pinkDeep">12 min</p>
-            <p className="text-[10px] text-foreground/65 leading-tight">delivery</p>
-          </div>
-          <div>
-            <p className="font-editorial text-xl text-pinkDeep">24×7</p>
-            <p className="text-[10px] text-foreground/65 leading-tight">for you</p>
-          </div>
         </div>
       </section>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share2, Star, Truck, ShieldCheck, RotateCcw, ChevronDown, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Star, ChevronDown, Minus, Plus } from "lucide-react";
 import { findProduct, findCategory } from "./data";
 import { useCart, rupee } from "./CartContext";
 
@@ -110,22 +110,6 @@ export default function Product() {
             <button onClick={() => setQty(qty + 1)} data-testid="qty-plus" className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-pinkDeep">
               <Plus size={16} strokeWidth={3} />
             </button>
-          </div>
-        </div>
-
-        {/* Delivery */}
-        <div className="mt-6 grid grid-cols-3 gap-2">
-          <div className="p-3 rounded-2xl bg-pinkSoft text-center">
-            <Truck size={20} className="mx-auto text-pinkDeep" />
-            <p className="mt-2 text-[11px] font-semibold text-foreground/80">12 min delivery</p>
-          </div>
-          <div className="p-3 rounded-2xl bg-pinkSoft text-center">
-            <ShieldCheck size={20} className="mx-auto text-pinkDeep" />
-            <p className="mt-2 text-[11px] font-semibold text-foreground/80">100% authentic</p>
-          </div>
-          <div className="p-3 rounded-2xl bg-pinkSoft text-center">
-            <RotateCcw size={20} className="mx-auto text-pinkDeep" />
-            <p className="mt-2 text-[11px] font-semibold text-foreground/80">Easy returns</p>
           </div>
         </div>
 

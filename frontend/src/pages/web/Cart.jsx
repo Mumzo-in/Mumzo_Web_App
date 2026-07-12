@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Tag, Plus, Minus, Trash2, Sparkles, ShoppingBag, Clock, ChevronRight } from "lucide-react";
+import { Tag, Plus, Minus, Trash2, Sparkles, ShoppingBag, ChevronRight } from "lucide-react";
 import { useCart, rupee } from "../shop/CartContext";
 import { offers } from "../shop/data";
+
+const Row = ({ label, value, highlight, freeHighlight }) => (
+  <div className="flex items-center justify-between">
+    <span className="text-foreground/70">{label}</span>
+    <span className={highlight ? "text-pinkDeep font-medium" : freeHighlight ? "text-pinkDeep font-semibold" : ""}>{value}</span>
+  </div>
+);
 
 export default function WebCart() {
   const nav = useNavigate();
@@ -35,7 +42,7 @@ export default function WebCart() {
       <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="font-editorial text-4xl lg:text-5xl leading-none">Your cart</h1>
-          <p className="mt-2 text-sm text-foreground/60">{totals.count} {totals.count === 1 ? "item" : "items"} · delivered in 12 minutes</p>
+          <p className="mt-2 text-sm text-foreground/60">{totals.count} {totals.count === 1 ? "item" : "items"}</p>
         </div>
         {items.length > 0 && (
           <button onClick={clear} data-testid="web-clear" className="text-sm text-pinkDeep font-semibold hover:underline">Clear cart</button>
@@ -55,12 +62,6 @@ export default function WebCart() {
         <div className="grid lg:grid-cols-[1fr_400px] gap-8">
           {/* Left column */}
           <div>
-            {/* Delivery banner */}
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-blush border border-rose/40 mb-4">
-              <Clock size={18} className="text-pinkDeep flex-shrink-0" />
-              <p className="text-sm text-foreground/85"><span className="font-semibold">12-min delivery</span> to Banjara Hills, Hyderabad.</p>
-            </div>
-
             {/* Items */}
             <div className="rounded-3xl bg-white border border-border/60 divide-y divide-border/60">
               {items.map((it) => (
@@ -176,10 +177,3 @@ export default function WebCart() {
     </div>
   );
 }
-
-const Row = ({ label, value, highlight, freeHighlight }) => (
-  <div className="flex items-center justify-between">
-    <span className="text-foreground/70">{label}</span>
-    <span className={highlight ? "text-pinkDeep font-medium" : freeHighlight ? "text-pinkDeep font-semibold" : ""}>{value}</span>
-  </div>
-);

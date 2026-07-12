@@ -32,7 +32,7 @@ export default function WebLayout() {
             <MapPin size={14} className="text-pinkDeep" />
             <div className="text-left leading-tight">
               <p className="text-[10px] uppercase tracking-widest text-pinkDeep font-semibold">Deliver to</p>
-              <p className="font-semibold text-sm text-foreground">Banjara Hills · 12 min</p>
+              <p className="font-semibold text-sm text-foreground">Banjara Hills</p>
             </div>
             <ChevronDown size={14} className="text-foreground/50" />
           </button>

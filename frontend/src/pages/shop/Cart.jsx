@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Tag, Plus, Minus, Trash2, Sparkles, ShoppingBag, Clock } from "lucide-react";
+import { ArrowLeft, Tag, Plus, Minus, Trash2, Sparkles, ShoppingBag } from "lucide-react";
 import { useCart, rupee } from "./CartContext";
 import { offers } from "./data";
 
@@ -53,11 +53,7 @@ export default function Cart() {
         </div>
       ) : (
         <>
-          {/* Delivery banner */}
-          <div className="mx-4 mt-4 flex items-center gap-3 p-3 rounded-2xl bg-blush border border-rose/40">
-            <Clock size={18} className="text-pinkDeep flex-shrink-0" />
-            <p className="text-sm text-foreground/85"><span className="font-semibold">12-min delivery</span> to Banjara Hills, Hyderabad.</p>
-          </div>
+          {/* Delivery banner removed */}
 
           {/* Items */}
           <div className="px-4 pt-4 space-y-3">

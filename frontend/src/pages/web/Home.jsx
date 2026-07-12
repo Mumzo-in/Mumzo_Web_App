@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock, Truck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { categories, products } from "../shop/data";
 import WebProductCard from "./WebProductCard";
 
@@ -13,15 +13,15 @@ export default function WebHome() {
         <div className="grid md:grid-cols-2 gap-8 items-center p-8 md:p-14">
           <div>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-rose/40 text-xs text-pinkDeep font-semibold">
-              <Clock size={14} /> 12-minute delivery · Hyderabad
+              Now shopping in Hyderabad
             </span>
             <h1 className="mt-6 font-editorial text-5xl lg:text-6xl leading-[1.02] tracking-tight">
               Everything for baby. <br />
-              <span className="italic text-pinkDeep">In minutes.</span>
+              <span className="italic text-pinkDeep">Delivered with love.</span>
             </h1>
             <p className="mt-6 text-base text-foreground/70 max-w-lg leading-relaxed">
-              A quick-commerce store built for moms — hundreds of SKUs across diapers, formula,
-              clothing, toys and more. Delivered to your door with love.
+              A quick-commerce store built for moms — hundreds of products across diapers, formula,
+              clothing, toys and more.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -37,25 +37,6 @@ export default function WebHome() {
               >
                 Diapers · from ₹499
               </Link>
-            </div>
-
-            {/* Trust row */}
-            <div className="mt-10 grid grid-cols-3 gap-3 max-w-md">
-              {[
-                { icon: Truck, k: "12 min", v: "delivery" },
-                { icon: Sparkles, k: "100s", v: "of SKUs" },
-                { icon: ShieldCheck, k: "100%", v: "authentic" },
-              ].map(({ icon: Ic, k, v }) => (
-                <div key={k} className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-white border border-border/60 flex items-center justify-center text-pinkDeep">
-                    <Ic size={16} />
-                  </div>
-                  <div className="leading-tight">
-                    <p className="font-semibold text-sm">{k}</p>
-                    <p className="text-[11px] text-foreground/60">{v}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -125,19 +106,7 @@ export default function WebHome() {
         </div>
       </section>
 
-      {/* Value strip */}
-      <section className="mt-16 mb-6 rounded-3xl bg-pinkSoft border border-border/60 p-8 grid md:grid-cols-3 gap-6 text-center">
-        {[
-          { k: "12-min delivery", v: "From your nearest micro-store" },
-          { k: "Subscribe & forget", v: "Diapers · wipes · food on schedule" },
-          { k: "Curated by moms", v: "Every product hand-picked" },
-        ].map(x => (
-          <div key={x.k}>
-            <p className="font-editorial text-2xl text-pinkDeep">{x.k}</p>
-            <p className="text-sm text-foreground/65 mt-1">{x.v}</p>
-          </div>
-        ))}
-      </section>
+      {/* Value strip removed */}
     </div>
   );
 }
