@@ -3,12 +3,19 @@ import Lenis from "lenis";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import Landing from "@/pages/Landing";
+import { CartProvider } from "@/pages/shop/CartContext";
 import ShopLayout from "@/pages/shop/ShopLayout";
 import ShopHome from "@/pages/shop/Home";
 import ShopCategory from "@/pages/shop/Category";
 import ShopProduct from "@/pages/shop/Product";
 import ShopCart from "@/pages/shop/Cart";
 import ShopOrderSuccess from "@/pages/shop/OrderSuccess";
+import WebLayout from "@/pages/web/WebLayout";
+import WebHome from "@/pages/web/Home";
+import WebCategory from "@/pages/web/Category";
+import WebProduct from "@/pages/web/Product";
+import WebCart from "@/pages/web/Cart";
+import WebOrderSuccess from "@/pages/web/OrderSuccess";
 import "@/App.css";
 
 function LenisSmoothScroll() {
@@ -37,16 +44,25 @@ function App() {
     <div className="App min-h-screen bg-background text-foreground">
       <BrowserRouter>
         <LenisSmoothScroll />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/app" element={<ShopLayout />}>
-            <Route index element={<ShopHome />} />
-            <Route path="category/:slug" element={<ShopCategory />} />
-            <Route path="product/:id" element={<ShopProduct />} />
-            <Route path="cart" element={<ShopCart />} />
-            <Route path="order/success" element={<ShopOrderSuccess />} />
-          </Route>
-        </Routes>
+        <CartProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/app" element={<ShopLayout />}>
+              <Route index element={<ShopHome />} />
+              <Route path="category/:slug" element={<ShopCategory />} />
+              <Route path="product/:id" element={<ShopProduct />} />
+              <Route path="cart" element={<ShopCart />} />
+              <Route path="order/success" element={<ShopOrderSuccess />} />
+            </Route>
+            <Route path="/web" element={<WebLayout />}>
+              <Route index element={<WebHome />} />
+              <Route path="category/:slug" element={<WebCategory />} />
+              <Route path="product/:id" element={<WebProduct />} />
+              <Route path="cart" element={<WebCart />} />
+              <Route path="order/success" element={<WebOrderSuccess />} />
+            </Route>
+          </Routes>
+        </CartProvider>
       </BrowserRouter>
       <Toaster
         position="bottom-center"
