@@ -10,6 +10,7 @@ const SORTS = [
   { key: "price_asc", label: "Price: Low to High" },
   { key: "price_desc", label: "Price: High to Low" },
   { key: "discount", label: "Highest discount" },
+  { key: "rating", label: "Top rated" },
 ];
 
 export default function WebCategory() {
@@ -35,6 +36,7 @@ export default function WebCategory() {
       case "price_asc": list = [...list].sort((a, b) => a.price - b.price); break;
       case "price_desc": list = [...list].sort((a, b) => b.price - a.price); break;
       case "discount": list = [...list].sort((a, b) => b.discount - a.discount); break;
+      case "rating": list = [...list].sort((a, b) => b.rating - a.rating); break;
       default: break;
     }
     return list;
