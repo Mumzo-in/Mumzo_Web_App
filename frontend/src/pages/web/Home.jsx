@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { categories, products } from "../shop/data";
 import WebProductCard from "./WebProductCard";
 
@@ -9,11 +10,26 @@ export default function WebHome() {
     <div data-testid="web-home" className="max-w-[1280px] mx-auto px-6 lg:px-8">
       {/* Hero — minimal */}
       <section className="relative mt-6 lg:mt-10 rounded-[36px] overflow-hidden bg-gradient-to-br from-blush via-pinkSoft to-background border border-border/60">
-        <div className="px-8 md:px-14 py-20 md:py-28 text-center">
+        <div className="px-8 md:px-14 py-20 md:py-24 text-center">
           <h1 className="font-editorial text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight max-w-4xl mx-auto">
             Everything for mom and baby, <br className="hidden md:block" />
             <span className="italic text-pinkDeep">delivered with love.</span>
           </h1>
+          <div className="mt-10 flex flex-wrap gap-3 justify-center">
+            <Link
+              to="/web/category/baby-food"
+              data-testid="hero-cta-shop"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-pinkDeep text-white text-sm font-semibold hover:bg-[#A93F63] transition-colors"
+            >
+              Start shopping <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/web/category/diapers"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white border border-border/70 text-sm font-semibold hover:border-pinkDeep hover:text-pinkDeep transition-colors"
+            >
+              Diapers · from ₹499
+            </Link>
+          </div>
         </div>
       </section>
 
