@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 
 export default function Landing() {
   return (
-    <main data-testid="mumzo-landing" className="relative bg-background">
+    <main data-testid="mumzo-landing" className="mumzo-grain relative bg-background">
       <Nav />
       <Hero />
       <WhyMumzo />
