@@ -1,5 +1,5 @@
 {
-  "name": "@mumzo_app/env",
+  "name": "@mumzo/env",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@mumzo_app/config": "workspace:*",
+    "@mumzo/config": "workspace:*",
     "@types/bun": "catalog:",
     "typescript": "catalog:"
   }

@@ -11,7 +11,7 @@
     "rootDirs": ["."],
     "paths": {
       "@/*": ["./src/*"],
-      "@mumzo_app/ui/*": ["../../packages/ui/src/*"]
+      "@mumzo/ui/*": ["../../packages/ui/src/*"]
     }
   }
 }

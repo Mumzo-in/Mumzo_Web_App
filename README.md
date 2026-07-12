@@ -1,4 +1,4 @@
-# mumzo_app
+# mumzo
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, Hono, and more.
 
@@ -67,7 +67,7 @@ npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
 Import shared components like this:
 
 ```tsx
-import { Button } from "@mumzo_app/ui/components/button";
+import { Button } from "@mumzo/ui/components/button";
 ```
 
 ### Add app-specific blocks
@@ -97,7 +97,7 @@ For more details, see the guide on [Deploying with Docker Compose](https://www.b
 ## Project Structure
 
 ```
-mumzo_app/
+mumzo/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Router)
 │   └── server/      # Backend API (Hono)

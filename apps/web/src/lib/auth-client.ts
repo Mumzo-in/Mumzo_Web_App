@@ -1,4 +1,4 @@
-import { env } from "@mumzo_app/env/web";
+import { env } from "@mumzo/env/web";
 import { createAuthClient } from "better-auth/react";
 
 function getServerUrl(url: string) {
@@ -22,7 +22,9 @@ function getServerUrl(url: string) {
       ? (processEnv?.VERCEL_PROJECT_PRODUCTION_URL ?? processEnv?.VERCEL_URL)
       : (processEnv?.VERCEL_URL ?? processEnv?.VERCEL_PROJECT_PRODUCTION_URL);
   if (vercelUrl) {
-    const origin = vercelUrl.startsWith("http") ? vercelUrl : `https://${vercelUrl}`;
+    const origin = vercelUrl.startsWith("http")
+      ? vercelUrl
+      : `https://${vercelUrl}`;
     return `${origin}${normalized}`;
   }
 

@@ -1,4 +1,4 @@
-import { env } from "@mumzo_app/env/server";
+import { env } from "@mumzo/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "./schema";

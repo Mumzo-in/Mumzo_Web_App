@@ -10,16 +10,16 @@
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
-    "@mumzo_app/auth": "workspace:*",
-    "@mumzo_app/db": "workspace:*",
-    "@mumzo_app/env": "workspace:*",
+    "@mumzo/auth": "workspace:*",
+    "@mumzo/db": "workspace:*",
+    "@mumzo/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "hono": "^4.12.27",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@mumzo_app/config": "workspace:*",
+    "@mumzo/config": "workspace:*",
     "@types/bun": "catalog:",
     "tsdown": "^0.22.3",
     "typescript": "catalog:"

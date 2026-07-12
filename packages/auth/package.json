@@ -1,5 +1,5 @@
 {
-  "name": "@mumzo_app/auth",
+  "name": "@mumzo/auth",
   "type": "module",
   "exports": {
     ".": {
@@ -11,14 +11,14 @@
   },
   "scripts": {},
   "dependencies": {
-    "@mumzo_app/db": "workspace:*",
-    "@mumzo_app/env": "workspace:*",
+    "@mumzo/db": "workspace:*",
+    "@mumzo/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@mumzo_app/config": "workspace:*",
+    "@mumzo/config": "workspace:*",
     "typescript": "catalog:"
   }
 }

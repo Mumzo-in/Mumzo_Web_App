@@ -1,5 +1,5 @@
-import { auth } from "@mumzo_app/auth";
-import { env } from "@mumzo_app/env/server";
+import { auth } from "@mumzo/auth";
+import { env } from "@mumzo/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";

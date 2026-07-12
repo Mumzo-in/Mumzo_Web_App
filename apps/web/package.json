@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
-    "@mumzo_app/env": "workspace:*",
-    "@mumzo_app/ui": "workspace:*",
+    "@mumzo/env": "workspace:*",
+    "@mumzo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-form": "^1.33.0",
     "@tanstack/react-router": "^1.170.17",
@@ -29,7 +29,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@mumzo_app/config": "workspace:*",
+    "@mumzo/config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.167.0",
     "@tanstack/router-plugin": "^1.168.19",
     "@types/node": "^22.13.14",

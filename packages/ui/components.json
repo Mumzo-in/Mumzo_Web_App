@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@mumzo_app/ui/components",
-    "utils": "@mumzo_app/ui/lib/utils",
-    "hooks": "@mumzo_app/ui/hooks",
-    "lib": "@mumzo_app/ui/lib",
-    "ui": "@mumzo_app/ui/components"
+    "components": "@mumzo/ui/components",
+    "utils": "@mumzo/ui/lib/utils",
+    "hooks": "@mumzo/ui/hooks",
+    "lib": "@mumzo/ui/lib",
+    "ui": "@mumzo/ui/components"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

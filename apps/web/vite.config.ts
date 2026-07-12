@@ -21,9 +21,9 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "mumzo_app",
-        short_name: "mumzo_app",
-        description: "mumzo_app - PWA Application",
+        name: "mumzo",
+        short_name: "mumzo",
+        description: "mumzo - PWA Application",
         theme_color: "#0c0c0c",
       },
       pwaAssets: { disabled: false, config: true },

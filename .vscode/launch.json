@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Debug Server (Bun)",
+      "program": "${workspaceFolder}/apps/server/src/index.ts",
+      "cwd": "${workspaceFolder}/apps/server",
+      "args": ["--hot"],
+      "watchMode": true,
+      "stopOnEntry": false,
+      "env": {}
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Bun Server",
+      "port": 6499,
+      "restart": true,
+      "localRoot": "${workspaceFolder}/apps/server",
+      "remoteRoot": "${workspaceFolder}/apps/server"
+    }
+  ]
+}

@@ -1,24 +1,28 @@
-import { Toaster } from "@mumzo_app/ui/components/sonner";
-import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { Toaster } from "@mumzo/ui/components/sonner";
+import { TooltipProvider } from "@mumzo/ui/components/tooltip";
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "../index.css";
 
-export interface RouterAppContext {}
+export type RouterAppContext = {};
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
   head: () => ({
     meta: [
       {
-        title: "mumzo_app",
+        title: "mumzo",
       },
       {
         name: "description",
-        content: "mumzo_app is a web application",
+        content: "mumzo is a web application",
       },
     ],
     links: [
@@ -32,7 +36,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent() {
   return (
-    <>
+    <TooltipProvider>
       <HeadContent />
       <ThemeProvider
         attribute="class"
@@ -40,13 +44,13 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
+        <div className="grid h-svh grid-rows-[auto_1fr]">
           <Header />
           <Outlet />
         </div>
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
-    </>
+    </TooltipProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { Button } from "@mumzo_app/ui/components/button";
+import { Button } from "@mumzo/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@mumzo_app/ui/components/dropdown-menu";
-import { Skeleton } from "@mumzo_app/ui/components/skeleton";
+} from "@mumzo/ui/components/dropdown-menu";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";

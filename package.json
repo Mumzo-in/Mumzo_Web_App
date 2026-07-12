@@ -1,5 +1,5 @@
 {
-  "name": "mumzo_app",
+  "name": "mumzo",
   "private": true,
   "workspaces": {
     "packages": [
@@ -29,10 +29,10 @@
     "check-types": "turbo run check-types",
     "dev:web": "turbo run dev -F web",
     "dev:server": "turbo run dev -F server",
-    "db:push": "turbo run db:push -F @mumzo_app/db",
-    "db:studio": "turbo run db:studio -F @mumzo_app/db",
-    "db:generate": "turbo run db:generate -F @mumzo_app/db",
-    "db:migrate": "turbo run db:migrate -F @mumzo_app/db",
+    "db:push": "turbo run db:push -F @mumzo/db",
+    "db:studio": "turbo run db:studio -F @mumzo/db",
+    "db:generate": "turbo run db:generate -F @mumzo/db",
+    "db:migrate": "turbo run db:migrate -F @mumzo/db",
     "db:start": "docker compose up -d postgres",
     "db:watch": "docker compose up postgres",
     "db:stop": "docker compose stop postgres",
@@ -45,13 +45,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@mumzo_app/env": "workspace:*",
+    "@mumzo/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
-    "@mumzo_app/config": "workspace:*",
+    "@mumzo/config": "workspace:*",
     "@types/bun": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",

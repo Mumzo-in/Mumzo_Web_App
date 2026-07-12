@@ -1,5 +1,5 @@
 {
-  "extends": "@mumzo_app/config/tsconfig.base.json",
+  "extends": "@mumzo/config/tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",

@@ -1,6 +1,6 @@
-import { createDb } from "@mumzo_app/db";
-import * as schema from "@mumzo_app/db/schema/auth";
-import { env } from "@mumzo_app/env/server";
+import { createDb } from "@mumzo/db";
+import * as schema from "@mumzo/db/schema/auth";
+import { env } from "@mumzo/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

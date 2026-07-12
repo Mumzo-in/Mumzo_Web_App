@@ -1,11 +1,11 @@
 {
-  "extends": "@mumzo_app/config/tsconfig.base.json",
+  "extends": "@mumzo/config/tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": [],
     "paths": {
-      "@mumzo_app/ui/*": ["./src/*"]
+      "@mumzo/ui/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

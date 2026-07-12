@@ -8,18 +8,26 @@
 //
 // Add new addons with: bun create better-t-stack add
 // This file is safe to delete
-
 {
   "$schema": "https://r2.better-t-stack.dev/schema.json",
   "version": "3.36.3",
   "createdAt": "2026-07-12T18:15:24.221Z",
-  "reproducibleCommand": "bun create better-t-stack@latest mumzo_app --frontend tanstack-router --backend hono --runtime bun --database postgres --orm drizzle --api none --auth better-auth --payments none --addons turborepo husky pwa skills mcp biome --examples none --db-setup docker --web-deploy none --server-deploy docker --git --package-manager bun --install",
+  "reproducibleCommand": "bun create better-t-stack@latest mumzo --frontend tanstack-router --backend hono --runtime bun --database postgres --orm drizzle --api none --auth better-auth --payments none --addons turborepo husky pwa skills mcp biome --examples none --db-setup docker --web-deploy none --server-deploy docker --git --package-manager bun --install",
   "database": "postgres",
   "orm": "drizzle",
   "backend": "hono",
   "runtime": "bun",
-  "frontend": ["tanstack-router"],
-  "addons": ["turborepo", "husky", "pwa", "skills", "mcp", "biome"],
+  "frontend": [
+    "tanstack-router"
+  ],
+  "addons": [
+    "turborepo",
+    "husky",
+    "pwa",
+    "skills",
+    "mcp",
+    "biome"
+  ],
   "examples": [],
   "auth": "better-auth",
   "payments": "none",
