@@ -3,6 +3,7 @@ import Lenis from "lenis";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import Landing from "@/pages/Landing";
+import BrandBook from "@/pages/BrandBook";
 import { CartProvider } from "@/pages/shop/CartContext";
 import ShopLayout from "@/pages/shop/ShopLayout";
 import ShopHome from "@/pages/shop/Home";
@@ -48,6 +49,7 @@ function App() {
         <CartProvider>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/brand" element={<BrandBook />} />
             <Route path="/app" element={<ShopLayout />}>
               <Route index element={<ShopHome />} />
               <Route path="category/:slug" element={<ShopCategory />} />
