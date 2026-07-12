@@ -1,9 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "root": true,
   "vcs": {
     "enabled": false,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "ignoreUnknown": false,
@@ -12,7 +13,6 @@
       "!**/.next",
       "!**/dist",
       "!**/.turbo",
-      "!**/.nx",
       "!**/dev-dist",
       "!**/.zed",
       "!**/.vscode",
@@ -26,27 +26,52 @@
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source",
-      "!**/convex/_generated"
+      "!**/android",
+      "!**/ios",
+      "!**/analytics.json",
+      "!**/node_modules",
+      "!**/services/report/views",
+      "!**/.agent",
+      "!**/.agents",
+      "!**/.gemini",
+      "!**/.cursor",
+      "!**/.claude",
+      "!**/docs",
+      "!**/graphify-out"
     ]
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "tab"
+    "indentStyle": "space",
+    "lineWidth": 80
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
-        "useExhaustiveDependencies": "info"
+        "preset": "recommended",
+        "useExhaustiveDependencies": "info",
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
       },
       "nursery": {
         "useSortedClasses": {
           "level": "warn",
           "fix": "safe",
           "options": {
-            "functions": ["clsx", "cva", "cn"]
+            "functions": [
+              "clsx",
+              "cva",
+              "cn"
+            ]
           }
         }
       },
@@ -61,6 +86,12 @@
         "useNumberNamespace": "error",
         "noInferrableTypes": "error",
         "noUselessElse": "error"
+      },
+      "suspicious": {
+        "noDuplicateCustomProperties": "info",
+        "noExplicitAny": "error",
+        "noArrayIndexKey": "error",
+        "noUnusedExpressions": "error"
       }
     }
   },
@@ -71,6 +102,7 @@
   },
   "css": {
     "parser": {
+      "cssModules": true,
       "tailwindDirectives": true
     }
   }
