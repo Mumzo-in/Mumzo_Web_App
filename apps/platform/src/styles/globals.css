@@ -1,0 +1,299 @@
+/* =========================================================
+   Mumzo — Global Design System
+   Source of truth: Mumzo_Web_App/design_guidelines.json
+   Stack: Tailwind v4 (@tailwindcss/vite) + shadcn/ui base
+   Palette: warm pastel maternal — navy ink, peach/sage/cream
+   ========================================================= */
+
+@import "@mumzo/ui/globals.css";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap");
+
+/* ---------------------------------------------------------
+   1. Mumzo Brand Tokens (override the shadcn defaults)
+   --------------------------------------------------------- */
+:root {
+  /* Core semantic tokens — Mumzo warm-pastel palette */
+  --background: #fdfbf7; /* warm cream — page background */
+  --foreground: #1f1b3a; /* deep navy — default text / ink */
+  --card: #ffffff; /* surface */
+  --card-foreground: #1f1b3a;
+  --popover: #ffffff;
+  --popover-foreground: #1f1b3a;
+  --primary: #1f1b3a; /* navy — primary buttons & actions */
+  --primary-foreground: #fdfbf7; /* cream text on navy */
+  --secondary: #f6f3ec; /* pale cream — secondary surfaces */
+  --secondary-foreground: #1f1b3a;
+  --muted: #f6f3ec;
+  --muted-foreground: #5a566e; /* low-contrast navy — captions, meta */
+  --accent: #fde2ce; /* peach — hover / accent washes */
+  --accent-foreground: #1f1b3a;
+  --destructive: #c0392b;
+  --destructive-foreground: #fdfbf7;
+  --border: #e5e0d8; /* delicate structural line */
+  --input: #e5e0d8;
+  --ring: #1f1b3a; /* navy focus ring */
+  --radius: 1rem;
+
+  /* Bespoke Mumzo accents (not in shadcn defaults) */
+  --peach: #fde2ce; /* accent — warm washes, banners */
+  --sage: #d8e2d5; /* accent — calm sections, marquee */
+  --cream: #f6f3ec; /* accent — soft section washes */
+  --ink: #1f1b3a; /* navy — text, wordmark */
+}
+
+/* ---------------------------------------------------------
+   2. Tailwind v4 theme extension — expose brand tokens
+      as Tailwind utilities (bg-peach, text-ink, shadow-warm…)
+   --------------------------------------------------------- */
+@theme inline {
+  /* Fonts */
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-editorial: "Fraunces", ui-serif, Georgia, serif;
+  --font-accent: "Caveat", ui-serif, cursive;
+
+  /* Brand accent colors */
+  --color-peach: var(--peach);
+  --color-sage: var(--sage);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+
+  /* Override shadcn palette to Mumzo values */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Warm ambient shadow → shadow-warm (also emits var(--shadow-warm)) */
+  --shadow-warm: 0 12px 40px rgb(31 27 58 / 0.08);
+
+  /* Radius scale */
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+}
+
+/* ---------------------------------------------------------
+   3. Base styles
+   --------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Editorial headings — Fraunces, tight tracking */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-editorial);
+    font-optical-sizing: auto;
+    letter-spacing: -0.03em;
+    font-weight: 300;
+  }
+
+  ::selection {
+    background: var(--peach);
+    color: var(--ink);
+  }
+
+  /* Global grain / noise overlay — tactile, printed feel.
+     Fixed, non-interactive, sits above content but ignores pointer events. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  }
+}
+
+/* ---------------------------------------------------------
+   4. Typography utilities
+   --------------------------------------------------------- */
+.font-editorial {
+  font-family: "Fraunces", ui-serif, Georgia, serif;
+}
+.font-body {
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+/* Hand-drawn, playful accent notes */
+.font-accent {
+  font-family: "Caveat", ui-serif, cursive;
+}
+
+/* Eyebrow / kicker label — e.g. "Now shopping in Hyderabad" */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+}
+.kicker::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink);
+}
+
+/* ---------------------------------------------------------
+   5. Shape & scrollbar utilities
+   --------------------------------------------------------- */
+
+/* Arched clip for product imagery — breaks the standard rectangle */
+.frame-arch {
+  border-radius: 9999px 9999px var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------------------------------------------------------
+   6. Mumzo component classes
+      (use these for consistent brand-level patterns)
+   --------------------------------------------------------- */
+
+/* Primary CTA button — navy pill */
+.mumzo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.6rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 500;
+  font-family: var(--font-sans);
+  transition:
+    background-color 0.3s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mumzo-btn:hover {
+  background: color-mix(in oklch, var(--primary) 90%, black);
+  transform: translateY(-1px);
+}
+.mumzo-btn:active {
+  transform: translateY(0);
+}
+
+/* Ghost button — bordered, transparent */
+.mumzo-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 500;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
+}
+.mumzo-btn-ghost:hover {
+  background: var(--peach);
+}
+
+/* Text input — pill-ish, soft focus */
+.mumzo-input {
+  width: 100%;
+  padding: 0.95rem 1.25rem;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.mumzo-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 4px var(--peach);
+}
+.mumzo-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+/* ---------------------------------------------------------
+   7. Lenis smooth scroll compatibility
+   --------------------------------------------------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------
+   8. Print overrides (for brand book / invoice pages)
+   --------------------------------------------------------- */
+@media print {
+  .no-print {
+    display: none;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  body {
+    background: white;
+  }
+  body::after {
+    display: none; /* no grain in print */
+  }
+}
