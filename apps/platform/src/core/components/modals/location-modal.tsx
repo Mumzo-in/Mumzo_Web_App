@@ -1,3 +1,4 @@
+import { Button } from "@mumzo/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,7 @@ export default function LocationModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <DialogContent className="max-w-md rounded-3xl border border-border/60 bg-background p-6">
+      <DialogContent className="rounded-3xl border border-border/60 bg-background p-6 sm:max-w-md">
         <DialogHeader className="mb-4">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blush">
             <MapPin size={22} className="text-pinkDeep" />
@@ -56,12 +57,12 @@ export default function LocationModal() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-full bg-pinkDeep py-3 font-semibold text-sm text-white transition-all hover:bg-[#A93F63] active:scale-[0.98]"
+            className="mumzo-btn h-12 w-full justify-center py-3 text-sm"
           >
             Apply Location
-          </button>
+          </Button>
         </form>
 
         <div className="mt-6 border-border/50 border-t pt-5">

@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { ShoppingBag, User } from "lucide-react";
+import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
+import { useModalStore } from "@/core/hooks/use-modal-store";
 import { CategoryLink, categories } from "@/modules/catalog";
 import { LocationSelector } from "@/modules/location";
 import { SearchBar } from "@/modules/search";
@@ -10,11 +11,13 @@ export default function Header() {
 
   // Cart is not wired yet — placeholder count until the cart module lands.
   const totals = { count: 0 };
+  const { openModal, location: currentLoc } = useModalStore();
 
   return (
     /* Top nav */
     <header className="sticky top-0 z-40 border-border/60 border-b bg-background/95 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-6 py-3 lg:px-8">
+      {/* Desktop Header */}
+      <div className="mx-auto hidden max-w-[1280px] items-center gap-4 px-6 py-3 md:flex lg:px-8">
         {/* Logo */}
         <Link
           to="/"
@@ -53,6 +56,43 @@ export default function Header() {
             </span>
           )}
         </Link>
+      </div>
+
+      {/* Mobile Header (matches custom design) */}
+      <div className="flex flex-col gap-3.5 px-4 py-3 md:hidden">
+        {/* Row 1: Location selector & Notification bell */}
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => openModal("location")}
+            className="flex items-start gap-2 text-left"
+          >
+            <MapPin size={18} className="mt-0.5 flex-shrink-0 text-pinkDeep" />
+            <div>
+              <p className="font-bold text-[9px] text-pinkDeep uppercase leading-none tracking-wider">
+                DELIVERING TO
+              </p>
+              <p className="mt-1 flex items-center gap-1 font-semibold text-foreground text-sm leading-tight">
+                {currentLoc}, Hyderabad
+                <ChevronDown size={14} className="text-foreground/60" />
+              </p>
+            </div>
+          </button>
+
+          {/* Notification bell */}
+          <button
+            type="button"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
+          >
+            <Bell size={18} className="text-foreground" />
+            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-pinkDeep" />
+          </button>
+        </div>
+
+        {/* Row 2: Search Input */}
+        <div>
+          <SearchBar />
+        </div>
       </div>
 
       {/* Category quick nav (from catalog domain) */}
