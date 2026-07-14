@@ -16,6 +16,7 @@ import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthOtpRouteImport } from './pages/auth/otp'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as storeSearchRouteImport } from './pages/(store)/search'
+import { Route as storeOffersRouteImport } from './pages/(store)/offers'
 import { Route as storeHelpRouteImport } from './pages/(store)/help'
 import { Route as storeContactRouteImport } from './pages/(store)/contact'
 import { Route as storeCartRouteImport } from './pages/(store)/cart'
@@ -29,20 +30,29 @@ import { Route as storeLegalShippingRouteImport } from './pages/(store)/legal/sh
 import { Route as storeLegalReturnsRouteImport } from './pages/(store)/legal/returns'
 import { Route as storeLegalPrivacyRouteImport } from './pages/(store)/legal/privacy'
 import { Route as storeprotectedWishlistRouteImport } from './pages/(store)/(protected)/wishlist'
+import { Route as storeprotectedReferralsRouteImport } from './pages/(store)/(protected)/referrals'
 import { Route as storeprotectedNotificationsRouteImport } from './pages/(store)/(protected)/notifications'
 import { Route as storeprotectedAddressesRouteImport } from './pages/(store)/(protected)/addresses'
 import { Route as storeprotectedCheckoutLayoutRouteImport } from './pages/(store)/(protected)/checkout/_layout'
 import { Route as storeProductProductIdIndexRouteImport } from './pages/(store)/product/$productId/index'
+import { Route as storeprotectedSupportIndexRouteImport } from './pages/(store)/(protected)/support/index'
 import { Route as storeprotectedOrdersIndexRouteImport } from './pages/(store)/(protected)/orders/index'
 import { Route as storeprotectedCheckoutIndexRouteImport } from './pages/(store)/(protected)/checkout/index'
 import { Route as storeProductProductIdReviewsRouteImport } from './pages/(store)/product/$productId/reviews'
+import { Route as storeprotectedSupportTicketIdRouteImport } from './pages/(store)/(protected)/support/$ticketId'
+import { Route as storeprotectedProfilePrivacyRouteImport } from './pages/(store)/(protected)/profile/privacy'
+import { Route as storeprotectedProfilePaymentMethodsRouteImport } from './pages/(store)/(protected)/profile/payment-methods'
+import { Route as storeprotectedProfileNotificationsRouteImport } from './pages/(store)/(protected)/profile/notifications'
+import { Route as storeprotectedProfileEditRouteImport } from './pages/(store)/(protected)/profile/edit'
 import { Route as storeprotectedPaymentStatusRouteImport } from './pages/(store)/(protected)/payment/status'
 import { Route as storeprotectedCheckoutReviewRouteImport } from './pages/(store)/(protected)/checkout/review'
 import { Route as storeprotectedCheckoutPaymentRouteImport } from './pages/(store)/(protected)/checkout/payment'
 import { Route as storeprotectedCheckoutAddressRouteImport } from './pages/(store)/(protected)/checkout/address'
 import { Route as storeprotectedOrdersOrderIdIndexRouteImport } from './pages/(store)/(protected)/orders/$orderId/index'
 import { Route as storeprotectedOrdersOrderIdTrackingRouteImport } from './pages/(store)/(protected)/orders/$orderId/tracking'
+import { Route as storeprotectedOrdersOrderIdReviewRouteImport } from './pages/(store)/(protected)/orders/$orderId/review'
 import { Route as storeprotectedOrdersOrderIdReturnRouteImport } from './pages/(store)/(protected)/orders/$orderId/return'
+import { Route as storeprotectedOrdersOrderIdHelpRouteImport } from './pages/(store)/(protected)/orders/$orderId/help'
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
@@ -76,6 +86,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const storeSearchRoute = storeSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeOffersRoute = storeOffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
   getParentRoute: () => storeLayoutRoute,
 } as any)
 const storeHelpRoute = storeHelpRouteImport.update({
@@ -142,6 +157,11 @@ const storeprotectedWishlistRoute = storeprotectedWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => storeprotectedLayoutRoute,
 } as any)
+const storeprotectedReferralsRoute = storeprotectedReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => storeprotectedLayoutRoute,
+} as any)
 const storeprotectedNotificationsRoute =
   storeprotectedNotificationsRouteImport.update({
     id: '/notifications',
@@ -165,6 +185,12 @@ const storeProductProductIdIndexRoute =
     path: '/product/$productId/',
     getParentRoute: () => storeLayoutRoute,
   } as any)
+const storeprotectedSupportIndexRoute =
+  storeprotectedSupportIndexRouteImport.update({
+    id: '/support/',
+    path: '/support/',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
 const storeprotectedOrdersIndexRoute =
   storeprotectedOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -182,6 +208,36 @@ const storeProductProductIdReviewsRoute =
     id: '/product/$productId/reviews',
     path: '/product/$productId/reviews',
     getParentRoute: () => storeLayoutRoute,
+  } as any)
+const storeprotectedSupportTicketIdRoute =
+  storeprotectedSupportTicketIdRouteImport.update({
+    id: '/support/$ticketId',
+    path: '/support/$ticketId',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedProfilePrivacyRoute =
+  storeprotectedProfilePrivacyRouteImport.update({
+    id: '/profile/privacy',
+    path: '/profile/privacy',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedProfilePaymentMethodsRoute =
+  storeprotectedProfilePaymentMethodsRouteImport.update({
+    id: '/profile/payment-methods',
+    path: '/profile/payment-methods',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedProfileNotificationsRoute =
+  storeprotectedProfileNotificationsRouteImport.update({
+    id: '/profile/notifications',
+    path: '/profile/notifications',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedProfileEditRoute =
+  storeprotectedProfileEditRouteImport.update({
+    id: '/profile/edit',
+    path: '/profile/edit',
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
 const storeprotectedPaymentStatusRoute =
   storeprotectedPaymentStatusRouteImport.update({
@@ -219,10 +275,22 @@ const storeprotectedOrdersOrderIdTrackingRoute =
     path: '/orders/$orderId/tracking',
     getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
+const storeprotectedOrdersOrderIdReviewRoute =
+  storeprotectedOrdersOrderIdReviewRouteImport.update({
+    id: '/orders/$orderId/review',
+    path: '/orders/$orderId/review',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
 const storeprotectedOrdersOrderIdReturnRoute =
   storeprotectedOrdersOrderIdReturnRouteImport.update({
     id: '/orders/$orderId/return',
     path: '/orders/$orderId/return',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedOrdersOrderIdHelpRoute =
+  storeprotectedOrdersOrderIdHelpRouteImport.update({
+    id: '/orders/$orderId/help',
+    path: '/orders/$orderId/help',
     getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
 
@@ -232,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof storeCartRoute
   '/contact': typeof storeContactRoute
   '/help': typeof storeHelpRoute
+  '/offers': typeof storeOffersRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
@@ -240,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/addresses': typeof storeprotectedAddressesRoute
   '/notifications': typeof storeprotectedNotificationsRoute
+  '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
   '/legal/privacy': typeof storeLegalPrivacyRoute
   '/legal/returns': typeof storeLegalReturnsRoute
@@ -252,11 +322,19 @@ export interface FileRoutesByFullPath {
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/profile/edit': typeof storeprotectedProfileEditRoute
+  '/profile/notifications': typeof storeprotectedProfileNotificationsRoute
+  '/profile/payment-methods': typeof storeprotectedProfilePaymentMethodsRoute
+  '/profile/privacy': typeof storeprotectedProfilePrivacyRoute
+  '/support/$ticketId': typeof storeprotectedSupportTicketIdRoute
   '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/checkout/': typeof storeprotectedCheckoutIndexRoute
   '/orders/': typeof storeprotectedOrdersIndexRoute
+  '/support/': typeof storeprotectedSupportIndexRoute
   '/product/$productId/': typeof storeProductProductIdIndexRoute
+  '/orders/$orderId/help': typeof storeprotectedOrdersOrderIdHelpRoute
   '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/orders/$orderId/review': typeof storeprotectedOrdersOrderIdReviewRoute
   '/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
   '/orders/$orderId/': typeof storeprotectedOrdersOrderIdIndexRoute
 }
@@ -266,6 +344,7 @@ export interface FileRoutesByTo {
   '/cart': typeof storeCartRoute
   '/contact': typeof storeContactRoute
   '/help': typeof storeHelpRoute
+  '/offers': typeof storeOffersRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
@@ -273,6 +352,7 @@ export interface FileRoutesByTo {
   '/': typeof storeIndexRoute
   '/addresses': typeof storeprotectedAddressesRoute
   '/notifications': typeof storeprotectedNotificationsRoute
+  '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
   '/legal/privacy': typeof storeLegalPrivacyRoute
   '/legal/returns': typeof storeLegalReturnsRoute
@@ -285,11 +365,19 @@ export interface FileRoutesByTo {
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/profile/edit': typeof storeprotectedProfileEditRoute
+  '/profile/notifications': typeof storeprotectedProfileNotificationsRoute
+  '/profile/payment-methods': typeof storeprotectedProfilePaymentMethodsRoute
+  '/profile/privacy': typeof storeprotectedProfilePrivacyRoute
+  '/support/$ticketId': typeof storeprotectedSupportTicketIdRoute
   '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/checkout': typeof storeprotectedCheckoutIndexRoute
   '/orders': typeof storeprotectedOrdersIndexRoute
+  '/support': typeof storeprotectedSupportIndexRoute
   '/product/$productId': typeof storeProductProductIdIndexRoute
+  '/orders/$orderId/help': typeof storeprotectedOrdersOrderIdHelpRoute
   '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/orders/$orderId/review': typeof storeprotectedOrdersOrderIdReviewRoute
   '/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
   '/orders/$orderId': typeof storeprotectedOrdersOrderIdIndexRoute
 }
@@ -302,6 +390,7 @@ export interface FileRoutesById {
   '/(store)/cart': typeof storeCartRoute
   '/(store)/contact': typeof storeContactRoute
   '/(store)/help': typeof storeHelpRoute
+  '/(store)/offers': typeof storeOffersRoute
   '/(store)/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
@@ -310,6 +399,7 @@ export interface FileRoutesById {
   '/(store)/(protected)/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/(store)/(protected)/addresses': typeof storeprotectedAddressesRoute
   '/(store)/(protected)/notifications': typeof storeprotectedNotificationsRoute
+  '/(store)/(protected)/referrals': typeof storeprotectedReferralsRoute
   '/(store)/(protected)/wishlist': typeof storeprotectedWishlistRoute
   '/(store)/legal/privacy': typeof storeLegalPrivacyRoute
   '/(store)/legal/returns': typeof storeLegalReturnsRoute
@@ -322,11 +412,19 @@ export interface FileRoutesById {
   '/(store)/(protected)/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/(store)/(protected)/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/(store)/(protected)/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/(store)/(protected)/profile/edit': typeof storeprotectedProfileEditRoute
+  '/(store)/(protected)/profile/notifications': typeof storeprotectedProfileNotificationsRoute
+  '/(store)/(protected)/profile/payment-methods': typeof storeprotectedProfilePaymentMethodsRoute
+  '/(store)/(protected)/profile/privacy': typeof storeprotectedProfilePrivacyRoute
+  '/(store)/(protected)/support/$ticketId': typeof storeprotectedSupportTicketIdRoute
   '/(store)/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/(store)/(protected)/checkout/': typeof storeprotectedCheckoutIndexRoute
   '/(store)/(protected)/orders/': typeof storeprotectedOrdersIndexRoute
+  '/(store)/(protected)/support/': typeof storeprotectedSupportIndexRoute
   '/(store)/product/$productId/': typeof storeProductProductIdIndexRoute
+  '/(store)/(protected)/orders/$orderId/help': typeof storeprotectedOrdersOrderIdHelpRoute
   '/(store)/(protected)/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/(store)/(protected)/orders/$orderId/review': typeof storeprotectedOrdersOrderIdReviewRoute
   '/(store)/(protected)/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
   '/(store)/(protected)/orders/$orderId/': typeof storeprotectedOrdersOrderIdIndexRoute
 }
@@ -338,6 +436,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/help'
+    | '/offers'
     | '/search'
     | '/auth/login'
     | '/auth/otp'
@@ -346,6 +445,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/addresses'
     | '/notifications'
+    | '/referrals'
     | '/wishlist'
     | '/legal/privacy'
     | '/legal/returns'
@@ -358,11 +458,19 @@ export interface FileRouteTypes {
     | '/checkout/payment'
     | '/checkout/review'
     | '/payment/status'
+    | '/profile/edit'
+    | '/profile/notifications'
+    | '/profile/payment-methods'
+    | '/profile/privacy'
+    | '/support/$ticketId'
     | '/product/$productId/reviews'
     | '/checkout/'
     | '/orders/'
+    | '/support/'
     | '/product/$productId/'
+    | '/orders/$orderId/help'
     | '/orders/$orderId/return'
+    | '/orders/$orderId/review'
     | '/orders/$orderId/tracking'
     | '/orders/$orderId/'
   fileRoutesByTo: FileRoutesByTo
@@ -372,6 +480,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/help'
+    | '/offers'
     | '/search'
     | '/auth/login'
     | '/auth/otp'
@@ -379,6 +488,7 @@ export interface FileRouteTypes {
     | '/'
     | '/addresses'
     | '/notifications'
+    | '/referrals'
     | '/wishlist'
     | '/legal/privacy'
     | '/legal/returns'
@@ -391,11 +501,19 @@ export interface FileRouteTypes {
     | '/checkout/payment'
     | '/checkout/review'
     | '/payment/status'
+    | '/profile/edit'
+    | '/profile/notifications'
+    | '/profile/payment-methods'
+    | '/profile/privacy'
+    | '/support/$ticketId'
     | '/product/$productId/reviews'
     | '/checkout'
     | '/orders'
+    | '/support'
     | '/product/$productId'
+    | '/orders/$orderId/help'
     | '/orders/$orderId/return'
+    | '/orders/$orderId/review'
     | '/orders/$orderId/tracking'
     | '/orders/$orderId'
   id:
@@ -407,6 +525,7 @@ export interface FileRouteTypes {
     | '/(store)/cart'
     | '/(store)/contact'
     | '/(store)/help'
+    | '/(store)/offers'
     | '/(store)/search'
     | '/auth/login'
     | '/auth/otp'
@@ -415,6 +534,7 @@ export interface FileRouteTypes {
     | '/(store)/(protected)/checkout'
     | '/(store)/(protected)/addresses'
     | '/(store)/(protected)/notifications'
+    | '/(store)/(protected)/referrals'
     | '/(store)/(protected)/wishlist'
     | '/(store)/legal/privacy'
     | '/(store)/legal/returns'
@@ -427,11 +547,19 @@ export interface FileRouteTypes {
     | '/(store)/(protected)/checkout/payment'
     | '/(store)/(protected)/checkout/review'
     | '/(store)/(protected)/payment/status'
+    | '/(store)/(protected)/profile/edit'
+    | '/(store)/(protected)/profile/notifications'
+    | '/(store)/(protected)/profile/payment-methods'
+    | '/(store)/(protected)/profile/privacy'
+    | '/(store)/(protected)/support/$ticketId'
     | '/(store)/product/$productId/reviews'
     | '/(store)/(protected)/checkout/'
     | '/(store)/(protected)/orders/'
+    | '/(store)/(protected)/support/'
     | '/(store)/product/$productId/'
+    | '/(store)/(protected)/orders/$orderId/help'
     | '/(store)/(protected)/orders/$orderId/return'
+    | '/(store)/(protected)/orders/$orderId/review'
     | '/(store)/(protected)/orders/$orderId/tracking'
     | '/(store)/(protected)/orders/$orderId/'
   fileRoutesById: FileRoutesById
@@ -490,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof storeSearchRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/offers': {
+      id: '/(store)/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof storeOffersRouteImport
       parentRoute: typeof storeLayoutRoute
     }
     '/(store)/help': {
@@ -583,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeprotectedWishlistRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
+    '/(store)/(protected)/referrals': {
+      id: '/(store)/(protected)/referrals'
+      path: '/referrals'
+      fullPath: '/referrals'
+      preLoaderRoute: typeof storeprotectedReferralsRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
     '/(store)/(protected)/notifications': {
       id: '/(store)/(protected)/notifications'
       path: '/notifications'
@@ -611,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeProductProductIdIndexRouteImport
       parentRoute: typeof storeLayoutRoute
     }
+    '/(store)/(protected)/support/': {
+      id: '/(store)/(protected)/support/'
+      path: '/support'
+      fullPath: '/support/'
+      preLoaderRoute: typeof storeprotectedSupportIndexRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
     '/(store)/(protected)/orders/': {
       id: '/(store)/(protected)/orders/'
       path: '/orders'
@@ -631,6 +780,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/product/$productId/reviews'
       preLoaderRoute: typeof storeProductProductIdReviewsRouteImport
       parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/(protected)/support/$ticketId': {
+      id: '/(store)/(protected)/support/$ticketId'
+      path: '/support/$ticketId'
+      fullPath: '/support/$ticketId'
+      preLoaderRoute: typeof storeprotectedSupportTicketIdRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
+    '/(store)/(protected)/profile/privacy': {
+      id: '/(store)/(protected)/profile/privacy'
+      path: '/profile/privacy'
+      fullPath: '/profile/privacy'
+      preLoaderRoute: typeof storeprotectedProfilePrivacyRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
+    '/(store)/(protected)/profile/payment-methods': {
+      id: '/(store)/(protected)/profile/payment-methods'
+      path: '/profile/payment-methods'
+      fullPath: '/profile/payment-methods'
+      preLoaderRoute: typeof storeprotectedProfilePaymentMethodsRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
+    '/(store)/(protected)/profile/notifications': {
+      id: '/(store)/(protected)/profile/notifications'
+      path: '/profile/notifications'
+      fullPath: '/profile/notifications'
+      preLoaderRoute: typeof storeprotectedProfileNotificationsRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
+    '/(store)/(protected)/profile/edit': {
+      id: '/(store)/(protected)/profile/edit'
+      path: '/profile/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof storeprotectedProfileEditRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
     '/(store)/(protected)/payment/status': {
       id: '/(store)/(protected)/payment/status'
@@ -674,11 +858,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeprotectedOrdersOrderIdTrackingRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
+    '/(store)/(protected)/orders/$orderId/review': {
+      id: '/(store)/(protected)/orders/$orderId/review'
+      path: '/orders/$orderId/review'
+      fullPath: '/orders/$orderId/review'
+      preLoaderRoute: typeof storeprotectedOrdersOrderIdReviewRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
     '/(store)/(protected)/orders/$orderId/return': {
       id: '/(store)/(protected)/orders/$orderId/return'
       path: '/orders/$orderId/return'
       fullPath: '/orders/$orderId/return'
       preLoaderRoute: typeof storeprotectedOrdersOrderIdReturnRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
+    }
+    '/(store)/(protected)/orders/$orderId/help': {
+      id: '/(store)/(protected)/orders/$orderId/help'
+      path: '/orders/$orderId/help'
+      fullPath: '/orders/$orderId/help'
+      preLoaderRoute: typeof storeprotectedOrdersOrderIdHelpRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
   }
@@ -708,10 +906,19 @@ interface storeprotectedLayoutRouteChildren {
   storeprotectedCheckoutLayoutRoute: typeof storeprotectedCheckoutLayoutRouteWithChildren
   storeprotectedAddressesRoute: typeof storeprotectedAddressesRoute
   storeprotectedNotificationsRoute: typeof storeprotectedNotificationsRoute
+  storeprotectedReferralsRoute: typeof storeprotectedReferralsRoute
   storeprotectedWishlistRoute: typeof storeprotectedWishlistRoute
   storeprotectedPaymentStatusRoute: typeof storeprotectedPaymentStatusRoute
+  storeprotectedProfileEditRoute: typeof storeprotectedProfileEditRoute
+  storeprotectedProfileNotificationsRoute: typeof storeprotectedProfileNotificationsRoute
+  storeprotectedProfilePaymentMethodsRoute: typeof storeprotectedProfilePaymentMethodsRoute
+  storeprotectedProfilePrivacyRoute: typeof storeprotectedProfilePrivacyRoute
+  storeprotectedSupportTicketIdRoute: typeof storeprotectedSupportTicketIdRoute
   storeprotectedOrdersIndexRoute: typeof storeprotectedOrdersIndexRoute
+  storeprotectedSupportIndexRoute: typeof storeprotectedSupportIndexRoute
+  storeprotectedOrdersOrderIdHelpRoute: typeof storeprotectedOrdersOrderIdHelpRoute
   storeprotectedOrdersOrderIdReturnRoute: typeof storeprotectedOrdersOrderIdReturnRoute
+  storeprotectedOrdersOrderIdReviewRoute: typeof storeprotectedOrdersOrderIdReviewRoute
   storeprotectedOrdersOrderIdTrackingRoute: typeof storeprotectedOrdersOrderIdTrackingRoute
   storeprotectedOrdersOrderIdIndexRoute: typeof storeprotectedOrdersOrderIdIndexRoute
 }
@@ -721,11 +928,23 @@ const storeprotectedLayoutRouteChildren: storeprotectedLayoutRouteChildren = {
     storeprotectedCheckoutLayoutRouteWithChildren,
   storeprotectedAddressesRoute: storeprotectedAddressesRoute,
   storeprotectedNotificationsRoute: storeprotectedNotificationsRoute,
+  storeprotectedReferralsRoute: storeprotectedReferralsRoute,
   storeprotectedWishlistRoute: storeprotectedWishlistRoute,
   storeprotectedPaymentStatusRoute: storeprotectedPaymentStatusRoute,
+  storeprotectedProfileEditRoute: storeprotectedProfileEditRoute,
+  storeprotectedProfileNotificationsRoute:
+    storeprotectedProfileNotificationsRoute,
+  storeprotectedProfilePaymentMethodsRoute:
+    storeprotectedProfilePaymentMethodsRoute,
+  storeprotectedProfilePrivacyRoute: storeprotectedProfilePrivacyRoute,
+  storeprotectedSupportTicketIdRoute: storeprotectedSupportTicketIdRoute,
   storeprotectedOrdersIndexRoute: storeprotectedOrdersIndexRoute,
+  storeprotectedSupportIndexRoute: storeprotectedSupportIndexRoute,
+  storeprotectedOrdersOrderIdHelpRoute: storeprotectedOrdersOrderIdHelpRoute,
   storeprotectedOrdersOrderIdReturnRoute:
     storeprotectedOrdersOrderIdReturnRoute,
+  storeprotectedOrdersOrderIdReviewRoute:
+    storeprotectedOrdersOrderIdReviewRoute,
   storeprotectedOrdersOrderIdTrackingRoute:
     storeprotectedOrdersOrderIdTrackingRoute,
   storeprotectedOrdersOrderIdIndexRoute: storeprotectedOrdersOrderIdIndexRoute,
@@ -740,6 +959,7 @@ interface storeLayoutRouteChildren {
   storeCartRoute: typeof storeCartRoute
   storeContactRoute: typeof storeContactRoute
   storeHelpRoute: typeof storeHelpRoute
+  storeOffersRoute: typeof storeOffersRoute
   storeSearchRoute: typeof storeSearchRoute
   storeIndexRoute: typeof storeIndexRoute
   storeLegalPrivacyRoute: typeof storeLegalPrivacyRoute
@@ -759,6 +979,7 @@ const storeLayoutRouteChildren: storeLayoutRouteChildren = {
   storeCartRoute: storeCartRoute,
   storeContactRoute: storeContactRoute,
   storeHelpRoute: storeHelpRoute,
+  storeOffersRoute: storeOffersRoute,
   storeSearchRoute: storeSearchRoute,
   storeIndexRoute: storeIndexRoute,
   storeLegalPrivacyRoute: storeLegalPrivacyRoute,

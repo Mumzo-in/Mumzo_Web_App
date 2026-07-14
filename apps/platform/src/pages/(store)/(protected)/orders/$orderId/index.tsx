@@ -5,6 +5,7 @@ import {
   MapPin,
   Navigation,
   RotateCcw,
+  Star,
   Undo2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -202,8 +203,19 @@ function OrderDetailPage() {
                 Return items
               </Link>
             )}
+            {order.status === "delivered" && (
+              <Link
+                to="/orders/$orderId/review"
+                params={{ orderId: order.id }}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border py-3 font-semibold text-foreground/70 text-sm transition-colors hover:bg-secondary"
+              >
+                <Star size={15} />
+                Rate order
+              </Link>
+            )}
             <Link
-              to="/help"
+              to="/orders/$orderId/help"
+              params={{ orderId: order.id }}
               className="inline-flex items-center justify-center gap-2 rounded-full border border-border py-3 font-semibold text-foreground/70 text-sm transition-colors hover:bg-secondary"
             >
               <LifeBuoy size={15} />

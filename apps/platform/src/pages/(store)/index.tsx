@@ -6,6 +6,7 @@ import {
   products,
 } from "@/modules/catalog";
 import { HeroCarousel } from "@/modules/home";
+import { OffersStrip } from "@/modules/offers";
 
 export const Route = createFileRoute("/(store)/")({
   component: HomePage,
@@ -41,6 +42,27 @@ function HomePage() {
             <CategoryCard key={c.slug} category={c} />
           ))}
         </div>
+      </section>
+
+      {/* Offers strip */}
+      <section className="mt-12">
+        <div className="mb-5 flex items-baseline justify-between">
+          <div>
+            <span className="font-semibold text-[11px] text-primary uppercase tracking-widest">
+              Save more
+            </span>
+            <h2 className="mt-1 font-editorial text-3xl lg:text-4xl">
+              Offers for you
+            </h2>
+          </div>
+          <Link
+            to="/offers"
+            className="font-semibold text-primary text-sm hover:underline"
+          >
+            See all →
+          </Link>
+        </div>
+        <OffersStrip />
       </section>
 
       {/* Bestsellers */}

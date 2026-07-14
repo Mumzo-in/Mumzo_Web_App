@@ -1,5 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bell, Heart, LogOut, MapPin, Package, User } from "lucide-react";
+import {
+  Baby,
+  Bell,
+  CreditCard,
+  Gift,
+  Heart,
+  LogOut,
+  MapPin,
+  Package,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/core/components/loader";
 import { authClient } from "@/modules/auth";
@@ -71,7 +82,12 @@ function ProfilePage() {
 
   const menuItems: {
     label: string;
-    to: "/orders" | "/addresses" | "/wishlist" | "/notifications";
+    to:
+      | "/orders"
+      | "/addresses"
+      | "/wishlist"
+      | "/notifications"
+      | "/profile/baby";
     icon: typeof Package;
     desc: string;
   }[] = [
@@ -94,6 +110,12 @@ function ProfilePage() {
       desc: "Your saved products",
     },
     {
+      label: "Baby Profiles",
+      to: "/profile/baby",
+      icon: Baby,
+      desc: "Age-based picks for your little ones",
+    },
+    {
       label: "Notifications",
       to: "/notifications",
       icon: Bell,
@@ -101,8 +123,44 @@ function ProfilePage() {
     },
   ];
 
+  const settingsItems: {
+    label: string;
+    to:
+      | "/profile/edit"
+      | "/profile/payment-methods"
+      | "/profile/notifications"
+      | "/profile/privacy";
+    icon: typeof Package;
+    desc: string;
+  }[] = [
+    {
+      label: "Edit Profile",
+      to: "/profile/edit",
+      icon: User,
+      desc: "Name, phone, email and language",
+    },
+    {
+      label: "Payment Methods",
+      to: "/profile/payment-methods",
+      icon: CreditCard,
+      desc: "Saved UPI and cards",
+    },
+    {
+      label: "Notification Settings",
+      to: "/profile/notifications",
+      icon: Bell,
+      desc: "Choose channels for each update",
+    },
+    {
+      label: "Privacy & Data",
+      to: "/profile/privacy",
+      icon: ShieldCheck,
+      desc: "Consents, data export and account deletion",
+    },
+  ];
+
   return (
-    <div className="mx-auto animate-fade-in px-4 py-8">
+    <div className="mx-auto w-full max-w-7xl animate-fade-in px-4 py-8">
       {/* Profile Header Card */}
       <div className="flex flex-col items-center gap-5 rounded-3xl border border-border/60 bg-white p-6 shadow-warm sm:flex-row">
         <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -126,9 +184,67 @@ function ProfilePage() {
         </button>
       </div>
 
+      {/* Referral Banner */}
+      <div className="mt-6 flex flex-col items-center justify-between gap-4 overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-blush/40 via-peach/10 to-transparent p-5 sm:flex-row">
+        <div className="flex items-center gap-4 text-center sm:text-left">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/10 bg-white text-primary shadow-sm">
+            <Gift size={22} className="animate-bounce" />
+          </span>
+          <div>
+            <h3 className="font-editorial text-ink text-lg">
+              Give ₹150, Get ₹150
+            </h3>
+            <p className="mt-0.5 max-w-md text-foreground/60 text-xs">
+              Invite your friends to shop on Mumzo! They get ₹150 off their
+              first order, and you get ₹150 once they purchase.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/referrals"
+          className="inline-flex shrink-0 items-center justify-center rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground text-xs shadow-sm transition-colors hover:bg-primary/95"
+        >
+          Refer Now →
+        </Link>
+      </div>
+
       {/* Menu links grid */}
       <div className="mt-8 space-y-3">
         {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.label}
+              to={item.to}
+              className="group flex items-center justify-between rounded-2xl border border-border/50 bg-white p-4 transition-all hover:border-primary/20 hover:bg-accent/5"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-secondary text-foreground/75 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <Icon size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-ink text-sm transition-colors group-hover:text-primary">
+                    {item.label}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-foreground/50">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+              <span className="text-foreground/30 transition-transform group-hover:translate-x-0.5 group-hover:text-primary">
+                →
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Settings group */}
+      <p className="mt-8 mb-3 font-semibold text-[11px] text-foreground/50 uppercase tracking-widest">
+        Settings
+      </p>
+      <div className="space-y-3">
+        {settingsItems.map((item) => {
           const Icon = item.icon;
           return (
             <Link

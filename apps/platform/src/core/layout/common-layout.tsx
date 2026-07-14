@@ -10,7 +10,7 @@ export default function CommonLayout() {
   return (
     <div className={`flex min-h-screen flex-col ${isMobile ? "pb-16" : ""}`}>
       <Header />
-      <main className="mx-auto w-full max-w-[1280px] flex-grow px-4 md:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl flex-grow px-4 md:px-6 lg:px-8">
         <Outlet />
       </main>
       {!isMobile && <Footer />}
