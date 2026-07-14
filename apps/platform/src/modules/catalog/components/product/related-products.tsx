@@ -1,4 +1,4 @@
-import { productsInCategory } from "../index";
+import { productsInCategory } from "../../index";
 import RecommendationCard from "./recommendation-card";
 
 interface RelatedProductsProps {

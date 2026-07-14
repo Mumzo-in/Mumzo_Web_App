@@ -1,8 +1,9 @@
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { Plus, Star } from "lucide-react";
+import { Minus, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "../index";
+import { useCart } from "@/modules/cart";
+import type { Product } from "../../index";
 
 interface ProductCardProps {
   product: Product;
@@ -10,7 +11,11 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, className }: ProductCardProps) {
+  const { addItem, items, updateQty } = useCart();
+  const inCart = items.find((i) => i.key === product.id);
+
   const handleAdd = () => {
+    addItem(product);
     toast.success(`${product.name} added to cart!`);
   };
 
@@ -75,14 +80,43 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               </span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={handleAdd}
-            data-testid={`web-add-${product.id}`}
-            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
-          >
-            <Plus size={14} strokeWidth={3} /> Add
-          </button>
+          {inCart ? (
+            <div className="inline-flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground">
+              <button
+                type="button"
+                onClick={() => updateQty(inCart.key, inCart.qty - 1)}
+                data-testid={`web-qty-minus-${product.id}`}
+                aria-label="Decrease quantity"
+                className="px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+              >
+                <Minus size={14} strokeWidth={3} />
+              </button>
+              <span
+                data-testid={`web-qty-${product.id}`}
+                className="min-w-5.5 text-center font-semibold text-[11px] md:text-xs"
+              >
+                {inCart.qty}
+              </span>
+              <button
+                type="button"
+                onClick={() => updateQty(inCart.key, inCart.qty + 1)}
+                data-testid={`web-qty-plus-${product.id}`}
+                aria-label="Increase quantity"
+                className="px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+              >
+                <Plus size={14} strokeWidth={3} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAdd}
+              data-testid={`web-add-${product.id}`}
+              className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
+            >
+              <Plus size={14} strokeWidth={3} /> Add
+            </button>
+          )}
         </div>
       </div>
     </div>

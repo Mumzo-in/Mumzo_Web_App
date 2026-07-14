@@ -50,7 +50,7 @@ function CategoryPage() {
   return (
     <div
       data-testid="web-category-page"
-      className="mx-auto max-w-[1280px] px-4 pt-8 pb-8 md:px-0 md:pb-0"
+      className="mx-auto max-w-[1280px] px-2 pt-8 pb-8 md:px-0 md:pb-0"
     >
       <Breadcrumbs
         items={[

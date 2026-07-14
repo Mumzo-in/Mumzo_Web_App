@@ -1,7 +1,7 @@
 import { cn } from "@mumzo/ui/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 
-import { SORTS, type SortKey } from "../data/category-config";
+import { SORTS, type SortKey } from "../../data/category-config";
 
 interface CategorySortProps {
   value: SortKey;

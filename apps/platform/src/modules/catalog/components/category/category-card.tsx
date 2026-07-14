@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import type { Category } from "../index";
+import type { Category } from "../../index";
 
 interface CategoryCardProps {
   category: Category;

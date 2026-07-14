@@ -100,7 +100,7 @@ function ProductDetailPage() {
       </div>
 
       {/* Mobile Header Back Row (visible on mobile, hidden on desktop) */}
-      <div className="mb-4 flex items-center px-4 md:hidden">
+      <div className="mb-4 flex items-center md:hidden">
         <Link
           to="/category/$slug"
           params={{ slug: product.categorySlug }}
@@ -127,16 +127,15 @@ function ProductDetailPage() {
       {/* Main split grid */}
       <div className="mt-4 grid gap-6 md:grid-cols-2 lg:gap-16">
         {/* Left column: image & thumbnails */}
-        <div className="mx-4 md:mx-0">
-          <ProductImageCarousel
-            img={product.img}
-            name={product.name}
-            discount={product.discount}
-          />
-        </div>
+
+        <ProductImageCarousel
+          img={product.img}
+          name={product.name}
+          discount={product.discount}
+        />
 
         {/* Right column: info & selectors */}
-        <div className="flex flex-col px-5 pt-5 md:px-0 md:pt-0">
+        <div className="flex flex-col pt-5 md:px-0 md:pt-0">
           <p className="font-semibold text-[11px] text-primary uppercase tracking-widest md:text-xs">
             {product.brand}
           </p>
@@ -258,7 +257,7 @@ function ProductDetailPage() {
 
       {/* Related Products */}
       {related.length > 0 && (
-        <section className="mt-12 border-border/60 border-t px-5 pt-8 md:mt-16 md:px-0 md:pt-10">
+        <section className="mt-12 border-border/60 border-t pt-8 md:mt-16 md:px-0 md:pt-10">
           <h2 className="mb-4 font-editorial text-foreground text-xl md:mb-6 md:text-2xl lg:text-3xl">
             You may also like
           </h2>

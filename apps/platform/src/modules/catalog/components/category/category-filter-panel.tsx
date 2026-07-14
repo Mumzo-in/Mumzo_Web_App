@@ -10,7 +10,7 @@ import {
   PRICE_MIN,
   PRICE_STEP,
   rupee,
-} from "../data/category-config";
+} from "../../data/category-config";
 
 interface CategoryFilterPanelProps {
   facets: CategoryFacets;

@@ -12,7 +12,7 @@ import {
   activeFilterCount,
   type CategoryFacets,
   type CategoryFilterState,
-} from "../data/category-config";
+} from "../../data/category-config";
 import CategoryFilterPanel from "./category-filter-panel";
 
 interface CategoryFilterDialogProps {
