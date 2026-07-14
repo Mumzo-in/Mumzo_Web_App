@@ -21,7 +21,9 @@ import { Route as storeContactRouteImport } from './pages/(store)/contact'
 import { Route as storeCartRouteImport } from './pages/(store)/cart'
 import { Route as storeAboutRouteImport } from './pages/(store)/about'
 import { Route as storeprotectedLayoutRouteImport } from './pages/(store)/(protected)/_layout'
+import { Route as storeProfileIndexRouteImport } from './pages/(store)/profile/index'
 import { Route as storeProductIndexRouteImport } from './pages/(store)/product/index'
+import { Route as storeProfileBabyRouteImport } from './pages/(store)/profile/baby'
 import { Route as storeLegalTermsRouteImport } from './pages/(store)/legal/terms'
 import { Route as storeLegalShippingRouteImport } from './pages/(store)/legal/shipping'
 import { Route as storeLegalReturnsRouteImport } from './pages/(store)/legal/returns'
@@ -31,10 +33,8 @@ import { Route as storeprotectedNotificationsRouteImport } from './pages/(store)
 import { Route as storeprotectedAddressesRouteImport } from './pages/(store)/(protected)/addresses'
 import { Route as storeProductProductIdIndexRouteImport } from './pages/(store)/product/$productId/index'
 import { Route as storeprotectedSubscriptionsIndexRouteImport } from './pages/(store)/(protected)/subscriptions/index'
-import { Route as storeprotectedProfileIndexRouteImport } from './pages/(store)/(protected)/profile/index'
 import { Route as storeprotectedOrdersIndexRouteImport } from './pages/(store)/(protected)/orders/index'
 import { Route as storeProductProductIdReviewsRouteImport } from './pages/(store)/product/$productId/reviews'
-import { Route as storeprotectedProfileBabyRouteImport } from './pages/(store)/(protected)/profile/baby'
 import { Route as storeprotectedPaymentStatusRouteImport } from './pages/(store)/(protected)/payment/status'
 import { Route as storeprotectedCheckoutReviewRouteImport } from './pages/(store)/(protected)/checkout/review'
 import { Route as storeprotectedCheckoutPaymentRouteImport } from './pages/(store)/(protected)/checkout/payment'
@@ -101,9 +101,19 @@ const storeprotectedLayoutRoute = storeprotectedLayoutRouteImport.update({
   id: '/(protected)',
   getParentRoute: () => storeLayoutRoute,
 } as any)
+const storeProfileIndexRoute = storeProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
 const storeProductIndexRoute = storeProductIndexRouteImport.update({
   id: '/product/',
   path: '/product/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeProfileBabyRoute = storeProfileBabyRouteImport.update({
+  id: '/profile/baby',
+  path: '/profile/baby',
   getParentRoute: () => storeLayoutRoute,
 } as any)
 const storeLegalTermsRoute = storeLegalTermsRouteImport.update({
@@ -154,12 +164,6 @@ const storeprotectedSubscriptionsIndexRoute =
     path: '/subscriptions/',
     getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const storeprotectedProfileIndexRoute =
-  storeprotectedProfileIndexRouteImport.update({
-    id: '/profile/',
-    path: '/profile/',
-    getParentRoute: () => storeprotectedLayoutRoute,
-  } as any)
 const storeprotectedOrdersIndexRoute =
   storeprotectedOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -171,12 +175,6 @@ const storeProductProductIdReviewsRoute =
     id: '/product/$productId/reviews',
     path: '/product/$productId/reviews',
     getParentRoute: () => storeLayoutRoute,
-  } as any)
-const storeprotectedProfileBabyRoute =
-  storeprotectedProfileBabyRouteImport.update({
-    id: '/profile/baby',
-    path: '/profile/baby',
-    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
 const storeprotectedPaymentStatusRoute =
   storeprotectedPaymentStatusRouteImport.update({
@@ -239,15 +237,15 @@ export interface FileRoutesByFullPath {
   '/legal/returns': typeof storeLegalReturnsRoute
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
+  '/profile/baby': typeof storeProfileBabyRoute
   '/product/': typeof storeProductIndexRoute
+  '/profile/': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
-  '/profile/baby': typeof storeprotectedProfileBabyRoute
   '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/orders/': typeof storeprotectedOrdersIndexRoute
-  '/profile/': typeof storeprotectedProfileIndexRoute
   '/subscriptions/': typeof storeprotectedSubscriptionsIndexRoute
   '/product/$productId/': typeof storeProductProductIdIndexRoute
   '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
@@ -272,15 +270,15 @@ export interface FileRoutesByTo {
   '/legal/returns': typeof storeLegalReturnsRoute
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
+  '/profile/baby': typeof storeProfileBabyRoute
   '/product': typeof storeProductIndexRoute
+  '/profile': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
-  '/profile/baby': typeof storeprotectedProfileBabyRoute
   '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/orders': typeof storeprotectedOrdersIndexRoute
-  '/profile': typeof storeprotectedProfileIndexRoute
   '/subscriptions': typeof storeprotectedSubscriptionsIndexRoute
   '/product/$productId': typeof storeProductProductIdIndexRoute
   '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
@@ -308,15 +306,15 @@ export interface FileRoutesById {
   '/(store)/legal/returns': typeof storeLegalReturnsRoute
   '/(store)/legal/shipping': typeof storeLegalShippingRoute
   '/(store)/legal/terms': typeof storeLegalTermsRoute
+  '/(store)/profile/baby': typeof storeProfileBabyRoute
   '/(store)/product/': typeof storeProductIndexRoute
+  '/(store)/profile/': typeof storeProfileIndexRoute
   '/(store)/(protected)/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/(store)/(protected)/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
   '/(store)/(protected)/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/(store)/(protected)/payment/status': typeof storeprotectedPaymentStatusRoute
-  '/(store)/(protected)/profile/baby': typeof storeprotectedProfileBabyRoute
   '/(store)/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
   '/(store)/(protected)/orders/': typeof storeprotectedOrdersIndexRoute
-  '/(store)/(protected)/profile/': typeof storeprotectedProfileIndexRoute
   '/(store)/(protected)/subscriptions/': typeof storeprotectedSubscriptionsIndexRoute
   '/(store)/product/$productId/': typeof storeProductProductIdIndexRoute
   '/(store)/(protected)/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
@@ -343,15 +341,15 @@ export interface FileRouteTypes {
     | '/legal/returns'
     | '/legal/shipping'
     | '/legal/terms'
+    | '/profile/baby'
     | '/product/'
+    | '/profile/'
     | '/checkout/address'
     | '/checkout/payment'
     | '/checkout/review'
     | '/payment/status'
-    | '/profile/baby'
     | '/product/$productId/reviews'
     | '/orders/'
-    | '/profile/'
     | '/subscriptions/'
     | '/product/$productId/'
     | '/orders/$orderId/return'
@@ -376,15 +374,15 @@ export interface FileRouteTypes {
     | '/legal/returns'
     | '/legal/shipping'
     | '/legal/terms'
+    | '/profile/baby'
     | '/product'
+    | '/profile'
     | '/checkout/address'
     | '/checkout/payment'
     | '/checkout/review'
     | '/payment/status'
-    | '/profile/baby'
     | '/product/$productId/reviews'
     | '/orders'
-    | '/profile'
     | '/subscriptions'
     | '/product/$productId'
     | '/orders/$orderId/return'
@@ -411,15 +409,15 @@ export interface FileRouteTypes {
     | '/(store)/legal/returns'
     | '/(store)/legal/shipping'
     | '/(store)/legal/terms'
+    | '/(store)/profile/baby'
     | '/(store)/product/'
+    | '/(store)/profile/'
     | '/(store)/(protected)/checkout/address'
     | '/(store)/(protected)/checkout/payment'
     | '/(store)/(protected)/checkout/review'
     | '/(store)/(protected)/payment/status'
-    | '/(store)/(protected)/profile/baby'
     | '/(store)/product/$productId/reviews'
     | '/(store)/(protected)/orders/'
-    | '/(store)/(protected)/profile/'
     | '/(store)/(protected)/subscriptions/'
     | '/(store)/product/$productId/'
     | '/(store)/(protected)/orders/$orderId/return'
@@ -518,11 +516,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeprotectedLayoutRouteImport
       parentRoute: typeof storeLayoutRoute
     }
+    '/(store)/profile/': {
+      id: '/(store)/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof storeProfileIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
     '/(store)/product/': {
       id: '/(store)/product/'
       path: '/product'
       fullPath: '/product/'
       preLoaderRoute: typeof storeProductIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/profile/baby': {
+      id: '/(store)/profile/baby'
+      path: '/profile/baby'
+      fullPath: '/profile/baby'
+      preLoaderRoute: typeof storeProfileBabyRouteImport
       parentRoute: typeof storeLayoutRoute
     }
     '/(store)/legal/terms': {
@@ -588,13 +600,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeprotectedSubscriptionsIndexRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(store)/(protected)/profile/': {
-      id: '/(store)/(protected)/profile/'
-      path: '/profile'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof storeprotectedProfileIndexRouteImport
-      parentRoute: typeof storeprotectedLayoutRoute
-    }
     '/(store)/(protected)/orders/': {
       id: '/(store)/(protected)/orders/'
       path: '/orders'
@@ -608,13 +613,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/product/$productId/reviews'
       preLoaderRoute: typeof storeProductProductIdReviewsRouteImport
       parentRoute: typeof storeLayoutRoute
-    }
-    '/(store)/(protected)/profile/baby': {
-      id: '/(store)/(protected)/profile/baby'
-      path: '/profile/baby'
-      fullPath: '/profile/baby'
-      preLoaderRoute: typeof storeprotectedProfileBabyRouteImport
-      parentRoute: typeof storeprotectedLayoutRoute
     }
     '/(store)/(protected)/payment/status': {
       id: '/(store)/(protected)/payment/status'
@@ -676,9 +674,7 @@ interface storeprotectedLayoutRouteChildren {
   storeprotectedCheckoutPaymentRoute: typeof storeprotectedCheckoutPaymentRoute
   storeprotectedCheckoutReviewRoute: typeof storeprotectedCheckoutReviewRoute
   storeprotectedPaymentStatusRoute: typeof storeprotectedPaymentStatusRoute
-  storeprotectedProfileBabyRoute: typeof storeprotectedProfileBabyRoute
   storeprotectedOrdersIndexRoute: typeof storeprotectedOrdersIndexRoute
-  storeprotectedProfileIndexRoute: typeof storeprotectedProfileIndexRoute
   storeprotectedSubscriptionsIndexRoute: typeof storeprotectedSubscriptionsIndexRoute
   storeprotectedOrdersOrderIdReturnRoute: typeof storeprotectedOrdersOrderIdReturnRoute
   storeprotectedOrdersOrderIdTrackingRoute: typeof storeprotectedOrdersOrderIdTrackingRoute
@@ -693,9 +689,7 @@ const storeprotectedLayoutRouteChildren: storeprotectedLayoutRouteChildren = {
   storeprotectedCheckoutPaymentRoute: storeprotectedCheckoutPaymentRoute,
   storeprotectedCheckoutReviewRoute: storeprotectedCheckoutReviewRoute,
   storeprotectedPaymentStatusRoute: storeprotectedPaymentStatusRoute,
-  storeprotectedProfileBabyRoute: storeprotectedProfileBabyRoute,
   storeprotectedOrdersIndexRoute: storeprotectedOrdersIndexRoute,
-  storeprotectedProfileIndexRoute: storeprotectedProfileIndexRoute,
   storeprotectedSubscriptionsIndexRoute: storeprotectedSubscriptionsIndexRoute,
   storeprotectedOrdersOrderIdReturnRoute:
     storeprotectedOrdersOrderIdReturnRoute,
@@ -719,7 +713,9 @@ interface storeLayoutRouteChildren {
   storeLegalReturnsRoute: typeof storeLegalReturnsRoute
   storeLegalShippingRoute: typeof storeLegalShippingRoute
   storeLegalTermsRoute: typeof storeLegalTermsRoute
+  storeProfileBabyRoute: typeof storeProfileBabyRoute
   storeProductIndexRoute: typeof storeProductIndexRoute
+  storeProfileIndexRoute: typeof storeProfileIndexRoute
   storeProductProductIdReviewsRoute: typeof storeProductProductIdReviewsRoute
   storeProductProductIdIndexRoute: typeof storeProductProductIdIndexRoute
 }
@@ -736,7 +732,9 @@ const storeLayoutRouteChildren: storeLayoutRouteChildren = {
   storeLegalReturnsRoute: storeLegalReturnsRoute,
   storeLegalShippingRoute: storeLegalShippingRoute,
   storeLegalTermsRoute: storeLegalTermsRoute,
+  storeProfileBabyRoute: storeProfileBabyRoute,
   storeProductIndexRoute: storeProductIndexRoute,
+  storeProfileIndexRoute: storeProfileIndexRoute,
   storeProductProductIdReviewsRoute: storeProductProductIdReviewsRoute,
   storeProductProductIdIndexRoute: storeProductProductIdIndexRoute,
 }

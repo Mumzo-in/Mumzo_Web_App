@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ComingSoon } from "@/core/components/coming-soon";
 
-export const Route = createFileRoute("/(store)/(protected)/profile/baby")({
+export const Route = createFileRoute("/(store)/profile/baby")({
   component: BabyProfilePage,
 });
 

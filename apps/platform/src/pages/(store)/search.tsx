@@ -109,7 +109,7 @@ function SearchPage() {
       <Breadcrumbs items={breadcrumbItems} />
 
       {/* Title + desktop sort */}
-      <div className="flex flex-wrap items-end justify-between gap-4 px-4 md:px-0">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-editorial text-4xl text-ink leading-none lg:text-5xl">
             {title}
@@ -126,7 +126,7 @@ function SearchPage() {
       </div>
 
       {/* Mobile toolbar — sort + filter inline (filters open in a dialog) */}
-      <div className="mt-4 grid grid-cols-2 gap-2 px-4 lg:hidden">
+      <div className="mt-4 grid grid-cols-2 gap-2 md:px-4 lg:hidden">
         <CategorySort
           value={filters.sort}
           onChange={(sort) => setFilters({ ...filters, sort })}
@@ -140,7 +140,7 @@ function SearchPage() {
       </div>
 
       {/* Sidebar + grid — pure CSS responsive (sidebar is desktop-only) */}
-      <div className="mt-8 grid grid-cols-1 gap-8 px-4 md:px-0 lg:mt-8 lg:grid-cols-[260px_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-[260px_1fr]">
         <aside className="hidden h-fit self-start lg:sticky lg:top-24 lg:block">
           <CategoryFilterPanel
             facets={facets}
