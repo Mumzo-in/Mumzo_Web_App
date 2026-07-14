@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, MapPin, Search, ShoppingBag, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { useModalStore } from "@/core/hooks/use-modal-store";
 
 import MumzoLogo from "./mumzo-logo";
 
@@ -21,6 +22,7 @@ export default function Header() {
   const [q, setQ] = useState("");
   // Cart is not wired yet — placeholder count until the cart module lands.
   const totals = { count: 0 };
+  const { openModal, location: currentLoc } = useModalStore();
 
   const submitSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -43,15 +45,16 @@ export default function Header() {
         {/* Address pill */}
         <button
           type="button"
-          className="hidden items-center gap-2 rounded-2xl border border-border bg-accent px-3 py-2 text-xs transition-colors hover:border-primary md:flex"
+          onClick={() => openModal("location")}
+          className="hidden items-center gap-2 rounded-2xl border border-rose/40 bg-blush px-3 py-2 text-xs transition-colors hover:border-pinkDeep md:flex"
         >
-          <MapPin size={14} className="text-primary" />
+          <MapPin size={14} className="text-pinkDeep" />
           <div className="text-left leading-tight">
-            <p className="font-semibold text-[10px] text-primary uppercase tracking-widest">
+            <p className="font-semibold text-[10px] text-pinkDeep uppercase tracking-widest">
               Deliver to
             </p>
             <p className="font-semibold text-foreground text-sm">
-              Banjara Hills
+              {currentLoc}
             </p>
           </div>
           <ChevronDown size={14} className="text-foreground/50" />
@@ -68,28 +71,28 @@ export default function Header() {
             onChange={(e) => setQ(e.target.value)}
             placeholder='Search "diapers", "formula", "wet wipes"…'
             data-testid="web-search"
-            className="w-full rounded-full border border-border/70 bg-card py-2.5 pr-4 pl-11 text-sm outline-none transition-colors focus:border-primary"
+            className="w-full rounded-full border border-border/70 bg-card py-2.5 pr-4 pl-11 text-sm outline-none transition-colors focus:border-pinkDeep"
           />
         </form>
 
         {/* Right cluster */}
         <Link
           to="/auth/login"
-          className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
+          className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-pinkDeep md:flex"
         >
           <User size={18} /> Login
         </Link>
         <Link
           to="/cart"
           data-testid="web-cart-btn"
-          className="relative inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/90"
+          className="relative inline-flex items-center gap-2 rounded-full bg-pinkDeep px-4 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#A93F63]"
         >
           <ShoppingBag size={16} />
           <span className="hidden sm:inline">Cart</span>
           {totals.count > 0 && (
             <span
               data-testid="web-cart-count"
-              className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-background px-1.5 font-bold text-[11px] text-primary"
+              className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-white px-1.5 font-bold text-[11px] text-pinkDeep"
             >
               {totals.count}
             </span>
@@ -109,7 +112,7 @@ export default function Header() {
                 key={c.slug}
                 to="/category/$slug"
                 params={{ slug: c.slug }}
-                className="whitespace-nowrap rounded-full border border-border/70 bg-card px-3.5 py-1.5 font-medium text-xs transition-colors hover:border-primary hover:text-primary"
+                className="whitespace-nowrap rounded-full border border-border/70 bg-white px-3.5 py-1.5 font-medium text-xs transition-colors hover:border-pinkDeep hover:text-pinkDeep"
               >
                 {c.name}
               </Link>

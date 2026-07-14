@@ -3,11 +3,11 @@ import { TooltipProvider } from "@mumzo/ui/components/tooltip";
 import {
   createRootRouteWithContext,
   HeadContent,
-  Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import Header from "@/core/components/header";
+import ModalProvider from "@/core/components/modal-provider";
 import { ThemeProvider } from "@/core/components/theme-provider";
+import CommonLayout from "@/core/layout/common-layout";
 
 export type RouterAppContext = {};
 
@@ -42,10 +42,8 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Header />
-          <Outlet />
-        </div>
+        <CommonLayout />
+        <ModalProvider />
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
