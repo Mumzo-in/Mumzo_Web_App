@@ -23,9 +23,13 @@ function Row({
 
 interface CartSummaryProps {
   onPlaceOrder: () => void;
+  ctaLabel?: string;
 }
 
-export default function CartSummary({ onPlaceOrder }: CartSummaryProps) {
+export default function CartSummary({
+  onPlaceOrder,
+  ctaLabel,
+}: CartSummaryProps) {
   const { totals, coupon } = useCart();
 
   return (
@@ -77,7 +81,7 @@ export default function CartSummary({ onPlaceOrder }: CartSummaryProps) {
           data-testid="web-place-order"
           className="mt-6 w-full rounded-full bg-pinkDeep py-4 font-semibold text-sm text-white transition-all hover:bg-[#A93F63] active:scale-[0.99]"
         >
-          Place order → {rupee(totals.total)}
+          {ctaLabel ?? `Place order → ${rupee(totals.total)}`}
         </button>
         <p className="mt-3 text-center text-[11px] text-foreground/50">
           By placing your order, you agree to our terms of service and refund

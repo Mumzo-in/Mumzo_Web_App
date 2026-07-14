@@ -83,8 +83,8 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <a href="mailto:admin@mumzo.in" className="hover:text-primary">
-                admin@mumzo.in
+              <a href="mailto:care@mumzo.in" className="hover:text-primary">
+                care@mumzo.in
               </a>
             </li>
           </ul>

@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/core/components/coming-soon";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(store)/product/")({
-  component: ProductListPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/search" });
+  },
 });
-
-function ProductListPage() {
-  return <ComingSoon title="Products" />;
-}

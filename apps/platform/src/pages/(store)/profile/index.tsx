@@ -1,13 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  CalendarDays,
-  Heart,
-  LogOut,
-  MapPin,
-  Package,
-  User,
-} from "lucide-react";
+import { Bell, Heart, LogOut, MapPin, Package, User } from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/core/components/loader";
 import { authClient } from "@/modules/auth";
@@ -18,7 +10,15 @@ export const Route = createFileRoute("/(store)/profile/")({
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
+  // const { data: session, isPending } = authClient.useSession();
+  const session = {
+    user: {
+      name: "Bikram",
+      email: "[EMAIL_ADDRESS]",
+      phone: "9999999999",
+    },
+  };
+  const isPending = false;
 
   const handleSignOut = async () => {
     const res = await authClient.signOut();
@@ -71,12 +71,7 @@ function ProfilePage() {
 
   const menuItems: {
     label: string;
-    to:
-      | "/orders"
-      | "/addresses"
-      | "/wishlist"
-      | "/subscriptions"
-      | "/notifications";
+    to: "/orders" | "/addresses" | "/wishlist" | "/notifications";
     icon: typeof Package;
     desc: string;
   }[] = [
@@ -99,12 +94,6 @@ function ProfilePage() {
       desc: "Your saved products",
     },
     {
-      label: "Subscriptions",
-      to: "/subscriptions",
-      icon: CalendarDays,
-      desc: "Manage your active subscription schedules",
-    },
-    {
       label: "Notifications",
       to: "/notifications",
       icon: Bell,
@@ -113,7 +102,7 @@ function ProfilePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-in px-4 py-8">
+    <div className="mx-auto animate-fade-in px-4 py-8">
       {/* Profile Header Card */}
       <div className="flex flex-col items-center gap-5 rounded-3xl border border-border/60 bg-white p-6 shadow-warm sm:flex-row">
         <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">

@@ -34,3 +34,9 @@ export {
   type SortKey,
   type SortOption,
 } from "./data/category-config";
+export {
+  type Review,
+  type ReviewSummary,
+  reviewSummary,
+  seedReviews,
+} from "./data/review-data";

@@ -35,6 +35,15 @@ export default function Header() {
 
         {/* Right cluster */}
         <Link
+          to="/notifications"
+          data-testid="web-notifications-btn"
+          aria-label="Notifications"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white text-foreground transition-colors hover:text-primary"
+        >
+          <Bell size={18} />
+          <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
+        </Link>
+        <Link
           to="/auth/login"
           className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
         >
@@ -86,13 +95,15 @@ export default function Header() {
           </button>
 
           {/* Notification bell */}
-          <button
-            type="button"
+          <Link
+            to="/notifications"
+            data-testid="web-notifications-btn-mobile"
+            aria-label="Notifications"
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
           >
             <Bell size={18} className="text-foreground" />
             <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
-          </button>
+          </Link>
         </div>
 
         {/* Row 2: Search Input */}

@@ -1,8 +1,9 @@
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { Minus, Plus, Star } from "lucide-react";
+import { Heart, Minus, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/modules/cart";
+import { useWishlist } from "@/modules/wishlist";
 import type { Product } from "../../index";
 
 interface ProductCardProps {
@@ -12,11 +13,18 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, className }: ProductCardProps) {
   const { addItem, items, updateQty } = useCart();
+  const { has, toggle } = useWishlist();
   const inCart = items.find((i) => i.key === product.id);
+  const wished = has(product.id);
 
   const handleAdd = () => {
     addItem(product);
     toast.success(`${product.name} added to cart!`);
+  };
+
+  const handleWish = () => {
+    toggle(product.id);
+    toast.success(wished ? "Removed from wishlist" : "Saved to wishlist");
   };
 
   return (
@@ -26,17 +34,32 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         className,
       )}
     >
-      <Link
-        to="/product/$productId"
-        params={{ productId: product.id }}
-        className="relative block aspect-4/3 overflow-hidden bg-accent/10 md:aspect-square"
-      >
-        <img
-          src={product.img}
-          alt={product.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+      <div className="relative aspect-4/3 overflow-hidden bg-accent/10 md:aspect-square">
+        <Link
+          to="/product/$productId"
+          params={{ productId: product.id }}
+          className="block h-full w-full"
+        >
+          <img
+            src={product.img}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        </Link>
+        <button
+          type="button"
+          onClick={handleWish}
+          data-testid={`web-wish-${product.id}`}
+          aria-label={wished ? "Remove from wishlist" : "Save to wishlist"}
+          aria-pressed={wished}
+          className="absolute right-3 bottom-3 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full bg-white/95 text-foreground/60 shadow-warm transition-colors hover:text-primary"
+        >
+          <Heart
+            size={15}
+            className={cn(wished && "fill-primary text-primary")}
+          />
+        </button>
         {product.discount > 0 && (
           <span className="absolute top-3 left-3 rounded-full bg-primary px-2.5 py-1 font-semibold text-[10px] text-primary-foreground">
             {product.discount}% OFF
@@ -52,7 +75,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             Bestseller
           </span>
         )}
-      </Link>
+      </div>
       <div className="flex flex-1 flex-col p-3 md:p-4">
         <Link
           to="/product/$productId"

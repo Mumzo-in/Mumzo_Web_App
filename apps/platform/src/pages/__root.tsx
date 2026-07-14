@@ -8,7 +8,9 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import ModalProvider from "@/core/components/modal-provider";
 import { ThemeProvider } from "@/core/components/theme-provider";
+import { AddressProvider } from "@/modules/account";
 import { CartProvider } from "@/modules/cart";
+import { WishlistProvider } from "@/modules/wishlist";
 
 export type RouterAppContext = {};
 
@@ -43,10 +45,14 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <CartProvider>
-          <Outlet />
-          <ModalProvider />
-        </CartProvider>
+        <AddressProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Outlet />
+              <ModalProvider />
+            </CartProvider>
+          </WishlistProvider>
+        </AddressProvider>
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
