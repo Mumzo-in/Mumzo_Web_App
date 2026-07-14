@@ -30,7 +30,7 @@ export default function BottomNav() {
   return (
     <nav
       data-testid="shop-bottom-nav"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-border/60 border-t bg-background/95 pb-safe backdrop-blur-lg md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-full border-border/60 border-t bg-background/95 pb-safe backdrop-blur-lg md:hidden"
     >
       <ul className="flex items-stretch justify-around px-2 py-2">
         {items.map(({ to, params, icon: Icon, label, isCart, exact }) => {

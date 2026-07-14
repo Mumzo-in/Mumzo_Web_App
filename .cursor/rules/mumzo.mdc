@@ -1,0 +1,16 @@
+---
+description: Mumzo canonical project rules (always applied)
+alwaysApply: true
+---
+
+Follow the canonical rules in `AGENTS.md` at the repo root, and the detailed rule docs it links:
+`docs/rules/code-rules.md` and `docs/rules/design-rules.md`.
+
+Non-negotiables:
+- No `any` (Biome errors on it). Kebab-case filenames (`my-component.tsx`).
+- Domain-driven layout: `modules/<domain>/{api,components,data,index.ts}` + `core/` + `pages/`.
+- Compose `@mumzo/ui` first; semantic tokens only (`bg-primary`), never raw hex.
+- Tailwind: `gap-*` not `space-y-*`, `size-*` for equal dims, `cn()` for conditional classes,
+  no array index keys, self-closing empty elements.
+- Respect Biome (2-space, 80-col, double quotes, no unused imports). `bunx tsc --noEmit` must pass.
+- Never hand-edit `routeTree.gen.ts`.
