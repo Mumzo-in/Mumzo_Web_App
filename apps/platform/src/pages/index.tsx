@@ -55,8 +55,8 @@ function HomePage() {
             </h2>
           </div>
           <Link
-            to="/category/$slug"
-            params={{ slug: "baby-food" }}
+            to="/search"
+            search={{ cat: "baby-food" }}
             className="font-semibold text-primary text-sm hover:underline"
           >
             See all →

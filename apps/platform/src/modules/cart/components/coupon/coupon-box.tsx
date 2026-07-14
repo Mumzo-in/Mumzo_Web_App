@@ -10,7 +10,7 @@ import { useState } from "react";
 
 import { type Offer, offers } from "@/core/data";
 
-import { rupee, useCart } from "../store/cart-provider";
+import { rupee, useCart } from "../../store/cart-provider";
 import CouponCard from "./coupon-card";
 
 interface CouponMessage {

@@ -15,6 +15,8 @@ export type HeroCta = {
   to: string;
   /** Path params for dynamic routes (e.g. { slug: "diapers" }). */
   params?: Record<string, string>;
+  /** Query search parameters (e.g. { cat: "diapers" }). */
+  search?: Record<string, string>;
   variant: HeroCtaVariant;
 };
 
@@ -41,14 +43,14 @@ export const heroSlides: HeroSlide[] = [
     ctas: [
       {
         label: "Start shopping",
-        to: "/category/$slug",
-        params: { slug: "baby-food" },
+        to: "/search",
+        search: { cat: "baby-food" },
         variant: "primary",
       },
       {
         label: "Diapers · from ₹499",
-        to: "/category/$slug",
-        params: { slug: "diapers" },
+        to: "/search",
+        search: { cat: "diapers" },
         variant: "outline",
       },
     ],
@@ -60,8 +62,8 @@ export const heroSlides: HeroSlide[] = [
     ctas: [
       {
         label: "Shop diapers",
-        to: "/category/$slug",
-        params: { slug: "diapers" },
+        to: "/search",
+        search: { cat: "diapers" },
         variant: "primary",
       },
       { label: "Browse everything", to: "/product", variant: "outline" },
@@ -74,8 +76,8 @@ export const heroSlides: HeroSlide[] = [
     ctas: [
       {
         label: "Explore baby food",
-        to: "/category/$slug",
-        params: { slug: "baby-food" },
+        to: "/search",
+        search: { cat: "baby-food" },
         variant: "primary",
       },
       { label: "See all products", to: "/product", variant: "outline" },

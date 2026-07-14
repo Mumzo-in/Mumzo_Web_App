@@ -1,6 +1,6 @@
-export { default as CartLineItem } from "./components/cart-line-item";
-export { default as CartSummary } from "./components/cart-summary";
-export { default as CouponBox } from "./components/coupon-box";
+export { default as CartLineItem } from "./components/cart/cart-line-item";
+export { default as CartSummary } from "./components/cart/cart-summary";
+export { default as CouponBox } from "./components/coupon/coupon-box";
 export {
   type CartItem,
   CartProvider,

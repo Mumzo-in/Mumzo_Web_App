@@ -1,6 +1,6 @@
 import { cn } from "@mumzo/ui/lib/utils";
 
-import { rupee, useCart } from "../store/cart-provider";
+import { rupee, useCart } from "../../store/cart-provider";
 
 function Row({
   label,

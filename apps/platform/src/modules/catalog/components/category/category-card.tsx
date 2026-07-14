@@ -8,8 +8,8 @@ interface CategoryCardProps {
 export default function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Link
-      to="/category/$slug"
-      params={{ slug: category.slug }}
+      to="/search"
+      search={{ cat: category.slug }}
       data-testid={`web-cat-${category.slug}`}
       className="group relative aspect-[1/1.05] overflow-hidden rounded-2xl border border-border/50 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(31,27,58,0.10)]"
       style={{ background: category.color }}

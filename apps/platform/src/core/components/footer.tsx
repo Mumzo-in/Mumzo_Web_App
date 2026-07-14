@@ -20,11 +20,11 @@ export default function Footer() {
             {categories.slice(0, 5).map((c) => (
               <li key={c.slug}>
                 <Link
-                  to={"/category/$slug"}
-                  params={{
-                    slug: c.slug,
+                  to="/search"
+                  search={{
+                    cat: c.slug,
                   }}
-                  className="hover:text-pinkDeep"
+                  className="hover:text-primary"
                 >
                   {c.name}
                 </Link>
@@ -51,7 +51,7 @@ export default function Footer() {
             <li>About</li>
             <li>Careers</li>
             <li>
-              <a href="mailto:admin@mumzo.in" className="hover:text-pinkDeep">
+              <a href="mailto:admin@mumzo.in" className="hover:text-primary">
                 admin@mumzo.in
               </a>
             </li>

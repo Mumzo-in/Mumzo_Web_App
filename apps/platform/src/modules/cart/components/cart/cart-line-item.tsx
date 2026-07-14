@@ -1,6 +1,6 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 
-import { type CartItem, rupee, useCart } from "../store/cart-provider";
+import { type CartItem, rupee, useCart } from "../../store/cart-provider";
 
 interface CartLineItemProps {
   item: CartItem;

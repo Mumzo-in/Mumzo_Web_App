@@ -91,8 +91,8 @@ function ProductDetailPage() {
             { label: "Home", to: "/" },
             {
               label: category?.name || "Category",
-              to: "/category/$slug",
-              params: { slug: product.categorySlug },
+              to: "/search",
+              search: { cat: product.categorySlug },
             },
             { label: product.name },
           ]}
@@ -102,8 +102,10 @@ function ProductDetailPage() {
       {/* Mobile Header Back Row (visible on mobile, hidden on desktop) */}
       <div className="mb-4 flex items-center md:hidden">
         <Link
-          to="/category/$slug"
-          params={{ slug: product.categorySlug }}
+          to="/search"
+          search={{
+            cat: product.categorySlug,
+          }}
           data-testid="back-btn"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
         >
@@ -115,8 +117,8 @@ function ProductDetailPage() {
             { label: "Home", to: "/" },
             {
               label: category?.name || "Category",
-              to: "/category/$slug",
-              params: { slug: product.categorySlug },
+              to: "/search",
+              search: { cat: product.categorySlug },
             },
             { label: product.name },
           ]}

@@ -87,7 +87,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
                 onClick={() => updateQty(inCart.key, inCart.qty - 1)}
                 data-testid={`web-qty-minus-${product.id}`}
                 aria-label="Decrease quantity"
-                className="px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+                className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
               >
                 <Minus size={14} strokeWidth={3} />
               </button>
@@ -102,7 +102,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
                 onClick={() => updateQty(inCart.key, inCart.qty + 1)}
                 data-testid={`web-qty-plus-${product.id}`}
                 aria-label="Increase quantity"
-                className="px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+                className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
               >
                 <Plus size={14} strokeWidth={3} />
               </button>
@@ -112,7 +112,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               type="button"
               onClick={handleAdd}
               data-testid={`web-add-${product.id}`}
-              className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
+              className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
             >
               <Plus size={14} strokeWidth={3} /> Add
             </button>

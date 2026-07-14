@@ -55,22 +55,22 @@ export function HeroCarousel({
               )}
             >
               <div className="px-8 py-20 text-center md:px-14 md:py-24">
-                <h1 className="mx-auto max-w-4xl font-editorial text-4xl leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+                <h1 className="mx-auto max-w-4xl font-editorial text-4xl text-ink leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
                   {slide.headline} <br className="hidden md:block" />
-                  <span className="text-pinkDeep italic">{slide.accent}</span>
+                  <span className="text-primary italic">{slide.accent}</span>
                 </h1>
                 <div className="mt-10 flex flex-wrap justify-center gap-3">
                   {slide.ctas.map((cta) => (
                     <Link
                       key={cta.label}
-                      // Targets are CMS-driven strings; cast keeps the data flexible.
                       to={cta.to as never}
                       params={cta.params as never}
+                      search={cta.search as never}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-sm transition-colors",
+                        "inline-flex cursor-pointer items-center gap-2 rounded-full px-6 py-3.5 font-semibold text-sm transition-colors",
                         cta.variant === "primary"
-                          ? "bg-pinkDeep text-white hover:bg-[#A93F63]"
-                          : "border border-border/70 bg-white hover:border-pinkDeep hover:text-pinkDeep",
+                          ? "bg-primary text-primary-foreground hover:bg-primary/95"
+                          : "border border-border/70 bg-white hover:border-primary hover:text-primary",
                       )}
                     >
                       {cta.label}
@@ -93,10 +93,10 @@ export function HeroCarousel({
             aria-label={`Go to slide ${i + 1}`}
             onClick={() => api?.scrollTo(i)}
             className={cn(
-              "h-2 rounded-full transition-all",
+              "h-2 cursor-pointer rounded-full transition-all",
               i === selected
-                ? "w-6 bg-pinkDeep"
-                : "w-2 bg-pinkDeep/30 hover:bg-pinkDeep/50",
+                ? "w-6 bg-primary"
+                : "w-2 bg-primary/30 hover:bg-primary/50",
             )}
           />
         ))}

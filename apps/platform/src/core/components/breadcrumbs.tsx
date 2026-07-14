@@ -6,6 +6,7 @@ export interface BreadcrumbItem {
   label: string;
   to?: string;
   params?: Record<string, string>;
+  search?: Record<string, unknown>;
 }
 
 interface BreadcrumbsProps {
@@ -37,6 +38,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
             <Link
               to={item.to}
               params={item.params}
+              search={item.search}
               className="transition-colors hover:text-primary"
             >
               {item.label}
