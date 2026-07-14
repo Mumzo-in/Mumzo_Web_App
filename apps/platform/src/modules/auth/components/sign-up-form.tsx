@@ -1,168 +1,181 @@
 import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
-import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import z from "zod";
-import Loader from "@/core/components/loader";
-import { authClient } from "../api/auth-client";
 
 export default function SignUpForm({
   onSwitchToSignIn,
 }: {
   onSwitchToSignIn: () => void;
 }) {
-  const navigate = useNavigate({
-    from: "/",
-  });
-  const { isPending } = authClient.useSession();
+  const navigate = useNavigate();
+  const [step, setStep] = useState<"info" | "otp">("info");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(30);
 
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-      name: "",
-    },
-    onSubmit: async ({ value }) => {
-      await authClient.signUp.email(
-        {
-          email: value.email,
-          password: value.password,
-          name: value.name,
-        },
-        {
-          onSuccess: () => {
-            navigate({
-              to: "/",
-            });
-            toast.success("Sign up successful");
-          },
-          onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
-          },
-        },
-      );
-    },
-    validators: {
-      onSubmit: z.object({
-        name: z.string().min(2, "Name must be at least 2 characters"),
-        email: z.email("Invalid email address"),
-        password: z.string().min(8, "Password must be at least 8 characters"),
-      }),
-    },
-  });
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (step === "otp" && timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, timer]);
 
-  if (isPending) {
-    return <Loader />;
+  const handleSendOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || name.trim().length < 2) {
+      toast.error("Please enter your name");
+      return;
+    }
+    if (!phone || phone.length < 10) {
+      toast.error("Please enter a valid 10-digit phone number");
+      return;
+    }
+    toast.success(`OTP sent to +91 ${phone}`);
+    setStep("otp");
+    setTimer(30);
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp?.length !== 6) {
+      toast.error("Please enter a 6-digit OTP");
+      return;
+    }
+    toast.success("Registration successful!");
+    navigate({ to: "/" });
+  };
+
+  const handleResend = () => {
+    toast.success("OTP resent successfully!");
+    setTimer(30);
+  };
+
+  if (step === "info") {
+    return (
+      <div className="w-full p-8 sm:p-10">
+        <h1 className="mb-2 font-editorial text-3xl text-ink">
+          Create Account
+        </h1>
+        <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
+          Create an account to start shopping with Mumzo
+        </p>
+
+        <form onSubmit={handleSendOtp} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Enter your name"
+              className="h-11 rounded-xl"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative flex items-center">
+              <span className="absolute left-4 font-semibold text-foreground/50 text-sm">
+                +91
+              </span>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter 10 digit number"
+                className="h-11 rounded-xl pl-12"
+                value={phone}
+                onChange={(e) =>
+                  setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            className="mt-4 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
+          >
+            Send OTP →
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <Button
+            variant="link"
+            onClick={onSwitchToSignIn}
+            className="cursor-pointer font-semibold text-primary text-xs hover:text-primary/80"
+          >
+            Already have an account? Sign In
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-md p-6">
-      <h1 className="mb-6 text-center font-bold text-3xl">Create Account</h1>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
+    <div className="w-full p-8 sm:p-10">
+      <button
+        type="button"
+        onClick={() => setStep("info")}
+        className="mb-4 flex cursor-pointer items-center gap-1.5 font-semibold text-foreground/60 text-xs transition-colors hover:text-primary"
       >
-        <div>
-          <form.Field name="name">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
+        <ArrowLeft size={14} /> Back
+      </button>
+
+      <h1 className="mb-2 font-editorial text-3xl text-ink">Verify OTP</h1>
+      <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
+        Sent to +91 {phone}
+      </p>
+
+      <form onSubmit={handleVerifyOtp} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="otp">One-Time Password (OTP)</Label>
+          <Input
+            id="otp"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            placeholder="Enter 6-digit OTP"
+            className="h-11 rounded-xl text-center font-bold text-lg tracking-[0.25em] placeholder:font-normal placeholder:text-sm placeholder:tracking-normal"
+            value={otp}
+            onChange={(e) =>
+              setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
+          />
         </div>
 
-        <div>
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <div>
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <form.Subscribe
-          selector={(state) => ({
-            canSubmit: state.canSubmit,
-            isSubmitting: state.isSubmitting,
-          })}
+        <Button
+          type="submit"
+          className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
         >
-          {({ canSubmit, isSubmitting }) => (
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!canSubmit || isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Sign Up"}
-            </Button>
-          )}
-        </form.Subscribe>
+          Verify & Register →
+        </Button>
       </form>
 
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Already have an account? Sign In
-        </Button>
+      <div className="mt-6 text-center text-xs">
+        {timer > 0 ? (
+          <p className="font-medium text-foreground/50">
+            Resend OTP in {timer}s
+          </p>
+        ) : (
+          <Button
+            variant="link"
+            onClick={handleResend}
+            className="cursor-pointer font-semibold text-primary hover:text-primary/80"
+          >
+            Resend OTP
+          </Button>
+        )}
       </div>
     </div>
   );

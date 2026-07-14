@@ -1,16 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { SignInForm } from "@/modules/auth";
+import { SignUpForm } from "@/modules/auth";
 
-export const Route = createFileRoute("/auth/login")({
-  component: LoginPage,
+export const Route = createFileRoute("/auth/register")({
+  component: RegisterPage,
 });
 
-function LoginPage() {
+function RegisterPage() {
   const navigate = useNavigate();
 
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border/60 bg-white shadow-warm">
-      <SignInForm onSwitchToSignUp={() => navigate({ to: "/auth/register" })} />
+      <SignUpForm onSwitchToSignIn={() => navigate({ to: "/auth/login" })} />
     </div>
   );
 }

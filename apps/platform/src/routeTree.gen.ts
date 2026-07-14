@@ -9,342 +9,336 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
-import { Route as SearchRouteImport } from './pages/search'
-import { Route as HelpRouteImport } from './pages/help'
-import { Route as ContactRouteImport } from './pages/contact'
-import { Route as CartRouteImport } from './pages/cart'
-import { Route as AboutRouteImport } from './pages/about'
-import { Route as protectedLayoutRouteImport } from './pages/(protected)/_layout'
-import { Route as IndexRouteImport } from './pages/index'
-import { Route as ProductIndexRouteImport } from './pages/product/index'
-import { Route as LegalTermsRouteImport } from './pages/legal/terms'
-import { Route as LegalShippingRouteImport } from './pages/legal/shipping'
-import { Route as LegalReturnsRouteImport } from './pages/legal/returns'
-import { Route as LegalPrivacyRouteImport } from './pages/legal/privacy'
-import { Route as CategorySlugRouteImport } from './pages/category/$slug'
-import { Route as AuthVerifyEmailRouteImport } from './pages/auth/verify-email'
-import { Route as AuthResetPasswordRouteImport } from './pages/auth/reset-password'
+import { Route as AuthLayoutRouteImport } from './pages/auth/_layout'
+import { Route as storeLayoutRouteImport } from './pages/(store)/_layout'
+import { Route as storeIndexRouteImport } from './pages/(store)/index'
+import { Route as AuthRegisterRouteImport } from './pages/auth/register'
 import { Route as AuthOtpRouteImport } from './pages/auth/otp'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
-import { Route as AuthForgotPasswordRouteImport } from './pages/auth/forgot-password'
-import { Route as protectedWishlistRouteImport } from './pages/(protected)/wishlist'
-import { Route as protectedNotificationsRouteImport } from './pages/(protected)/notifications'
-import { Route as protectedAddressesRouteImport } from './pages/(protected)/addresses'
-import { Route as ProductProductIdIndexRouteImport } from './pages/product/$productId/index'
-import { Route as protectedSubscriptionsIndexRouteImport } from './pages/(protected)/subscriptions/index'
-import { Route as protectedProfileIndexRouteImport } from './pages/(protected)/profile/index'
-import { Route as protectedOrdersIndexRouteImport } from './pages/(protected)/orders/index'
-import { Route as ProductProductIdReviewsRouteImport } from './pages/product/$productId/reviews'
-import { Route as protectedProfileBabyRouteImport } from './pages/(protected)/profile/baby'
-import { Route as protectedPaymentStatusRouteImport } from './pages/(protected)/payment/status'
-import { Route as protectedCheckoutReviewRouteImport } from './pages/(protected)/checkout/review'
-import { Route as protectedCheckoutPaymentRouteImport } from './pages/(protected)/checkout/payment'
-import { Route as protectedCheckoutAddressRouteImport } from './pages/(protected)/checkout/address'
-import { Route as protectedOrdersOrderIdIndexRouteImport } from './pages/(protected)/orders/$orderId/index'
-import { Route as protectedOrdersOrderIdTrackingRouteImport } from './pages/(protected)/orders/$orderId/tracking'
-import { Route as protectedOrdersOrderIdReturnRouteImport } from './pages/(protected)/orders/$orderId/return'
+import { Route as storeSearchRouteImport } from './pages/(store)/search'
+import { Route as storeHelpRouteImport } from './pages/(store)/help'
+import { Route as storeContactRouteImport } from './pages/(store)/contact'
+import { Route as storeCartRouteImport } from './pages/(store)/cart'
+import { Route as storeAboutRouteImport } from './pages/(store)/about'
+import { Route as storeprotectedLayoutRouteImport } from './pages/(store)/(protected)/_layout'
+import { Route as storeProductIndexRouteImport } from './pages/(store)/product/index'
+import { Route as storeLegalTermsRouteImport } from './pages/(store)/legal/terms'
+import { Route as storeLegalShippingRouteImport } from './pages/(store)/legal/shipping'
+import { Route as storeLegalReturnsRouteImport } from './pages/(store)/legal/returns'
+import { Route as storeLegalPrivacyRouteImport } from './pages/(store)/legal/privacy'
+import { Route as storeprotectedWishlistRouteImport } from './pages/(store)/(protected)/wishlist'
+import { Route as storeprotectedNotificationsRouteImport } from './pages/(store)/(protected)/notifications'
+import { Route as storeprotectedAddressesRouteImport } from './pages/(store)/(protected)/addresses'
+import { Route as storeProductProductIdIndexRouteImport } from './pages/(store)/product/$productId/index'
+import { Route as storeprotectedSubscriptionsIndexRouteImport } from './pages/(store)/(protected)/subscriptions/index'
+import { Route as storeprotectedProfileIndexRouteImport } from './pages/(store)/(protected)/profile/index'
+import { Route as storeprotectedOrdersIndexRouteImport } from './pages/(store)/(protected)/orders/index'
+import { Route as storeProductProductIdReviewsRouteImport } from './pages/(store)/product/$productId/reviews'
+import { Route as storeprotectedProfileBabyRouteImport } from './pages/(store)/(protected)/profile/baby'
+import { Route as storeprotectedPaymentStatusRouteImport } from './pages/(store)/(protected)/payment/status'
+import { Route as storeprotectedCheckoutReviewRouteImport } from './pages/(store)/(protected)/checkout/review'
+import { Route as storeprotectedCheckoutPaymentRouteImport } from './pages/(store)/(protected)/checkout/payment'
+import { Route as storeprotectedCheckoutAddressRouteImport } from './pages/(store)/(protected)/checkout/address'
+import { Route as storeprotectedOrdersOrderIdIndexRouteImport } from './pages/(store)/(protected)/orders/$orderId/index'
+import { Route as storeprotectedOrdersOrderIdTrackingRouteImport } from './pages/(store)/(protected)/orders/$orderId/tracking'
+import { Route as storeprotectedOrdersOrderIdReturnRouteImport } from './pages/(store)/(protected)/orders/$orderId/return'
 
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
+const AuthLayoutRoute = AuthLayoutRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
+const storeLayoutRoute = storeLayoutRouteImport.update({
+  id: '/(store)',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CartRoute = CartRouteImport.update({
-  id: '/cart',
-  path: '/cart',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const protectedLayoutRoute = protectedLayoutRouteImport.update({
-  id: '/(protected)',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const storeIndexRoute = storeIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => storeLayoutRoute,
 } as any)
-const ProductIndexRoute = ProductIndexRouteImport.update({
-  id: '/product/',
-  path: '/product/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalTermsRoute = LegalTermsRouteImport.update({
-  id: '/legal/terms',
-  path: '/legal/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalShippingRoute = LegalShippingRouteImport.update({
-  id: '/legal/shipping',
-  path: '/legal/shipping',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalReturnsRoute = LegalReturnsRouteImport.update({
-  id: '/legal/returns',
-  path: '/legal/returns',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
-  id: '/legal/privacy',
-  path: '/legal/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CategorySlugRoute = CategorySlugRouteImport.update({
-  id: '/category/$slug',
-  path: '/category/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
-  id: '/auth/verify-email',
-  path: '/auth/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/auth/reset-password',
-  path: '/auth/reset-password',
-  getParentRoute: () => rootRouteImport,
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 const AuthOtpRoute = AuthOtpRouteImport.update({
-  id: '/auth/otp',
-  path: '/auth/otp',
-  getParentRoute: () => rootRouteImport,
+  id: '/otp',
+  path: '/otp',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRouteImport,
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
-const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
-  id: '/auth/forgot-password',
-  path: '/auth/forgot-password',
-  getParentRoute: () => rootRouteImport,
+const storeSearchRoute = storeSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => storeLayoutRoute,
 } as any)
-const protectedWishlistRoute = protectedWishlistRouteImport.update({
+const storeHelpRoute = storeHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeContactRoute = storeContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeCartRoute = storeCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeAboutRoute = storeAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeprotectedLayoutRoute = storeprotectedLayoutRouteImport.update({
+  id: '/(protected)',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeProductIndexRoute = storeProductIndexRouteImport.update({
+  id: '/product/',
+  path: '/product/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeLegalTermsRoute = storeLegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeLegalShippingRoute = storeLegalShippingRouteImport.update({
+  id: '/legal/shipping',
+  path: '/legal/shipping',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeLegalReturnsRoute = storeLegalReturnsRouteImport.update({
+  id: '/legal/returns',
+  path: '/legal/returns',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeLegalPrivacyRoute = storeLegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeprotectedWishlistRoute = storeprotectedWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
-  getParentRoute: () => protectedLayoutRoute,
+  getParentRoute: () => storeprotectedLayoutRoute,
 } as any)
-const protectedNotificationsRoute = protectedNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const protectedAddressesRoute = protectedAddressesRouteImport.update({
+const storeprotectedNotificationsRoute =
+  storeprotectedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedAddressesRoute = storeprotectedAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
-  getParentRoute: () => protectedLayoutRoute,
+  getParentRoute: () => storeprotectedLayoutRoute,
 } as any)
-const ProductProductIdIndexRoute = ProductProductIdIndexRouteImport.update({
-  id: '/product/$productId/',
-  path: '/product/$productId/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const protectedSubscriptionsIndexRoute =
-  protectedSubscriptionsIndexRouteImport.update({
+const storeProductProductIdIndexRoute =
+  storeProductProductIdIndexRouteImport.update({
+    id: '/product/$productId/',
+    path: '/product/$productId/',
+    getParentRoute: () => storeLayoutRoute,
+  } as any)
+const storeprotectedSubscriptionsIndexRoute =
+  storeprotectedSubscriptionsIndexRouteImport.update({
     id: '/subscriptions/',
     path: '/subscriptions/',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const protectedOrdersIndexRoute = protectedOrdersIndexRouteImport.update({
-  id: '/orders/',
-  path: '/orders/',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const ProductProductIdReviewsRoute = ProductProductIdReviewsRouteImport.update({
-  id: '/product/$productId/reviews',
-  path: '/product/$productId/reviews',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const protectedProfileBabyRoute = protectedProfileBabyRouteImport.update({
-  id: '/profile/baby',
-  path: '/profile/baby',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const protectedPaymentStatusRoute = protectedPaymentStatusRouteImport.update({
-  id: '/payment/status',
-  path: '/payment/status',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const protectedCheckoutReviewRoute = protectedCheckoutReviewRouteImport.update({
-  id: '/checkout/review',
-  path: '/checkout/review',
-  getParentRoute: () => protectedLayoutRoute,
-} as any)
-const protectedCheckoutPaymentRoute =
-  protectedCheckoutPaymentRouteImport.update({
+const storeprotectedProfileIndexRoute =
+  storeprotectedProfileIndexRouteImport.update({
+    id: '/profile/',
+    path: '/profile/',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedOrdersIndexRoute =
+  storeprotectedOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeProductProductIdReviewsRoute =
+  storeProductProductIdReviewsRouteImport.update({
+    id: '/product/$productId/reviews',
+    path: '/product/$productId/reviews',
+    getParentRoute: () => storeLayoutRoute,
+  } as any)
+const storeprotectedProfileBabyRoute =
+  storeprotectedProfileBabyRouteImport.update({
+    id: '/profile/baby',
+    path: '/profile/baby',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedPaymentStatusRoute =
+  storeprotectedPaymentStatusRouteImport.update({
+    id: '/payment/status',
+    path: '/payment/status',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedCheckoutReviewRoute =
+  storeprotectedCheckoutReviewRouteImport.update({
+    id: '/checkout/review',
+    path: '/checkout/review',
+    getParentRoute: () => storeprotectedLayoutRoute,
+  } as any)
+const storeprotectedCheckoutPaymentRoute =
+  storeprotectedCheckoutPaymentRouteImport.update({
     id: '/checkout/payment',
     path: '/checkout/payment',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const protectedCheckoutAddressRoute =
-  protectedCheckoutAddressRouteImport.update({
+const storeprotectedCheckoutAddressRoute =
+  storeprotectedCheckoutAddressRouteImport.update({
     id: '/checkout/address',
     path: '/checkout/address',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const protectedOrdersOrderIdIndexRoute =
-  protectedOrdersOrderIdIndexRouteImport.update({
+const storeprotectedOrdersOrderIdIndexRoute =
+  storeprotectedOrdersOrderIdIndexRouteImport.update({
     id: '/orders/$orderId/',
     path: '/orders/$orderId/',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const protectedOrdersOrderIdTrackingRoute =
-  protectedOrdersOrderIdTrackingRouteImport.update({
+const storeprotectedOrdersOrderIdTrackingRoute =
+  storeprotectedOrdersOrderIdTrackingRouteImport.update({
     id: '/orders/$orderId/tracking',
     path: '/orders/$orderId/tracking',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const protectedOrdersOrderIdReturnRoute =
-  protectedOrdersOrderIdReturnRouteImport.update({
+const storeprotectedOrdersOrderIdReturnRoute =
+  storeprotectedOrdersOrderIdReturnRouteImport.update({
     id: '/orders/$orderId/return',
     path: '/orders/$orderId/return',
-    getParentRoute: () => protectedLayoutRoute,
+    getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
-  '/contact': typeof ContactRoute
-  '/help': typeof HelpRoute
-  '/search': typeof SearchRoute
-  '/addresses': typeof protectedAddressesRoute
-  '/notifications': typeof protectedNotificationsRoute
-  '/wishlist': typeof protectedWishlistRoute
-  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/about': typeof storeAboutRoute
+  '/cart': typeof storeCartRoute
+  '/contact': typeof storeContactRoute
+  '/help': typeof storeHelpRoute
+  '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/category/$slug': typeof CategorySlugRoute
-  '/legal/privacy': typeof LegalPrivacyRoute
-  '/legal/returns': typeof LegalReturnsRoute
-  '/legal/shipping': typeof LegalShippingRoute
-  '/legal/terms': typeof LegalTermsRoute
-  '/product/': typeof ProductIndexRoute
-  '/checkout/address': typeof protectedCheckoutAddressRoute
-  '/checkout/payment': typeof protectedCheckoutPaymentRoute
-  '/checkout/review': typeof protectedCheckoutReviewRoute
-  '/payment/status': typeof protectedPaymentStatusRoute
-  '/profile/baby': typeof protectedProfileBabyRoute
-  '/product/$productId/reviews': typeof ProductProductIdReviewsRoute
-  '/orders/': typeof protectedOrdersIndexRoute
-  '/profile/': typeof protectedProfileIndexRoute
-  '/subscriptions/': typeof protectedSubscriptionsIndexRoute
-  '/product/$productId/': typeof ProductProductIdIndexRoute
-  '/orders/$orderId/return': typeof protectedOrdersOrderIdReturnRoute
-  '/orders/$orderId/tracking': typeof protectedOrdersOrderIdTrackingRoute
-  '/orders/$orderId/': typeof protectedOrdersOrderIdIndexRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/': typeof storeIndexRoute
+  '/addresses': typeof storeprotectedAddressesRoute
+  '/notifications': typeof storeprotectedNotificationsRoute
+  '/wishlist': typeof storeprotectedWishlistRoute
+  '/legal/privacy': typeof storeLegalPrivacyRoute
+  '/legal/returns': typeof storeLegalReturnsRoute
+  '/legal/shipping': typeof storeLegalShippingRoute
+  '/legal/terms': typeof storeLegalTermsRoute
+  '/product/': typeof storeProductIndexRoute
+  '/checkout/address': typeof storeprotectedCheckoutAddressRoute
+  '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
+  '/checkout/review': typeof storeprotectedCheckoutReviewRoute
+  '/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/profile/baby': typeof storeprotectedProfileBabyRoute
+  '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
+  '/orders/': typeof storeprotectedOrdersIndexRoute
+  '/profile/': typeof storeprotectedProfileIndexRoute
+  '/subscriptions/': typeof storeprotectedSubscriptionsIndexRoute
+  '/product/$productId/': typeof storeProductProductIdIndexRoute
+  '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
+  '/orders/$orderId/': typeof storeprotectedOrdersOrderIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
-  '/contact': typeof ContactRoute
-  '/help': typeof HelpRoute
-  '/search': typeof SearchRoute
-  '/addresses': typeof protectedAddressesRoute
-  '/notifications': typeof protectedNotificationsRoute
-  '/wishlist': typeof protectedWishlistRoute
-  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/about': typeof storeAboutRoute
+  '/cart': typeof storeCartRoute
+  '/contact': typeof storeContactRoute
+  '/help': typeof storeHelpRoute
+  '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/category/$slug': typeof CategorySlugRoute
-  '/legal/privacy': typeof LegalPrivacyRoute
-  '/legal/returns': typeof LegalReturnsRoute
-  '/legal/shipping': typeof LegalShippingRoute
-  '/legal/terms': typeof LegalTermsRoute
-  '/product': typeof ProductIndexRoute
-  '/checkout/address': typeof protectedCheckoutAddressRoute
-  '/checkout/payment': typeof protectedCheckoutPaymentRoute
-  '/checkout/review': typeof protectedCheckoutReviewRoute
-  '/payment/status': typeof protectedPaymentStatusRoute
-  '/profile/baby': typeof protectedProfileBabyRoute
-  '/product/$productId/reviews': typeof ProductProductIdReviewsRoute
-  '/orders': typeof protectedOrdersIndexRoute
-  '/profile': typeof protectedProfileIndexRoute
-  '/subscriptions': typeof protectedSubscriptionsIndexRoute
-  '/product/$productId': typeof ProductProductIdIndexRoute
-  '/orders/$orderId/return': typeof protectedOrdersOrderIdReturnRoute
-  '/orders/$orderId/tracking': typeof protectedOrdersOrderIdTrackingRoute
-  '/orders/$orderId': typeof protectedOrdersOrderIdIndexRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/': typeof storeIndexRoute
+  '/addresses': typeof storeprotectedAddressesRoute
+  '/notifications': typeof storeprotectedNotificationsRoute
+  '/wishlist': typeof storeprotectedWishlistRoute
+  '/legal/privacy': typeof storeLegalPrivacyRoute
+  '/legal/returns': typeof storeLegalReturnsRoute
+  '/legal/shipping': typeof storeLegalShippingRoute
+  '/legal/terms': typeof storeLegalTermsRoute
+  '/product': typeof storeProductIndexRoute
+  '/checkout/address': typeof storeprotectedCheckoutAddressRoute
+  '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
+  '/checkout/review': typeof storeprotectedCheckoutReviewRoute
+  '/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/profile/baby': typeof storeprotectedProfileBabyRoute
+  '/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
+  '/orders': typeof storeprotectedOrdersIndexRoute
+  '/profile': typeof storeprotectedProfileIndexRoute
+  '/subscriptions': typeof storeprotectedSubscriptionsIndexRoute
+  '/product/$productId': typeof storeProductProductIdIndexRoute
+  '/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
+  '/orders/$orderId': typeof storeprotectedOrdersOrderIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/(protected)': typeof protectedLayoutRouteWithChildren
-  '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
-  '/contact': typeof ContactRoute
-  '/help': typeof HelpRoute
-  '/search': typeof SearchRoute
-  '/(protected)/addresses': typeof protectedAddressesRoute
-  '/(protected)/notifications': typeof protectedNotificationsRoute
-  '/(protected)/wishlist': typeof protectedWishlistRoute
-  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/(store)': typeof storeLayoutRouteWithChildren
+  '/auth': typeof AuthLayoutRouteWithChildren
+  '/(store)/(protected)': typeof storeprotectedLayoutRouteWithChildren
+  '/(store)/about': typeof storeAboutRoute
+  '/(store)/cart': typeof storeCartRoute
+  '/(store)/contact': typeof storeContactRoute
+  '/(store)/help': typeof storeHelpRoute
+  '/(store)/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/otp': typeof AuthOtpRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
-  '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/category/$slug': typeof CategorySlugRoute
-  '/legal/privacy': typeof LegalPrivacyRoute
-  '/legal/returns': typeof LegalReturnsRoute
-  '/legal/shipping': typeof LegalShippingRoute
-  '/legal/terms': typeof LegalTermsRoute
-  '/product/': typeof ProductIndexRoute
-  '/(protected)/checkout/address': typeof protectedCheckoutAddressRoute
-  '/(protected)/checkout/payment': typeof protectedCheckoutPaymentRoute
-  '/(protected)/checkout/review': typeof protectedCheckoutReviewRoute
-  '/(protected)/payment/status': typeof protectedPaymentStatusRoute
-  '/(protected)/profile/baby': typeof protectedProfileBabyRoute
-  '/product/$productId/reviews': typeof ProductProductIdReviewsRoute
-  '/(protected)/orders/': typeof protectedOrdersIndexRoute
-  '/(protected)/profile/': typeof protectedProfileIndexRoute
-  '/(protected)/subscriptions/': typeof protectedSubscriptionsIndexRoute
-  '/product/$productId/': typeof ProductProductIdIndexRoute
-  '/(protected)/orders/$orderId/return': typeof protectedOrdersOrderIdReturnRoute
-  '/(protected)/orders/$orderId/tracking': typeof protectedOrdersOrderIdTrackingRoute
-  '/(protected)/orders/$orderId/': typeof protectedOrdersOrderIdIndexRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/(store)/': typeof storeIndexRoute
+  '/(store)/(protected)/addresses': typeof storeprotectedAddressesRoute
+  '/(store)/(protected)/notifications': typeof storeprotectedNotificationsRoute
+  '/(store)/(protected)/wishlist': typeof storeprotectedWishlistRoute
+  '/(store)/legal/privacy': typeof storeLegalPrivacyRoute
+  '/(store)/legal/returns': typeof storeLegalReturnsRoute
+  '/(store)/legal/shipping': typeof storeLegalShippingRoute
+  '/(store)/legal/terms': typeof storeLegalTermsRoute
+  '/(store)/product/': typeof storeProductIndexRoute
+  '/(store)/(protected)/checkout/address': typeof storeprotectedCheckoutAddressRoute
+  '/(store)/(protected)/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
+  '/(store)/(protected)/checkout/review': typeof storeprotectedCheckoutReviewRoute
+  '/(store)/(protected)/payment/status': typeof storeprotectedPaymentStatusRoute
+  '/(store)/(protected)/profile/baby': typeof storeprotectedProfileBabyRoute
+  '/(store)/product/$productId/reviews': typeof storeProductProductIdReviewsRoute
+  '/(store)/(protected)/orders/': typeof storeprotectedOrdersIndexRoute
+  '/(store)/(protected)/profile/': typeof storeprotectedProfileIndexRoute
+  '/(store)/(protected)/subscriptions/': typeof storeprotectedSubscriptionsIndexRoute
+  '/(store)/product/$productId/': typeof storeProductProductIdIndexRoute
+  '/(store)/(protected)/orders/$orderId/return': typeof storeprotectedOrdersOrderIdReturnRoute
+  '/(store)/(protected)/orders/$orderId/tracking': typeof storeprotectedOrdersOrderIdTrackingRoute
+  '/(store)/(protected)/orders/$orderId/': typeof storeprotectedOrdersOrderIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
+    | '/auth'
     | '/about'
     | '/cart'
     | '/contact'
     | '/help'
     | '/search'
+    | '/auth/login'
+    | '/auth/otp'
+    | '/auth/register'
+    | '/'
     | '/addresses'
     | '/notifications'
     | '/wishlist'
-    | '/auth/forgot-password'
-    | '/auth/login'
-    | '/auth/otp'
-    | '/auth/reset-password'
-    | '/auth/verify-email'
-    | '/category/$slug'
     | '/legal/privacy'
     | '/legal/returns'
     | '/legal/shipping'
@@ -365,21 +359,19 @@ export interface FileRouteTypes {
     | '/orders/$orderId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/auth'
     | '/about'
     | '/cart'
     | '/contact'
     | '/help'
     | '/search'
+    | '/auth/login'
+    | '/auth/otp'
+    | '/auth/register'
+    | '/'
     | '/addresses'
     | '/notifications'
     | '/wishlist'
-    | '/auth/forgot-password'
-    | '/auth/login'
-    | '/auth/otp'
-    | '/auth/reset-password'
-    | '/auth/verify-email'
-    | '/category/$slug'
     | '/legal/privacy'
     | '/legal/returns'
     | '/legal/shipping'
@@ -400,367 +392,378 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
   id:
     | '__root__'
-    | '/'
-    | '/(protected)'
-    | '/about'
-    | '/cart'
-    | '/contact'
-    | '/help'
-    | '/search'
-    | '/(protected)/addresses'
-    | '/(protected)/notifications'
-    | '/(protected)/wishlist'
-    | '/auth/forgot-password'
+    | '/(store)'
+    | '/auth'
+    | '/(store)/(protected)'
+    | '/(store)/about'
+    | '/(store)/cart'
+    | '/(store)/contact'
+    | '/(store)/help'
+    | '/(store)/search'
     | '/auth/login'
     | '/auth/otp'
-    | '/auth/reset-password'
-    | '/auth/verify-email'
-    | '/category/$slug'
-    | '/legal/privacy'
-    | '/legal/returns'
-    | '/legal/shipping'
-    | '/legal/terms'
-    | '/product/'
-    | '/(protected)/checkout/address'
-    | '/(protected)/checkout/payment'
-    | '/(protected)/checkout/review'
-    | '/(protected)/payment/status'
-    | '/(protected)/profile/baby'
-    | '/product/$productId/reviews'
-    | '/(protected)/orders/'
-    | '/(protected)/profile/'
-    | '/(protected)/subscriptions/'
-    | '/product/$productId/'
-    | '/(protected)/orders/$orderId/return'
-    | '/(protected)/orders/$orderId/tracking'
-    | '/(protected)/orders/$orderId/'
+    | '/auth/register'
+    | '/(store)/'
+    | '/(store)/(protected)/addresses'
+    | '/(store)/(protected)/notifications'
+    | '/(store)/(protected)/wishlist'
+    | '/(store)/legal/privacy'
+    | '/(store)/legal/returns'
+    | '/(store)/legal/shipping'
+    | '/(store)/legal/terms'
+    | '/(store)/product/'
+    | '/(store)/(protected)/checkout/address'
+    | '/(store)/(protected)/checkout/payment'
+    | '/(store)/(protected)/checkout/review'
+    | '/(store)/(protected)/payment/status'
+    | '/(store)/(protected)/profile/baby'
+    | '/(store)/product/$productId/reviews'
+    | '/(store)/(protected)/orders/'
+    | '/(store)/(protected)/profile/'
+    | '/(store)/(protected)/subscriptions/'
+    | '/(store)/product/$productId/'
+    | '/(store)/(protected)/orders/$orderId/return'
+    | '/(store)/(protected)/orders/$orderId/tracking'
+    | '/(store)/(protected)/orders/$orderId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  protectedLayoutRoute: typeof protectedLayoutRouteWithChildren
-  AboutRoute: typeof AboutRoute
-  CartRoute: typeof CartRoute
-  ContactRoute: typeof ContactRoute
-  HelpRoute: typeof HelpRoute
-  SearchRoute: typeof SearchRoute
-  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthOtpRoute: typeof AuthOtpRoute
-  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
-  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
-  CategorySlugRoute: typeof CategorySlugRoute
-  LegalPrivacyRoute: typeof LegalPrivacyRoute
-  LegalReturnsRoute: typeof LegalReturnsRoute
-  LegalShippingRoute: typeof LegalShippingRoute
-  LegalTermsRoute: typeof LegalTermsRoute
-  ProductIndexRoute: typeof ProductIndexRoute
-  ProductProductIdReviewsRoute: typeof ProductProductIdReviewsRoute
-  ProductProductIdIndexRoute: typeof ProductProductIdIndexRoute
+  storeLayoutRoute: typeof storeLayoutRouteWithChildren
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/help': {
-      id: '/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cart': {
-      id: '/cart'
-      path: '/cart'
-      fullPath: '/cart'
-      preLoaderRoute: typeof CartRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(protected)': {
-      id: '/(protected)'
+    '/(store)': {
+      id: '/(store)'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof protectedLayoutRouteImport
+      preLoaderRoute: typeof storeLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/(store)/': {
+      id: '/(store)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof storeIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
     }
-    '/product/': {
-      id: '/product/'
-      path: '/product'
-      fullPath: '/product/'
-      preLoaderRoute: typeof ProductIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal/terms': {
-      id: '/legal/terms'
-      path: '/legal/terms'
-      fullPath: '/legal/terms'
-      preLoaderRoute: typeof LegalTermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal/shipping': {
-      id: '/legal/shipping'
-      path: '/legal/shipping'
-      fullPath: '/legal/shipping'
-      preLoaderRoute: typeof LegalShippingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal/returns': {
-      id: '/legal/returns'
-      path: '/legal/returns'
-      fullPath: '/legal/returns'
-      preLoaderRoute: typeof LegalReturnsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal/privacy': {
-      id: '/legal/privacy'
-      path: '/legal/privacy'
-      fullPath: '/legal/privacy'
-      preLoaderRoute: typeof LegalPrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/category/$slug': {
-      id: '/category/$slug'
-      path: '/category/$slug'
-      fullPath: '/category/$slug'
-      preLoaderRoute: typeof CategorySlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/verify-email': {
-      id: '/auth/verify-email'
-      path: '/auth/verify-email'
-      fullPath: '/auth/verify-email'
-      preLoaderRoute: typeof AuthVerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/reset-password': {
-      id: '/auth/reset-password'
-      path: '/auth/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthLayoutRoute
     }
     '/auth/otp': {
       id: '/auth/otp'
-      path: '/auth/otp'
+      path: '/otp'
       fullPath: '/auth/otp'
       preLoaderRoute: typeof AuthOtpRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthLayoutRoute
     }
     '/auth/login': {
       id: '/auth/login'
-      path: '/auth/login'
+      path: '/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthLayoutRoute
     }
-    '/auth/forgot-password': {
-      id: '/auth/forgot-password'
-      path: '/auth/forgot-password'
-      fullPath: '/auth/forgot-password'
-      preLoaderRoute: typeof AuthForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
+    '/(store)/search': {
+      id: '/(store)/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof storeSearchRouteImport
+      parentRoute: typeof storeLayoutRoute
     }
-    '/(protected)/wishlist': {
-      id: '/(protected)/wishlist'
+    '/(store)/help': {
+      id: '/(store)/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof storeHelpRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/contact': {
+      id: '/(store)/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof storeContactRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/cart': {
+      id: '/(store)/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof storeCartRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/about': {
+      id: '/(store)/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof storeAboutRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/(protected)': {
+      id: '/(store)/(protected)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof storeprotectedLayoutRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/product/': {
+      id: '/(store)/product/'
+      path: '/product'
+      fullPath: '/product/'
+      preLoaderRoute: typeof storeProductIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/legal/terms': {
+      id: '/(store)/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof storeLegalTermsRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/legal/shipping': {
+      id: '/(store)/legal/shipping'
+      path: '/legal/shipping'
+      fullPath: '/legal/shipping'
+      preLoaderRoute: typeof storeLegalShippingRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/legal/returns': {
+      id: '/(store)/legal/returns'
+      path: '/legal/returns'
+      fullPath: '/legal/returns'
+      preLoaderRoute: typeof storeLegalReturnsRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/legal/privacy': {
+      id: '/(store)/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof storeLegalPrivacyRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/(protected)/wishlist': {
+      id: '/(store)/(protected)/wishlist'
       path: '/wishlist'
       fullPath: '/wishlist'
-      preLoaderRoute: typeof protectedWishlistRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedWishlistRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/notifications': {
-      id: '/(protected)/notifications'
+    '/(store)/(protected)/notifications': {
+      id: '/(store)/(protected)/notifications'
       path: '/notifications'
       fullPath: '/notifications'
-      preLoaderRoute: typeof protectedNotificationsRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedNotificationsRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/addresses': {
-      id: '/(protected)/addresses'
+    '/(store)/(protected)/addresses': {
+      id: '/(store)/(protected)/addresses'
       path: '/addresses'
       fullPath: '/addresses'
-      preLoaderRoute: typeof protectedAddressesRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedAddressesRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/product/$productId/': {
-      id: '/product/$productId/'
+    '/(store)/product/$productId/': {
+      id: '/(store)/product/$productId/'
       path: '/product/$productId'
       fullPath: '/product/$productId/'
-      preLoaderRoute: typeof ProductProductIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof storeProductProductIdIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
     }
-    '/(protected)/subscriptions/': {
-      id: '/(protected)/subscriptions/'
+    '/(store)/(protected)/subscriptions/': {
+      id: '/(store)/(protected)/subscriptions/'
       path: '/subscriptions'
       fullPath: '/subscriptions/'
-      preLoaderRoute: typeof protectedSubscriptionsIndexRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedSubscriptionsIndexRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/profile/': {
-      id: '/(protected)/profile/'
+    '/(store)/(protected)/profile/': {
+      id: '/(store)/(protected)/profile/'
       path: '/profile'
       fullPath: '/profile/'
-      preLoaderRoute: typeof protectedProfileIndexRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedProfileIndexRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/orders/': {
-      id: '/(protected)/orders/'
+    '/(store)/(protected)/orders/': {
+      id: '/(store)/(protected)/orders/'
       path: '/orders'
       fullPath: '/orders/'
-      preLoaderRoute: typeof protectedOrdersIndexRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedOrdersIndexRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/product/$productId/reviews': {
-      id: '/product/$productId/reviews'
+    '/(store)/product/$productId/reviews': {
+      id: '/(store)/product/$productId/reviews'
       path: '/product/$productId/reviews'
       fullPath: '/product/$productId/reviews'
-      preLoaderRoute: typeof ProductProductIdReviewsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof storeProductProductIdReviewsRouteImport
+      parentRoute: typeof storeLayoutRoute
     }
-    '/(protected)/profile/baby': {
-      id: '/(protected)/profile/baby'
+    '/(store)/(protected)/profile/baby': {
+      id: '/(store)/(protected)/profile/baby'
       path: '/profile/baby'
       fullPath: '/profile/baby'
-      preLoaderRoute: typeof protectedProfileBabyRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedProfileBabyRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/payment/status': {
-      id: '/(protected)/payment/status'
+    '/(store)/(protected)/payment/status': {
+      id: '/(store)/(protected)/payment/status'
       path: '/payment/status'
       fullPath: '/payment/status'
-      preLoaderRoute: typeof protectedPaymentStatusRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedPaymentStatusRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/checkout/review': {
-      id: '/(protected)/checkout/review'
+    '/(store)/(protected)/checkout/review': {
+      id: '/(store)/(protected)/checkout/review'
       path: '/checkout/review'
       fullPath: '/checkout/review'
-      preLoaderRoute: typeof protectedCheckoutReviewRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedCheckoutReviewRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/checkout/payment': {
-      id: '/(protected)/checkout/payment'
+    '/(store)/(protected)/checkout/payment': {
+      id: '/(store)/(protected)/checkout/payment'
       path: '/checkout/payment'
       fullPath: '/checkout/payment'
-      preLoaderRoute: typeof protectedCheckoutPaymentRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedCheckoutPaymentRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/checkout/address': {
-      id: '/(protected)/checkout/address'
+    '/(store)/(protected)/checkout/address': {
+      id: '/(store)/(protected)/checkout/address'
       path: '/checkout/address'
       fullPath: '/checkout/address'
-      preLoaderRoute: typeof protectedCheckoutAddressRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedCheckoutAddressRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/orders/$orderId/': {
-      id: '/(protected)/orders/$orderId/'
+    '/(store)/(protected)/orders/$orderId/': {
+      id: '/(store)/(protected)/orders/$orderId/'
       path: '/orders/$orderId'
       fullPath: '/orders/$orderId/'
-      preLoaderRoute: typeof protectedOrdersOrderIdIndexRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedOrdersOrderIdIndexRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/orders/$orderId/tracking': {
-      id: '/(protected)/orders/$orderId/tracking'
+    '/(store)/(protected)/orders/$orderId/tracking': {
+      id: '/(store)/(protected)/orders/$orderId/tracking'
       path: '/orders/$orderId/tracking'
       fullPath: '/orders/$orderId/tracking'
-      preLoaderRoute: typeof protectedOrdersOrderIdTrackingRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedOrdersOrderIdTrackingRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(protected)/orders/$orderId/return': {
-      id: '/(protected)/orders/$orderId/return'
+    '/(store)/(protected)/orders/$orderId/return': {
+      id: '/(store)/(protected)/orders/$orderId/return'
       path: '/orders/$orderId/return'
       fullPath: '/orders/$orderId/return'
-      preLoaderRoute: typeof protectedOrdersOrderIdReturnRouteImport
-      parentRoute: typeof protectedLayoutRoute
+      preLoaderRoute: typeof storeprotectedOrdersOrderIdReturnRouteImport
+      parentRoute: typeof storeprotectedLayoutRoute
     }
   }
 }
 
-interface protectedLayoutRouteChildren {
-  protectedAddressesRoute: typeof protectedAddressesRoute
-  protectedNotificationsRoute: typeof protectedNotificationsRoute
-  protectedWishlistRoute: typeof protectedWishlistRoute
-  protectedCheckoutAddressRoute: typeof protectedCheckoutAddressRoute
-  protectedCheckoutPaymentRoute: typeof protectedCheckoutPaymentRoute
-  protectedCheckoutReviewRoute: typeof protectedCheckoutReviewRoute
-  protectedPaymentStatusRoute: typeof protectedPaymentStatusRoute
-  protectedProfileBabyRoute: typeof protectedProfileBabyRoute
-  protectedOrdersIndexRoute: typeof protectedOrdersIndexRoute
-  protectedProfileIndexRoute: typeof protectedProfileIndexRoute
-  protectedSubscriptionsIndexRoute: typeof protectedSubscriptionsIndexRoute
-  protectedOrdersOrderIdReturnRoute: typeof protectedOrdersOrderIdReturnRoute
-  protectedOrdersOrderIdTrackingRoute: typeof protectedOrdersOrderIdTrackingRoute
-  protectedOrdersOrderIdIndexRoute: typeof protectedOrdersOrderIdIndexRoute
+interface storeprotectedLayoutRouteChildren {
+  storeprotectedAddressesRoute: typeof storeprotectedAddressesRoute
+  storeprotectedNotificationsRoute: typeof storeprotectedNotificationsRoute
+  storeprotectedWishlistRoute: typeof storeprotectedWishlistRoute
+  storeprotectedCheckoutAddressRoute: typeof storeprotectedCheckoutAddressRoute
+  storeprotectedCheckoutPaymentRoute: typeof storeprotectedCheckoutPaymentRoute
+  storeprotectedCheckoutReviewRoute: typeof storeprotectedCheckoutReviewRoute
+  storeprotectedPaymentStatusRoute: typeof storeprotectedPaymentStatusRoute
+  storeprotectedProfileBabyRoute: typeof storeprotectedProfileBabyRoute
+  storeprotectedOrdersIndexRoute: typeof storeprotectedOrdersIndexRoute
+  storeprotectedProfileIndexRoute: typeof storeprotectedProfileIndexRoute
+  storeprotectedSubscriptionsIndexRoute: typeof storeprotectedSubscriptionsIndexRoute
+  storeprotectedOrdersOrderIdReturnRoute: typeof storeprotectedOrdersOrderIdReturnRoute
+  storeprotectedOrdersOrderIdTrackingRoute: typeof storeprotectedOrdersOrderIdTrackingRoute
+  storeprotectedOrdersOrderIdIndexRoute: typeof storeprotectedOrdersOrderIdIndexRoute
 }
 
-const protectedLayoutRouteChildren: protectedLayoutRouteChildren = {
-  protectedAddressesRoute: protectedAddressesRoute,
-  protectedNotificationsRoute: protectedNotificationsRoute,
-  protectedWishlistRoute: protectedWishlistRoute,
-  protectedCheckoutAddressRoute: protectedCheckoutAddressRoute,
-  protectedCheckoutPaymentRoute: protectedCheckoutPaymentRoute,
-  protectedCheckoutReviewRoute: protectedCheckoutReviewRoute,
-  protectedPaymentStatusRoute: protectedPaymentStatusRoute,
-  protectedProfileBabyRoute: protectedProfileBabyRoute,
-  protectedOrdersIndexRoute: protectedOrdersIndexRoute,
-  protectedProfileIndexRoute: protectedProfileIndexRoute,
-  protectedSubscriptionsIndexRoute: protectedSubscriptionsIndexRoute,
-  protectedOrdersOrderIdReturnRoute: protectedOrdersOrderIdReturnRoute,
-  protectedOrdersOrderIdTrackingRoute: protectedOrdersOrderIdTrackingRoute,
-  protectedOrdersOrderIdIndexRoute: protectedOrdersOrderIdIndexRoute,
+const storeprotectedLayoutRouteChildren: storeprotectedLayoutRouteChildren = {
+  storeprotectedAddressesRoute: storeprotectedAddressesRoute,
+  storeprotectedNotificationsRoute: storeprotectedNotificationsRoute,
+  storeprotectedWishlistRoute: storeprotectedWishlistRoute,
+  storeprotectedCheckoutAddressRoute: storeprotectedCheckoutAddressRoute,
+  storeprotectedCheckoutPaymentRoute: storeprotectedCheckoutPaymentRoute,
+  storeprotectedCheckoutReviewRoute: storeprotectedCheckoutReviewRoute,
+  storeprotectedPaymentStatusRoute: storeprotectedPaymentStatusRoute,
+  storeprotectedProfileBabyRoute: storeprotectedProfileBabyRoute,
+  storeprotectedOrdersIndexRoute: storeprotectedOrdersIndexRoute,
+  storeprotectedProfileIndexRoute: storeprotectedProfileIndexRoute,
+  storeprotectedSubscriptionsIndexRoute: storeprotectedSubscriptionsIndexRoute,
+  storeprotectedOrdersOrderIdReturnRoute:
+    storeprotectedOrdersOrderIdReturnRoute,
+  storeprotectedOrdersOrderIdTrackingRoute:
+    storeprotectedOrdersOrderIdTrackingRoute,
+  storeprotectedOrdersOrderIdIndexRoute: storeprotectedOrdersOrderIdIndexRoute,
 }
 
-const protectedLayoutRouteWithChildren = protectedLayoutRoute._addFileChildren(
-  protectedLayoutRouteChildren,
+const storeprotectedLayoutRouteWithChildren =
+  storeprotectedLayoutRoute._addFileChildren(storeprotectedLayoutRouteChildren)
+
+interface storeLayoutRouteChildren {
+  storeprotectedLayoutRoute: typeof storeprotectedLayoutRouteWithChildren
+  storeAboutRoute: typeof storeAboutRoute
+  storeCartRoute: typeof storeCartRoute
+  storeContactRoute: typeof storeContactRoute
+  storeHelpRoute: typeof storeHelpRoute
+  storeSearchRoute: typeof storeSearchRoute
+  storeIndexRoute: typeof storeIndexRoute
+  storeLegalPrivacyRoute: typeof storeLegalPrivacyRoute
+  storeLegalReturnsRoute: typeof storeLegalReturnsRoute
+  storeLegalShippingRoute: typeof storeLegalShippingRoute
+  storeLegalTermsRoute: typeof storeLegalTermsRoute
+  storeProductIndexRoute: typeof storeProductIndexRoute
+  storeProductProductIdReviewsRoute: typeof storeProductProductIdReviewsRoute
+  storeProductProductIdIndexRoute: typeof storeProductProductIdIndexRoute
+}
+
+const storeLayoutRouteChildren: storeLayoutRouteChildren = {
+  storeprotectedLayoutRoute: storeprotectedLayoutRouteWithChildren,
+  storeAboutRoute: storeAboutRoute,
+  storeCartRoute: storeCartRoute,
+  storeContactRoute: storeContactRoute,
+  storeHelpRoute: storeHelpRoute,
+  storeSearchRoute: storeSearchRoute,
+  storeIndexRoute: storeIndexRoute,
+  storeLegalPrivacyRoute: storeLegalPrivacyRoute,
+  storeLegalReturnsRoute: storeLegalReturnsRoute,
+  storeLegalShippingRoute: storeLegalShippingRoute,
+  storeLegalTermsRoute: storeLegalTermsRoute,
+  storeProductIndexRoute: storeProductIndexRoute,
+  storeProductProductIdReviewsRoute: storeProductProductIdReviewsRoute,
+  storeProductProductIdIndexRoute: storeProductProductIdIndexRoute,
+}
+
+const storeLayoutRouteWithChildren = storeLayoutRoute._addFileChildren(
+  storeLayoutRouteChildren,
+)
+
+interface AuthLayoutRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthOtpRoute: typeof AuthOtpRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+}
+
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthOtpRoute: AuthOtpRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+}
+
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  protectedLayoutRoute: protectedLayoutRouteWithChildren,
-  AboutRoute: AboutRoute,
-  CartRoute: CartRoute,
-  ContactRoute: ContactRoute,
-  HelpRoute: HelpRoute,
-  SearchRoute: SearchRoute,
-  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthOtpRoute: AuthOtpRoute,
-  AuthResetPasswordRoute: AuthResetPasswordRoute,
-  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
-  CategorySlugRoute: CategorySlugRoute,
-  LegalPrivacyRoute: LegalPrivacyRoute,
-  LegalReturnsRoute: LegalReturnsRoute,
-  LegalShippingRoute: LegalShippingRoute,
-  LegalTermsRoute: LegalTermsRoute,
-  ProductIndexRoute: ProductIndexRoute,
-  ProductProductIdReviewsRoute: ProductProductIdReviewsRoute,
-  ProductProductIdIndexRoute: ProductProductIdIndexRoute,
+  storeLayoutRoute: storeLayoutRouteWithChildren,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

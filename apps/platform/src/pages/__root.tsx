@@ -3,11 +3,11 @@ import { TooltipProvider } from "@mumzo/ui/components/tooltip";
 import {
   createRootRouteWithContext,
   HeadContent,
+  Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import ModalProvider from "@/core/components/modal-provider";
 import { ThemeProvider } from "@/core/components/theme-provider";
-import CommonLayout from "@/core/layout/common-layout";
 import { CartProvider } from "@/modules/cart";
 
 export type RouterAppContext = {};
@@ -44,7 +44,7 @@ function RootComponent() {
         storageKey="vite-ui-theme"
       >
         <CartProvider>
-          <CommonLayout />
+          <Outlet />
           <ModalProvider />
         </CartProvider>
         <Toaster richColors />
