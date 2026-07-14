@@ -1,3 +1,4 @@
+import { Button } from "@mumzo/ui/components/button";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
@@ -36,26 +37,26 @@ export default function Header() {
         {/* Right cluster */}
         <Link
           to="/auth/login"
-          className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-pinkDeep md:flex"
+          className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
         >
           <User size={18} /> Login
         </Link>
-        <Link
-          to="/cart"
-          data-testid="web-cart-btn"
-          className="relative inline-flex items-center gap-2 rounded-full bg-pinkDeep px-4 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#A93F63]"
+        <Button
+          variant="default"
+          className="flex h-10 items-center gap-2 rounded-full px-4"
+          render={<Link to="/cart" data-testid="web-cart-btn" />}
         >
           <ShoppingBag size={16} />
           <span className="hidden sm:inline">Cart</span>
           {totals.count > 0 && (
             <span
               data-testid="web-cart-count"
-              className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-white px-1.5 font-bold text-[11px] text-pinkDeep"
+              className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-white px-1.5 font-bold text-[11px] text-primary"
             >
               {totals.count}
             </span>
           )}
-        </Link>
+        </Button>
       </div>
 
       {/* Mobile Header (matches custom design) */}
@@ -65,16 +66,22 @@ export default function Header() {
           <button
             type="button"
             onClick={() => openModal("location")}
-            className="flex items-start gap-2 text-left"
+            className="flex min-w-0 items-center gap-2 text-left"
           >
-            <MapPin size={18} className="mt-0.5 flex-shrink-0 text-pinkDeep" />
-            <div>
-              <p className="font-bold text-[9px] text-pinkDeep uppercase leading-none tracking-wider">
+            <MapPin size={18} className="flex-shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="whitespace-nowrap font-bold text-[9px] text-primary uppercase leading-none tracking-wider">
                 DELIVERING TO
               </p>
-              <p className="mt-1 flex items-center gap-1 font-semibold text-foreground text-sm leading-tight">
-                {currentLoc}, Hyderabad
-                <ChevronDown size={14} className="text-foreground/60" />
+              <p className="mt-1 flex items-center gap-1 whitespace-nowrap font-semibold text-foreground text-sm leading-none">
+                <span className="inline-block max-w-[150px] truncate">
+                  {currentLoc}
+                </span>
+                <span className="text-foreground/60">, Hyderabad</span>
+                <ChevronDown
+                  size={14}
+                  className="flex-shrink-0 text-foreground/60"
+                />
               </p>
             </div>
           </button>
@@ -85,7 +92,7 @@ export default function Header() {
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
           >
             <Bell size={18} className="text-foreground" />
-            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-pinkDeep" />
+            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
           </button>
         </div>
 

@@ -8,16 +8,21 @@ export default function LocationSelector() {
     <button
       type="button"
       onClick={() => openModal("location")}
-      className="hidden items-center gap-2 rounded-2xl border border-rose/40 bg-blush px-3 py-2 text-xs transition-colors hover:border-pinkDeep md:flex"
+      className="hidden flex-shrink-0 items-center gap-2 rounded-2xl border border-primary/10 bg-accent/20 px-4 py-1 text-xs transition-colors hover:border-primary md:flex"
     >
-      <MapPin size={14} className="text-pinkDeep" />
-      <div className="text-left leading-tight">
-        <p className="font-semibold text-[10px] text-pinkDeep uppercase tracking-widest">
+      <MapPin size={20} className="flex-shrink-0 text-primary" />
+      <div className="whitespace-nowrap text-left leading-tight">
+        <p className="whitespace-nowrap font-semibold text-[8px] text-primary uppercase tracking-widest">
           Deliver to
         </p>
-        <p className="font-semibold text-foreground text-sm">{currentLoc}</p>
+        <p className="max-w-[120px] truncate whitespace-nowrap font-semibold text-[14px] text-foreground">
+          {currentLoc}
+        </p>
       </div>
-      <ChevronDown size={14} className="text-foreground/50" />
+      <ChevronDown
+        size={14}
+        className="ml-4 flex-shrink-0 text-foreground/50"
+      />
     </button>
   );
 }

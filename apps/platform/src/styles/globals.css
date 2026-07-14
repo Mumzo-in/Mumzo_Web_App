@@ -19,8 +19,8 @@
   --card-foreground: #1f1b3a;
   --popover: #ffffff;
   --popover-foreground: #1f1b3a;
-  --primary: #1f1b3a; /* navy — primary buttons & actions */
-  --primary-foreground: #fdfbf7; /* cream text on navy */
+  --primary: rgb(169, 63, 99); /* base brand color */
+  --primary-foreground: #fdfbf7; /* cream text on primary */
   --secondary: #f6f3ec; /* pale cream — secondary surfaces */
   --secondary-foreground: #1f1b3a;
   --muted: #f6f3ec;
