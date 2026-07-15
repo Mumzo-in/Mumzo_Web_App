@@ -1,147 +1,140 @@
-# Mumzo Platform — Next Pages Roadmap
+# Mumzo Platform — Pages Inventory
 
-Planning doc for the next wave of storefront pages + DPDP Act compliance. Frontend-first
-(mock data + localStorage), same conventions as the built pages. Nothing here is built yet.
+Every page that exists in `apps/platform` today. This is the reference for building the API and
+the SuperAdmin — each page below needs data behind it.
 
-Legend — Route group: `(store)` public, `(store)/(protected)` needs auth.
+Status: all pages are built and navigable, but run on **mock data + localStorage**. Nothing is
+wired to the Hono/Drizzle API yet.
 
-Explicitly **out of scope** (per product call): wallet/credits, subscriptions, forgot-password
-(OTP only), blog/content hub. Email is fine as a channel.
-
-**Container width rule:** every page container uses `mx-auto w-full max-w-7xl` — never a max
-width smaller than `max-w-7xl` (no `max-w-[900px]`, `max-w-2xl`, etc.).
-
----
-
-## 1. Account & profile
-
-Settings live **under profile**, reached from the profile page itself (a "Settings" section in
-the profile menu). No separate `/settings` top-level.
-
-- **Profile edit** — `(store)/(protected)/profile/edit`
-  - Edit name, phone (with OTP re-verify stub), email, language (English/Hindi/Telugu), avatar.
-  - Reuses `Input`/`Label`/`Button`; saves to a new `account` profile store (localStorage).
-  - Also serves DPDP "right to correction".
-
-- **Saved payment methods** — `(store)/(protected)/profile/payment-methods`
-  - List saved UPI IDs / masked cards, add (mock), set default, remove.
-  - New `payment-methods` store; checkout `PaymentMethodSelector` reads saved methods.
-
-- **Notification & consent settings** — `(store)/(protected)/profile/notifications`
-  - Per-channel toggles: Push / SMS / Email / WhatsApp × Orders / Offers / Recommendations.
-  - Marketing consent is separate + withdrawable (DPDP). Stored as a consent record.
-
-- **Privacy & data (DPDP hub)** — `(store)/(protected)/profile/privacy`
-  - Download my data (export), Delete my account, Manage consents, Nominee, Grievance officer.
-  - See DPDP section for the sub-flows.
-
-> The profile page (`/profile`) gets a **Settings** group linking to Edit profile · Payment
-> methods · Notifications · Privacy & data. These profile sub-pages are protected.
-
-## 2. Offers, coupons & referrals
-
-- **Offers & coupons** — `(store)/offers` (public)
-  - Browse all active offers/coupons, copy code, "how it works", T&C link.
-  - Reuses `CouponCard`; data from `core/data` offers.
-  - **Also surface an offers section on the home page** (`(store)/index`) — a horizontal
-    offers strip/carousel linking into `/offers`.
-
-- **Referrals** — `(store)/(protected)/referrals`
-  - Referral code + share (WhatsApp/copy), reward explainer, invite status list.
-  - New `referrals` mock store.
-
-## 3. Orders — support & reviews
-
-- **Rate & review an order** — `(store)/(protected)/orders/$orderId/review`
-  - Per-item star rating + title/body + photo upload (mock), verified-purchase badge.
-  - Writes into `catalog` review store; product reviews page reads it.
-
-- **Order help / raise a ticket** — `(store)/(protected)/orders/$orderId/help`
-  - Issue picker (missing item, damaged, late, refund…) → creates a support ticket.
-
-- **Support tickets** — `(store)/(protected)/support` + `support/$ticketId`
-  - Ticket list (status) and thread view (canned replies + message box, mock chat).
-  - New `support` module + mock ticket store.
-
-## 4. Discovery — serviceability, slots, collections
-
-- **Serviceability gate** — component + `(store)/not-serviceable` state
-  - Pincode check on the location modal; if out of zone show a "not delivering here yet"
-    screen with notify-me. Blocks checkout for unserviceable pincodes.
-  - New `serviceability` helper in `location` module (mock serviceable pincode list).
-
-- **Scheduled delivery** — enhance checkout, add `(store)/(protected)/checkout/slot` step
-  - Upgrade `SlotSelector` into Express vs Scheduled with a day + time-window calendar.
-  - Feeds slot into order + review recap.
-
-- **Collections** — `(store)/collection/$slug` (public)
-  - Curated product grids (e.g. "Newborn essentials", "Monsoon care"); reuses `ProductCard`
-    + filters. Mock collections in `catalog`.
-
-- **Brand pages** — `(store)/brand/$slug` (public)
-  - Brand header + that brand's products; reuses category browse layout.
-
-## 5. Global states & base infra (cross-cutting, not routes)
-
-- **Route error boundary** — `errorComponent` on `__root` (+ per-route) with a branded retry.
-- **Pending / loading UI** — `pendingComponent` / route `Loader`; skeletons on lists & detail.
-- **Empty states** — standardise a reusable `EmptyState` in `core` (cart, orders, wishlist,
-  search, notifications already have bespoke ones — unify them).
-- **404 not-found** — exists; wire a route-level `notFoundComponent` everywhere.
-- **Offline / PWA** — offline fallback screen + install prompt + "you're offline" banner.
-- **Network/error toasts** — standard failure handling helper.
-- **Scroll-restoration & top-of-page on nav** — base router polish.
+Legend:
+- `(store)` = public route
+- `(store)/(protected)` = requires auth (guarded by `(protected)/_layout.tsx`, redirects to login)
 
 ---
 
-## 6. DPDP Act (Digital Personal Data Protection Act, 2023) — compliance surfaces
+## Public — storefront
 
-Mumzo processes personal data of parents **and** references children (baby profiles), so DPDP's
-children provisions matter. Frontend deliverables:
+- `/` — Home. Hero carousel, value props, category grid, top deals rail, offers strip, bestsellers rail, collections rail, brand cards, "more to explore" grid + view more.
+- `/search` — Search & category browse. Keyword `?q=` + category `?cat=`. Filters: age, type, brand, max price, size. Sorts: recommended, price asc/desc, discount, rating. Desktop sidebar + mobile filter dialog.
+- `/product/$productId` — Product detail. Image carousel, size selector, qty selector, add to cart, wishlist heart, brand link, related products, accordion info.
+- `/product/$productId/reviews` — All ratings & reviews. Average, star distribution bars, filter by star, helpful votes.
+- `/product` — Redirects to `/search`.
+- `/collection` — All collections index.
+- `/collection/$slug` — Single collection. Hero image, curated product grid, other collections rail.
+- `/brand` — All brands index.
+- `/brand/$brand` — Single brand. Brand header, that brand's products, other brands.
+- `/offers` — All offers & coupons. Copy code, min order value, T&C note.
+- `/cart` — Cart. Line items, qty, coupon box (accordion + coupon cards), bill summary, not-serviceable banner, place order.
 
-- **Consent notice at signup** — clear, itemised notice: what data, purposes, that consent can
-  be withdrawn, link to full privacy notice. Separate opt-ins (don't bundle marketing with
-  service). Available in English/Hindi/Telugu.
-- **Consent manager** — `settings/privacy` → Manage consents: view each purpose (service,
-  marketing, analytics, personalisation), granular toggle, **withdraw as easily as given**,
-  with timestamped consent records (mock store).
-- **Cookie / tracking consent banner** — first-visit banner (Accept / Reject / Manage), stored
-  choice, gates analytics/experimentation loading. New `consent` module + `ConsentProvider`.
-- **Privacy notice (itemised)** — upgrade `legal/privacy` to DPDP-grade: data categories,
-  purposes, retention, third parties, Data Principal rights, Grievance Officer, DPB escalation.
-- **Right to access / data export** — `settings/privacy` → Download my data (JSON/PDF mock),
-  covers profile, orders, addresses, consents.
-- **Right to correction** — covered by Profile edit + address/baby editing.
-- **Right to erasure** — `settings/privacy` → Delete my account: reason, consequence notice,
-  confirm (re-auth/OTP), grace-period message. Clears local stores in the mock.
-- **Grievance redressal** — named Grievance Officer + contact + a grievance form with SLA note
-  (DPDP requires a response timeline). Can live under `settings/privacy` and `/contact`.
-- **Nomination** — `settings/privacy` → Nominee: name a person to exercise rights in case of
-  death/incapacity (DPDP §14).
-- **Children's data safeguards** — verifiable parental-consent affirmation when adding a baby
-  profile; **no behavioural tracking / targeted ads keyed to children's data**; internal note
-  in the privacy notice. (Age-based *recommendations* stay, ad-targeting on child data does not.)
-- **Consent artifacts & audit (backend, note only)** — store consent version, timestamp,
-  purpose, withdrawal; retention schedule; breach-notification pipeline. Flagged for the API,
-  not a storefront page.
+## Public — profile (unprotected today)
+
+- `/profile` — Account home. User card, log out, menu (orders, addresses, wishlist, baby profiles, notifications) + Settings group.
+- `/profile/baby` — Baby profiles. Add/edit/delete, age slider (0–60 months), live milestone preview.
+
+> Note: `/profile` and `/profile/baby` sit outside `(protected)` while the sub-pages under it are protected. Worth aligning.
+
+## Public — content & legal
+
+- `/about` — Brand story, values grid, CTA.
+- `/contact` — Contact details + message form.
+- `/help` — Help centre. Quick links (track order, contact) + FAQ accordion.
+- `/legal/terms` — Terms & conditions.
+- `/legal/privacy` — Privacy Notice (DPDP-grade: data categories + purposes, consent, children's data, processors, retention, rights, cookies, security, grievance officer, DPB escalation).
+- `/legal/shipping` — Shipping & delivery policy.
+- `/legal/returns` — Returns & refunds policy.
+
+## Auth
+
+- `/auth/login` — Sign in (phone + OTP).
+- `/auth/register` — Sign up (name + phone → OTP). Includes DPDP consent notice: itemised purposes, required Terms/Privacy checkbox, separate optional marketing opt-in.
+- `/auth/otp` — Standalone OTP verification (6-digit input, resend timer).
+
+## Protected — checkout
+
+- `/checkout` — Redirects to `/checkout/address`.
+- `/checkout/address` — Step 1. Select/add address, delivery mode (express vs scheduled), day + time-window picker. Hard-gated if location is unserviceable.
+- `/checkout/payment` — Step 2. Address + slot recap, payment method selector (UPI / card / netbanking / wallet / COD).
+- `/checkout/review` — Step 3. Full recap with edit links, item list, bill, place order.
+- `/payment/status` — Payment result. `?status=success|failed|pending`, order ref, track order / retry / continue shopping.
+
+## Protected — orders
+
+- `/orders` — Order list. Tabs: all / active / delivered / cancelled.
+- `/orders/$orderId` — Order detail. Status timeline, items, bill, address, reorder, rate, return, help, invoice.
+- `/orders/$orderId/tracking` — Live tracking. Rider card, ETA, mock map, status timeline.
+- `/orders/$orderId/return` — Return request. Select items, reason, note.
+- `/orders/$orderId/review` — Rate order. Per-item star rating, headline, body, photos (mock).
+- `/orders/$orderId/help` — Raise a ticket for this order. Topic picker + details.
+
+## Protected — support
+
+- `/support` — Ticket list with status.
+- `/support/$ticketId` — Ticket thread. Messages + reply box (canned auto-reply).
+
+## Protected — account
+
+- `/addresses` — Saved addresses. Add/edit/delete, set default.
+- `/wishlist` — Saved products grid.
+- `/notifications` — In-app inbox. Order / offer / system types, read-unread, mark all read.
+- `/referrals` — Refer & earn. Code, copy, WhatsApp share, how it works, invite list.
+- `/profile/edit` — Edit name, phone (re-verify), email, language (EN/HI/TE), avatar.
+- `/profile/payment-methods` — Saved UPI / cards. Add, set default, remove.
+- `/profile/notifications` — Notification settings. Channels (push/SMS/email/WhatsApp) × categories (orders/offers/recommendations).
+- `/profile/privacy` — Privacy & data (DPDP hub). Manage consents, download my data, nominee, grievance officer, delete account.
+
+## Global / non-route surfaces
+
+- Header — logo, location selector (shows ETA / scheduled / not-serviceable), search, notifications bell, cart count, login.
+- Footer — shop by category, help links, company links, legal links.
+- Bottom nav — mobile.
+- Location modal — pincode/area check with live express / scheduled / unserviceable feedback.
+- Consent banner — DPDP cookie/tracking consent (accept all / reject all / manage granular).
+- Not-serviceable screen — shown on cart + checkout when out of zone.
+- 404 not found.
+- Toasts (sonner).
 
 ---
 
-## 7. Suggested build order
+## Data currently mocked (what the API must provide)
 
-1. Global base infra (error/loading/empty/not-found boundaries) — unblocks everything.
-2. Settings shell + Profile edit + Notification/consent settings.
-3. DPDP: consent banner + consent manager + privacy notice upgrade + export/delete/grievance/nominee.
-4. Payment methods.
-5. Order review + order help + support tickets.
-6. Serviceability gate + scheduled delivery.
-7. Offers page + referrals.
-8. Collections + brand pages.
+- `core/data.ts` — categories, products, offers. 30 products across 9 categories.
+- `catalog/data/brand-data.ts` — brands derived from products.
+- `catalog/data/collection-data.ts` — 5 curated collections.
+- `catalog/data/product-attributes.ts` — age groups + product type per product. **Not fields on Product yet — API should add them.**
+- `catalog/data/review-data.ts` — product reviews.
+- `catalog/data/category-config.ts` — sorts, filter state, facets, filter logic.
+- `orders/data/order-data.ts` — orders, statuses, rider info.
+- `checkout/data/slot-data.ts` — delivery days + time windows.
+- `checkout/data/checkout-data.ts` — payment methods.
+- `location/data/serviceability-data.ts` — 8 Hyderabad areas, express vs scheduled zones.
+- `support/data/ticket-data.ts` — tickets, help topics.
+- `account/data/` — addresses, notifications, baby profiles.
+- `home/data/hero-slides.ts` — hero carousel slides.
 
-## New modules introduced
+## Client state (localStorage keys)
 
-- `consent` (DPDP: ConsentProvider, banner, records)
-- `support` (tickets)
-- `serviceability` (helper in `location`)
-- stores added to `account` (profile, payment-methods, notification prefs, nominee)
-- `referrals`, collections/brands data in `catalog`
+- `mumzo_cart_v1` — cart items
+- `mumzo_wishlist_v1` — wishlist product ids
+- `mumzo_addresses_v1` — addresses
+- `mumzo_profile_v1` — profile (name, phone, email, language)
+- `mumzo_payment_methods_v1` — saved payment methods
+- `mumzo_notif_prefs_v1` — notification channel prefs
+- `mumzo_consents_v1` — DPDP consent records (+ `mumzo_consents_decided_v1`)
+- `mumzo_location_v1` — chosen location
+- `mumzo_nominee_v1` — DPDP nominee
+
+## Not built (out of scope for now)
+
+- Wallet / credits
+- Subscriptions
+- Forgot password (OTP-only auth)
+- Blog / content hub
+- PWA offline screen + install prompt
+- Global error boundary, loading skeletons, unified empty state, route-level not-found wiring
+
+## Known gaps
+
+- Placing an order doesn't create an order record — orders are static mock data, so the chosen slot/address/payment aren't persisted onto an order.
+- Product detail brand link still uses the old `$slug` param after the route was renamed to `$brand`.
+- Reviews are read-only — the rate-order flow doesn't write into the review list.
+- Order updates / notifications are seeded, not generated by events.
