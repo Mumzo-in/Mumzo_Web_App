@@ -45,10 +45,19 @@ export default function Header() {
           <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
         </Link>
         <Link
+          to="/profile"
+          data-testid="web-profile-btn"
+          aria-label="Profile"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white text-foreground transition-colors hover:text-primary"
+        >
+          <User size={18} />
+        </Link>
+        <Link
           to="/auth/login"
+          data-testid="web-login-btn"
           className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
         >
-          <User size={18} /> Login
+          Login
         </Link>
         <Button
           variant="default"
