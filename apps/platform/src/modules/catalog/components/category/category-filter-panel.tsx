@@ -11,6 +11,7 @@ import {
   PRICE_STEP,
   rupee,
 } from "../../data/category-config";
+import { AGE_LABEL, type AgeGroup } from "../../data/product-attributes";
 
 interface CategoryFilterPanelProps {
   facets: CategoryFacets;
@@ -20,10 +21,56 @@ interface CategoryFilterPanelProps {
   className?: string;
 }
 
+function FilterGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-6">
+      <p className="mb-3 font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+/** Pill toggle used by the age / size / type groups. */
+function Pill({
+  active,
+  onClick,
+  children,
+  testId,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  testId: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={testId}
+      className={cn(
+        "cursor-pointer rounded-full border px-3 py-1.5 font-medium text-xs transition-colors",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border/70 bg-card text-foreground hover:border-primary",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 /**
- * The category filter controls (brand / price / size). Layout-agnostic — the
- * caller supplies the container: a sticky card in the desktop sidebar, or the
- * mobile filter dialog. See `CategoryFilterDialog`.
+ * Listing filter controls (age / type / brand / price / size). Layout-agnostic
+ * — the caller supplies the container: a sticky card in the desktop sidebar,
+ * or the mobile filter dialog. See `CategoryFilterDialog`.
  */
 export default function CategoryFilterPanel({
   facets,
@@ -33,21 +80,17 @@ export default function CategoryFilterPanel({
 }: CategoryFilterPanelProps) {
   const count = activeFilterCount(state);
 
-  const toggleBrand = (brand: string) =>
-    onChange({
-      ...state,
-      brands: state.brands.includes(brand)
-        ? state.brands.filter((b) => b !== brand)
-        : [...state.brands, brand],
-    });
-
-  const toggleSize = (size: string) =>
-    onChange({
-      ...state,
-      sizes: state.sizes.includes(size)
-        ? state.sizes.filter((s) => s !== size)
-        : [...state.sizes, size],
-    });
+  /** Add/remove a value from one of the array-valued filters. */
+  const toggle = <K extends "ages" | "brands" | "sizes" | "types">(
+    key: K,
+    value: CategoryFilterState[K][number],
+  ) => {
+    const current = state[key] as string[];
+    const next = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    onChange({ ...state, [key]: next });
+  };
 
   const clearAll = () => onChange({ ...initialFilterState, sort: state.sort });
 
@@ -62,45 +105,77 @@ export default function CategoryFilterPanel({
             type="button"
             onClick={clearAll}
             data-testid="clear-filters"
-            className="flex items-center gap-1 font-semibold text-primary text-xs"
+            className="flex cursor-pointer items-center gap-1 font-semibold text-primary text-xs"
           >
             <X size={12} /> Clear
           </button>
         )}
       </div>
 
+      {/* Age */}
+      {facets.ages.length > 0 && (
+        <FilterGroup label="Age">
+          <div className="flex flex-wrap gap-2">
+            {facets.ages.map((age: AgeGroup) => (
+              <Pill
+                key={age}
+                active={state.ages.includes(age)}
+                onClick={() => toggle("ages", age)}
+                testId={`filter-age-${age}`}
+              >
+                {AGE_LABEL[age]}
+              </Pill>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
+
+      {/* Type */}
+      {facets.types.length > 0 && (
+        <FilterGroup label="Type">
+          <div className="flex flex-wrap gap-2">
+            {facets.types.map((type) => (
+              <Pill
+                key={type}
+                active={state.types.includes(type)}
+                onClick={() => toggle("types", type)}
+                testId={`filter-type-${type}`}
+              >
+                {type}
+              </Pill>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
+
       {/* Brand */}
-      <div className="mb-6">
-        <p className="mb-3 font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
-          Brand
-        </p>
-        <div className="flex flex-col gap-2">
-          {facets.brands.map((brand) => (
-            <label
-              key={brand}
-              className="group flex cursor-pointer items-center gap-2.5"
-            >
-              <input
-                type="checkbox"
-                checked={state.brands.includes(brand)}
-                onChange={() => toggleBrand(brand)}
-                data-testid={`filter-brand-${brand}`}
-                className="size-4 rounded border-border/70 accent-primary"
-              />
-              <span className="text-foreground/80 text-sm group-hover:text-foreground">
-                {brand}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {facets.brands.length > 0 && (
+        <FilterGroup label="Brand">
+          <div className="flex max-h-56 flex-col gap-2 overflow-y-auto">
+            {facets.brands.map((brand) => (
+              <label
+                key={brand}
+                className="group flex cursor-pointer items-center gap-2.5"
+              >
+                <input
+                  type="checkbox"
+                  checked={state.brands.includes(brand)}
+                  onChange={() => toggle("brands", brand)}
+                  data-testid={`filter-brand-${brand}`}
+                  className="size-4 rounded border-border/70 accent-primary"
+                />
+                <span className="text-foreground/80 text-sm group-hover:text-foreground">
+                  {brand}
+                </span>
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
 
       {/* Price */}
-      <div className="mb-6">
-        <div className="mb-2 flex justify-between">
-          <p className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
-            Max price
-          </p>
+      <FilterGroup label="Max price">
+        <div className="-mt-1 mb-2 flex justify-end">
           <p className="font-semibold text-primary text-sm">
             {rupee(state.maxPrice)}
           </p>
@@ -121,32 +196,24 @@ export default function CategoryFilterPanel({
           <span>{rupee(PRICE_MIN)}</span>
           <span>{rupee(PRICE_MAX)}</span>
         </div>
-      </div>
+      </FilterGroup>
 
       {/* Size */}
       {facets.sizes.length > 0 && (
-        <div>
-          <p className="mb-3 font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
-            Size
-          </p>
+        <FilterGroup label="Size">
           <div className="flex flex-wrap gap-2">
             {facets.sizes.map((size) => (
-              <button
+              <Pill
                 key={size}
-                type="button"
-                onClick={() => toggleSize(size)}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 font-medium text-xs transition-colors",
-                  state.sizes.includes(size)
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/70 bg-card text-foreground hover:border-primary",
-                )}
+                active={state.sizes.includes(size)}
+                onClick={() => toggle("sizes", size)}
+                testId={`filter-size-${size}`}
               >
                 {size}
-              </button>
+              </Pill>
             ))}
           </div>
-        </div>
+        </FilterGroup>
       )}
     </div>
   );

@@ -24,11 +24,15 @@ import { Route as storeAboutRouteImport } from './pages/(store)/about'
 import { Route as storeprotectedLayoutRouteImport } from './pages/(store)/(protected)/_layout'
 import { Route as storeProfileIndexRouteImport } from './pages/(store)/profile/index'
 import { Route as storeProductIndexRouteImport } from './pages/(store)/product/index'
+import { Route as storeCollectionIndexRouteImport } from './pages/(store)/collection/index'
+import { Route as storeBrandIndexRouteImport } from './pages/(store)/brand/index'
 import { Route as storeProfileBabyRouteImport } from './pages/(store)/profile/baby'
 import { Route as storeLegalTermsRouteImport } from './pages/(store)/legal/terms'
 import { Route as storeLegalShippingRouteImport } from './pages/(store)/legal/shipping'
 import { Route as storeLegalReturnsRouteImport } from './pages/(store)/legal/returns'
 import { Route as storeLegalPrivacyRouteImport } from './pages/(store)/legal/privacy'
+import { Route as storeCollectionSlugRouteImport } from './pages/(store)/collection/$slug'
+import { Route as storeBrandBrandRouteImport } from './pages/(store)/brand/$brand'
 import { Route as storeprotectedWishlistRouteImport } from './pages/(store)/(protected)/wishlist'
 import { Route as storeprotectedReferralsRouteImport } from './pages/(store)/(protected)/referrals'
 import { Route as storeprotectedNotificationsRouteImport } from './pages/(store)/(protected)/notifications'
@@ -127,6 +131,16 @@ const storeProductIndexRoute = storeProductIndexRouteImport.update({
   path: '/product/',
   getParentRoute: () => storeLayoutRoute,
 } as any)
+const storeCollectionIndexRoute = storeCollectionIndexRouteImport.update({
+  id: '/collection/',
+  path: '/collection/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeBrandIndexRoute = storeBrandIndexRouteImport.update({
+  id: '/brand/',
+  path: '/brand/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
 const storeProfileBabyRoute = storeProfileBabyRouteImport.update({
   id: '/profile/baby',
   path: '/profile/baby',
@@ -150,6 +164,16 @@ const storeLegalReturnsRoute = storeLegalReturnsRouteImport.update({
 const storeLegalPrivacyRoute = storeLegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeCollectionSlugRoute = storeCollectionSlugRouteImport.update({
+  id: '/collection/$slug',
+  path: '/collection/$slug',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeBrandBrandRoute = storeBrandBrandRouteImport.update({
+  id: '/brand/$brand',
+  path: '/brand/$brand',
   getParentRoute: () => storeLayoutRoute,
 } as any)
 const storeprotectedWishlistRoute = storeprotectedWishlistRouteImport.update({
@@ -311,11 +335,15 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof storeprotectedNotificationsRoute
   '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
+  '/brand/$brand': typeof storeBrandBrandRoute
+  '/collection/$slug': typeof storeCollectionSlugRoute
   '/legal/privacy': typeof storeLegalPrivacyRoute
   '/legal/returns': typeof storeLegalReturnsRoute
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
   '/profile/baby': typeof storeProfileBabyRoute
+  '/brand/': typeof storeBrandIndexRoute
+  '/collection/': typeof storeCollectionIndexRoute
   '/product/': typeof storeProductIndexRoute
   '/profile/': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
@@ -354,11 +382,15 @@ export interface FileRoutesByTo {
   '/notifications': typeof storeprotectedNotificationsRoute
   '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
+  '/brand/$brand': typeof storeBrandBrandRoute
+  '/collection/$slug': typeof storeCollectionSlugRoute
   '/legal/privacy': typeof storeLegalPrivacyRoute
   '/legal/returns': typeof storeLegalReturnsRoute
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
   '/profile/baby': typeof storeProfileBabyRoute
+  '/brand': typeof storeBrandIndexRoute
+  '/collection': typeof storeCollectionIndexRoute
   '/product': typeof storeProductIndexRoute
   '/profile': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
@@ -401,11 +433,15 @@ export interface FileRoutesById {
   '/(store)/(protected)/notifications': typeof storeprotectedNotificationsRoute
   '/(store)/(protected)/referrals': typeof storeprotectedReferralsRoute
   '/(store)/(protected)/wishlist': typeof storeprotectedWishlistRoute
+  '/(store)/brand/$brand': typeof storeBrandBrandRoute
+  '/(store)/collection/$slug': typeof storeCollectionSlugRoute
   '/(store)/legal/privacy': typeof storeLegalPrivacyRoute
   '/(store)/legal/returns': typeof storeLegalReturnsRoute
   '/(store)/legal/shipping': typeof storeLegalShippingRoute
   '/(store)/legal/terms': typeof storeLegalTermsRoute
   '/(store)/profile/baby': typeof storeProfileBabyRoute
+  '/(store)/brand/': typeof storeBrandIndexRoute
+  '/(store)/collection/': typeof storeCollectionIndexRoute
   '/(store)/product/': typeof storeProductIndexRoute
   '/(store)/profile/': typeof storeProfileIndexRoute
   '/(store)/(protected)/checkout/address': typeof storeprotectedCheckoutAddressRoute
@@ -447,11 +483,15 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/referrals'
     | '/wishlist'
+    | '/brand/$brand'
+    | '/collection/$slug'
     | '/legal/privacy'
     | '/legal/returns'
     | '/legal/shipping'
     | '/legal/terms'
     | '/profile/baby'
+    | '/brand/'
+    | '/collection/'
     | '/product/'
     | '/profile/'
     | '/checkout/address'
@@ -490,11 +530,15 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/referrals'
     | '/wishlist'
+    | '/brand/$brand'
+    | '/collection/$slug'
     | '/legal/privacy'
     | '/legal/returns'
     | '/legal/shipping'
     | '/legal/terms'
     | '/profile/baby'
+    | '/brand'
+    | '/collection'
     | '/product'
     | '/profile'
     | '/checkout/address'
@@ -536,11 +580,15 @@ export interface FileRouteTypes {
     | '/(store)/(protected)/notifications'
     | '/(store)/(protected)/referrals'
     | '/(store)/(protected)/wishlist'
+    | '/(store)/brand/$brand'
+    | '/(store)/collection/$slug'
     | '/(store)/legal/privacy'
     | '/(store)/legal/returns'
     | '/(store)/legal/shipping'
     | '/(store)/legal/terms'
     | '/(store)/profile/baby'
+    | '/(store)/brand/'
+    | '/(store)/collection/'
     | '/(store)/product/'
     | '/(store)/profile/'
     | '/(store)/(protected)/checkout/address'
@@ -676,6 +724,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeProductIndexRouteImport
       parentRoute: typeof storeLayoutRoute
     }
+    '/(store)/collection/': {
+      id: '/(store)/collection/'
+      path: '/collection'
+      fullPath: '/collection/'
+      preLoaderRoute: typeof storeCollectionIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/brand/': {
+      id: '/(store)/brand/'
+      path: '/brand'
+      fullPath: '/brand/'
+      preLoaderRoute: typeof storeBrandIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
     '/(store)/profile/baby': {
       id: '/(store)/profile/baby'
       path: '/profile/baby'
@@ -709,6 +771,20 @@ declare module '@tanstack/react-router' {
       path: '/legal/privacy'
       fullPath: '/legal/privacy'
       preLoaderRoute: typeof storeLegalPrivacyRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/collection/$slug': {
+      id: '/(store)/collection/$slug'
+      path: '/collection/$slug'
+      fullPath: '/collection/$slug'
+      preLoaderRoute: typeof storeCollectionSlugRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/brand/$brand': {
+      id: '/(store)/brand/$brand'
+      path: '/brand/$brand'
+      fullPath: '/brand/$brand'
+      preLoaderRoute: typeof storeBrandBrandRouteImport
       parentRoute: typeof storeLayoutRoute
     }
     '/(store)/(protected)/wishlist': {
@@ -962,11 +1038,15 @@ interface storeLayoutRouteChildren {
   storeOffersRoute: typeof storeOffersRoute
   storeSearchRoute: typeof storeSearchRoute
   storeIndexRoute: typeof storeIndexRoute
+  storeBrandBrandRoute: typeof storeBrandBrandRoute
+  storeCollectionSlugRoute: typeof storeCollectionSlugRoute
   storeLegalPrivacyRoute: typeof storeLegalPrivacyRoute
   storeLegalReturnsRoute: typeof storeLegalReturnsRoute
   storeLegalShippingRoute: typeof storeLegalShippingRoute
   storeLegalTermsRoute: typeof storeLegalTermsRoute
   storeProfileBabyRoute: typeof storeProfileBabyRoute
+  storeBrandIndexRoute: typeof storeBrandIndexRoute
+  storeCollectionIndexRoute: typeof storeCollectionIndexRoute
   storeProductIndexRoute: typeof storeProductIndexRoute
   storeProfileIndexRoute: typeof storeProfileIndexRoute
   storeProductProductIdReviewsRoute: typeof storeProductProductIdReviewsRoute
@@ -982,11 +1062,15 @@ const storeLayoutRouteChildren: storeLayoutRouteChildren = {
   storeOffersRoute: storeOffersRoute,
   storeSearchRoute: storeSearchRoute,
   storeIndexRoute: storeIndexRoute,
+  storeBrandBrandRoute: storeBrandBrandRoute,
+  storeCollectionSlugRoute: storeCollectionSlugRoute,
   storeLegalPrivacyRoute: storeLegalPrivacyRoute,
   storeLegalReturnsRoute: storeLegalReturnsRoute,
   storeLegalShippingRoute: storeLegalShippingRoute,
   storeLegalTermsRoute: storeLegalTermsRoute,
   storeProfileBabyRoute: storeProfileBabyRoute,
+  storeBrandIndexRoute: storeBrandIndexRoute,
+  storeCollectionIndexRoute: storeCollectionIndexRoute,
   storeProductIndexRoute: storeProductIndexRoute,
   storeProfileIndexRoute: storeProfileIndexRoute,
   storeProductProductIdReviewsRoute: storeProductProductIdReviewsRoute,

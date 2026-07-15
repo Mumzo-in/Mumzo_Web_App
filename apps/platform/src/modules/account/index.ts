@@ -1,5 +1,7 @@
 export { default as AddressCard } from "./components/address-card";
 export { default as AddressForm } from "./components/address-form";
+export { default as ConsentBanner } from "./components/consent-banner";
+export { default as SignupConsentNotice } from "./components/consent-notice";
 export {
   ADDRESS_LABELS,
   type Address,

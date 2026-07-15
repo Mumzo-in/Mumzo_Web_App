@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MapPin, Pencil, Zap } from "lucide-react";
+import { CalendarClock, MapPin, Pencil, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAddresses } from "@/modules/account";
 import { CartSummary } from "@/modules/cart";
 import {
   CheckoutSteps,
-  deliverySlots,
   PaymentMethodSelector,
   useCheckout,
 } from "@/modules/checkout";
@@ -18,10 +17,10 @@ export const Route = createFileRoute("/(store)/(protected)/checkout/payment")({
 function CheckoutPaymentPage() {
   const navigate = useNavigate();
   const { addresses } = useAddresses();
-  const { addressId, slotId, paymentMethod } = useCheckout();
+  const { addressId, slotLabel, mode, paymentMethod } = useCheckout();
+  const SlotIcon = mode === "express" ? Zap : CalendarClock;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
-  const slot = deliverySlots.find((s) => s.id === slotId) ?? null;
 
   const continueToReview = () => {
     if (!paymentMethod) {
@@ -62,12 +61,10 @@ function CheckoutPaymentPage() {
                 </span>
               </p>
             )}
-            {slot && (
-              <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-accent/40 px-3 py-1.5 font-semibold text-ink text-xs">
-                <Zap size={12} className="text-primary" />
-                {slot.label}
-              </p>
-            )}
+            <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-accent/40 px-3 py-1.5 font-semibold text-ink text-xs">
+              <SlotIcon size={12} className="text-primary" />
+              {slotLabel}
+            </p>
           </section>
 
           <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-6">

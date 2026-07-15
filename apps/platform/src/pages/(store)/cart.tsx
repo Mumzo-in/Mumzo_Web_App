@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { CartLineItem, CartSummary, CouponBox, useCart } from "@/modules/cart";
+import { NotServiceable, useServiceability } from "@/modules/location";
 
 export const Route = createFileRoute("/(store)/cart")({
   component: CartPage,
@@ -11,9 +13,14 @@ export const Route = createFileRoute("/(store)/cart")({
 function CartPage() {
   const navigate = useNavigate();
   const { items, totals, clear } = useCart();
+  const { serviceable } = useServiceability();
 
   const placeOrder = () => {
     if (items.length === 0) return;
+    if (!serviceable) {
+      toast.error("We don't deliver to your location yet");
+      return;
+    }
     navigate({
       to: "/checkout/address",
       params: { orderId: "", productId: "" },
@@ -23,7 +30,7 @@ function CartPage() {
   return (
     <div
       data-testid="web-cart-page"
-      className="mx-auto max-w-[1280px] pt-8 pb-16"
+      className="mx-auto w-full max-w-7xl pt-8 pb-16"
     >
       <Breadcrumbs
         items={[{ label: "Home", to: "/" }, { label: "Your cart" }]}
@@ -68,7 +75,9 @@ function CartPage() {
         </div>
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-          <div>
+          <div className="flex flex-col gap-4">
+            {!serviceable && <NotServiceable compact />}
+
             <div className="divide-y divide-border/60 rounded-3xl border border-border/60 bg-white">
               {items.map((item) => (
                 <CartLineItem key={item.key} item={item} />

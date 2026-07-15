@@ -1,9 +1,17 @@
 /**
- * Category listing config — sorters, filter bounds, and the pure filtering
- * logic. Kept as serializable config + pure functions so the SuperAdmin can
- * drive which sorts/filters a category exposes later without touching UI.
+ * Category/search listing config — sorters, filter bounds, and the pure
+ * filtering logic. Kept as serializable config + pure functions so the
+ * SuperAdmin can drive which sorts/filters a category exposes later without
+ * touching UI.
  */
-import type { Category, Product } from "@/core/data";
+import type { Product } from "@/core/data";
+import {
+  type AgeGroup,
+  agesIn,
+  productAges,
+  productType,
+  typesIn,
+} from "./product-attributes";
 
 export type SortKey =
   | "relevance"
@@ -31,40 +39,51 @@ export const PRICE_STEP = 50;
 
 export interface CategoryFilterState {
   sort: SortKey;
+  ages: AgeGroup[];
   brands: string[];
   sizes: string[];
+  types: string[];
   maxPrice: number;
 }
 
 export const initialFilterState: CategoryFilterState = {
   sort: "relevance",
+  ages: [],
   brands: [],
   sizes: [],
+  types: [],
   maxPrice: PRICE_MAX,
 };
 
 export interface CategoryFacets {
+  ages: AgeGroup[];
   brands: string[];
   sizes: string[];
+  types: string[];
 }
 
-/** Derive the available filter values for a category from its products. */
-export function getCategoryFacets(
-  category: Category,
-  products: Product[],
-): CategoryFacets {
+/**
+ * Derive the available filter values from a product list. Facets come from the
+ * products themselves so this works for a single category or all of /search.
+ */
+export function getCategoryFacets(products: Product[]): CategoryFacets {
+  const brands = [...new Set(products.map((p) => p.brand))].sort((a, b) =>
+    a.localeCompare(b),
+  );
   const sizes = [
     ...new Set(
       products.map((p) => p.sizes).filter((s): s is string => Boolean(s)),
     ),
   ];
-  return { brands: category.brands, sizes };
+  return { ages: agesIn(products), brands, sizes, types: typesIn(products) };
 }
 
 export function activeFilterCount(state: CategoryFilterState): number {
   return (
+    state.ages.length +
     state.brands.length +
     state.sizes.length +
+    state.types.length +
     (state.maxPrice < PRICE_MAX ? 1 : 0)
   );
 }
@@ -75,6 +94,12 @@ export function applyCategoryFilters(
   state: CategoryFilterState,
 ): Product[] {
   let list = products.filter((p) => p.price <= state.maxPrice);
+
+  if (state.ages.length > 0) {
+    list = list.filter((p) =>
+      productAges(p).some((age) => state.ages.includes(age)),
+    );
+  }
   if (state.brands.length > 0) {
     list = list.filter((p) => state.brands.includes(p.brand));
   }
@@ -83,6 +108,10 @@ export function applyCategoryFilters(
       (p) => p.sizes !== null && state.sizes.includes(p.sizes),
     );
   }
+  if (state.types.length > 0) {
+    list = list.filter((p) => state.types.includes(productType(p)));
+  }
+
   switch (state.sort) {
     case "price_asc":
       return [...list].sort((a, b) => a.price - b.price);

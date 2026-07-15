@@ -12,6 +12,7 @@ import {
   type CategoryFilterState,
   CategorySort,
   findCategory,
+  getCategoryFacets,
   initialFilterState,
   ProductCard,
   products,
@@ -58,18 +59,8 @@ function SearchPage() {
     return list;
   }, [q, cat]);
 
-  // 2. Derive filter facets (brands and sizes) from matching products
-  const facets = useMemo(() => {
-    const brands = category
-      ? category.brands
-      : [...new Set(allProducts.map((p) => p.brand))];
-    const sizes = [
-      ...new Set(
-        allProducts.map((p) => p.sizes).filter((s): s is string => Boolean(s)),
-      ),
-    ];
-    return { brands, sizes };
-  }, [allProducts, category]);
+  // 2. Derive filter facets (age, brand, size, type) from matching products
+  const facets = useMemo(() => getCategoryFacets(allProducts), [allProducts]);
 
   // 3. Apply active filters and sorting options to the matches list
   const filtered = useMemo(

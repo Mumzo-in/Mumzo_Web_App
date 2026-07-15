@@ -1,15 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MapPin, Pencil, Zap } from "lucide-react";
+import { CalendarClock, MapPin, Pencil, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAddresses } from "@/modules/account";
 import { CartSummary, rupee, useCart } from "@/modules/cart";
-import {
-  CheckoutSteps,
-  deliverySlots,
-  paymentMethods,
-  useCheckout,
-} from "@/modules/checkout";
+import { CheckoutSteps, paymentMethods, useCheckout } from "@/modules/checkout";
 
 export const Route = createFileRoute("/(store)/(protected)/checkout/review")({
   component: CheckoutReviewPage,
@@ -19,10 +14,10 @@ function CheckoutReviewPage() {
   const navigate = useNavigate();
   const { items, clear } = useCart();
   const { addresses } = useAddresses();
-  const { addressId, slotId, paymentMethod } = useCheckout();
+  const { addressId, slotLabel, mode, paymentMethod } = useCheckout();
+  const SlotIcon = mode === "express" ? Zap : CalendarClock;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
-  const slot = deliverySlots.find((s) => s.id === slotId) ?? null;
   const payment = paymentMethods.find((p) => p.id === paymentMethod) ?? null;
 
   const placeOrder = () => {
@@ -63,12 +58,10 @@ function CheckoutReviewPage() {
                 </span>
               </p>
             )}
-            {slot && (
-              <p className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full bg-accent/40 px-3 py-1.5 font-semibold text-ink text-xs">
-                <Zap size={12} className="text-primary" />
-                {slot.label}
-              </p>
-            )}
+            <p className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full bg-accent/40 px-3 py-1.5 font-semibold text-ink text-xs">
+              <SlotIcon size={12} className="text-primary" />
+              {slotLabel}
+            </p>
           </RecapCard>
 
           <RecapCard

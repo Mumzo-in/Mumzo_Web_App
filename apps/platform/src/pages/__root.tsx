@@ -6,17 +6,17 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import ModalProvider from "@/core/components/modal-provider";
 import { ThemeProvider } from "@/core/components/theme-provider";
 import {
   AddressProvider,
+  ConsentBanner,
   ConsentProvider,
   PaymentMethodsProvider,
   PreferencesProvider,
   ProfileProvider,
 } from "@/modules/account";
-import ConsentBanner from "@/modules/account/components/consent-banner";
 import { CartProvider } from "@/modules/cart";
+import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
 import { TicketProvider } from "@/modules/support";
 import { WishlistProvider } from "@/modules/wishlist";
 
@@ -53,26 +53,28 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <ProfileProvider>
-          <ConsentProvider>
-            <PreferencesProvider>
-              <PaymentMethodsProvider>
-                <AddressProvider>
-                  <TicketProvider>
-                    <WishlistProvider>
-                      <CartProvider>
-                        <Outlet />
+        <ServiceabilityProvider>
+          <ProfileProvider>
+            <ConsentProvider>
+              <PreferencesProvider>
+                <PaymentMethodsProvider>
+                  <AddressProvider>
+                    <TicketProvider>
+                      <WishlistProvider>
+                        <CartProvider>
+                          <Outlet />
 
-                        <ConsentBanner />
-                        <ModalProvider />
-                      </CartProvider>
-                    </WishlistProvider>
-                  </TicketProvider>
-                </AddressProvider>
-              </PaymentMethodsProvider>
-            </PreferencesProvider>
-          </ConsentProvider>
-        </ProfileProvider>
+                          <ConsentBanner />
+                          <LocationModalHost />
+                        </CartProvider>
+                      </WishlistProvider>
+                    </TicketProvider>
+                  </AddressProvider>
+                </PaymentMethodsProvider>
+              </PreferencesProvider>
+            </ConsentProvider>
+          </ProfileProvider>
+        </ServiceabilityProvider>
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />

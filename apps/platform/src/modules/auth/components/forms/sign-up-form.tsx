@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SignupConsentNotice, useConsent } from "@/modules/account";
 
 export default function SignUpForm({
   onSwitchToSignIn,
@@ -12,11 +13,14 @@ export default function SignUpForm({
   onSwitchToSignIn: () => void;
 }) {
   const navigate = useNavigate();
+  const { setConsent } = useConsent();
   const [step, setStep] = useState<"info" | "otp">("info");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(30);
+  const [agreed, setAgreed] = useState(false);
+  const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -38,6 +42,10 @@ export default function SignUpForm({
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
+    if (!agreed) {
+      toast.error("Please accept the Terms and Privacy Notice to continue");
+      return;
+    }
     toast.success(`OTP sent to +91 ${phone}`);
     setStep("otp");
     setTimer(30);
@@ -49,6 +57,8 @@ export default function SignUpForm({
       toast.error("Please enter a 6-digit OTP");
       return;
     }
+    // Record the sign-up consent choice (DPDP: timestamped, per-purpose).
+    setConsent("marketing", marketing);
     toast.success("Registration successful!");
     navigate({ to: "/" });
   };
@@ -99,6 +109,13 @@ export default function SignUpForm({
               />
             </div>
           </div>
+
+          <SignupConsentNotice
+            agreed={agreed}
+            onAgreedChange={setAgreed}
+            marketing={marketing}
+            onMarketingChange={setMarketing}
+          />
 
           <Button
             type="submit"

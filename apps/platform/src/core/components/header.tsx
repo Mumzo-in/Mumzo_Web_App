@@ -4,14 +4,15 @@ import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
 import { useCart } from "@/modules/cart";
 import { CategoryLink, categories } from "@/modules/catalog";
-import { LocationSelector } from "@/modules/location";
+import { LocationSelector, useServiceability } from "@/modules/location";
 import { SearchBar } from "@/modules/search";
 import MumzoLogo from "./mumzo-logo";
 
 export default function Header() {
   const location = useLocation();
   const { totals } = useCart();
-  const { openModal, location: currentLoc } = useModalStore();
+  const { openModal } = useModalStore();
+  const { query: currentLoc } = useServiceability();
 
   return (
     /* Top nav */

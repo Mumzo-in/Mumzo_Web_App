@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import {
+  brandSlug,
   findCategory,
   findProduct,
   ProductImageCarousel,
@@ -138,9 +139,13 @@ function ProductDetailPage() {
 
         {/* Right column: info & selectors */}
         <div className="flex flex-col pt-5 md:px-0 md:pt-0">
-          <p className="font-semibold text-[11px] text-primary uppercase tracking-widest md:text-xs">
+          <Link
+            to="/brand/$slug"
+            params={{ slug: brandSlug(product.brand) }}
+            className="font-semibold text-[11px] text-primary uppercase tracking-widest transition-opacity hover:opacity-70 md:text-xs"
+          >
             {product.brand}
-          </p>
+          </Link>
 
           {/* Title & Review Rating row on mobile, standard display on desktop */}
           <div className="mt-1 flex items-start justify-between gap-4">

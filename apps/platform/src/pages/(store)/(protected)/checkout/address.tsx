@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AddressCard, AddressForm, useAddresses } from "@/modules/account";
 import { CartSummary, useCart } from "@/modules/cart";
 import { CheckoutSteps, SlotSelector, useCheckout } from "@/modules/checkout";
+import { NotServiceable, useServiceability } from "@/modules/location";
 
 export const Route = createFileRoute("/(store)/(protected)/checkout/address")({
   component: CheckoutAddressPage,
@@ -15,7 +16,8 @@ function CheckoutAddressPage() {
   const navigate = useNavigate();
   const { items } = useCart();
   const { addresses, defaultAddress, addAddress } = useAddresses();
-  const { addressId, setAddressId } = useCheckout();
+  const { addressId, setAddressId, slotReady } = useCheckout();
+  const { serviceable, expressAvailable } = useServiceability();
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -31,8 +33,22 @@ function CheckoutAddressPage() {
       toast.error("Please select a delivery address");
       return;
     }
+    if (!slotReady) {
+      toast.error("Please pick a delivery day and time");
+      return;
+    }
     navigate({ to: "/checkout/payment" });
   };
+
+  // Hard gate — nothing can be ordered outside our delivery zone.
+  if (!serviceable) {
+    return (
+      <div className="flex flex-col gap-8">
+        <CheckoutSteps current="address" />
+        <NotServiceable />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -84,6 +100,12 @@ function CheckoutAddressPage() {
 
           <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-6">
             <h2 className="font-editorial text-ink text-xl">Delivery slot</h2>
+            {!expressAvailable && (
+              <p className="rounded-xl bg-accent/30 px-4 py-2.5 text-foreground/70 text-xs leading-relaxed">
+                10-minute express isn't available at your location yet — please
+                pick a scheduled slot.
+              </p>
+            )}
             <SlotSelector />
           </section>
         </div>

@@ -1,35 +1,3 @@
-export interface DeliverySlot {
-  id: string;
-  label: string;
-  detail: string;
-  fee: number;
-  express: boolean;
-}
-
-export const deliverySlots: DeliverySlot[] = [
-  {
-    id: "express",
-    label: "Express delivery",
-    detail: "Arrives in 10–15 minutes",
-    fee: 0,
-    express: true,
-  },
-  {
-    id: "slot_morning",
-    label: "Today · 8 AM – 11 AM",
-    detail: "Scheduled morning slot",
-    fee: 0,
-    express: false,
-  },
-  {
-    id: "slot_evening",
-    label: "Today · 5 PM – 8 PM",
-    detail: "Scheduled evening slot",
-    fee: 0,
-    express: false,
-  },
-];
-
 export type PaymentMethodId = "upi" | "card" | "netbanking" | "wallet" | "cod";
 
 export interface PaymentMethod {
