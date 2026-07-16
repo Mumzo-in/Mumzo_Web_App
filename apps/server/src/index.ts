@@ -10,8 +10,10 @@ app.use(logger());
 app.use(
   "/*",
   cors({
+    // A list — the storefront (3001) and admin panel (3002) are separate
+    // origins. Hono echoes back whichever one matches the request.
     origin: env.CORS_ORIGIN,
-    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),

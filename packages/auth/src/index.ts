@@ -6,6 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 export function createAuth() {
   const db = createDb();
+  const isProduction = env.NODE_ENV === "production";
 
   return betterAuth({
     database: drizzleAdapter(db, {
@@ -13,7 +14,7 @@ export function createAuth() {
 
       schema: schema,
     }),
-    trustedOrigins: [env.CORS_ORIGIN],
+    trustedOrigins: env.CORS_ORIGIN,
     emailAndPassword: {
       enabled: true,
     },
@@ -21,8 +22,12 @@ export function createAuth() {
     baseURL: env.BETTER_AUTH_URL,
     advanced: {
       defaultCookieAttributes: {
-        sameSite: "none",
-        secure: true,
+        // Cross-origin auth (storefront/admin on their own ports) needs
+        // SameSite=None, but browsers only accept that alongside Secure, and
+        // reject Secure cookies over plain http://localhost. So dev uses Lax:
+        // same-site enough for localhost, and the session cookie sticks.
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction,
         httpOnly: true,
       },
     },
