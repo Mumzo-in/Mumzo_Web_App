@@ -11,6 +11,8 @@
     "rootDirs": ["."],
     "paths": {
       "@/*": ["./src/*"],
+      "@mumzo/catalog-model": ["../../packages/catalog-model/src/index.ts"],
+      "@mumzo/catalog-model/*": ["../../packages/catalog-model/src/*"],
       "@mumzo/ui/*": ["../../packages/ui/src/*"]
     }
   }

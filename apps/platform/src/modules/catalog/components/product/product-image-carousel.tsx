@@ -3,13 +3,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 interface ProductImageCarouselProps {
-  img: string;
+  images: string[];
   name: string;
   discount: number;
 }
 
+/** Neutral wash shown when a product has no imagery yet. */
+const PLACEHOLDER = "bg-accent/20";
+
 export default function ProductImageCarousel({
-  img,
+  images,
   name,
   discount,
 }: ProductImageCarouselProps) {
@@ -26,10 +29,20 @@ export default function ProductImageCarousel({
     toast.success(saved ? "Removed from wishlist" : "Added to wishlist");
   };
 
+  const activeImage = images[activeThumb] ?? images[0] ?? null;
+
   return (
     <div>
       <div className="relative aspect-square overflow-hidden rounded-3xl border border-border/50 bg-accent/10">
-        <img src={img} alt={name} className="h-full w-full object-cover" />
+        {activeImage ? (
+          <img
+            src={activeImage}
+            alt={name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className={`h-full w-full ${PLACEHOLDER}`} />
+        )}
         {discount > 0 && (
           <span className="absolute top-4 left-4 rounded-full bg-primary px-3 py-1 font-bold text-primary-foreground text-xs">
             {discount}% OFF
@@ -57,27 +70,30 @@ export default function ProductImageCarousel({
           </button>
         </div>
       </div>
-      {/* Thumbnails */}
-      <div className="mt-4 grid grid-cols-4 gap-3">
-        {[0, 1, 2, 3].map((i) => (
-          <button
-            type="button"
-            key={i.toString()}
-            onClick={() => setActiveThumb(i)}
-            className={`aspect-square cursor-pointer overflow-hidden rounded-2xl border transition-all ${
-              i === activeThumb
-                ? "border-primary opacity-100 ring-2 ring-primary/20"
-                : "border-border/50 opacity-70 hover:opacity-100"
-            }`}
-          >
-            <img
-              src={img}
-              className="h-full w-full object-cover"
-              alt={`${name} thumb ${i}`}
-            />
-          </button>
-        ))}
-      </div>
+
+      {/* Thumbnails — only when there's more than one real image. */}
+      {images.length > 1 && (
+        <div className="mt-4 grid grid-cols-4 gap-3">
+          {images.map((image, index) => (
+            <button
+              type="button"
+              key={image}
+              onClick={() => setActiveThumb(index)}
+              className={`aspect-square cursor-pointer overflow-hidden rounded-2xl border transition-all ${
+                index === activeThumb
+                  ? "border-primary opacity-100 ring-2 ring-primary/20"
+                  : "border-border/50 opacity-70 hover:opacity-100"
+              }`}
+            >
+              <img
+                src={image}
+                className="h-full w-full object-cover"
+                alt={`${name} ${index + 1}`}
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

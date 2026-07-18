@@ -1,3 +1,4 @@
+import { discountPct, isPurchasable } from "@mumzo/catalog-model";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Star } from "lucide-react";
 import { useState } from "react";
@@ -18,19 +19,6 @@ export const Route = createFileRoute("/(store)/product/$productId/")({
   component: ProductDetailPage,
 });
 
-const AllSizes = [
-  "XS",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "XXL",
-  "0-3M",
-  "3-6M",
-  "6-9M",
-  "1-2Y",
-];
-
 function ProductDetailPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
@@ -38,7 +26,10 @@ function ProductDetailPage() {
   const product = findProduct(productId);
   const category = product ? findCategory(product.categorySlug) : null;
 
-  const [size, setSize] = useState<string | null>(product?.sizes || null);
+  // Default to the first size that's actually in stock, not merely the first.
+  const [size, setSize] = useState<string | null>(
+    () => product?.sizes.find((s) => s.stock > 0)?.label ?? null,
+  );
   const [qty, setQty] = useState(1);
   const [saved, setSaved] = useState(false);
 
@@ -53,19 +44,24 @@ function ProductDetailPage() {
     );
   }
 
-  const availableSizes = AllSizes.slice(
-    0,
-    product.categorySlug === "clothing" ? 5 : 4,
-  );
-  const needsSize = ["clothing", "diapers", "nursery"].includes(
-    product.categorySlug,
-  );
+  // Real variants now, rather than slicing a hardcoded global by category.
+  const availableSizes = product.sizes.map((s) => s.label);
+  const needsSize = product.sizes.length > 0;
+  const selectedSize = product.sizes.find((s) => s.label === size) ?? null;
+
+  // The chosen variant governs availability; fall back to product stock when
+  // the product isn't sized.
+  const stockForSelection = selectedSize ? selectedSize.stock : product.stock;
+  const soldOut = !isPurchasable(product) || stockForSelection === 0;
 
   const related = productsInCategory(product.categorySlug)
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 
   const handleAdd = () => {
+    if (soldOut) {
+      return;
+    }
     toast.success(`${product.name} added to cart!`);
     navigate({ to: "/cart" });
   };
@@ -132,16 +128,16 @@ function ProductDetailPage() {
         {/* Left column: image & thumbnails */}
 
         <ProductImageCarousel
-          img={product.img}
+          images={product.images}
           name={product.name}
-          discount={product.discount}
+          discount={discountPct(product)}
         />
 
         {/* Right column: info & selectors */}
         <div className="flex flex-col pt-5 md:px-0 md:pt-0">
           <Link
-            to="/brand/$slug"
-            params={{ slug: brandSlug(product.brand) }}
+            to="/brand/$brand"
+            params={{ brand: brandSlug(product.brand) }}
             className="font-semibold text-[11px] text-primary uppercase tracking-widest transition-opacity hover:opacity-70 md:text-xs"
           >
             {product.brand}
@@ -200,7 +196,7 @@ function ProductDetailPage() {
                   ₹{product.mrp}
                 </span>
                 <span className="mb-1 font-semibold text-primary text-sm md:text-base">
-                  {product.discount}% off
+                  {discountPct(product)}% off
                 </span>
               </>
             )}
@@ -226,12 +222,23 @@ function ProductDetailPage() {
             <button
               type="button"
               onClick={handleAdd}
+              disabled={soldOut}
               data-testid="add-to-cart"
-              className="md:mumzo-btn flex h-12 w-full cursor-pointer select-none items-center justify-center rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm md:py-4 md:font-normal"
+              className="md:mumzo-btn flex h-12 w-full cursor-pointer select-none items-center justify-center rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm transition-colors disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground md:py-4 md:font-normal"
             >
-              Add to cart →
+              {soldOut ? "Out of stock" : "Add to cart →"}
             </button>
           </div>
+          {soldOut ? (
+            <p
+              className="mt-2 text-muted-foreground text-xs"
+              data-testid="product-oos-note"
+            >
+              {needsSize && stockForSelection === 0 && isPurchasable(product)
+                ? "This size is sold out — try another."
+                : "We're restocking this one. Check back soon."}
+            </p>
+          ) : null}
 
           {/* About this product & Highlights (Static UI with identical typography across all screens) */}
           <div className="mt-10 space-y-6 border-border/60 border-t pt-6">
@@ -240,10 +247,10 @@ function ProductDetailPage() {
                 About this product
               </h2>
               <p className="mt-3 text-foreground/75 text-sm leading-relaxed">
-                Carefully sourced and mom-approved. {product.name} from{" "}
-                {product.brand} is designed to be gentle on your little one —
-                free of harsh chemicals, dermatologically tested, and packed
-                with love.
+                {/* Authored in the admin. The generic line is a fallback for
+                    catalogue entries that predate the field. */}
+                {product.about ||
+                  `Carefully sourced and mom-approved. ${product.name} from ${product.brand} is designed to be gentle on your little one.`}
               </p>
             </div>
             <div>
@@ -251,10 +258,13 @@ function ProductDetailPage() {
                 Highlights
               </h2>
               <ul className="mt-3 space-y-1.5 text-foreground/75 text-sm">
+                {product.highlights.map((highlight) => (
+                  <li key={highlight}>• {highlight}</li>
+                ))}
                 <li>• Category: {category?.name || "Baby essentials"}</li>
                 <li>• Brand: {product.brand}</li>
                 <li>• Pack size: {product.qty}</li>
-                <li>• Country of origin: India</li>
+                <li>• Country of origin: {product.countryOfOrigin}</li>
                 <li>• Manufactured for Mumzo Retail Pvt. Ltd.</li>
               </ul>
             </div>

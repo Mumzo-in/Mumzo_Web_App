@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@mumzo/catalog-model": "workspace:*",
     "@mumzo/env": "workspace:*",
     "@mumzo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.2",

@@ -1,3 +1,4 @@
+import { discountPct } from "@mumzo/catalog-model";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck, Clock, Leaf } from "lucide-react";
 import SectionHeader from "@/core/components/section-header";
@@ -42,10 +43,10 @@ function SeeAll({ cat, label = "See all" }: { cat: string; label?: string }) {
 }
 
 function HomePage() {
-  const bestsellers = products.filter((p) => p.bestseller).slice(0, 10);
+  const bestsellers = products.filter((p) => p.isBestseller).slice(0, 10);
   const topDeals = [...products]
-    .filter((p) => p.discount > 0)
-    .sort((a, b) => b.discount - a.discount)
+    .filter((p) => discountPct(p) > 0)
+    .sort((a, b) => discountPct(b) - discountPct(a))
     .slice(0, 10);
   // Two rows of the responsive grid (5 per row at lg).
   const picks = products.slice(0, 10);

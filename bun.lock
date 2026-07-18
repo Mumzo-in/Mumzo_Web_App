@@ -24,6 +24,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@mumzo/catalog-model": "workspace:*",
         "@mumzo/env": "workspace:*",
         "@mumzo/ui": "workspace:*",
         "@tailwindcss/vite": "^4.3.2",
@@ -61,6 +62,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@hookform/resolvers": "^5.4.0",
+        "@mumzo/catalog-model": "workspace:*",
         "@mumzo/env": "workspace:*",
         "@mumzo/ui": "workspace:*",
         "@tailwindcss/vite": "^4.3.2",
@@ -117,6 +119,17 @@
         "@mumzo/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@mumzo/config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/catalog-model": {
+      "name": "@mumzo/catalog-model",
+      "version": "0.0.0",
+      "dependencies": {
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -583,6 +596,8 @@
     "@mumzo/admin": ["@mumzo/admin@workspace:apps/admin"],
 
     "@mumzo/auth": ["@mumzo/auth@workspace:packages/auth"],
+
+    "@mumzo/catalog-model": ["@mumzo/catalog-model@workspace:packages/catalog-model"],
 
     "@mumzo/config": ["@mumzo/config@workspace:packages/config"],
 

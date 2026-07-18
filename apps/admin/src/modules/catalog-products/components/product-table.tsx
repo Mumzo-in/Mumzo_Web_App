@@ -1,3 +1,4 @@
+import { discountPct, isLowStock, type Product } from "@mumzo/catalog-model";
 import { Badge } from "@mumzo/ui/components/badge";
 import { Input } from "@mumzo/ui/components/input";
 import {
@@ -17,12 +18,7 @@ import DataTable from "@/core/components/data-table";
 import { formatMoney, formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
 import { listProducts } from "../api/products-api";
-import {
-  type AdminProduct,
-  discountPct,
-  LOW_STOCK_THRESHOLD,
-  PRODUCT_STATUS_META,
-} from "../data/product-data";
+import { PRODUCT_STATUS_META } from "../data/product-data";
 
 const STATUS_FILTERS = [
   { value: "all", label: "All statuses" },
@@ -36,7 +32,7 @@ export function ProductTable() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
 
-  const columns = useMemo<ColumnDef<AdminProduct, unknown>[]>(
+  const columns = useMemo<ColumnDef<Product, unknown>[]>(
     () => [
       {
         accessorKey: "name",
@@ -92,7 +88,7 @@ export function ProductTable() {
               />
             );
           }
-          if (stock <= LOW_STOCK_THRESHOLD) {
+          if (isLowStock(row.original)) {
             return (
               <StatusChip
                 label={`Low · ${stock}`}

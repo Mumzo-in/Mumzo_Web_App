@@ -1,87 +1,152 @@
-/** Categories — api-plan §15c. Keyed by `slug`, not `id`. */
+import type { Category } from "@mumzo/catalog-model";
 
-export type AdminCategory = {
-  slug: string;
-  name: string;
-  tagline: string;
-  /** Manual merchandising order; `PATCH /admin/categories/reorder`. */
-  position: number;
-  productCount: number;
-  isActive: boolean;
-  image: string | null;
-};
+/**
+ * Seed categories, shaped by `@mumzo/catalog-model` — api-plan §15c, keyed by
+ * `slug` rather than `id`.
+ *
+ * The slugs are the merged taxonomy (see `packages/catalog-model/src/category.ts`):
+ * the admin's `diapering` and `baby-shampoo` are gone, folded into `diapers`
+ * and `bath-skin`. `color` and `brands` are back — the storefront renders both
+ * and the old admin type had dropped them, so they were uneditable.
+ */
 
-export const categories: AdminCategory[] = [
+export const categories: Category[] = [
   {
-    slug: "diapering",
-    name: "Diapering",
-    tagline: "Dry, happy and rash-free",
+    slug: "baby-essentials",
+    name: "Baby Essentials",
+    tagline: "The everyday basics",
+    img: "",
+    color: "#FCE1E6",
+    brands: ["Mumzo Essentials", "TinyTouch"],
     position: 1,
-    productCount: 48,
     isActive: true,
-    image: null,
+    hasSizes: false,
+  },
+  {
+    slug: "diapers",
+    name: "Diapers",
+    tagline: "Dry, happy and rash-free",
+    img: "",
+    color: "#FDE2CE",
+    brands: ["Mumzo Essentials"],
+    position: 2,
+    isActive: true,
+    hasSizes: true,
+  },
+  {
+    slug: "baby-food",
+    name: "Baby Food",
+    tagline: "Formula, purées and first spoons",
+    img: "",
+    color: "#D8E2D5",
+    brands: ["NutriBaby"],
+    position: 3,
+    isActive: true,
+    hasSizes: false,
   },
   {
     slug: "feeding",
     name: "Feeding",
-    tagline: "Formula, bottles and everything in between",
-    position: 2,
-    productCount: 62,
+    tagline: "Bottles, bibs and sippers",
+    img: "",
+    color: "#F6F3EC",
+    brands: ["LittleSip"],
+    position: 4,
     isActive: true,
-    image: null,
+    hasSizes: false,
   },
   {
     slug: "bath-skin",
     name: "Bath & Skin",
     tagline: "Gentle on the softest skin",
-    position: 3,
-    productCount: 37,
+    img: "",
+    color: "#FDF1EC",
+    brands: ["Mumzo Care"],
+    position: 5,
     isActive: true,
-    image: null,
-  },
-  {
-    slug: "mom-care",
-    name: "Mom Care",
-    tagline: "Because you matter too",
-    position: 4,
-    productCount: 29,
-    isActive: true,
-    image: null,
+    hasSizes: false,
   },
   {
     slug: "clothing",
     name: "Clothing",
     tagline: "Soft layers for tiny humans",
-    position: 5,
-    productCount: 54,
+    img: "",
+    color: "#FCE1E6",
+    brands: ["TinyTouch"],
+    position: 6,
     isActive: true,
-    image: null,
+    hasSizes: true,
   },
   {
     slug: "toys",
     name: "Toys & Play",
     tagline: "Play that grows with them",
-    position: 6,
-    productCount: 41,
+    img: "",
+    color: "#D8E2D5",
+    brands: ["TinyTouch"],
+    position: 7,
     isActive: true,
-    image: null,
+    hasSizes: false,
+  },
+  {
+    slug: "mom-care",
+    name: "Mom Care",
+    tagline: "Because you matter too",
+    img: "",
+    color: "#FDE2CE",
+    brands: ["Mumzo Care"],
+    position: 8,
+    isActive: true,
+    hasSizes: false,
+  },
+  {
+    slug: "health",
+    name: "Health",
+    tagline: "Thermometers, medicine and care",
+    img: "",
+    color: "#F6F3EC",
+    brands: ["Mumzo Care"],
+    position: 9,
+    isActive: true,
+    hasSizes: false,
+  },
+  {
+    slug: "nursery",
+    name: "Nursery",
+    tagline: "Sleep, soothe and settle",
+    img: "",
+    color: "#FDF1EC",
+    brands: ["TinyTouch"],
+    position: 10,
+    isActive: true,
+    hasSizes: true,
   },
   {
     slug: "gear",
     name: "Baby Gear",
     tagline: "Strollers, carriers and car seats",
-    position: 7,
-    productCount: 18,
+    img: "",
+    color: "#D8E2D5",
+    brands: [],
+    position: 11,
     isActive: false,
-    image: null,
+    hasSizes: false,
   },
 ];
 
-export function findCategory(slug: string): AdminCategory | undefined {
+export function findCategory(slug: string): Category | undefined {
   return categories.find((category) => category.slug === slug);
 }
 
 /** Sorted for the merchandising view. */
-export function orderedCategories(): AdminCategory[] {
+export function orderedCategories(): Category[] {
   return [...categories].sort((a, b) => a.position - b.position);
+}
+
+/** Category options for the product form's select. */
+export function categoryOptions(): { value: string; label: string }[] {
+  return orderedCategories().map((category) => ({
+    value: category.slug,
+    label: category.name,
+  }));
 }

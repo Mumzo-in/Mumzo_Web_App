@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import AdminHeader from "./admin-header";
 import AdminSidebar from "./admin-sidebar";
+import { NavPanelProvider } from "./use-nav-panel";
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -17,18 +18,20 @@ type AdminLayoutProps = {
  */
 export function AdminLayout({ children, headerActions }: AdminLayoutProps) {
   return (
-    <div className="flex h-svh overflow-hidden">
-      <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminHeader actions={headerActions} />
-        <main
-          className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6"
-          data-testid="admin-main"
-        >
-          {children}
-        </main>
+    <NavPanelProvider>
+      <div className="flex h-svh overflow-hidden">
+        <AdminSidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AdminHeader actions={headerActions} />
+          <main
+            className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6"
+            data-testid="admin-main"
+          >
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </NavPanelProvider>
   );
 }
 

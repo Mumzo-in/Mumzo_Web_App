@@ -69,6 +69,7 @@ import { Route as adminCatalogCategoriesSlugRouteImport } from './pages/(admin)/
 import { Route as adminCatalogProductsProductIdIndexRouteImport } from './pages/(admin)/catalog/products/$productId/index'
 import { Route as adminCatalogProductsProductIdStockRouteImport } from './pages/(admin)/catalog/products/$productId/stock'
 import { Route as adminCatalogProductsProductIdImagesRouteImport } from './pages/(admin)/catalog/products/$productId/images'
+import { Route as adminCatalogProductsProductIdEditRouteImport } from './pages/(admin)/catalog/products/$productId/edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -401,6 +402,12 @@ const adminCatalogProductsProductIdImagesRoute =
     path: '/catalog/products/$productId/images',
     getParentRoute: () => adminLayoutRoute,
   } as any)
+const adminCatalogProductsProductIdEditRoute =
+  adminCatalogProductsProductIdEditRouteImport.update({
+    id: '/catalog/products/$productId/edit',
+    path: '/catalog/products/$productId/edit',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/forbidden': typeof ForbiddenRoute
@@ -459,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/operations/orders/': typeof adminOperationsOrdersIndexRoute
   '/operations/riders/': typeof adminOperationsRidersIndexRoute
   '/operations/tickets/': typeof adminOperationsTicketsIndexRoute
+  '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
@@ -520,6 +528,7 @@ export interface FileRoutesByTo {
   '/operations/orders': typeof adminOperationsOrdersIndexRoute
   '/operations/riders': typeof adminOperationsRidersIndexRoute
   '/operations/tickets': typeof adminOperationsTicketsIndexRoute
+  '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/catalog/products/$productId': typeof adminCatalogProductsProductIdIndexRoute
@@ -583,6 +592,7 @@ export interface FileRoutesById {
   '/(admin)/operations/orders/': typeof adminOperationsOrdersIndexRoute
   '/(admin)/operations/riders/': typeof adminOperationsRidersIndexRoute
   '/(admin)/operations/tickets/': typeof adminOperationsTicketsIndexRoute
+  '/(admin)/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/(admin)/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/(admin)/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/(admin)/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/operations/orders/'
     | '/operations/riders/'
     | '/operations/tickets/'
+    | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
     | '/catalog/products/$productId/stock'
     | '/catalog/products/$productId/'
@@ -707,6 +718,7 @@ export interface FileRouteTypes {
     | '/operations/orders'
     | '/operations/riders'
     | '/operations/tickets'
+    | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
     | '/catalog/products/$productId/stock'
     | '/catalog/products/$productId'
@@ -769,6 +781,7 @@ export interface FileRouteTypes {
     | '/(admin)/operations/orders/'
     | '/(admin)/operations/riders/'
     | '/(admin)/operations/tickets/'
+    | '/(admin)/catalog/products/$productId/edit'
     | '/(admin)/catalog/products/$productId/images'
     | '/(admin)/catalog/products/$productId/stock'
     | '/(admin)/catalog/products/$productId/'
@@ -1202,6 +1215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCatalogProductsProductIdImagesRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/catalog/products/$productId/edit': {
+      id: '/(admin)/catalog/products/$productId/edit'
+      path: '/catalog/products/$productId/edit'
+      fullPath: '/catalog/products/$productId/edit'
+      preLoaderRoute: typeof adminCatalogProductsProductIdEditRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
   }
 }
 
@@ -1260,6 +1280,7 @@ interface adminLayoutRouteChildren {
   adminOperationsOrdersIndexRoute: typeof adminOperationsOrdersIndexRoute
   adminOperationsRidersIndexRoute: typeof adminOperationsRidersIndexRoute
   adminOperationsTicketsIndexRoute: typeof adminOperationsTicketsIndexRoute
+  adminCatalogProductsProductIdEditRoute: typeof adminCatalogProductsProductIdEditRoute
   adminCatalogProductsProductIdImagesRoute: typeof adminCatalogProductsProductIdImagesRoute
   adminCatalogProductsProductIdStockRoute: typeof adminCatalogProductsProductIdStockRoute
   adminCatalogProductsProductIdIndexRoute: typeof adminCatalogProductsProductIdIndexRoute
@@ -1321,6 +1342,8 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminOperationsOrdersIndexRoute: adminOperationsOrdersIndexRoute,
   adminOperationsRidersIndexRoute: adminOperationsRidersIndexRoute,
   adminOperationsTicketsIndexRoute: adminOperationsTicketsIndexRoute,
+  adminCatalogProductsProductIdEditRoute:
+    adminCatalogProductsProductIdEditRoute,
   adminCatalogProductsProductIdImagesRoute:
     adminCatalogProductsProductIdImagesRoute,
   adminCatalogProductsProductIdStockRoute:

@@ -40,6 +40,13 @@ export function CategoryList() {
               className="size-4 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
+            {/* The category's storefront wash — inline because the value is
+                author-supplied data, not a design token. */}
+            <span
+              className="size-8 shrink-0 rounded-full border"
+              style={{ backgroundColor: category.color }}
+              aria-hidden="true"
+            />
             <div className="flex flex-1 flex-col gap-0.5">
               <Link
                 to="/catalog/categories/$slug"

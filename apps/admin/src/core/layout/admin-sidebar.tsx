@@ -10,6 +10,7 @@ import { PanelLeftClose } from "lucide-react";
 import { useEffect, useState } from "react";
 import NavChip from "./nav-chip";
 import { NAV_SECTIONS, type NavSection, sectionForPath } from "./nav-data";
+import { useNavPanel } from "./use-nav-panel";
 
 /**
  * Two-panel navigation.
@@ -20,24 +21,16 @@ import { NAV_SECTIONS, type NavSection, sectionForPath } from "./nav-data";
  * in that section as a flat list — no accordions, so once a section is picked
  * every page under it is a single click.
  *
- * The panel is closable. When closed the rail stays, and clicking a rail icon
- * reopens the panel on that section — so the nav is never a dead end.
+ * The panel is closable — from its own header, or the header's toggle. Open
+ * state lives in `useNavPanel` because the header needs it too.
  */
 
-const PANEL_STORAGE_KEY = "mumzo-admin-nav-panel";
-
 function isPathActive(pathname: string, to: string): boolean {
-  if (to === "/") {
-    return pathname === "/";
-  }
-  return pathname === to || pathname.startsWith(`${to}/`);
-}
-
-function readPanelOpen(): boolean {
-  if (typeof window === "undefined") {
-    return true;
-  }
-  return window.localStorage.getItem(PANEL_STORAGE_KEY) !== "closed";
+  // if (to === "/") {
+  //   return pathname === "/";
+  // }
+  // return pathname === to || pathname.startsWith(`${to}/`);
+  return pathname === to;
 }
 
 export function AdminSidebar({
@@ -52,7 +45,7 @@ export function AdminSidebar({
   const [selectedId, setSelectedId] = useState<string | null>(
     () => sectionForPath(pathname) ?? sections[0]?.id ?? null,
   );
-  const [panelOpen, setPanelOpen] = useState(readPanelOpen);
+  const { open: panelOpen, setOpen: setPanelOpen } = useNavPanel();
 
   // Navigating (via a link, or back/forward) re-syncs the rail to the page you
   // actually landed on, so the panel never contradicts the content area.
@@ -62,13 +55,6 @@ export function AdminSidebar({
       setSelectedId(owner);
     }
   }, [pathname]);
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      PANEL_STORAGE_KEY,
-      panelOpen ? "open" : "closed",
-    );
-  }, [panelOpen]);
 
   const active = sections.find((s) => s.id === selectedId) ?? sections[0];
 

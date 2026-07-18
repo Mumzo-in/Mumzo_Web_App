@@ -37,29 +37,29 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
 | `/` | `pages/(admin)/index.tsx` | Ops overview — GMV, orders, AOV, new users | `admin/dashboard` | dashboard | 1 |
-| `/analytics` | `pages/(admin)/analytics/index.tsx` | Revenue / orders / products / users | `admin/analytics/*` | dashboard | 2 |
-| `/ops` | `pages/(admin)/ops.tsx` | Real-time board — live orders + SLA countdowns | `admin/dashboard` | dashboard | 2 |
+| `/overview/analytics` | `pages/(admin)/overview/analytics.tsx` | Revenue / orders / products / users | `admin/analytics/*` | dashboard | 2 |
+| `/overview/ops` | `pages/(admin)/overview/ops.tsx` | Real-time board — live orders + SLA countdowns | `admin/dashboard` | dashboard | 2 |
 
 ## Catalog — Products
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/products` | `pages/(admin)/products/index.tsx` | Product list + filters | `admin/products` | catalog-products | 1 |
-| `/products/new` | `pages/(admin)/products/new.tsx` | Create product | `admin/products` (POST) | catalog-products | 1 |
-| `/products/$productId` | `pages/(admin)/products/$productId/index.tsx` | Edit — pricing, content, variants | `admin/products/:id` | catalog-products | 1 |
-| `/products/$productId/images` | `pages/(admin)/products/$productId/images.tsx` | Image upload / reorder | `admin/products/:id/images` | catalog-products | 1 |
-| `/products/$productId/stock` | `pages/(admin)/products/$productId/stock.tsx` | Stock update | `admin/products/:id/stock` | catalog-products | 1 |
-| `/products/bulk` | `pages/(admin)/products/bulk.tsx` | Bulk CSV import / export | `admin/products/bulk` | catalog-products | 2 |
+| `/catalog/products` | `pages/(admin)/catalog/products/index.tsx` | Product list + filters | `admin/products` | catalog-products | 1 |
+| `/catalog/products/new` | `pages/(admin)/catalog/products/new.tsx` | Create product | `admin/products` (POST) | catalog-products | 1 |
+| `/catalog/products/$productId` | `pages/(admin)/catalog/products/$productId/index.tsx` | Edit — pricing, content, variants | `admin/products/:id` | catalog-products | 1 |
+| `/catalog/products/$productId/images` | `pages/(admin)/catalog/products/$productId/images.tsx` | Image upload / reorder | `admin/products/:id/images` | catalog-products | 1 |
+| `/catalog/products/$productId/stock` | `pages/(admin)/catalog/products/$productId/stock.tsx` | Stock update | `admin/products/:id/stock` | catalog-products | 1 |
+| `/catalog/products/bulk` | `pages/(admin)/catalog/products/bulk.tsx` | Bulk CSV import / export | `admin/products/bulk` | catalog-products | 2 |
 
 ## Catalog — Categories & Taxonomy
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/categories` | `pages/(admin)/categories/index.tsx` | Category list + reorder | `admin/categories`, `/reorder` | catalog-categories | 1 |
-| `/categories/new` | `pages/(admin)/categories/new.tsx` | Create category | `admin/categories` (POST) | catalog-categories | 1 |
-| `/categories/$slug` | `pages/(admin)/categories/$slug.tsx` | Edit category (keyed by **slug**) | `admin/categories/:slug` | catalog-categories | 1 |
-| `/brands` | `pages/(admin)/brands.tsx` | Brand management | — (needs spec) | catalog-categories | 2 |
-| `/collections` | `pages/(admin)/collections.tsx` | Collections & merchandising | — (needs spec) | catalog-categories | 2 |
+| `/catalog/categories` | `pages/(admin)/catalog/categories/index.tsx` | Category list + reorder | `admin/categories`, `/reorder` | catalog-categories | 1 |
+| `/catalog/categories/new` | `pages/(admin)/catalog/categories/new.tsx` | Create category | `admin/categories` (POST) | catalog-categories | 1 |
+| `/catalog/categories/$slug` | `pages/(admin)/catalog/categories/$slug.tsx` | Edit category (keyed by **slug**) | `admin/categories/:slug` | catalog-categories | 1 |
+| `/catalog/brands` | `pages/(admin)/catalog/brands.tsx` | Brand management | — (needs spec) | catalog-categories | 2 |
+| `/catalog/collections` | `pages/(admin)/catalog/collections.tsx` | Collections & merchandising | — (needs spec) | catalog-categories | 2 |
 
 ## Inventory & Dark-store / Hubs
 
@@ -67,18 +67,18 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/inventory` | `pages/(admin)/inventory/index.tsx` | Multi-hub stock view | — (needs spec) | inventory | 2 |
-| `/inventory/adjustments` | `pages/(admin)/inventory/adjustments.tsx` | Stock adjustments + reasons | — (needs spec) | inventory | 1 |
-| `/inventory/batches` | `pages/(admin)/inventory/batches.tsx` | Batch & expiry (FEFO) | — (needs spec) | inventory | 2 |
-| `/hubs` | `pages/(admin)/hubs.tsx` | Dark-store hubs + pincode serviceability | — (needs spec) | inventory | 2 |
+| `/catalog/inventory` | `pages/(admin)/catalog/inventory/index.tsx` | Multi-hub stock view | — (needs spec) | inventory | 2 |
+| `/catalog/inventory/adjustments` | `pages/(admin)/catalog/inventory/adjustments.tsx` | Stock adjustments + reasons | — (needs spec) | inventory | 1 |
+| `/catalog/inventory/batches` | `pages/(admin)/catalog/inventory/batches.tsx` | Batch & expiry (FEFO) | — (needs spec) | inventory | 2 |
+| `/catalog/hubs` | `pages/(admin)/catalog/hubs.tsx` | Dark-store hubs + pincode serviceability | — (needs spec) | inventory | 2 |
 
 ## Orders
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/orders` | `pages/(admin)/orders/index.tsx` | All orders + filters | `admin/orders` | orders | 1 |
-| `/orders/$orderId` | `pages/(admin)/orders/$orderId.tsx` | Detail, timeline, status, refund | `admin/orders/:id`, `/status`, `/refund` | orders | 1 |
-| `/returns` | `pages/(admin)/returns.tsx` | Returns / RMA queue | — (needs spec) | orders | 2 |
+| `/operations/orders` | `pages/(admin)/operations/orders/index.tsx` | All orders + filters | `admin/orders` | orders | 1 |
+| `/operations/orders/$orderId` | `pages/(admin)/operations/orders/$orderId.tsx` | Detail, timeline, status, refund | `admin/orders/:id`, `/status`, `/refund` | orders | 1 |
+| `/operations/returns` | `pages/(admin)/operations/returns.tsx` | Returns / RMA queue | — (needs spec) | orders | 2 |
 
 ## Delivery, Fleet & Dispatch
 
@@ -87,25 +87,25 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/dispatch` | `pages/(admin)/dispatch.tsx` | Live dispatch board | — (needs spec) | fleet | 2 |
-| `/riders` | `pages/(admin)/riders/index.tsx` | Rider list + onboarding / KYC | — (needs spec) | fleet | 2 |
-| `/riders/$riderId` | `pages/(admin)/riders/$riderId.tsx` | Rider detail, shifts, payouts | — (needs spec) | fleet | 3 |
+| `/operations/dispatch` | `pages/(admin)/operations/dispatch.tsx` | Live dispatch board | — (needs spec) | fleet | 2 |
+| `/operations/riders` | `pages/(admin)/operations/riders/index.tsx` | Rider list + onboarding / KYC | — (needs spec) | fleet | 2 |
+| `/operations/riders/$riderId` | `pages/(admin)/operations/riders/$riderId.tsx` | Rider detail, shifts, payouts | — (needs spec) | fleet | 3 |
 
 ## Customers / Users
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/users` | `pages/(admin)/users/index.tsx` | User list + search | `admin/users` | users | 1 |
-| `/users/$userId` | `pages/(admin)/users/$userId.tsx` | Detail, baby profile, order history, ban | `admin/users/:id`, `/ban` | users | 1 |
-| `/segments` | `pages/(admin)/segments.tsx` | User segments | — (needs spec) | users | 3 |
+| `/customers/users` | `pages/(admin)/customers/users/index.tsx` | User list + search | `admin/users` | users | 1 |
+| `/customers/users/$userId` | `pages/(admin)/customers/users/$userId.tsx` | Detail, baby profile, order history, ban | `admin/users/:id`, `/ban` | users | 1 |
+| `/customers/segments` | `pages/(admin)/customers/segments.tsx` | User segments | — (needs spec) | users | 3 |
 
 ## Payments, Refunds & Finance
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/payments` | `pages/(admin)/payments/index.tsx` | Payments list | `admin/payments` | finance | 1 |
-| `/payments/$paymentId` | `pages/(admin)/payments/$paymentId.tsx` | Detail + process refund | `admin/payments/:id`, `/refund` | finance | 1 |
-| `/payments/failed` | `pages/(admin)/payments/failed.tsx` | Failed / pending payments | `admin/payments/failed` | finance | 1 |
+| `/finance/payments` | `pages/(admin)/finance/payments/index.tsx` | Payments list | `admin/payments` | finance | 1 |
+| `/finance/payments/$paymentId` | `pages/(admin)/finance/payments/$paymentId.tsx` | Detail + process refund | `admin/payments/:id`, `/refund` | finance | 1 |
+| `/finance/payments/failed` | `pages/(admin)/finance/payments/failed.tsx` | Failed / pending payments | `admin/payments/failed` | finance | 1 |
 | `/finance/reconciliation` | `pages/(admin)/finance/reconciliation.tsx` | Gateway-vs-orders + COD | — (needs spec) | finance | 2 |
 | `/finance/tax` | `pages/(admin)/finance/tax.tsx` | GST config & invoicing | — (needs spec) | finance | 2 |
 
@@ -113,40 +113,40 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/coupons` | `pages/(admin)/coupons/index.tsx` | Coupon list | `admin/coupons` | marketing | 1 |
-| `/coupons/new` | `pages/(admin)/coupons/new.tsx` | Create coupon | `admin/coupons` (POST) | marketing | 1 |
-| `/coupons/$couponId` | `pages/(admin)/coupons/$couponId.tsx` | Edit + usage stats | `admin/coupons/:id`, `/usage` | marketing | 1 |
-| `/campaigns` | `pages/(admin)/campaigns.tsx` | Banner / campaign management | — (needs spec) | marketing | 2 |
+| `/finance/coupons` | `pages/(admin)/finance/coupons/index.tsx` | Coupon list | `admin/coupons` | marketing | 1 |
+| `/finance/coupons/new` | `pages/(admin)/finance/coupons/new.tsx` | Create coupon | `admin/coupons` (POST) | marketing | 1 |
+| `/finance/coupons/$couponId` | `pages/(admin)/finance/coupons/$couponId.tsx` | Edit + usage stats | `admin/coupons/:id`, `/usage` | marketing | 1 |
+| `/finance/campaigns` | `pages/(admin)/finance/campaigns.tsx` | Banner / campaign management | — (needs spec) | marketing | 2 |
 
 ## Subscriptions
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/subscriptions` | `pages/(admin)/subscriptions/index.tsx` | All subscriptions | `admin/subscriptions` | subscriptions | 3 |
-| `/subscriptions/upcoming` | `pages/(admin)/subscriptions/upcoming.tsx` | Next 7 days | `admin/subscriptions/upcoming` | subscriptions | 3 |
+| `/finance/subscriptions` | `pages/(admin)/finance/subscriptions/index.tsx` | All subscriptions | `admin/subscriptions` | subscriptions | 3 |
+| `/finance/subscriptions/upcoming` | `pages/(admin)/finance/subscriptions/upcoming.tsx` | Next 7 days | `admin/subscriptions/upcoming` | subscriptions | 3 |
 
 ## Reviews & UGC Moderation
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/reviews` | `pages/(admin)/reviews.tsx` | Moderation queue — approve / reject | `admin/reviews`, `/approve`, `/reject` | reviews | 2 |
+| `/customers/reviews` | `pages/(admin)/customers/reviews.tsx` | Moderation queue — approve / reject | `admin/reviews`, `/approve`, `/reject` | reviews | 2 |
 
 ## CMS / Content
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/cms/legal` | `pages/(admin)/cms/legal/index.tsx` | Static / legal pages list | — (needs spec) | cms | 1 |
-| `/cms/legal/$pageSlug` | `pages/(admin)/cms/legal/$pageSlug.tsx` | Edit a legal page | — (needs spec) | cms | 1 |
-| `/cms/banners` | `pages/(admin)/cms/banners.tsx` | Home banners / hero slides | — (needs spec) | cms | 2 |
-| `/cms/config` | `pages/(admin)/cms/config.tsx` | App config — min order, fees, ETA | — (needs spec) | cms | 2 |
+| `/legal/pages` | `pages/(admin)/legal/pages/index.tsx` | Static / legal pages list | — (needs spec) | cms | 1 |
+| `/legal/pages/$pageSlug` | `pages/(admin)/legal/pages/$pageSlug.tsx` | Edit a legal page | — (needs spec) | cms | 1 |
+| `/legal/banners` | `pages/(admin)/legal/banners.tsx` | Home banners / hero slides | — (needs spec) | cms | 2 |
+| `/legal/config` | `pages/(admin)/legal/config.tsx` | App config — min order, fees, ETA | — (needs spec) | cms | 2 |
 
 ## CRM / Engagement
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/broadcasts` | `pages/(admin)/broadcasts/index.tsx` | Push / SMS / email / WhatsApp | `admin/notifications/broadcasts` | crm | 2 |
-| `/broadcasts/new` | `pages/(admin)/broadcasts/new.tsx` | Compose + target + schedule | `admin/notifications/broadcast` | crm | 2 |
-| `/journeys` | `pages/(admin)/journeys.tsx` | Automated journeys | — (needs spec) | crm | 3 |
+| `/customers/broadcasts` | `pages/(admin)/customers/broadcasts/index.tsx` | Push / SMS / email / WhatsApp | `admin/notifications/broadcasts` | crm | 2 |
+| `/customers/broadcasts/new` | `pages/(admin)/customers/broadcasts/new.tsx` | Compose + target + schedule | `admin/notifications/broadcast` | crm | 2 |
+| `/customers/journeys` | `pages/(admin)/customers/journeys.tsx` | Automated journeys | — (needs spec) | crm | 3 |
 
 ## Support / Helpdesk
 
@@ -154,8 +154,8 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/tickets` | `pages/(admin)/tickets/index.tsx` | Ticket queue | — (needs spec) | support | 2 |
-| `/tickets/$ticketId` | `pages/(admin)/tickets/$ticketId.tsx` | Ticket detail + approvals | — (needs spec) | support | 2 |
+| `/operations/tickets` | `pages/(admin)/operations/tickets/index.tsx` | Ticket queue | — (needs spec) | support | 2 |
+| `/operations/tickets/$ticketId` | `pages/(admin)/operations/tickets/$ticketId.tsx` | Ticket detail + approvals | — (needs spec) | support | 2 |
 
 ## Pricing & Merchandising
 
@@ -163,8 +163,8 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/pricing` | `pages/(admin)/pricing.tsx` | Price zones, surge, delivery-fee rules | — (needs spec) | pricing | 3 |
-| `/merchandising` | `pages/(admin)/merchandising.tsx` | Search relevance, recommendations | — (needs spec) | pricing | 3 |
+| `/catalog/pricing` | `pages/(admin)/catalog/pricing.tsx` | Price zones, surge, delivery-fee rules | — (needs spec) | pricing | 3 |
+| `/catalog/merchandising` | `pages/(admin)/catalog/merchandising.tsx` | Search relevance, recommendations | — (needs spec) | pricing | 3 |
 
 ## Platform (flags, experiments, BI, ops)
 
@@ -172,13 +172,13 @@ TanStack Query layer, and the swap to real endpoints is a one-file change per mo
 
 | Route | File | Purpose | Primary API | Module | Phase |
 |---|---|---|---|---|---|
-| `/flags` | `pages/(admin)/flags.tsx` | Feature flags + kill switches | — (needs spec) | feature-flags | 2 |
-| `/experiments` | `pages/(admin)/experiments.tsx` | A/B tests | — (needs spec) | experiments | 3 |
-| `/bi` | `pages/(admin)/bi.tsx` | Event taxonomy + funnels | — (needs spec) | analytics-bi | 2 |
+| `/platform/flags` | `pages/(admin)/platform/flags.tsx` | Feature flags + kill switches | — (needs spec) | feature-flags | 2 |
+| `/platform/experiments` | `pages/(admin)/platform/experiments.tsx` | A/B tests | — (needs spec) | experiments | 3 |
+| `/overview/bi` | `pages/(admin)/overview/bi.tsx` | Event taxonomy + funnels | — (needs spec) | analytics-bi | 2 |
 | `/staff` | `pages/(admin)/staff/index.tsx` | Staff management + roles | `admin/staff` | rbac | 2 |
-| `/audit-log` | `pages/(admin)/audit-log.tsx` | Admin audit log | — (needs spec) | platform-ops | 2 |
-| `/integrations` | `pages/(admin)/integrations.tsx` | Razorpay, MSG91, Resend, FCM, Maps, 3PL | — (needs spec) | platform-ops | 2 |
-| `/system` | `pages/(admin)/system.tsx` | Health, webhooks, API keys, backups | — (needs spec) | platform-ops | 2 |
+| `/staff/audit-log` | `pages/(admin)/staff/audit-log.tsx` | Admin audit log | — (needs spec) | platform-ops | 2 |
+| `/platform/integrations` | `pages/(admin)/platform/integrations.tsx` | Razorpay, MSG91, Resend, FCM, Maps, 3PL | — (needs spec) | platform-ops | 2 |
+| `/platform/system` | `pages/(admin)/platform/system.tsx` | Health, webhooks, API keys, backups | — (needs spec) | platform-ops | 2 |
 
 ## System
 

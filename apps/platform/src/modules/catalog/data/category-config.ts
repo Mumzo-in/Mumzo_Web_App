@@ -4,6 +4,7 @@
  * SuperAdmin can drive which sorts/filters a category exposes later without
  * touching UI.
  */
+import { discountPct } from "@mumzo/catalog-model";
 import type { Product } from "@/core/data";
 import {
   type AgeGroup,
@@ -70,11 +71,11 @@ export function getCategoryFacets(products: Product[]): CategoryFacets {
   const brands = [...new Set(products.map((p) => p.brand))].sort((a, b) =>
     a.localeCompare(b),
   );
+  // A product now carries variants, so flatten their labels rather than
+  // treating `sizes` as one value per product.
   const sizes = [
-    ...new Set(
-      products.map((p) => p.sizes).filter((s): s is string => Boolean(s)),
-    ),
-  ];
+    ...new Set(products.flatMap((p) => p.sizes.map((size) => size.label))),
+  ].sort((a, b) => a.localeCompare(b));
   return { ages: agesIn(products), brands, sizes, types: typesIn(products) };
 }
 
@@ -104,8 +105,9 @@ export function applyCategoryFilters(
     list = list.filter((p) => state.brands.includes(p.brand));
   }
   if (state.sizes.length > 0) {
-    list = list.filter(
-      (p) => p.sizes !== null && state.sizes.includes(p.sizes),
+    // Match if the product offers any of the selected sizes.
+    list = list.filter((p) =>
+      p.sizes.some((size) => state.sizes.includes(size.label)),
     );
   }
   if (state.types.length > 0) {
@@ -118,7 +120,7 @@ export function applyCategoryFilters(
     case "price_desc":
       return [...list].sort((a, b) => b.price - a.price);
     case "discount":
-      return [...list].sort((a, b) => b.discount - a.discount);
+      return [...list].sort((a, b) => discountPct(b) - discountPct(a));
     case "rating":
       return [...list].sort((a, b) => b.rating - a.rating);
     default:

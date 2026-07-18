@@ -15,6 +15,9 @@ function delay(ms = 220): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Exposed for mutation helpers that build their result inline. */
+export const mockDelay = delay;
+
 export async function mockDetail<T>(value: T | undefined): Promise<T> {
   await delay();
   if (!value) {

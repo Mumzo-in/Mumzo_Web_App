@@ -1,3 +1,4 @@
+import { discountPct } from "@mumzo/catalog-model";
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Heart, Minus, Plus, Star } from "lucide-react";
@@ -41,7 +42,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           className="block h-full w-full"
         >
           <img
-            src={product.img}
+            src={product.images[0]}
             alt={product.name}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -60,12 +61,12 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             className={cn(wished && "fill-primary text-primary")}
           />
         </button>
-        {product.discount > 0 && (
+        {discountPct(product) > 0 && (
           <span className="absolute top-3 left-3 rounded-full bg-primary px-2.5 py-1 font-semibold text-[10px] text-primary-foreground">
-            {product.discount}% OFF
+            {discountPct(product)}% OFF
           </span>
         )}
-        {product.bestseller && (
+        {product.isBestseller && (
           <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full border border-primary/20 bg-white/95 px-2 py-1 font-semibold text-[10px] text-primary">
             <Star
               size={10}

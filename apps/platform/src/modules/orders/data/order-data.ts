@@ -68,7 +68,7 @@ function oi(id: string, qty: number, size: string | null = null): OrderItem {
     id,
     name: p?.name ?? id,
     brand: p?.brand ?? "Mumzo",
-    img: p?.img ?? "",
+    img: p?.images[0] ?? "",
     price: p?.price ?? 0,
     qty,
     size,
