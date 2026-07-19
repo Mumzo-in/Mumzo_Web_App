@@ -43,11 +43,22 @@ const DEV_SKIP_AUTH_GATE = true;
 /**
  * Whether the auth gate should be skipped for this build.
  *
- * Deliberately `&& isDevBuild()`: even if the flag above is left on, a
- * production build still enforces the gate. Vite folds this to `false` at
- * build time and drops the branch.
+ * Two ways to skip:
+ *   1. Local dev — `DEV_SKIP_AUTH_GATE && isDevBuild()`, on by default so the
+ *      panel is usable before there's an account to sign in with.
+ *   2. A deployed build with no backend — set `VITE_SKIP_AUTH=true`. This works
+ *      in production builds (unlike (1), which vite folds to false), so a
+ *      preview deploy can render on mock data without a server to authenticate
+ *      against.
+ *
+ * ⚠️ `VITE_SKIP_AUTH=true` leaves the panel open to anyone with the URL — it's
+ * for private preview deploys only. Unset it (or set `false`) the moment a real
+ * backend is in place.
  */
 export function bypassAuthGate(): boolean {
+  if (import.meta.env?.VITE_SKIP_AUTH === "true") {
+    return true;
+  }
   return DEV_SKIP_AUTH_GATE && isDevBuild();
 }
 

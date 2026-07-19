@@ -53,3 +53,5 @@ coverage
 .cache
 tmp
 temp
+# Kanban board (.todo.kanban) is the shared team roadmap — tracked in git,
+# so the extension's default *.kanban ignore is intentionally not set here.

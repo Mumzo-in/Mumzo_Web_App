@@ -87,7 +87,8 @@ function ProfilePage() {
       | "/addresses"
       | "/wishlist"
       | "/notifications"
-      | "/profile/baby";
+      | "/profile/baby"
+      | "/referrals";
     icon: typeof Package;
     desc: string;
   }[] = [
@@ -96,6 +97,12 @@ function ProfilePage() {
       to: "/orders",
       icon: Package,
       desc: "Track, return, or buy again",
+    },
+    {
+      label: "Refer & Earn",
+      to: "/referrals",
+      icon: Gift,
+      desc: "Invite friends and climb the reward tiers",
     },
     {
       label: "Delivery Addresses",
@@ -192,11 +199,11 @@ function ProfilePage() {
           </span>
           <div>
             <h3 className="font-editorial text-ink text-lg">
-              Give ₹150, Get ₹150
+              The more you refer, the more you earn
             </h3>
             <p className="mt-0.5 max-w-md text-foreground/60 text-xs">
-              Invite your friends to shop on Mumzo! They get ₹150 off their
-              first order, and you get ₹150 once they purchase.
+              Invite friends to Mumzo — they save on their first order, and you
+              climb the reward tiers with every friend who shops.
             </p>
           </div>
         </div>
