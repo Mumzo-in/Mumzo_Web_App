@@ -15,12 +15,15 @@ import type { ReactNode } from "react";
  * renders the shared invalid/`data-invalid` treatment.
  */
 
-function errorsOf(field: AnyFieldApi): string[] {
+/** Normalizes TanStack's mixed error entries to `FieldError`'s `{message}` shape. */
+function errorsOf(field: AnyFieldApi): { message: string }[] {
   return field.state.meta.errors
-    .map((error) =>
-      typeof error === "string" ? error : (error?.message ?? ""),
-    )
-    .filter(Boolean);
+    .map((error) => {
+      const message =
+        typeof error === "string" ? error : (error?.message ?? "");
+      return { message };
+    })
+    .filter((entry) => entry.message.length > 0);
 }
 
 type BaseProps = {

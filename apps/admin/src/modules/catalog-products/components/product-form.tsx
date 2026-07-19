@@ -368,7 +368,7 @@ export function ProductForm({
             {(field) => (
               <ControlField field={field} label="Highlights">
                 <StringListEditor
-                  value={field.state.value}
+                  value={field.state.value ?? []}
                   onChange={(next) => field.handleChange(next)}
                   placeholder="e.g. Dermatologically tested"
                   addLabel="Add highlight"
@@ -444,7 +444,7 @@ export function ProductForm({
             {(field) => (
               <ControlField field={field} label="Tags">
                 <StringListEditor
-                  value={field.state.value}
+                  value={field.state.value ?? []}
                   onChange={(next) => field.handleChange(next)}
                   placeholder="e.g. newborn"
                   addLabel="Add tag"
@@ -468,7 +468,7 @@ export function ProductForm({
           <form.Field name="sizes" mode="array">
             {(field) => (
               <SizeEditor
-                value={field.state.value}
+                value={field.state.value ?? []}
                 onChange={(next) => field.handleChange(next)}
               />
             )}

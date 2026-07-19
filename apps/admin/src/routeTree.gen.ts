@@ -31,6 +31,7 @@ import { Route as adminFinanceReconciliationRouteImport } from './pages/(admin)/
 import { Route as adminFinanceCampaignsRouteImport } from './pages/(admin)/finance/campaigns'
 import { Route as adminCustomersSegmentsRouteImport } from './pages/(admin)/customers/segments'
 import { Route as adminCustomersReviewsRouteImport } from './pages/(admin)/customers/reviews'
+import { Route as adminCustomersReferralsRouteImport } from './pages/(admin)/customers/referrals'
 import { Route as adminCustomersJourneysRouteImport } from './pages/(admin)/customers/journeys'
 import { Route as adminCatalogPricingRouteImport } from './pages/(admin)/catalog/pricing'
 import { Route as adminCatalogMerchandisingRouteImport } from './pages/(admin)/catalog/merchandising'
@@ -181,6 +182,11 @@ const adminCustomersSegmentsRoute = adminCustomersSegmentsRouteImport.update({
 const adminCustomersReviewsRoute = adminCustomersReviewsRouteImport.update({
   id: '/customers/reviews',
   path: '/customers/reviews',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
+const adminCustomersReferralsRoute = adminCustomersReferralsRouteImport.update({
+  id: '/customers/referrals',
+  path: '/customers/referrals',
   getParentRoute: () => adminLayoutRoute,
 } as any)
 const adminCustomersJourneysRoute = adminCustomersJourneysRouteImport.update({
@@ -419,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/catalog/pricing': typeof adminCatalogPricingRoute
   '/customers/journeys': typeof adminCustomersJourneysRoute
+  '/customers/referrals': typeof adminCustomersReferralsRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
   '/customers/segments': typeof adminCustomersSegmentsRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
@@ -481,6 +488,7 @@ export interface FileRoutesByTo {
   '/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/catalog/pricing': typeof adminCatalogPricingRoute
   '/customers/journeys': typeof adminCustomersJourneysRoute
+  '/customers/referrals': typeof adminCustomersReferralsRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
   '/customers/segments': typeof adminCustomersSegmentsRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
@@ -545,6 +553,7 @@ export interface FileRoutesById {
   '/(admin)/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/(admin)/catalog/pricing': typeof adminCatalogPricingRoute
   '/(admin)/customers/journeys': typeof adminCustomersJourneysRoute
+  '/(admin)/customers/referrals': typeof adminCustomersReferralsRoute
   '/(admin)/customers/reviews': typeof adminCustomersReviewsRoute
   '/(admin)/customers/segments': typeof adminCustomersSegmentsRoute
   '/(admin)/finance/campaigns': typeof adminFinanceCampaignsRoute
@@ -609,6 +618,7 @@ export interface FileRouteTypes {
     | '/catalog/merchandising'
     | '/catalog/pricing'
     | '/customers/journeys'
+    | '/customers/referrals'
     | '/customers/reviews'
     | '/customers/segments'
     | '/finance/campaigns'
@@ -671,6 +681,7 @@ export interface FileRouteTypes {
     | '/catalog/merchandising'
     | '/catalog/pricing'
     | '/customers/journeys'
+    | '/customers/referrals'
     | '/customers/reviews'
     | '/customers/segments'
     | '/finance/campaigns'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/merchandising'
     | '/(admin)/catalog/pricing'
     | '/(admin)/customers/journeys'
+    | '/(admin)/customers/referrals'
     | '/(admin)/customers/reviews'
     | '/(admin)/customers/segments'
     | '/(admin)/finance/campaigns'
@@ -947,6 +959,13 @@ declare module '@tanstack/react-router' {
       path: '/customers/reviews'
       fullPath: '/customers/reviews'
       preLoaderRoute: typeof adminCustomersReviewsRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/customers/referrals': {
+      id: '/(admin)/customers/referrals'
+      path: '/customers/referrals'
+      fullPath: '/customers/referrals'
+      preLoaderRoute: typeof adminCustomersReferralsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/customers/journeys': {
@@ -1233,6 +1252,7 @@ interface adminLayoutRouteChildren {
   adminCatalogMerchandisingRoute: typeof adminCatalogMerchandisingRoute
   adminCatalogPricingRoute: typeof adminCatalogPricingRoute
   adminCustomersJourneysRoute: typeof adminCustomersJourneysRoute
+  adminCustomersReferralsRoute: typeof adminCustomersReferralsRoute
   adminCustomersReviewsRoute: typeof adminCustomersReviewsRoute
   adminCustomersSegmentsRoute: typeof adminCustomersSegmentsRoute
   adminFinanceCampaignsRoute: typeof adminFinanceCampaignsRoute
@@ -1294,6 +1314,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogMerchandisingRoute: adminCatalogMerchandisingRoute,
   adminCatalogPricingRoute: adminCatalogPricingRoute,
   adminCustomersJourneysRoute: adminCustomersJourneysRoute,
+  adminCustomersReferralsRoute: adminCustomersReferralsRoute,
   adminCustomersReviewsRoute: adminCustomersReviewsRoute,
   adminCustomersSegmentsRoute: adminCustomersSegmentsRoute,
   adminFinanceCampaignsRoute: adminFinanceCampaignsRoute,

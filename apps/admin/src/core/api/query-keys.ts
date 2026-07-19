@@ -52,4 +52,8 @@ export const queryKeys = {
   staff: domainKeys("staff"),
   broadcasts: domainKeys("broadcasts"),
   cmsPages: domainKeys("cms-pages"),
+  referrals: {
+    config: () => ["referrals", "config"] as const,
+    stats: () => ["referrals", "stats"] as const,
+  },
 } as const;

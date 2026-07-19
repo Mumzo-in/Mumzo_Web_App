@@ -177,6 +177,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: "Engagement",
         items: [
+          { label: "Referrals", to: "/customers/referrals" },
           {
             label: "Broadcasts",
             to: "/customers/broadcasts",
