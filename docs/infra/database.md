@@ -13,7 +13,7 @@ a section says otherwise.
 ## 1. First-time setup
 
 ```bash
-cp apps/server/.env.example apps/server/.env   # fill in BETTER_AUTH_SECRET
+cp .env.example .env                          # fill in BETTER_AUTH_SECRET
 bun install
 bun db:start                                   # waits until healthy
 bun db:migrate                                 # apply migrations
@@ -28,10 +28,24 @@ Verify:
 bun db:psql -- -c '\dt'
 ```
 
-You should see `account`, `session`, `user`, `verification`.
+You should see the customer auth tables (`user`, `session`, `account`,
+`verification`) and the staff ones (`staff_user`, `staff_session`,
+`staff_account`, `staff_verification`).
 
-`infra/.env` is optional. Every compose value has a default; you only need the
-file to change a port or the password.
+Then create the first admin account — staff sign-up is disabled over HTTP, so
+this script is the only way in:
+
+```bash
+bun seed:admin                                 # admin@mumzo.in / password1234
+bun seed:admin --email you@mumzo.in --password 'a-longer-password'
+```
+
+> **Two `.env` files, different jobs.** The repo-root `.env` is read by the
+> server, scripts, drizzle-kit, and the Vite apps. Docker Compose interpolates
+> `${POSTGRES_*}` relative to `infra/`, so it reads `infra/.env` — not the
+> root. Both default to the same values, so you only need `infra/.env` to
+> change a port or the password, and it must then stay consistent with
+> `DATABASE_URL` at the root.
 
 ---
 
@@ -195,7 +209,7 @@ A new table is invisible to `db:generate` until it is exported from
 
 ## 7. Configuration
 
-Set in `apps/server/.env` — see [`.env.example`](../../apps/server/.env.example).
+Set in the repo-root `.env` — see [`.env.example`](../../.env.example).
 Parsed and validated by `packages/env/src/server.ts`; the server refuses to
 boot on a bad value rather than failing later at connect time.
 
@@ -239,7 +253,7 @@ disagree. The URL must end in `/mumzo`.
 `POSTGRES_PORT=5433` in `infra/.env`, update `DATABASE_URL` to match, and
 `bun db:down && bun db:start`.
 
-**`DATABASE_URL is not set`** from drizzle-kit — `apps/server/.env` is missing.
+**`DATABASE_URL is not set`** from drizzle-kit — the repo-root `.env` is missing.
 drizzle-kit reads it via `dotenv` in `drizzle.config.ts`.
 
 **`db:generate` produced an empty migration** — the new table isn't exported

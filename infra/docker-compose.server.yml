@@ -15,7 +15,8 @@ services:
     ports:
       - "${SERVER_PORT:-3000}:3000"
     env_file:
-      - path: ../apps/server/.env
+      # Repo-root .env — the single source for every workspace.
+      - path: ../.env
         required: false
     environment:
       # Overrides the .env value: inside the compose network the host is the
