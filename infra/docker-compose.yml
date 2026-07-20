@@ -1,0 +1,44 @@
+name: mumzo
+
+# Base stack: datastores only. This is what `bun db:start` runs, and what you
+# want in day-to-day development — the API runs on the host via `bun dev`.
+#
+# To additionally run the API in Docker:
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.server.yml up -d
+#
+# Paths are relative to this file, so the build context reaches up to the repo
+# root with `..`.
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: mumzo-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mumzo}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      # Keeps `psql` inside the container from needing -U/-d every time.
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGDATABASE: ${POSTGRES_DB:-mumzo}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # postgres:18 declares /var/lib/postgresql as its volume and puts the
+      # cluster in $PGDATA=/var/lib/postgresql/18/docker — mount the declared
+      # path, not the pre-18 /var/lib/postgresql/data.
+      - mumzo_postgres_data:/var/lib/postgresql
+      # *.sql / *.sh here run once, only when the data directory is empty.
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # -d guards against the "database system is ready" false positive during
+      # the entrypoint's temporary bootstrap server.
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mumzo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  mumzo_postgres_data:

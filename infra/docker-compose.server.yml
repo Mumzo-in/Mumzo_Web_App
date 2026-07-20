@@ -1,0 +1,39 @@
+# Optional overlay — runs the Hono API in Docker alongside the datastores.
+# Not part of the default dev loop; normally you run the API on the host with
+# `bun dev` for hot reload and use compose only for Postgres.
+#
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.server.yml up -d
+
+services:
+  server:
+    build:
+      # Repo root — the Dockerfile installs the whole workspace.
+      context: ..
+      dockerfile: apps/server/Dockerfile
+    container_name: mumzo-server
+    init: true
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    env_file:
+      - path: ../apps/server/.env
+        required: false
+    environment:
+      # Overrides the .env value: inside the compose network the host is the
+      # service name `postgres`, not localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-mumzo}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped

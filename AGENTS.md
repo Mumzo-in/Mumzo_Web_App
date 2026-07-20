@@ -20,6 +20,7 @@ Bun workspaces + Turborepo.
 | `packages/auth` | `@mumzo/auth` — Better Auth server instance |
 | `packages/db` | `@mumzo/db` — Drizzle ORM + Postgres schema |
 | `packages/env` | `@mumzo/env` — typed env (`@t3-oss/env-core` + zod) |
+| `infra/` | Docker Compose (Postgres) + first-boot SQL |
 | `docs/` | Specs & rules (pages, design system, features, api plan) |
 
 **Stack:** Bun · Turborepo · React 19 · TanStack Router (file-based) · Tailwind v4 · shadcn/base-ui ·
@@ -59,3 +60,4 @@ Hono · Better Auth · Drizzle/Postgres · **Biome** (lint + format) · Zod.
 - Feature roadmap → [`docs/platform/features.md`](docs/platform/features.md) ·
   [`docs/superadmin/features.md`](docs/superadmin/features.md)
 - API/domain → [`docs/api/mumzo_api_plan.md`](docs/api/mumzo_api_plan.md)
+- Database (setup, migrations, extensions) → [`docs/infra/database.md`](docs/infra/database.md)

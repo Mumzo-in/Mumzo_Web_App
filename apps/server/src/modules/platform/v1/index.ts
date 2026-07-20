@@ -1,0 +1,65 @@
+import { createRoute, z } from "@hono/zod-openapi";
+
+import {
+  commonErrorResponses,
+  createRouter,
+  jsonContent,
+  optionalAuth,
+  successSchema,
+} from "@/core";
+
+/**
+ * Platform API v1 — the customer surface. Mounted at `/api/v1`.
+ *
+ * Add feature routers by chaining `.route()`, never by mutating the instance:
+ *
+ *   const v1 = createRouter()
+ *     .use(optionalAuth)
+ *     .route("/products", productRoutes)
+ *     .route("/cart", cartRoutes);
+ *
+ * Chaining is what preserves the inferred type for `hc<AppType>()` on the
+ * frontend. Reassigning or mutating loses it.
+ */
+
+const pingRoute = createRoute({
+  method: "get",
+  path: "/ping",
+  tags: ["Platform"],
+  summary: "Connectivity check",
+  responses: {
+    200: jsonContent(
+      successSchema(
+        z.object({
+          pong: z.literal(true),
+          surface: z.literal("platform"),
+          version: z.literal("v1"),
+        }),
+      ),
+      "Reachable",
+    ),
+    ...commonErrorResponses,
+  },
+});
+
+const app = createRouter();
+
+// Registered separately, not chained: `.use()` on OpenAPIHono returns a plain
+// Hono, which drops the `.openapi()` method from the type.
+app.use(optionalAuth);
+
+const v1 = app.openapi(pingRoute, (c) =>
+  c.json(
+    {
+      success: true as const,
+      data: {
+        pong: true as const,
+        surface: "platform" as const,
+        version: "v1" as const,
+      },
+    },
+    200,
+  ),
+);
+
+export default v1;

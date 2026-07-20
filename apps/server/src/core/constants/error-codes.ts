@@ -1,0 +1,28 @@
+/**
+ * Machine-readable error codes.
+ *
+ * Clients switch on these, so treat them as API surface: adding is safe,
+ * renaming is a breaking change. `apps/admin/src/core/api/client.ts` types
+ * the field as `| (string & {})`, so new codes do not break its build.
+ */
+export const ERROR_CODES = {
+  // Generic
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  FORBIDDEN: "FORBIDDEN",
+  CONFLICT: "CONFLICT",
+  RATE_LIMITED: "RATE_LIMITED",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+
+  // Domain — from docs/api/mumzo_api_plan.md
+  PRODUCT_OUT_OF_STOCK: "PRODUCT_OUT_OF_STOCK",
+  COUPON_EXPIRED: "COUPON_EXPIRED",
+  COUPON_INVALID: "COUPON_INVALID",
+  COUPON_MIN_AMOUNT: "COUPON_MIN_AMOUNT",
+  ORDER_NOT_CANCELLABLE: "ORDER_NOT_CANCELLABLE",
+  PAYMENT_FAILED: "PAYMENT_FAILED",
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
