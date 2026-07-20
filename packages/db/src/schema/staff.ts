@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 /**
  * Staff auth — the admin panel. Email + password, with the admin plugin.
@@ -119,3 +126,72 @@ export const staffAccountRelations = relations(staffAccount, ({ one }) => ({
     references: [staffUser.id],
   }),
 }));
+
+/**
+ * Role definitions, editable from the panel.
+ *
+ * Better Auth's `admin` plugin cannot do this itself — its `hasPermission` is
+ * synchronous and reads an in-memory config object, and `dynamicAccessControl`
+ * exists only in the `organization` plugin. So roles live here and are
+ * resolved by our own middleware.
+ *
+ * What is *not* here: the resource/action vocabulary. That stays in
+ * `packages/auth/src/permissions.ts`, because a permission is only meaningful
+ * if code implements a check for it — a row naming a resource nothing guards
+ * would be a lie.
+ */
+export const staffRole = pgTable("staff_role", {
+  id: text("id").primaryKey(),
+  /**
+   * Matches the string stored in `staff_user.role`. No foreign key: Better
+   * Auth owns that column and writes it directly. Immutable once seeded for
+   * system roles — renaming would orphan every user holding it.
+   */
+  key: text("key").notNull().unique(),
+  label: text("label").notNull(),
+  description: text("description"),
+  /** Seeded roles: cannot be deleted, key cannot change. */
+  isSystem: boolean("is_system").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+/**
+ * One row per granted (role, resource, action).
+ *
+ * A row per grant rather than a JSON blob on `staff_role`: it makes "who can
+ * refund?" an ordinary query, and an audit diff a set of rows instead of a
+ * text diff.
+ */
+export const staffRolePermission = pgTable(
+  "staff_role_permission",
+  {
+    roleId: text("role_id")
+      .notNull()
+      .references(() => staffRole.id, { onDelete: "cascade" }),
+    resource: text("resource").notNull(),
+    action: text("action").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roleId, table.resource, table.action] }),
+    index("staff_role_permission_roleId_idx").on(table.roleId),
+  ],
+);
+
+export const staffRoleRelations = relations(staffRole, ({ many }) => ({
+  permissions: many(staffRolePermission),
+}));
+
+export const staffRolePermissionRelations = relations(
+  staffRolePermission,
+  ({ one }) => ({
+    role: one(staffRole, {
+      fields: [staffRolePermission.roleId],
+      references: [staffRole.id],
+    }),
+  }),
+);

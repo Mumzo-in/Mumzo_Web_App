@@ -17,6 +17,7 @@
     "@scalar/hono-api-reference": "^0.11.11",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.12.27",
     "hono-rate-limiter": "^0.5.3",
     "zod": "catalog:"

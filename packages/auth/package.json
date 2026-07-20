@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "seed:admin": "bun run src/seed-admin.ts"
+    "seed": "bun run src/seed/index.ts"
   },
   "dependencies": {
     "@mumzo/db": "workspace:*",

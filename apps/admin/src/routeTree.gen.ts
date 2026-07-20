@@ -14,6 +14,7 @@ import { Route as adminLayoutRouteImport } from './pages/(admin)/_layout'
 import { Route as adminIndexRouteImport } from './pages/(admin)/index'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as adminStaffIndexRouteImport } from './pages/(admin)/staff/index'
+import { Route as adminRolesIndexRouteImport } from './pages/(admin)/roles/index'
 import { Route as adminStaffAuditLogRouteImport } from './pages/(admin)/staff/audit-log'
 import { Route as adminPlatformSystemRouteImport } from './pages/(admin)/platform/system'
 import { Route as adminPlatformIntegrationsRouteImport } from './pages/(admin)/platform/integrations'
@@ -94,6 +95,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const adminStaffIndexRoute = adminStaffIndexRouteImport.update({
   id: '/staff/',
   path: '/staff/',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
+const adminRolesIndexRoute = adminRolesIndexRouteImport.update({
+  id: '/roles/',
+  path: '/roles/',
   getParentRoute: () => adminLayoutRoute,
 } as any)
 const adminStaffAuditLogRoute = adminStaffAuditLogRouteImport.update({
@@ -443,6 +449,7 @@ export interface FileRoutesByFullPath {
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/roles/': typeof adminRolesIndexRoute
   '/staff/': typeof adminStaffIndexRoute
   '/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
@@ -506,6 +513,7 @@ export interface FileRoutesByTo {
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/roles': typeof adminRolesIndexRoute
   '/staff': typeof adminStaffIndexRoute
   '/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
@@ -571,6 +579,7 @@ export interface FileRoutesById {
   '/(admin)/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/(admin)/platform/system': typeof adminPlatformSystemRoute
   '/(admin)/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/(admin)/roles/': typeof adminRolesIndexRoute
   '/(admin)/staff/': typeof adminStaffIndexRoute
   '/(admin)/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/(admin)/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
@@ -636,6 +645,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/system'
     | '/staff/audit-log'
+    | '/roles/'
     | '/staff/'
     | '/catalog/categories/$slug'
     | '/catalog/categories/new'
@@ -699,6 +709,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/system'
     | '/staff/audit-log'
+    | '/roles'
     | '/staff'
     | '/catalog/categories/$slug'
     | '/catalog/categories/new'
@@ -763,6 +774,7 @@ export interface FileRouteTypes {
     | '/(admin)/platform/integrations'
     | '/(admin)/platform/system'
     | '/(admin)/staff/audit-log'
+    | '/(admin)/roles/'
     | '/(admin)/staff/'
     | '/(admin)/catalog/categories/$slug'
     | '/(admin)/catalog/categories/new'
@@ -840,6 +852,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff/'
       preLoaderRoute: typeof adminStaffIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/roles/': {
+      id: '/(admin)/roles/'
+      path: '/roles'
+      fullPath: '/roles/'
+      preLoaderRoute: typeof adminRolesIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/staff/audit-log': {
@@ -1270,6 +1289,7 @@ interface adminLayoutRouteChildren {
   adminPlatformIntegrationsRoute: typeof adminPlatformIntegrationsRoute
   adminPlatformSystemRoute: typeof adminPlatformSystemRoute
   adminStaffAuditLogRoute: typeof adminStaffAuditLogRoute
+  adminRolesIndexRoute: typeof adminRolesIndexRoute
   adminStaffIndexRoute: typeof adminStaffIndexRoute
   adminCatalogCategoriesSlugRoute: typeof adminCatalogCategoriesSlugRoute
   adminCatalogCategoriesNewRoute: typeof adminCatalogCategoriesNewRoute
@@ -1332,6 +1352,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminPlatformIntegrationsRoute: adminPlatformIntegrationsRoute,
   adminPlatformSystemRoute: adminPlatformSystemRoute,
   adminStaffAuditLogRoute: adminStaffAuditLogRoute,
+  adminRolesIndexRoute: adminRolesIndexRoute,
   adminStaffIndexRoute: adminStaffIndexRoute,
   adminCatalogCategoriesSlugRoute: adminCatalogCategoriesSlugRoute,
   adminCatalogCategoriesNewRoute: adminCatalogCategoriesNewRoute,

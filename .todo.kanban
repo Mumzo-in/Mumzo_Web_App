@@ -1,862 +1,24 @@
 {
   "lists": [
     {
-      "id": "01b4e419-43e3-4d98-afda-486e856bc410",
-      "title": "Backlog",
-      "cards": [
-        {
-          "id": "f1625535-10b6-48b4-9d24-5738d725ec20",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Suppliers module",
-          "description": "Supplier CRUD \u2014 1P model, we buy stock from them. Not a marketplace.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "6eb7e122-d1a7-48d5-aee9-30bff40abb4c",
-              "title": "new-module",
-              "color": "#c85277"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "4008b310-6322-47b3-a7c3-f23c0b6264e5",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Purchase orders + GRN",
-          "description": "PO \u2192 receive \u2192 writes stock adjustments. Inbound half of inventory.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            },
-            {
-              "id": "6eb7e122-d1a7-48d5-aee9-30bff40abb4c",
-              "title": "new-module",
-              "color": "#c85277"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "11c6914a-7ffe-4d8b-8a49-36301359edca",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Hero / banners CMS",
-          "description": "From storefront HeroSlide; add isActive/sortOrder/schedule; gradient \u2192 preset enum.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            },
-            {
-              "id": "6eb7e122-d1a7-48d5-aee9-30bff40abb4c",
-              "title": "new-module",
-              "color": "#c85277"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "c57cfe24-ae04-49ab-9eaf-e24d44079d03",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Offers module",
-          "description": "Reconcile storefront Offer with admin AdminCoupon; prop-drive OffersStrip.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "6eb7e122-d1a7-48d5-aee9-30bff40abb4c",
-              "title": "new-module",
-              "color": "#c85277"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "9698edd3-f938-4381-8667-b944d81037e0",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "App config",
-          "description": "Min order, delivery fees, ETA, thresholds. Specced in 3 places \u2014 one owner.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            },
-            {
-              "id": "6eb7e122-d1a7-48d5-aee9-30bff40abb4c",
-              "title": "new-module",
-              "color": "#c85277"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "c2bc8df8-94aa-4469-9096-e533567fdb0b",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Backend: build \u00a715 admin API",
-          "description": "Hono endpoints; swap each module api/*.ts off the mock seam.",
-          "labels": [
-            {
-              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
-              "title": "backend",
-              "color": "#c9822f"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "3899a474-09cc-4055-bb28-0b25acb41a00",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "DB: product/category/supplier tables",
-          "description": "Drizzle schema from the shared model. Only auth tables exist.",
-          "labels": [
-            {
-              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
-              "title": "backend",
-              "color": "#c9822f"
-            },
-            {
-              "id": "ada2ec49-23b7-49ca-8b2f-1fae85bab6cf",
-              "title": "shared-model",
-              "color": "#8b5cf6"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "d4189dc9-586c-4bd2-a1d9-bf6e22888c55",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Better Auth admin plugin + roles table",
-          "description": "Real role gate; remove the dev bypass. 6 roles incl. ops.",
-          "labels": [
-            {
-              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
-              "title": "backend",
-              "color": "#c9822f"
-            },
-            {
-              "id": "0ff17ad7-1a4a-41b8-9056-68efba3a45d2",
-              "title": "infra",
-              "color": "#5a566e"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "526bbd3f-bcb6-4830-9945-48672a0518bc",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Reconcile roles conflict (5 vs 6)",
-          "description": "api-plan \u00a715k lists 5; features.md adds ops.",
-          "labels": [
-            {
-              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
-              "title": "backend",
-              "color": "#c9822f"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "49df4205-7217-4d4e-8f59-a420555d1283",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Image upload endpoint",
-          "description": "POST /admin/products/:id/images \u2014 form image section blocked on it.",
-          "labels": [
-            {
-              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
-              "title": "backend",
-              "color": "#c9822f"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "e872ddbe-dadf-475a-8051-d392e9cfd6af",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Dashboard & analytics UI",
-          "description": "overview/analytics + overview/ops. Charts on mock data; real-time board layout.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "7af12db7-5c66-479f-82e9-bba50079673c",
-              "title": "/overview/analytics",
-              "checked": false
-            },
-            {
-              "id": "e98eb413-c827-43de-8f20-c40e63d904a0",
-              "title": "/overview/ops",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "7df128b4-9845-404f-bb17-c5550314726c",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Inventory & hubs UI",
-          "description": "Per-hub stock, adjustments (P1), batch/expiry, dark-store hubs. All mock.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "09870ed3-ca08-4c4f-8aeb-203a75f97172",
-              "title": "/catalog/inventory",
-              "checked": false
-            },
-            {
-              "id": "772a8537-690f-4a83-97f5-189af16490e8",
-              "title": "/catalog/inventory/adjustments",
-              "checked": false
-            },
-            {
-              "id": "016fd2a1-8665-41bf-8d8a-f74c5d4d6053",
-              "title": "/catalog/inventory/batches",
-              "checked": false
-            },
-            {
-              "id": "c4119ceb-c045-44b3-b828-cb7b763ad409",
-              "title": "/catalog/hubs",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "40bea152-b0c4-4827-a80b-e5a43afe27df",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Brands & collections UI",
-          "description": "Brand management, curated collections & merchandising.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "caeafe33-b68b-4702-93fd-97637eae7b27",
-              "title": "/catalog/brands",
-              "checked": false
-            },
-            {
-              "id": "e44cf4d8-d77a-434f-8e02-8405f74adee3",
-              "title": "/catalog/collections",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "7f054206-ecbe-4f53-8c3f-ebf812ad33b2",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Pricing & merchandising UI",
-          "description": "Price zones/surge/fee rules; search relevance & recommendations.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "b4c77b7b-a91f-40db-ab1e-bc14725bca5f",
-              "title": "/catalog/pricing",
-              "checked": false
-            },
-            {
-              "id": "802449bd-fa39-49e2-9a40-5cf0db332d7c",
-              "title": "/catalog/merchandising",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "b33e68ee-3e45-45dd-9ab8-c50000b5bee8",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Fleet & dispatch UI",
-          "description": "Live dispatch board, rider roster + KYC, rider detail.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "9fafd3d8-ee44-46a7-8fd4-e13d6e16abec",
-              "title": "/operations/dispatch",
-              "checked": false
-            },
-            {
-              "id": "60aa212a-963e-4fe3-a3b8-1d3096055216",
-              "title": "/operations/riders",
-              "checked": false
-            },
-            {
-              "id": "a1a2a496-7451-40a1-b491-6561382cad42",
-              "title": "/operations/riders/$riderId",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "3aae1c12-ec3c-4318-a5b2-6657a163fbc1",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Returns & tickets UI",
-          "description": "RMA queue and the support helpdesk console.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "982ac3d2-be08-4823-96eb-20f7757d1c85",
-              "title": "/operations/returns",
-              "checked": false
-            },
-            {
-              "id": "1853bb2b-28ba-44e2-ad1e-9c1fa03ad1f7",
-              "title": "/operations/tickets",
-              "checked": false
-            },
-            {
-              "id": "18ccb5e3-0005-4a9c-b4a8-8983ef638170",
-              "title": "/operations/tickets/$ticketId",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "724ed19d-d1e6-4de9-bddf-4032e3525054",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Reviews moderation UI",
-          "description": "Approve/reject queue with spam/image flags.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "c366db79-4680-4d38-bd24-326adb329603",
-              "title": "/customers/reviews",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "13976f1f-cc63-4186-9720-ac97affbe224",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Segments UI",
-          "description": "Customer segments for targeting.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "691f7505-4553-4c0c-8bfc-5d8cf277a395",
-              "title": "/customers/segments",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "6c0dc3c3-76cc-4c54-8a04-1b8f6b6e2245",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "CRM broadcasts & journeys UI",
-          "description": "Compose/target/schedule broadcasts; automated journeys.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "d7e414fd-abe9-4548-ae65-4f4889cb5d94",
-              "title": "/customers/broadcasts",
-              "checked": false
-            },
-            {
-              "id": "2747b2ae-3872-47fa-9063-9a0f3559bf97",
-              "title": "/customers/broadcasts/new",
-              "checked": false
-            },
-            {
-              "id": "69b7a12b-b44b-419c-b667-4d437220745f",
-              "title": "/customers/journeys",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "95edc06b-a576-494e-bc27-16668dd5a0bf",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Finance ops UI",
-          "description": "Reconciliation and GST/tax config & invoicing.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "04550904-e221-4df1-b226-dc94e3ad2151",
-              "title": "/finance/reconciliation",
-              "checked": false
-            },
-            {
-              "id": "19d625ff-50a6-463c-a664-51facaf89568",
-              "title": "/finance/tax",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "994f55cd-b57b-49d9-b699-c5db41cd9cc9",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Subscriptions UI",
-          "description": "All subscriptions + next-7-days upcoming.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "e2fb1615-505e-4bae-b76a-9faac159c094",
-              "title": "/finance/subscriptions",
-              "checked": false
-            },
-            {
-              "id": "a2d59d2d-f00d-4b07-b3d4-1f89cfe6e32b",
-              "title": "/finance/subscriptions/upcoming",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "936848cd-10e3-4909-a226-8296f04fcc79",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "CMS: legal editor, banners & app config UI",
-          "description": "Legal page editor, home banners/hero, app-config form.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "0834447c-ed32-41a5-bd0f-9e87fca73c71",
-              "title": "/legal/pages/$pageSlug",
-              "checked": false
-            },
-            {
-              "id": "2ebefa2e-df43-4891-bef5-b69abe263bce",
-              "title": "/legal/banners",
-              "checked": false
-            },
-            {
-              "id": "ee97718c-51ee-44bc-8868-4d5957b3d4ec",
-              "title": "/legal/config",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "f79bd5cf-4813-4474-ba1d-dc5299a2ffc0",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Campaigns UI",
-          "description": "Banner / promo campaign management.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "28a379ea-1eae-4da4-8f19-daab1eb77040",
-              "title": "/finance/campaigns",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "bbe2e4e9-5df0-4c09-98b4-00ac808dc854",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Staff & audit-log UI",
-          "description": "Staff/roles management and the admin audit log.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "d537d7a5-6650-4e05-ae58-ad87b2b9ecac",
-              "title": "/staff",
-              "checked": false
-            },
-            {
-              "id": "da12b698-dd73-40a7-87e9-b1296ac3c169",
-              "title": "/staff/audit-log",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "c18ad54e-7be7-412a-9863-6bdbdb6d8aa5",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Platform infra UI (flags, experiments, BI)",
-          "description": "Feature flags + kill switches, A/B experiments, event taxonomy & funnels.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "4aff3437-1ab5-4a05-adca-30f7c1bef164",
-              "title": "/platform/flags",
-              "checked": false
-            },
-            {
-              "id": "c60f9137-8ace-451c-bdcc-ebecad8fb50b",
-              "title": "/platform/experiments",
-              "checked": false
-            },
-            {
-              "id": "7a4acc83-f0ce-4fb5-9190-b6a4f57d4ad5",
-              "title": "/overview/bi",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "e8afcdd2-e7b0-4f8a-a207-c45317a1d5c9",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Integrations & system UI",
-          "description": "Integrations hub and system health.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "98e12c1f-dbb1-4b8d-9cf8-b3fb94c7d227",
-              "title": "needs-api-spec",
-              "color": "#c0392b"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "91802547-827c-4149-b608-66c4af6f26c2",
-              "title": "/platform/integrations",
-              "checked": false
-            },
-            {
-              "id": "a696dca5-8310-4e16-90e7-5d3bd0845b4d",
-              "title": "/platform/system",
-              "checked": false
-            }
-          ],
-          "comments": []
-        },
-        {
-          "id": "2c834a9c-3656-46b7-bb79-c784ce1aeae9",
-          "listId": "01b4e419-43e3-4d98-afda-486e856bc410",
-          "title": "Bulk product CSV UI",
-          "description": "Import/export screen for the catalog.",
-          "labels": [
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            },
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            }
-          ],
-          "checkboxes": [
-            {
-              "id": "c72be2b8-94e0-4668-86f7-f64b9e2ae37c",
-              "title": "/catalog/products/bulk",
-              "checked": false
-            }
-          ],
-          "comments": []
-        }
-      ]
-    },
-    {
       "id": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
       "title": "To Do",
       "cards": [
         {
-          "id": "3bfb5b16-e5da-4866-bed2-88b064e80f7f",
+          "id": "c618617a-1474-4595-9234-09c70d97e6b8",
           "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Stock route + adjustment reasons",
-          "description": "/catalog/products/$id/stock \u2014 absolute or \u00b1N with a required reason; feeds inventory adjustments.",
+          "title": "Phase 0a: prove the admin API client",
+          "description": "core/api/client.ts is written but never imported — apiRequest/apiList are referenced only in comments. Wire the dashboard module (one non-paginated call) to a live endpoint and fix what breaks: 401 handling, error boundaries, aborts. Also give BASE_URL an env override.",
           "labels": [
             {
               "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
               "title": "admin",
               "color": "#3f6fb5"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
             },
             {
               "id": "91758be0-4629-457c-95ab-10b86734a297",
@@ -868,14 +30,19 @@
           "comments": []
         },
         {
-          "id": "d52ab6fa-a95d-414e-88a8-e976f6be95d9",
+          "id": "350b0573-7b5b-4837-bd0d-eb9ad397dfc5",
           "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Out-of-stock badge on product card + inStock filter",
-          "description": "Storefront product-card badge; add inStock to category-config filters (api-plan \u00a74).",
+          "title": "Phase 0b: platform API layer",
+          "description": "apps/platform has no @tanstack/react-query and no API layer at all — components import seed arrays directly. Add react-query, then port admin's client.ts / query-keys.ts / mock.ts so both apps share one envelope and pagination contract.",
           "labels": [
             {
               "id": "95ad35dc-c324-4bec-affe-1e211039d65c",
               "title": "storefront",
+              "color": "#4f8a5b"
+            },
+            {
+              "id": "464df5a0-faf9-4796-95c1-08815fc4c29c",
+              "title": "epic:platform",
               "color": "#4f8a5b"
             }
           ],
@@ -883,10 +50,145 @@
           "comments": []
         },
         {
-          "id": "e6fb959e-a119-4cd4-a648-a89454b532c4",
+          "id": "b15a3831-6f1b-4292-9c92-e4c8055ec70b",
           "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Category create/edit form",
-          "description": "name, tagline, color, image, brands, isActive. Keyed by slug.",
+          "title": "Catalog: reconcile model with Drizzle",
+          "description": "packages/catalog-model types were written as the DB's shape but no table mirrors them. Reconcile before route work. sizes[] must become product_variant rows (a JSON array cannot be inventory-tracked per hub) while the API keeps returning the sizes shape the frontend expects.",
+          "labels": [
+            {
+              "id": "ada2ec49-23b7-49ca-8b2f-1fae85bab6cf",
+              "title": "shared-model",
+              "color": "#8b5cf6"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "f290e3c8-0800-41a0-a735-0f2a4391e899",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Catalog: schema + admin API",
+          "description": "product, product_variant, category, brand, collection. Admin catalog module is already fully stubbed against mocks — the swap is a one-file body change per api/*.ts.",
+          "labels": [
+            {
+              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
+              "title": "admin",
+              "color": "#3f6fb5"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "11751059-243f-440c-a0fa-6f400c682895",
+              "title": "epic:server-admin",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "f0cc05d0-d9ca-40e3-a8e0-0c5ab79c4180",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Catalog: storefront wiring",
+          "description": "Category pages, PDP, search, home. The real cost is converting core/data.ts's synchronous lookups (findProduct, productsInCategory) to async — that touches every consuming component, not one file.",
+          "labels": [
+            {
+              "id": "95ad35dc-c324-4bec-affe-1e211039d65c",
+              "title": "storefront",
+              "color": "#4f8a5b"
+            },
+            {
+              "id": "464df5a0-faf9-4796-95c1-08815fc4c29c",
+              "title": "epic:platform",
+              "color": "#4f8a5b"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "7bd2b6ea-bc72-41ea-9ebf-846b0b52a923",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Serviceability + hubs",
+          "description": "hub, zone, zone_pincode, delivery_slot. Replaces the 8 hardcoded Hyderabad areas. Hard prerequisite for cart — the pincode gate already blocks checkout client-side and needs a server behind it. Order placement must re-validate server-side regardless.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "9bff77a4-0fd3-40bd-8536-18dcc524b3c8",
+              "title": "epic:server-platform",
+              "color": "#b5651d"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "1d6dad1d-ce59-4715-8172-ae7704ad9d44",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Inventory (after catalog, before cart)",
+          "description": "hub_inventory, stock_batch, stock_ledger, inventory_hold. Ordering matters: cart needs stock, and product.stock cannot stay a scalar once multi-hub is real. Almost entirely an admin surface; three inventory pages are still placeholders.",
+          "labels": [
+            {
+              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
+              "title": "admin",
+              "color": "#3f6fb5"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "11751059-243f-440c-a0fa-6f400c682895",
+              "title": "epic:server-admin",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "307fc666-f16e-41d9-8fda-123e0bfc2690",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Cart → Order → Payment",
+          "description": "The revenue path. Do it as ONE block, not three — they share the reservation and state-machine invariants, and splitting them is how you get a cancel path that forgets to release stock. The hard part is inventory reservation, order idempotency, and Razorpay webhooks, not the endpoints.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "95ad35dc-c324-4bec-affe-1e211039d65c",
+              "title": "storefront",
+              "color": "#4f8a5b"
+            },
+            {
+              "id": "9bff77a4-0fd3-40bd-8536-18dcc524b3c8",
+              "title": "epic:server-platform",
+              "color": "#b5651d"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "5feeead0-eb8d-440d-96dd-4a4896d7b788",
+          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
+          "title": "Decide: ComingSoon pages in scope?",
+          "description": "43 admin pages are placeholders. Some sit on modules whose data layer is already built (coupons, payments, category new/edit) — pure UI work. Others (dispatch, riders, BI, experiments) are whole features with no schema. Worth splitting explicitly rather than discovering it mid-phase.",
           "labels": [
             {
               "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
@@ -903,100 +205,20 @@
           "comments": []
         },
         {
-          "id": "4ccebfd5-ff46-4d57-83c3-01fe3001659d",
+          "id": "7ef134f4-9ce5-49b2-93bd-2e3b18c675d9",
           "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Category drag-reorder",
-          "description": "PATCH /admin/categories/reorder.",
+          "title": "Decide: localStorage as offline cache?",
+          "description": "Platform holds mutable state in seven localStorage contexts. Server-only is simpler but the cart empties on a flaky connection; server-backed with localStorage as cache needs conflict resolution. Decide before the cart phase — it changes the provider's shape.",
           "labels": [
             {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
+              "id": "95ad35dc-c324-4bec-affe-1e211039d65c",
+              "title": "storefront",
+              "color": "#4f8a5b"
             },
             {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "b3704f5b-fa04-4452-8fc5-721349c31999",
-          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Coupon create/edit form",
-          "description": "AdminCoupon fields + usage stats.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "806526fa-67fe-45d6-ae55-5f0e38c2ad0d",
-          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Order actions",
-          "description": "Forward-only status transitions, cancel with reason, refund.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "e3173ff1-633c-4c90-ad81-f5fd020416f5",
-          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "User actions",
-          "description": "Ban/unban with reason.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
-            }
-          ],
-          "checkboxes": [],
-          "comments": []
-        },
-        {
-          "id": "b14d965c-c336-4f11-88e3-03b092d892a1",
-          "listId": "f699e340-c141-4c20-a8f5-d8a2eac2773a",
-          "title": "Payment refund action",
-          "description": "Full/partial, capped by refundableAmount.",
-          "labels": [
-            {
-              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
-              "title": "admin",
-              "color": "#3f6fb5"
-            },
-            {
-              "id": "91758be0-4629-457c-95ab-10b86734a297",
-              "title": "epic:superadmin",
-              "color": "#1f1b3a"
+              "id": "464df5a0-faf9-4796-95c1-08815fc4c29c",
+              "title": "epic:platform",
+              "color": "#4f8a5b"
             }
           ],
           "checkboxes": [],
@@ -1009,15 +231,20 @@
       "title": "Doing",
       "cards": [
         {
-          "id": "c8a0ae02-d71d-4084-b9f7-9b7a9040ff64",
+          "id": "e3a71e37-8edc-4279-8cf2-d4cd168a649d",
           "listId": "0f886534-0621-474c-a56c-800722b65f4a",
-          "title": "Product create/edit form",
-          "description": "ProductForm + Zod; new + edit routes. Identity, pricing (live discount/margin), packaging, content, merch, variants.",
+          "title": "Dynamic roles & permissions (admin)",
+          "description": "Move role→permission assignments from code into the database, seeded with the six roles we already have.\n\nWHY NOW: permissions are defined in three places and enforced in NONE — grep for hasPermission returns nothing across both apps. Every signed-in staff member can do everything.\n\nCONSTRAINT: Better Auth's admin plugin cannot do dynamic roles. Its has-permission is nine synchronous lines reading an in-memory config; dynamicAccessControl exists only in the organization plugin. So: our own tables, our own middleware.\n\nResources/actions stay in code (they are only real because code implements them). Role grants become data.",
           "labels": [
             {
               "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
               "title": "admin",
               "color": "#3f6fb5"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
             },
             {
               "id": "91758be0-4629-457c-95ab-10b86734a297",
@@ -1027,28 +254,43 @@
           ],
           "checkboxes": [
             {
-              "id": "44043706-1e8b-4642-87d2-ef640857f5a1",
-              "title": "Form + field helpers",
-              "checked": true
-            },
-            {
-              "id": "03ccf225-d112-4648-afe3-dd3630800b02",
-              "title": "New route wired",
-              "checked": true
-            },
-            {
-              "id": "42eadd23-d927-4232-a4a2-d2f8b3ce0de2",
-              "title": "Edit route wired",
-              "checked": true
-            },
-            {
-              "id": "8fe75a78-5ec8-485a-981c-fd021e2f0351",
-              "title": "Edit button on detail page",
+              "id": "d58077a9-8cfa-4a1c-9219-22ce64a240b1",
+              "text": "staff_role + staff_role_permission tables + migration",
               "checked": false
             },
             {
-              "id": "5c9ce0d6-b3fc-42a8-914f-1f2d201ed4f2",
-              "title": "Typecheck + form round-trip",
+              "id": "a19f2c6e-27f6-4b6a-b597-e5ab0e3791ba",
+              "text": "Seed the six roles from the existing matrix (idempotent)",
+              "checked": false
+            },
+            {
+              "id": "502008c3-45b5-44f6-a7ba-a623177577db",
+              "text": "requirePermission(resource, action) middleware + cached resolution",
+              "checked": false
+            },
+            {
+              "id": "980fe8f5-1231-42ea-a5d2-513d23d54639",
+              "text": "Roles CRUD API under /api/v1/admin/roles",
+              "checked": false
+            },
+            {
+              "id": "6f8762e6-9923-4bf2-9f23-ccd7040d08b3",
+              "text": "Delete-protection: system roles, and roles still assigned",
+              "checked": false
+            },
+            {
+              "id": "171d7bfc-0a86-4a6a-825d-19f8ec1092fa",
+              "text": "Rebuild the roles page on live data (matrix UI)",
+              "checked": false
+            },
+            {
+              "id": "e24536fe-6d0e-4e83-82cd-75dd765524e0",
+              "text": "usePermission hook + <Can> wrapper to hide actions",
+              "checked": false
+            },
+            {
+              "id": "ed2c2264-ce39-48f7-affa-fbcfb2abe3d3",
+              "text": "Delete the duplicate roles-permissions.ts in admin",
               "checked": false
             }
           ],
@@ -1229,7 +471,7 @@
           "id": "5681f752-2bda-43be-8054-25ce326717ab",
           "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
           "title": "Referrals: tier-based refer & earn UI",
-          "description": "Storefront refer-and-earn rebuilt as a proper module. Tier ladder (unlock rewards at N successful referrals), referral-linked offers, invites list. Serializable tier/offer data \u2014 backend-drivable later. 16/16 tier-logic assertions pass.",
+          "description": "Storefront refer-and-earn rebuilt as a proper module. Tier ladder (unlock rewards at N successful referrals), referral-linked offers, invites list. Serializable tier/offer data — backend-drivable later. 16/16 tier-logic assertions pass.",
           "labels": [
             {
               "id": "464df5a0-faf9-4796-95c1-08815fc4c29c",
@@ -1275,7 +517,7 @@
           "id": "ebf0c591-d3a3-4d82-9a7c-bd24b2f92a5a",
           "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
           "title": "Referrals management UI (superadmin)",
-          "description": "Admin module + nav entry under Customers \u2192 Engagement (/customers/referrals). Programme switch, tier ladder table, referral codes table, stats row. Read-only base UI; write actions land with the API. Storefront reads this config. No \u00a715 endpoint specced yet.",
+          "description": "Admin module + nav entry under Customers → Engagement (/customers/referrals). Programme switch, tier ladder table, referral codes table, stats row. Read-only base UI; write actions land with the API. Storefront reads this config. No §15 endpoint specced yet.",
           "labels": [
             {
               "id": "91758be0-4629-457c-95ab-10b86734a297",
@@ -1315,6 +557,171 @@
               "checked": false
             }
           ],
+          "comments": []
+        },
+        {
+          "id": "48c17152-51f6-4e44-b9e8-747f65266e4d",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Infra: Docker Compose + Postgres 18",
+          "description": "infra/ split into base (Postgres) + optional server overlay. First-boot SQL creates pg_trgm and citext. Volume mounted at the postgres:18 PGDATA path.",
+          "labels": [
+            {
+              "id": "0ff17ad7-1a4a-41b8-9056-68efba3a45d2",
+              "title": "infra",
+              "color": "#5a566e"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "42c4a301-542a-445d-bda8-f941af875bf6",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "DB: migrations replace db:push",
+          "description": "packages/db/src/migrations/ created (0000 auth, 0001 staff). drizzle.config.ts reads the repo-root .env via @mumzo/env/load, with strict + verbose on.",
+          "labels": [
+            {
+              "id": "0ff17ad7-1a4a-41b8-9056-68efba3a45d2",
+              "title": "infra",
+              "color": "#5a566e"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "45345ea3-9d53-4cc2-87c8-d8947177b605",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Single repo-root .env",
+          "description": "Replaced three per-app .env files. loadRootEnv() walks up to the repo root so scripts work from any workspace; Vite apps read it via envDir. Typed pool + SSL config in @mumzo/env.",
+          "labels": [
+            {
+              "id": "0ff17ad7-1a4a-41b8-9056-68efba3a45d2",
+              "title": "infra",
+              "color": "#5a566e"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "e7b715ab-9327-46d7-9749-1177a99bcc52",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Server: modular monolith skeleton",
+          "description": "core/ (response envelope, errors, middleware, constants, types), lib/, shared/, modules/{platform,admin}/v1. @/ alias replaces deep relative imports. Verified across tsc, Bun, and tsdown.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "11751059-243f-440c-a0fa-6f400c682895",
+              "title": "epic:server-admin",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "73eeb4a7-cde6-4b4b-9763-0a5273cc030c",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Server: OpenAPI + Scalar docs",
+          "description": "@hono/zod-openapi + @scalar/hono-api-reference at /api/docs, development-only. Three merged sources: Mumzo API, Auth-Platform, Auth-Admin. Tags are Surface | Module.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "11751059-243f-440c-a0fa-6f400c682895",
+              "title": "epic:server-admin",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "539455e3-ba0a-4135-8074-51f26a7e0048",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Server: rate limiting + error envelope",
+          "description": "hono-rate-limiter with global/strict/auth tiers, keyed on user id then forwarded IP. All errors — including 404 and zod failures — return the { success, error } envelope.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "185c072d-99db-4ed2-a980-f970384d36a0",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Two Better Auth instances",
+          "description": "platformAuth (phone + OTP, /api/v1/auth) and adminAuth (email + password, /api/v1/admin/auth) on separate tables and cookies. Verified: a customer session gets 401 on admin routes.",
+          "labels": [
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "11751059-243f-440c-a0fa-6f400c682895",
+              "title": "epic:server-admin",
+              "color": "#c9822f"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "0ea414dd-598e-4c30-9e2f-9cf46b0585e1",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Superadmin login end-to-end",
+          "description": "seed-admin.ts bootstraps the first account (staff sign-up is disabled over HTTP). Admin client wired to /api/v1/admin/auth; auth bypass removed; login honours a validated redirect param.",
+          "labels": [
+            {
+              "id": "6e595134-aa80-409b-8a66-3bd9f16f0771",
+              "title": "admin",
+              "color": "#3f6fb5"
+            },
+            {
+              "id": "84019607-9894-4e13-a93f-2a5bf7ab4d60",
+              "title": "backend",
+              "color": "#c9822f"
+            },
+            {
+              "id": "91758be0-4629-457c-95ab-10b86734a297",
+              "title": "epic:superadmin",
+              "color": "#1f1b3a"
+            }
+          ],
+          "checkboxes": [],
+          "comments": []
+        },
+        {
+          "id": "879a0c74-fb65-4b3f-869a-8b7544e26396",
+          "listId": "f7c43bf1-8a52-4857-94bb-d2bd5fc2d3a4",
+          "title": "Docs: architecture, database, roadmap",
+          "description": "Backend architecture plan (schema, correctness, estimates), docs/infra/database.md, and docs/roadmap.md — the build order across superadmin and platform.",
+          "labels": [
+            {
+              "id": "0ff17ad7-1a4a-41b8-9056-68efba3a45d2",
+              "title": "infra",
+              "color": "#5a566e"
+            }
+          ],
+          "checkboxes": [],
           "comments": []
         }
       ]

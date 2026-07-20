@@ -10,6 +10,11 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string;
+  /**
+   * Staff only, and comma-separated when a user holds several — Better Auth
+   * stores it as a plain string on `staff_user`. Always null for customers.
+   */
+  role?: string | null;
 };
 
 /** Import into every router so `c.var` is typed rather than `any`. */

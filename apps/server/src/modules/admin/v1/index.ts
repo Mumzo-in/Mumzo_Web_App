@@ -9,6 +9,8 @@ import {
 } from "@/core";
 
 import authRoutes from "./auth";
+import rolesRoutes from "./roles";
+import staffRoutes from "./staff";
 
 /**
  * Admin API v1 — the staff surface. Mounted at `/api/v1/admin`.
@@ -16,11 +18,9 @@ import authRoutes from "./auth";
  * Guards apply to the whole subtree here rather than per-route, so a newly
  * added admin router cannot accidentally ship unauthenticated.
  *
- * Only authentication is enforced today — any signed-in user reaches these
- * routes. Role gating needs Better Auth's admin plugin and a `role` column,
- * neither of which exists yet (`plugins: []`); `STAFF_ROLES` in
- * `core/constants/roles.ts` holds the intended set. Add the check before any
- * real admin endpoint ships.
+ * Authentication is enforced here; per-route authorization is applied with
+ * `requirePermission(resource, action)` on each sub-router — see
+ * `./roles` for the pattern.
  */
 
 const pingRoute = createRoute({
@@ -73,6 +73,8 @@ app.use("/*", async (c, next) => {
 });
 
 app.route("/auth", authRoutes);
+app.route("/roles", rolesRoutes);
+app.route("/staff", staffRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

@@ -61,3 +61,4 @@ Hono · Better Auth · Drizzle/Postgres · **Biome** (lint + format) · Zod.
   [`docs/superadmin/features.md`](docs/superadmin/features.md)
 - API/domain → [`docs/api/mumzo_api_plan.md`](docs/api/mumzo_api_plan.md)
 - Database (setup, migrations, extensions) → [`docs/infra/database.md`](docs/infra/database.md)
+- Build order (what to work on next) → [`docs/roadmap.md`](docs/roadmap.md)

@@ -12,12 +12,16 @@
  * one you mean.
  */
 
+export { adminAuth, createAdminAuth } from "./admin";
 export {
-  adminAuth,
-  createAdminAuth,
-  STAFF_ROLES,
-  type StaffRole,
-} from "./admin";
-export { ac, roles, statement } from "./permissions";
+  ACTION_LABELS,
+  ac,
+  RESOURCE_LABELS,
+  ROLE_SEEDS,
+  type RoleSeed,
+  roles,
+  statement,
+} from "./permissions";
 export { createPlatformAuth, platformAuth } from "./platform";
+export { runSeed, seedAdminUser, seedRoles } from "./seed";
 export { sharedAuthConfig } from "./shared";

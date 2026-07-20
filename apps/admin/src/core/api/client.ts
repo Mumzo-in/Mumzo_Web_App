@@ -62,7 +62,8 @@ type Envelope<T> = SuccessEnvelope<T> | ErrorEnvelope;
 const BASE_URL = "/api/v1/admin";
 
 export type RequestOptions = {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  // PUT for full replacement (role permissions), PATCH for partial updates.
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   /** Appended as a query string; `undefined` values are dropped. */
   query?: Record<string, string | number | boolean | undefined>;

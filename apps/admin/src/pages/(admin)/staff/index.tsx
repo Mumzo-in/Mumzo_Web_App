@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ComingSoon from "@/core/components/coming-soon";
 import PageHeader from "@/core/components/page-header";
+import { StaffTable } from "@/modules/staff";
 
 export const Route = createFileRoute("/(admin)/staff/")({
   component: RouteComponent,
@@ -13,11 +13,9 @@ function RouteComponent() {
         title="Staff & roles"
         description="Admin accounts and permissions."
       />
-      <ComingSoon
-        title="Staff & roles"
-        description="Admin accounts and permissions."
-        phase={2}
-      />
+      <div className="flex flex-col gap-6" data-testid="admin-staff-page">
+        <StaffTable />
+      </div>
     </>
   );
 }

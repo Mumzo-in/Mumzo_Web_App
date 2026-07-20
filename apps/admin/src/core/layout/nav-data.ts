@@ -276,7 +276,8 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: "Access",
         items: [
-          { label: "Staff & roles", to: "/staff", comingSoon: true },
+          { label: "Staff members", to: "/staff" },
+          { label: "Roles & permissions", to: "/roles" },
           { label: "Audit log", to: "/staff/audit-log", comingSoon: true },
         ],
       },

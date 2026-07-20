@@ -1,65 +1,56 @@
 /**
- * Admin role model — the single place role is read and checked.
+ * Role helpers for the session.
  *
- * Sessions now carry a real `role`: the admin instance in
- * `packages/auth/src/admin.ts` runs Better Auth's `admin` plugin against the
- * `staff_user` table. There is no dev fallback and no bypass — sign in with a
- * seeded account (`bun seed:admin`).
+ * There is deliberately **no hardcoded role list here any more** — roles live
+ * in `staff_role` and are created from the panel, so a fixed union would go
+ * stale the moment an operator adds one. Components that need the list fetch
+ * it via `rolesQueryOptions` in `@/modules/roles`.
+ *
+ * What remains is only what reads a role off a session.
  */
 
-/**
- * Six roles, per docs/superadmin/features.md §1. The api-plan §15k list omits
- * `ops`; features.md's dark-store fleet model needs it. Reconcile in the API
- * before the staff endpoints are built.
- */
-export const ADMIN_ROLES = [
-  "superadmin",
-  "admin",
-  "catalog_manager",
-  "support",
-  "finance",
-  "ops",
-] as const;
-
-export type AdminRole = (typeof ADMIN_ROLES)[number];
-
-export function isAdminRole(value: unknown): value is AdminRole {
-  return (
-    typeof value === "string" &&
-    (ADMIN_ROLES as readonly string[]).includes(value)
-  );
-}
-
-/**
- * A session user, as far as the role gate cares. Kept structural rather than
- * importing Better Auth's user type so this file stays free of auth imports.
- */
+/** A session user, as far as the role gate cares. */
 type SessionUser = Record<string, unknown>;
 
 /**
- * Reads the role off a session user.
+ * Reads the role string off a session user.
  *
- * Returns `null` when no valid admin role is present, and the caller must
- * treat `null` as deny. Fails closed on purpose: an unrecognised role string
- * — a typo, a role removed from `ADMIN_ROLES`, a tampered session — denies
- * rather than defaulting to some baseline access.
+ * Returns `null` when absent — callers must treat that as deny. Fails closed:
+ * a missing or malformed role denies rather than falling back to any baseline
+ * access.
+ *
+ * The value may be comma-separated when a user holds several roles, matching
+ * how Better Auth stores it.
  */
 export function resolveRole(
   user: SessionUser | null | undefined,
-): AdminRole | null {
-  if (user && isAdminRole(user.role)) {
+): string | null {
+  if (user && typeof user.role === "string" && user.role.trim()) {
     return user.role;
   }
 
   return null;
 }
 
-/** Human-readable labels for the role chips / staff screens. */
-export const ROLE_LABELS: Record<AdminRole, string> = {
-  superadmin: "Super Admin",
-  admin: "Admin",
-  catalog_manager: "Catalog Manager",
-  support: "Support",
-  finance: "Finance",
-  ops: "Ops",
-};
+/** Splits a stored role string into individual keys. */
+export function roleKeys(role: string | null | undefined): string[] {
+  if (!role) {
+    return [];
+  }
+
+  return role
+    .split(",")
+    .map((key) => key.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Best-effort display name for a role key, for when the roles list is not
+ * loaded. Prefer the `label` from `rolesQueryOptions` where it is available.
+ */
+export function humanizeRoleKey(key: string): string {
+  return key
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}

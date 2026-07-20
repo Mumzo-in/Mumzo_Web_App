@@ -14,24 +14,6 @@ import { ac, roles } from "./permissions";
 import { sharedAuthConfig } from "./shared";
 
 /**
- * Six staff roles, matching `docs/superadmin/features.md` §1 — including
- * `ops`, which the API plan's §15k omits. The docs conflict; features.md is
- * the one the dark-store fleet model needs.
- *
- * Mirrored in `apps/server/src/core/constants/roles.ts` for route guards.
- */
-export const STAFF_ROLES = [
-  "superadmin",
-  "admin",
-  "catalog_manager",
-  "support",
-  "finance",
-  "ops",
-] as const;
-
-export type StaffRole = (typeof STAFF_ROLES)[number];
-
-/**
  * Staff auth — the admin panel.
  *
  * Email + password. Separate tables from the customer instance (see

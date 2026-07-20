@@ -13,7 +13,7 @@ import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-import { ROLE_LABELS, resolveRole } from "@/core/auth/roles";
+import { humanizeRoleKey, resolveRole, roleKeys } from "@/core/auth/roles";
 import { sessionQueryOptions } from "..";
 import { authClient } from "../api/auth-client";
 
@@ -74,7 +74,7 @@ export function UserMenu({
               </span>
               {role ? (
                 <span className="text-muted-foreground text-xs">
-                  {ROLE_LABELS[role]}
+                  {roleKeys(role).map(humanizeRoleKey).join(", ")}
                 </span>
               ) : null}
             </div>

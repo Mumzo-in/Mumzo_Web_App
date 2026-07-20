@@ -2,7 +2,6 @@
  * Shared constants, one file per concern.
  *
  *   error-codes.ts  ERROR_CODES, ErrorCode
- *   roles.ts        CUSTOMER_ROLE, STAFF_ROLES, Role
  *   pagination.ts   DEFAULT_LIMIT, MAX_LIMIT
  *   rate-limits.ts  window/quota pairs
  *
@@ -12,4 +11,3 @@
 export * from "./error-codes";
 export * from "./pagination";
 export * from "./rate-limits";
-export * from "./roles";
