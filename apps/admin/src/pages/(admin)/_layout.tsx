@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { bypassAuthGate, resolveRole } from "@/core/auth/roles";
+import { resolveRole } from "@/core/auth/roles";
 import AdminLayout from "@/core/layout/admin-layout";
-import { authClient, UserMenu } from "@/modules/auth";
+import { sessionQueryOptions, UserMenu } from "@/modules/auth";
 
 /**
  * The role gate. Every admin route nests under this pathless group, so this
@@ -11,24 +11,25 @@ import { authClient, UserMenu } from "@/modules/auth";
  *   1. No session                 → /login
  *   2. Session, but no admin role → /forbidden
  *
- * Step 2 matters: without it any customer who signs up on the storefront could
- * reach the panel, since both apps share one Better Auth instance.
+ * Step 2 is defence in depth rather than the primary guard. `authClient` talks
+ * to the staff Better Auth instance, which reads its own cookie backed by
+ * `staff_user` — a storefront customer's session simply does not resolve here.
+ * The role check catches the narrower case of a staff account whose role was
+ * revoked or set to something unrecognised.
  *
- * NOTE: `bypassAuthGate()` is currently on, so both checks are skipped in dev
- * while the screens are being built. It is forced off in production builds.
+ * This runs in the browser, so it controls *rendering*, not access. The server
+ * enforces the real boundary via `requireStaffAuth`; never rely on this alone
+ * to protect data.
  */
 export const Route = createFileRoute("/(admin)")({
   component: AdminGroupLayout,
-  beforeLoad: async ({ location }) => {
-    if (bypassAuthGate()) {
-      return { session: null, role: null };
-    }
-
-    const { data: session } = await authClient.getSession();
+  beforeLoad: async ({ context, location }) => {
+    const session =
+      await context.queryClient.ensureQueryData(sessionQueryOptions);
 
     if (!session) {
       throw redirect({
-        to: "/login",
+        to: "/auth/login",
         search: { redirect: location.href },
       });
     }
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/(admin)")({
 
 function AdminGroupLayout() {
   return (
-    <AdminLayout headerActions={<UserMenu />}>
+    <AdminLayout sidebarFooter={<UserMenu side="right" align="end" />}>
       <Outlet />
     </AdminLayout>
   );

@@ -122,6 +122,7 @@
         "@mumzo/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
+        "drizzle-orm": "^0.45.2",
         "zod": "catalog:",
       },
       "devDependencies": {

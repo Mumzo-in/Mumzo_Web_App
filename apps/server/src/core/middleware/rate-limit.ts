@@ -77,7 +77,10 @@ type LimitOptions = {
   limit: number;
 };
 
-function createLimiter({ windowMs, limit }: LimitOptions) {
+function createLimiter(
+  { windowMs, limit }: LimitOptions,
+  customSkip?: (c: Context<AppEnv>) => boolean,
+) {
   return rateLimiter<AppEnv>({
     windowMs,
     limit,
@@ -88,7 +91,7 @@ function createLimiter({ windowMs, limit }: LimitOptions) {
     handler: limitExceeded,
     // Disabled in tests so a suite firing hundreds of requests does not
     // start 429-ing partway through and fail for the wrong reason.
-    skip: () => env.NODE_ENV === "test",
+    skip: (c) => env.NODE_ENV === "test" || (customSkip?.(c) ?? false),
   });
 }
 
@@ -105,4 +108,8 @@ export const globalRateLimit = createLimiter(GLOBAL_RATE_LIMIT);
 export const strictRateLimit = createLimiter(STRICT_RATE_LIMIT);
 
 /** Mounted on `/api/auth/*` — OTP sends and login attempts. */
-export const authRateLimit = createLimiter(AUTH_RATE_LIMIT);
+export const authRateLimit = createLimiter(AUTH_RATE_LIMIT, (c) => {
+  // Do not rate-limit session check GET requests under the auth limiter.
+  // Also bypass in development so developers aren't locked out while testing.
+  return c.req.method === "GET" || env.NODE_ENV === "development";
+});

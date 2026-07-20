@@ -10,9 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@mumzo/ui/components/dropdown-menu";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { ROLE_LABELS, resolveRole } from "@/core/auth/roles";
+import { sessionQueryOptions } from "..";
 import { authClient } from "../api/auth-client";
 
 function initialsOf(name: string): string {
@@ -21,9 +23,16 @@ function initialsOf(name: string): string {
   return letters.toUpperCase() || "?";
 }
 
-export function UserMenu() {
+export function UserMenu({
+  side = "bottom",
+  align = "end",
+}: {
+  side?: "bottom" | "top" | "left" | "right";
+  align?: "start" | "center" | "end";
+} = {}) {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
+  const queryClient = useQueryClient();
+  const { data: session, isPending } = useQuery(sessionQueryOptions);
 
   if (isPending) {
     return <Skeleton className="size-8 rounded-full" />;
@@ -35,7 +44,7 @@ export function UserMenu() {
         variant="outline"
         size="sm"
         data-testid="admin-sign-in"
-        render={<Link to="/login" />}
+        render={<Link to="/auth/login" />}
       >
         Sign in
       </Button>
@@ -55,20 +64,22 @@ export function UserMenu() {
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
-          <div className="flex flex-col gap-0.5">
-            <span className="truncate font-medium">{session.user.name}</span>
-            <span className="truncate text-muted-foreground text-xs">
-              {session.user.email}
-            </span>
-            {role ? (
-              <span className="text-muted-foreground text-xs">
-                {ROLE_LABELS[role]}
+      <DropdownMenuContent side={side} align={align} className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <div className="flex flex-col gap-0.5">
+              <span className="truncate font-medium">{session.user.name}</span>
+              <span className="truncate text-muted-foreground text-xs">
+                {session.user.email}
               </span>
-            ) : null}
-          </div>
-        </DropdownMenuLabel>
+              {role ? (
+                <span className="text-muted-foreground text-xs">
+                  {ROLE_LABELS[role]}
+                </span>
+              ) : null}
+            </div>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
@@ -76,7 +87,12 @@ export function UserMenu() {
             onClick={() => {
               authClient.signOut({
                 fetchOptions: {
-                  onSuccess: () => navigate({ to: "/login" }),
+                  onSuccess: () => {
+                    queryClient.removeQueries({
+                      queryKey: sessionQueryOptions.queryKey,
+                    });
+                    navigate({ to: "/auth/login" });
+                  },
                 },
               });
             }}

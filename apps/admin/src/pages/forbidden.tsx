@@ -38,7 +38,7 @@ function ForbiddenPage() {
             onClick={() => {
               authClient.signOut({
                 fetchOptions: {
-                  onSuccess: () => navigate({ to: "/login" }),
+                  onSuccess: () => navigate({ to: "/auth/login" }),
                 },
               });
             }}

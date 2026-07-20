@@ -9,10 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
-import { Route as LoginRouteImport } from './pages/login'
 import { Route as ForbiddenRouteImport } from './pages/forbidden'
 import { Route as adminLayoutRouteImport } from './pages/(admin)/_layout'
 import { Route as adminIndexRouteImport } from './pages/(admin)/index'
+import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as adminStaffIndexRouteImport } from './pages/(admin)/staff/index'
 import { Route as adminStaffAuditLogRouteImport } from './pages/(admin)/staff/audit-log'
 import { Route as adminPlatformSystemRouteImport } from './pages/(admin)/platform/system'
@@ -72,11 +72,6 @@ import { Route as adminCatalogProductsProductIdStockRouteImport } from './pages/
 import { Route as adminCatalogProductsProductIdImagesRouteImport } from './pages/(admin)/catalog/products/$productId/images'
 import { Route as adminCatalogProductsProductIdEditRouteImport } from './pages/(admin)/catalog/products/$productId/edit'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ForbiddenRoute = ForbiddenRouteImport.update({
   id: '/forbidden',
   path: '/forbidden',
@@ -90,6 +85,11 @@ const adminIndexRoute = adminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => adminLayoutRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const adminStaffIndexRoute = adminStaffIndexRouteImport.update({
   id: '/staff/',
@@ -417,7 +417,7 @@ const adminCatalogProductsProductIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/forbidden': typeof ForbiddenRoute
-  '/login': typeof LoginRoute
+  '/auth/login': typeof AuthLoginRoute
   '/': typeof adminIndexRoute
   '/catalog/brands': typeof adminCatalogBrandsRoute
   '/catalog/collections': typeof adminCatalogCollectionsRoute
@@ -480,7 +480,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/forbidden': typeof ForbiddenRoute
-  '/login': typeof LoginRoute
+  '/auth/login': typeof AuthLoginRoute
   '/': typeof adminIndexRoute
   '/catalog/brands': typeof adminCatalogBrandsRoute
   '/catalog/collections': typeof adminCatalogCollectionsRoute
@@ -545,7 +545,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(admin)': typeof adminLayoutRouteWithChildren
   '/forbidden': typeof ForbiddenRoute
-  '/login': typeof LoginRoute
+  '/auth/login': typeof AuthLoginRoute
   '/(admin)/': typeof adminIndexRoute
   '/(admin)/catalog/brands': typeof adminCatalogBrandsRoute
   '/(admin)/catalog/collections': typeof adminCatalogCollectionsRoute
@@ -610,7 +610,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/forbidden'
-    | '/login'
+    | '/auth/login'
     | '/'
     | '/catalog/brands'
     | '/catalog/collections'
@@ -673,7 +673,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forbidden'
-    | '/login'
+    | '/auth/login'
     | '/'
     | '/catalog/brands'
     | '/catalog/collections'
@@ -737,7 +737,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(admin)'
     | '/forbidden'
-    | '/login'
+    | '/auth/login'
     | '/(admin)/'
     | '/(admin)/catalog/brands'
     | '/(admin)/catalog/collections'
@@ -802,18 +802,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   adminLayoutRoute: typeof adminLayoutRouteWithChildren
   ForbiddenRoute: typeof ForbiddenRoute
-  LoginRoute: typeof LoginRoute
+  AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/forbidden': {
       id: '/forbidden'
       path: '/forbidden'
@@ -834,6 +827,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof adminIndexRouteImport
       parentRoute: typeof adminLayoutRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(admin)/staff/': {
       id: '/(admin)/staff/'
@@ -1380,7 +1380,7 @@ const adminLayoutRouteWithChildren = adminLayoutRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   adminLayoutRoute: adminLayoutRouteWithChildren,
   ForbiddenRoute: ForbiddenRoute,
-  LoginRoute: LoginRoute,
+  AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

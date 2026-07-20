@@ -33,6 +33,7 @@
     "db:studio": "turbo run db:studio -F @mumzo/db",
     "db:generate": "turbo run db:generate -F @mumzo/db",
     "db:migrate": "turbo run db:migrate -F @mumzo/db",
+    "seed:admin": "bun run -F @mumzo/auth seed:admin --",
     "db:start": "docker compose -f infra/docker-compose.yml up -d --wait postgres",
     "db:watch": "docker compose -f infra/docker-compose.yml up postgres",
     "db:stop": "docker compose -f infra/docker-compose.yml stop postgres",

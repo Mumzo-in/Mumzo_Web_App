@@ -6,11 +6,20 @@ import {
   FieldLabel,
 } from "@mumzo/ui/components/field";
 import { Input } from "@mumzo/ui/components/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@mumzo/ui/components/input-group";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
+import { sessionQueryOptions } from "..";
 import { authClient } from "../api/auth-client";
 
 const schema = z.object({
@@ -24,7 +33,12 @@ const schema = z.object({
  */
 export function SignInForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  // Set by the admin gate when it bounces an unauthenticated request; the
+  // login route validates it as a root-relative path before it reaches here.
+  const { redirect } = useSearch({ from: "/auth/login" });
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
     defaultValues: { email: "", password: "" },
@@ -35,7 +49,10 @@ export function SignInForm() {
         { email: value.email, password: value.password },
         {
           onSuccess: () => {
-            navigate({ to: "/" });
+            queryClient.removeQueries({
+              queryKey: sessionQueryOptions.queryKey,
+            });
+            navigate({ to: redirect ?? "/" });
           },
           onError: (ctx) => {
             toast.error(ctx.error.message || "Could not sign you in.");
@@ -87,17 +104,33 @@ export function SignInForm() {
             return (
               <Field data-invalid={invalid || undefined}>
                 <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  autoComplete="current-password"
-                  aria-invalid={invalid || undefined}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  data-testid="admin-sign-in-password"
-                />
+                <InputGroup>
+                  <InputGroupInput
+                    id={field.name}
+                    name={field.name}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    aria-invalid={invalid || undefined}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    data-testid="admin-sign-in-password"
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
                 {invalid ? (
                   <FieldError errors={field.state.meta.errors} />
                 ) : null}

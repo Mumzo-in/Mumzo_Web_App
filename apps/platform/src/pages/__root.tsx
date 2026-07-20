@@ -77,7 +77,7 @@ function RootComponent() {
         </ServiceabilityProvider>
         <Toaster richColors />
       </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
+      <TanStackRouterDevtools position="bottom-right" />
     </TooltipProvider>
   );
 }

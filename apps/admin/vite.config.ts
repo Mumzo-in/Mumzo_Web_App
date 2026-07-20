@@ -6,6 +6,10 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Read the repo-root `.env` instead of a per-app copy. Only `VITE_*`
+  // variables are exposed to the bundle, so sharing the file with the server
+  // does not leak DATABASE_URL or BETTER_AUTH_SECRET into the browser.
+  envDir: path.resolve(import.meta.dirname, "../.."),
   server: {
     port: 3002,
     allowedHosts: true,

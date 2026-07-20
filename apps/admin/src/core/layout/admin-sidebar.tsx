@@ -7,7 +7,7 @@ import {
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { PanelLeftClose } from "lucide-react";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import NavChip from "./nav-chip";
 import { NAV_SECTIONS, type NavSection, sectionForPath } from "./nav-data";
 import { useNavPanel } from "./use-nav-panel";
@@ -35,8 +35,10 @@ function isPathActive(pathname: string, to: string): boolean {
 
 export function AdminSidebar({
   sections = NAV_SECTIONS,
+  footer,
 }: {
   sections?: NavSection[];
+  footer?: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -115,6 +117,8 @@ export function AdminSidebar({
             </Tooltip>
           );
         })}
+
+        {footer && <div className="mt-auto pt-2">{footer}</div>}
       </nav>
 
       {/* Secondary panel — width animates to 0 so the content area reflows. */}

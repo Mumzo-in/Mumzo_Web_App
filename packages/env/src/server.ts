@@ -1,6 +1,11 @@
-import "dotenv/config";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
+
+import { loadRootEnv } from "./load";
+
+// Must run before createEnv reads process.env. Finds the repo-root `.env`
+// regardless of which workspace the process started in.
+loadRootEnv();
 
 /** Coerce a decimal env string to a positive integer. */
 const intFromEnv = (fallback: number) =>

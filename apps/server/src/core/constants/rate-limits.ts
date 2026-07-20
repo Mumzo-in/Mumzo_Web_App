@@ -32,6 +32,6 @@ export const STRICT_RATE_LIMIT = {
  * this is the coarser per-client gate in front of it.
  */
 export const AUTH_RATE_LIMIT = {
-  windowMs: 15 * MINUTE,
+  windowMs: MINUTE,
   limit: 10,
 } as const;

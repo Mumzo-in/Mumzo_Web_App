@@ -30,7 +30,7 @@ function RootComponent() {
         <Outlet />
       </TooltipProvider>
       <Toaster richColors />
-      <TanStackRouterDevtools position="bottom-left" />
+      <TanStackRouterDevtools position="bottom-right" />
     </>
   );
 }

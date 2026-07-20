@@ -7,6 +7,8 @@ type AdminLayoutProps = {
   children: ReactNode;
   /** Trailing header slot — the auth module's UserMenu. */
   headerActions?: ReactNode;
+  /** Bottom sidebar slot — the auth module's UserMenu. */
+  sidebarFooter?: ReactNode;
 };
 
 /**
@@ -16,11 +18,15 @@ type AdminLayoutProps = {
  * shrink and pushes the whole page into horizontal scroll instead of scrolling
  * inside its own container.
  */
-export function AdminLayout({ children, headerActions }: AdminLayoutProps) {
+export function AdminLayout({
+  children,
+  headerActions,
+  sidebarFooter,
+}: AdminLayoutProps) {
   return (
     <NavPanelProvider>
       <div className="flex h-svh overflow-hidden">
-        <AdminSidebar />
+        <AdminSidebar footer={sidebarFooter} />
         <div className="flex min-w-0 flex-1 flex-col">
           <AdminHeader actions={headerActions} />
           <main
