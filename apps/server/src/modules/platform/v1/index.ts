@@ -8,6 +8,8 @@ import {
   successSchema,
 } from "@/core";
 
+import authRoutes from "./auth";
+
 /**
  * Platform API v1 — the customer surface. Mounted at `/api/v1`.
  *
@@ -25,7 +27,7 @@ import {
 const pingRoute = createRoute({
   method: "get",
   path: "/ping",
-  tags: ["Platform"],
+  tags: ["Platform | Catalog"],
   summary: "Connectivity check",
   responses: {
     200: jsonContent(
@@ -46,7 +48,12 @@ const app = createRouter();
 
 // Registered separately, not chained: `.use()` on OpenAPIHono returns a plain
 // Hono, which drops the `.openapi()` method from the type.
+//
+// `optionalAuth` never rejects, so unlike the admin side it can run over
+// `/auth/*` harmlessly.
 app.use(optionalAuth);
+
+app.route("/auth", authRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

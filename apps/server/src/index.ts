@@ -1,9 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { auth } from "@mumzo/auth";
 import { checkDbConnection } from "@mumzo/db";
 
 import {
-  authRateLimit,
   commonErrorResponses,
   createApp,
   jsonContent,
@@ -13,15 +11,6 @@ import {
 import router from "./router";
 
 const app = createApp();
-
-// Better Auth owns its own routing — mounted before the API router and never
-// wrapped by it. Excluded from the OpenAPI spec because Better Auth defines
-// its own surface.
-//
-// The tighter limit sits in front: sign-in and OTP endpoints are the most
-// abused surface on a consumer app, and each OTP send costs real money.
-app.use("/api/auth/*", authRateLimit);
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 // Liveness. Plain text at "/" because the Docker healthcheck greps it.
 app.get("/", (c) => c.text("OK"));

@@ -65,10 +65,29 @@ export function mountOpenAPI(app: OpenAPIHono<AppEnv>) {
         "- Error: `{ success: false, error: { code, message } }`",
     },
     servers: [{ url: env.BETTER_AUTH_URL, description: env.NODE_ENV }],
+    /**
+     * Tags are `Surface | Module`, so Scalar's sidebar groups by feature
+     * rather than listing every route flat. Auth endpoints live in their own
+     * spec sources (see the Scalar `sources` below) — Better Auth generates
+     * those, so they are not tagged here.
+     */
     tags: [
       { name: "Health", description: "Liveness and readiness" },
-      { name: "Platform", description: "Customer storefront — /api/v1" },
-      { name: "Admin", description: "Staff panel — /api/v1/admin" },
+      {
+        name: "Platform | Catalog",
+        description: "Products, categories, search",
+      },
+      { name: "Platform | Cart", description: "Cart and checkout" },
+      { name: "Platform | Orders", description: "Order history and tracking" },
+      { name: "Platform | Account", description: "Profile, addresses, babies" },
+      {
+        name: "Admin | Catalog",
+        description: "Product and category management",
+      },
+      { name: "Admin | Orders", description: "Order operations and dispatch" },
+      { name: "Admin | Customers", description: "Users, reviews, support" },
+      { name: "Admin | Finance", description: "Payments, refunds, coupons" },
+      { name: "Admin | Staff", description: "Staff accounts and audit log" },
     ],
   });
 
@@ -83,9 +102,27 @@ export function mountOpenAPI(app: OpenAPIHono<AppEnv>) {
   app.get(
     "/api/docs",
     Scalar({
-      url: "/api/docs/openapi.json",
       pageTitle: "Mumzo API",
       theme: "default",
+      /**
+       * Three specs in one viewer, switchable from a dropdown.
+       *
+       * Better Auth generates its own spec per instance via its `openAPI()`
+       * plugin — we cannot hand-write those routes, and duplicating them
+       * would drift the moment a plugin is added. Pointing Scalar at the
+       * live generator keeps them correct for free.
+       */
+      sources: [
+        { url: "/api/docs/openapi.json", title: "Mumzo API", default: true },
+        {
+          url: "/api/v1/auth/open-api/generate-schema",
+          title: "Auth · Platform",
+        },
+        {
+          url: "/api/v1/admin/auth/open-api/generate-schema",
+          title: "Auth · Admin",
+        },
+      ],
     }),
   );
 

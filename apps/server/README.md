@@ -105,9 +105,10 @@ needs no config change.
 | `/health` | Readiness, including a DB check |
 | `/api/docs` | Scalar API docs (development only) |
 | `/api/docs/openapi.json` | Generated spec (development only) |
-| `/api/auth/*` | Better Auth (owns its own routing) |
 | `/api/v1/*` | `modules/platform/v1` |
-| `/api/v1/admin/*` | `modules/admin/v1` |
+| `/api/v1/auth/*` | Customer auth — phone + OTP |
+| `/api/v1/admin/*` | `modules/admin/v1` (staff session required) |
+| `/api/v1/admin/auth/*` | Staff auth — email + password |
 
 Notes:
 
@@ -118,6 +119,35 @@ Notes:
 - **Docs mount only when `NODE_ENV === "development"`** — not staging, not
   test. Publishing a full map of the API, admin routes included, is free
   reconnaissance. Elsewhere they 404 like any unknown path.
+
+## Auth
+
+**Two independent Better Auth instances**, from `@mumzo/auth`:
+
+| | Platform | Admin |
+|---|---|---|
+| Method | Phone + OTP | Email + password |
+| Mounted | `/api/v1/auth/*` | `/api/v1/admin/auth/*` |
+| Cookie | `mumzo.session_token` | `mumzo-admin.session_token` |
+| Tables | `user`, `session`, … | `staff_user`, `staff_session`, … |
+| Session | 30 days | 8 hours |
+| Sign-up | On OTP verify | Disabled — superadmin creates accounts |
+| Middleware | `optionalAuth` / `requireAuth` | `requireStaffAuth` |
+
+**They do not share a user table.** A customer session cannot satisfy an admin
+route because the row its token points at does not exist in `staff_session` —
+the isolation is structural, not a role check that a route might forget.
+
+Roles (`superadmin`, `admin`, `catalog_manager`, `support`, `finance`, `ops`)
+and their permission matrix live in `packages/auth/src/permissions.ts`. The
+admin plugin validates `adminRoles` against that matrix at startup, so a typo
+fails the boot rather than silently granting nothing.
+
+> **OTP is not deliverable yet.** `sendOtp` logs the code in development and
+> **throws** in every other environment — MSG91 needs DLT template
+> registration (2–7 working days) before any SMS is sent. The throw is
+> deliberate: a silent `console.log` in production would look like a working
+> login while locking out every user.
 
 ## The response envelope
 

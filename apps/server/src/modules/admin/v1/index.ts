@@ -4,9 +4,11 @@ import {
   authErrorResponses,
   createRouter,
   jsonContent,
-  requireAuth,
+  requireStaffAuth,
   successSchema,
 } from "@/core";
+
+import authRoutes from "./auth";
 
 /**
  * Admin API v1 — the staff surface. Mounted at `/api/v1/admin`.
@@ -24,7 +26,7 @@ import {
 const pingRoute = createRoute({
   method: "get",
   path: "/ping",
-  tags: ["Admin"],
+  tags: ["Admin | Catalog"],
   summary: "Connectivity check",
   security: [{ cookieAuth: [] }],
   responses: {
@@ -44,9 +46,22 @@ const pingRoute = createRoute({
 
 const app = createRouter();
 
+// Guard everything, then carve out `/auth/*`. Written this way round on
+// purpose: a new admin route is protected by default, and forgetting to add
+// it to a list cannot silently expose it. Only the sign-in endpoints — which
+// by definition cannot require a session — are exempt.
+//
 // Registered separately, not chained: `.use()` on OpenAPIHono returns a plain
 // Hono, which drops the `.openapi()` method from the type.
-app.use(requireAuth);
+app.use("/*", async (c, next) => {
+  if (c.req.path.includes("/admin/auth/")) {
+    return next();
+  }
+
+  return requireStaffAuth(c, next);
+});
+
+app.route("/auth", authRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

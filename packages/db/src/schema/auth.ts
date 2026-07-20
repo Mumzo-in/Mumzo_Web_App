@@ -1,12 +1,22 @@
 import { relations } from "drizzle-orm";
 import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
+/**
+ * Customer auth — the storefront. Phone + OTP.
+ *
+ * Staff live in `staff.ts` on their own tables, so a customer session can
+ * never satisfy an admin route. See that file for the reasoning.
+ */
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  // phoneNumber plugin. Nullable because Better Auth creates the row before
+  // the number is attached, and unique because it is the login identifier.
+  phoneNumber: text("phone_number").unique(),
+  phoneNumberVerified: boolean("phone_number_verified").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
