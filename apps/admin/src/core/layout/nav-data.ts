@@ -1,13 +1,11 @@
 import {
-  Banknote,
-  Blocks,
+  Building2,
   LayoutDashboard,
   type LucideIcon,
-  Package,
-  Scale,
-  ShieldCheck,
+  Receipt,
+  Settings,
+  Smartphone,
   Store,
-  Users,
 } from "lucide-react";
 
 /**
@@ -53,78 +51,11 @@ export const NAV_SECTIONS: NavSection[] = [
     to: "/",
     groups: [
       {
-        label: "Today",
+        label: "Control Room",
         items: [
           { label: "Dashboard", to: "/" },
-          { label: "Live ops board", to: "/overview/ops", comingSoon: true },
-        ],
-      },
-      {
-        label: "Reporting",
-        items: [
+          { label: "Live Ops Board", to: "/overview/ops", comingSoon: true },
           { label: "Analytics", to: "/overview/analytics", comingSoon: true },
-          { label: "Analytics & BI", to: "/overview/bi", comingSoon: true },
-        ],
-      },
-    ],
-  },
-  {
-    id: "catalog",
-    label: "Catalog",
-    icon: Package,
-    to: "/catalog/products",
-    groups: [
-      {
-        label: "Products",
-        items: [
-          { label: "All products", to: "/catalog/products" },
-          { label: "Add product", to: "/catalog/products/new" },
-          {
-            label: "Bulk import",
-            to: "/catalog/products/bulk",
-            comingSoon: true,
-          },
-        ],
-      },
-      {
-        label: "Taxonomy",
-        items: [
-          { label: "Categories", to: "/catalog/categories" },
-          { label: "Add category", to: "/catalog/categories/new" },
-          { label: "Brands", to: "/catalog/brands", comingSoon: true },
-          {
-            label: "Collections",
-            to: "/catalog/collections",
-            comingSoon: true,
-          },
-        ],
-      },
-      {
-        label: "Stock",
-        items: [
-          { label: "Inventory", to: "/catalog/inventory", comingSoon: true },
-          {
-            label: "Adjustments",
-            to: "/catalog/inventory/adjustments",
-            comingSoon: true,
-          },
-          {
-            label: "Batches & expiry",
-            to: "/catalog/inventory/batches",
-            comingSoon: true,
-          },
-          { label: "Hubs", to: "/catalog/hubs", comingSoon: true },
-        ],
-      },
-      {
-        label: "Merchandising",
-        items: [
-          { label: "Pricing", to: "/catalog/pricing", comingSoon: true },
-          {
-            label: "Search & recs",
-            to: "/catalog/merchandising",
-            comingSoon: true,
-          },
         ],
       },
     ],
@@ -136,149 +67,25 @@ export const NAV_SECTIONS: NavSection[] = [
     to: "/operations/orders",
     groups: [
       {
-        label: "Orders",
+        label: "Fulfillment",
+        items: [{ label: "Orders", to: "/operations/orders" }],
+      },
+      {
+        label: "Catalog",
         items: [
-          { label: "All orders", to: "/operations/orders" },
-          { label: "Returns", to: "/operations/returns", comingSoon: true },
+          { label: "Products", to: "/catalog/products" },
+          { label: "Categories", to: "/catalog/categories" },
         ],
       },
       {
-        label: "Fleet",
+        label: "Dark Store",
         items: [
+          { label: "Inventory", to: "/catalog/inventory", comingSoon: true },
           {
-            label: "Dispatch board",
+            label: "Riders & Dispatch",
             to: "/operations/dispatch",
             comingSoon: true,
           },
-          { label: "Riders", to: "/operations/riders", comingSoon: true },
-        ],
-      },
-      {
-        label: "Support",
-        items: [
-          { label: "Tickets", to: "/operations/tickets", comingSoon: true },
-        ],
-      },
-    ],
-  },
-  {
-    id: "customers",
-    label: "Customers",
-    icon: Users,
-    to: "/customers/users",
-    groups: [
-      {
-        label: "Accounts",
-        items: [
-          { label: "All customers", to: "/customers/users" },
-          { label: "Segments", to: "/customers/segments", comingSoon: true },
-        ],
-      },
-      {
-        label: "Engagement",
-        items: [
-          { label: "Referrals", to: "/customers/referrals" },
-          {
-            label: "Broadcasts",
-            to: "/customers/broadcasts",
-            comingSoon: true,
-          },
-          {
-            label: "New broadcast",
-            to: "/customers/broadcasts/new",
-            comingSoon: true,
-          },
-          { label: "Journeys", to: "/customers/journeys", comingSoon: true },
-        ],
-      },
-      {
-        label: "Moderation",
-        items: [
-          { label: "Reviews", to: "/customers/reviews", comingSoon: true },
-        ],
-      },
-    ],
-  },
-  {
-    id: "finance",
-    label: "Finance",
-    icon: Banknote,
-    to: "/finance/payments",
-    groups: [
-      {
-        label: "Payments",
-        items: [
-          { label: "All payments", to: "/finance/payments" },
-          { label: "Failed & pending", to: "/finance/payments/failed" },
-        ],
-      },
-      {
-        label: "Promotions",
-        items: [
-          { label: "Coupons", to: "/finance/coupons" },
-          { label: "New coupon", to: "/finance/coupons/new" },
-          { label: "Campaigns", to: "/finance/campaigns", comingSoon: true },
-        ],
-      },
-      {
-        label: "Accounting",
-        items: [
-          {
-            label: "Reconciliation",
-            to: "/finance/reconciliation",
-            comingSoon: true,
-          },
-          { label: "Tax & invoicing", to: "/finance/tax", comingSoon: true },
-        ],
-      },
-      {
-        label: "Recurring",
-        items: [
-          {
-            label: "Subscriptions",
-            to: "/finance/subscriptions",
-            comingSoon: true,
-          },
-          {
-            label: "Upcoming deliveries",
-            to: "/finance/subscriptions/upcoming",
-            comingSoon: true,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "legal",
-    label: "Legal",
-    icon: Scale,
-    to: "/legal/pages",
-    groups: [
-      {
-        label: "Pages",
-        items: [{ label: "Legal & static pages", to: "/legal/pages" }],
-      },
-      {
-        label: "Storefront content",
-        items: [
-          { label: "Banners", to: "/legal/banners", comingSoon: true },
-          { label: "App config", to: "/legal/config", comingSoon: true },
-        ],
-      },
-    ],
-  },
-  {
-    id: "staff",
-    label: "Staff",
-    icon: ShieldCheck,
-    to: "/staff",
-    groups: [
-      {
-        label: "Access",
-        items: [
-          { label: "Staff members", to: "/staff" },
-          { label: "Roles & permissions", to: "/roles" },
-          { label: "Audit log", to: "/staff/audit-log", comingSoon: true },
         ],
       },
     ],
@@ -286,29 +93,79 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     id: "platform",
     label: "Platform",
-    icon: Blocks,
-    to: "/platform/flags",
+    icon: Smartphone,
+    to: "/finance/coupons",
     groups: [
       {
-        label: "Rollout",
+        label: "Marketing",
         items: [
-          { label: "Feature flags", to: "/platform/flags", comingSoon: true },
+          { label: "Coupons & Offers", to: "/finance/coupons" },
+          { label: "Banners CMS", to: "/legal/banners", comingSoon: true },
+        ],
+      },
+      {
+        label: "Users",
+        items: [{ label: "Customer Base", to: "/customers/users" }],
+      },
+      {
+        label: "System",
+        items: [
+          { label: "Feature Flags", to: "/platform/flags", comingSoon: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: "vendors",
+    label: "Vendors",
+    icon: Building2,
+    to: "/vendors",
+    groups: [
+      {
+        label: "Supply Chain",
+        items: [
+          { label: "All Vendors", to: "/vendors", comingSoon: true },
           {
-            label: "Experiments",
-            to: "/platform/experiments",
+            label: "Purchase Orders",
+            to: "/vendors/purchase-orders",
             comingSoon: true,
           },
         ],
       },
+    ],
+  },
+  {
+    id: "expenses",
+    label: "Expenses",
+    icon: Receipt,
+    to: "/expenses",
+    groups: [
       {
-        label: "Infrastructure",
+        label: "Ledger",
         items: [
+          { label: "All Expenses", to: "/expenses", comingSoon: true },
           {
-            label: "Integrations",
-            to: "/platform/integrations",
+            label: "Claims & Payouts",
+            to: "/expenses/payouts",
             comingSoon: true,
           },
-          { label: "System", to: "/platform/system", comingSoon: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    to: "/settings/profile",
+    groups: [
+      {
+        label: "Administration",
+        items: [
+          { label: "My Profile", to: "/settings/profile" },
+          { label: "Staff Members", to: "/staff" },
+          { label: "Roles & Permissions", to: "/roles" },
+          { label: "Static Pages", to: "/legal/pages" },
         ],
       },
     ],
