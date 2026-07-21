@@ -124,7 +124,12 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: "Supply Chain",
         items: [
-          { label: "All Vendors", to: "/vendors", comingSoon: true },
+          { label: "Vendors", to: "/vendors", comingSoon: true },
+          {
+            label: "Distributors",
+            to: "/vendors/distributors",
+            comingSoon: true,
+          },
           {
             label: "Purchase Orders",
             to: "/vendors/purchase-orders",

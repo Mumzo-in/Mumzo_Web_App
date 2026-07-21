@@ -1,194 +1,230 @@
-# Mumzo — Build Roadmap
+# Mumzo Quick-Commerce Master Roadmap
 
-Where to start, and in what order, now that auth and the server skeleton exist.
-
----
-
-## The question this answers
-
-> Should admin and platform be built in parallel — catalog admin + catalog
-> storefront together, then inventory, and so on?
-
-**Mostly yes, but not symmetrically.** Pair them *per domain*, and always run
-**admin first, platform second** within each domain. The two apps are not at
-the same maturity level, and treating them as equal halves is the one thing
-that will hurt.
+This master roadmap outlines the module-by-module plan for building the **Mumzo Quick-Commerce Platform** (10-minute delivery for moms and babies). It serves as a comprehensive guide for features delivered across the **Admin Control Panel** and **Platform Storefront (Customer App)**, acting as the primary checklist for verification.
 
 ---
 
-## What the two apps actually look like today
+## 📅 Roadmap Overview
 
-| | Admin | Platform |
-|---|---|---|
-| API layer | `core/api/client.ts` — typed, envelope-aware, ready | **None** |
-| Data fetching | TanStack Query + query-key factory | **No react-query dependency** |
-| How components get data | `useQuery` → `api/*.ts` → mock helper | Direct import of seed arrays |
-| Mutable state | Server-owned | **7 localStorage contexts** |
-| Real UI pages | ~11 | ~50 (all of them) |
-| `<ComingSoon>` pages | **43** | 0 |
-
-Two asymmetries drive everything below.
-
-**Admin is plumbed but hollow.** Its data layer was built API-first: swapping a
-module from mock to live is a one-file body change, and several files already
-document their target call in a comment. But 43 of its pages are placeholders.
-
-**Platform is complete but unplumbed.** Every page is real and navigable, and
-none of it can talk to a server. `core/data.ts` exposes *synchronous* lookups
-(`findProduct`, `productsInCategory`) called during render — converting those
-to fetches touches every consuming component, not one file.
-
-So "wire up admin catalog" is an afternoon. "Wire up platform catalog" is a
-week, and the first one pays for a foundation the rest reuses.
-
----
-
-## Phase 0 — Foundations (do this before any domain)
-
-Two prerequisites. Skipping them means paying for them repeatedly, once per
-domain.
-
-**0a. Admin: prove `client.ts` against a live endpoint.**
-It is currently dead code — nothing imports `apiRequest`/`apiList`. Written but
-never exercised means first-integration surprises: real 401 handling, error
-boundaries, abort behaviour. Wire *one* module (dashboard — a single
-non-paginated `mockDetail`) end to end and fix what breaks.
-
-Also give `BASE_URL` an env override. It is a hardcoded `"/api/v1/admin"`,
-unlike the auth clients which derive origin properly. Fine while the Vite proxy
-makes everything same-origin; breaks the moment admin deploys separately.
-
-**0b. Platform: build the API layer that does not exist.**
-Add `@tanstack/react-query`, then port admin's three primitives — `client.ts`,
-`query-keys.ts`, `mock.ts`. Same envelope, same pagination contract, so the two
-apps stay symmetrical from here on. Keep the mock helpers: they let platform
-modules convert to async *before* their endpoint exists, which is what makes
-the per-domain pairing work.
-
-*Estimate: ~1 week. Everything after depends on it.*
-
----
-
-## The domain sequence
-
-Each domain: **schema → admin API → admin UI → platform API → platform UI.**
-Admin first is not a preference — it is how you get data into the system to
-build the storefront against.
-
-### 1. Catalog (products, categories, brands)
-
-The natural starting point: no dependencies, both apps have real UI, and it
-unblocks everything downstream.
-
-- Schema: `product`, `product_variant`, `category`, `brand`, `collection`
-- Admin: list/detail/create/update — the module is already fully stubbed
-- Platform: category pages, PDP, search, home
-
-**Watch for:** `packages/catalog-model` types were written as the DB's shape but
-no Drizzle table mirrors them yet. Reconcile that first — it is the contract
-both apps already import. Also `sizes[]` must become `product_variant` rows
-(a JSON array cannot be inventory-tracked per hub), while the API keeps
-returning the `sizes` shape the frontend expects.
-
-**Platform's real cost here** is converting `core/data.ts`'s synchronous
-lookups to async. That is the one-time tax Phase 0b sets up.
-
-### 2. Serviceability + hubs
-
-Small, and a hard prerequisite for cart. The pincode gate already blocks
-cart and checkout client-side; it needs a server behind it.
-
-- Schema: `hub`, `zone`, `zone_pincode`, `delivery_slot`
-- Platform: replaces the 8 hardcoded Hyderabad areas
-
-**Note:** the current gate is client-side only. Order placement must
-re-validate server-side regardless.
-
-### 3. Inventory
-
-Do this **after** catalog and **before** cart. Ordering matters: cart needs to
-know what is in stock, and `product.stock` cannot stay a scalar once multi-hub
-is real.
-
-- Schema: `hub_inventory`, `stock_batch`, `stock_ledger`, `inventory_hold`
-- Admin: 3 inventory pages are ComingSoon — real UI work, not just wiring
-
-This is where the two apps stop being symmetric: inventory is almost entirely
-an admin surface. Platform only consumes an availability flag.
-
-### 4. Cart → Order → Payment
-
-The revenue path, and the highest-risk work in the project. Do it as one block,
-not three.
-
-- Schema: `cart`, `order`, `order_item`, `payment`, `coupon`, `webhook_event`
-- Platform: cart and checkout providers move from localStorage to server
-- Admin: order list/detail already have real UI and stubbed APIs
-
-**The hard part is not the endpoints.** It is inventory reservation, order
-idempotency, and Razorpay webhook handling — see the architecture plan's §4.
-Also guest→auth cart merge, which has no equivalent in the current localStorage
-providers: they have no concept of a server round-trip or conflict.
-
-### 5. Account (addresses, profile, babies, wishlist)
-
-Deliberately after checkout. Addresses are needed *by* checkout, so ship a
-minimal address CRUD inside phase 4 and do the rest here.
-
-This is the second localStorage cluster — 7 providers. Treat persistence
-migration as its own workstream with a one-shot import on first authenticated
-boot, not as a per-module afterthought.
-
-### 6. Engagement (reviews, notifications, support, referrals, subscriptions)
-
-Lower risk, independently shippable, parallelisable across people once the
-foundations exist.
-
----
-
-## Where parallelism actually helps
-
-Within a domain, admin and platform are sequential — platform needs data that
-admin creates. **Across** domains they overlap:
-
-```
-        ┌─ Catalog admin ──┬─ Catalog platform ──┐
-Phase 0 ┤                  │                     ├─ Cart/Order/Payment
-        └─ Serviceability ─┴─ Inventory ─────────┘
+```mermaid
+graph TD
+  M0[Module 0: Foundations & Auth] --> M1[Module 1: Catalog, Reviews & Products]
+  M1 --> M2[Module 2: Hubs & Inventory]
+  M2 --> M3[Module 3: Cart, Coupons & Wishlist]
+  M3 --> M4[Module 4: Checkout & Order Flow]
+  M4 --> M5[Module 5: Razorpay Payments & Finance]
+  M5 --> M6[Module 6: Fleet & Dispatch]
+  M6 --> M7[Module 7: Vendors & Supply Chain]
+  M7 --> M8[Module 8: Expenses, Support & Impersonation]
+  M8 --> M9[Module 9: CMS, Marketing & Subscriptions]
 ```
 
-With two people: one on the admin/schema side, one running a domain behind on
-platform. With one person, just follow the order.
+---
 
-**What not to parallelise:** cart, order, and payment. They share the
-reservation and state-machine invariants, and splitting them across people is
-how you get a cancel path that forgets to release stock.
+## 🛠️ Module 0: Foundations & Authentication
+Establish unified API communication and secure session gating on both applications.
+
+### 📋 Prerequisites & Requirements
+* Resend email account credentials.
+* Configured SMTP/API keys for transactional mail.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Secure route check redirects unauthenticated visitors to `/auth/login`.
+  * [ ] Clear auth cache on login/logout to prevent redirection loops.
+  * [ ] "My Profile" settings page displaying active staff details, roles, and resolved system permissions.
+* **Platform Storefront**:
+  * [ ] Shared TanStack Query data layer initialized.
+  * [ ] Secure route check redirects guests from profile/checkout pages.
+  * [ ] Working email and password sign-in and account registration flows.
+  * [ ] Account verification post-registration via email verification tokens.
+  * [ ] Secure self-serve account password reset flows (Forgot Password).
 
 ---
 
-## Two decisions to make now
+## 📦 Module 1: Catalog, Products & Reviews
+Configure product variants, categories, media assets, and user-generated content (reviews).
 
-**1. Are the 43 ComingSoon admin pages in scope?**
-Several sit on modules whose data layer is already built (coupons, payments,
-category new/edit) — those are pure UI work with the plumbing done. Others
-(dispatch, riders, BI, experiments) are whole features with no schema yet.
-Worth splitting explicitly rather than discovering it mid-phase.
+### 📋 Prerequisites & Requirements
+* Cloudflare R2 bucket credentials and CDN domain resolution (`cdn.mumzo.in`).
 
-**2. Does platform keep localStorage as a cache?**
-Two options: server-only (simpler, but the cart empties on a flaky connection),
-or server-backed with localStorage as an offline cache (better UX, needs
-conflict resolution). Decide before phase 4 — it changes the cart provider's
-shape.
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel (Products & Categories)**:
+  * [ ] Active products directory list showing SKUs, variants, prices, MRPs, and stock status.
+  * [ ] Product create/edit forms with support for adding multiple pack size variants (sizes, weight, prices).
+  * [ ] Direct Cloudflare R2 image upload tool on product forms.
+  * [ ] Arched categories tree list with drag-and-drop ordering.
+  * [ ] Category detail panel to add category icons, taglines, branding wash colors, and associate brands.
+* **Admin Panel (UGC Moderation Queue)**:
+  * [ ] Review Moderation Queue list showing submitted ratings, text, and user attachments.
+  * [ ] Approval workflow (Approve / Reject review with reason) before reviews show on customer app.
+  * [ ] Automated spam/profanity screen toggle for reviews.
+* **Platform Storefront (Customer Discovery)**:
+  * [ ] Category shelf grid cards rendering live category names and colors on the Home page.
+  * [ ] Category products page displaying items list with brand, price, and stock filters.
+  * [ ] Product Detail Page (PDP) displaying image sliders, description bullet points, and variant dropdown selector.
+  * [ ] Price metrics display on product cards showing calculated savings (MRP vs current price).
+  * [ ] Age-suitability and ingredients details block on PDP (crucial for baby foods and formulas).
+* **Platform Storefront (UGC Reviews)**:
+  * [ ] Review submission form on PDP (star ratings, title, description, and photo attachments).
+  * [ ] Verified Purchase Badge rendering on reviews made by actual buyers.
+  * [ ] Helpful Vote counter button on product review cards.
 
 ---
 
-## Suggested start
+## 🔋 Module 2: Dark Store Hubs & Real-time Inventory
+Configure physical warehouses (hubs), serviceability zones, and dark store inventory levels.
 
-1. **Phase 0a** — wire admin dashboard to a live `/api/v1/admin/dashboard`.
-   Small, proves `client.ts`, surfaces integration surprises early.
-2. **Phase 0b** — react-query + API layer in platform.
-3. **Catalog schema** — reconcile `packages/catalog-model` with Drizzle tables.
-4. **Catalog admin**, then **catalog platform**.
+### 📋 Prerequisites & Requirements
+* List of serviceable Hyderabad pincodes and corresponding warehouse geographic coordinates.
 
-By the end of that you have one domain running end-to-end through both apps,
-and every later domain is a repeat of a proven shape.
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Dark store hubs management panel (add hub, coordinates, and contact details).
+  * [ ] Pincode mapping tool to assign served pincodes to hubs.
+  * [ ] Real-time inventory grid showing stock quantities per SKU at each hub.
+  * [ ] Stock adjustment modal to log manual additions, returns, or wastage.
+  * [ ] Low-stock alerts dashboard page flagging items below hub reorder points.
+* **Platform Storefront**:
+  * [ ] Pincode gate overlay blocking home page access until a serviceable address is verified.
+  * [ ] Pincode-to-hub mapping check storing the user's active fulfillment warehouse ID.
+  * [ ] Stock check guard changing "Add to Cart" to "Out of Stock" if current hub inventory is 0.
+
+---
+
+## 🛒 Module 3: Cart, Coupons & Wishlist
+Manage device cart state, customer wishlists, and promotional coupons.
+
+### 📋 Prerequisites & Requirements
+* Marketing promo parameters (percentage caps, first-order limits, expiry rules).
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Coupon creator form (code, expiry, flat/percentage values, minimum order values, caps).
+  * [ ] Target setting gates (e.g. Coupon applies only to first orders, or only for "Baby Food" category).
+  * [ ] Coupon redemptions and usage statistics display.
+* **Platform Storefront (Cart & Wishlist)**:
+  * [ ] Offline-first cart persistence using localStorage cache.
+  * [ ] Automatic cart sync logic sending items list to server on user sign-in.
+  * [ ] Customer Wishlist (Save for Later) list with one-click "Move to Cart" button.
+  * [ ] Out-of-stock item warning indicators inside the cart drawer.
+* **Platform Storefront (Promotions)**:
+  * [ ] Promotions field at checkout to type coupon codes.
+  * [ ] Cart progress nudge bar displaying how much more to add for free delivery.
+  * [ ] Bestseller / complementary products recommendations tray in the cart drawer.
+
+---
+
+## 🛍️ Module 4: Checkout & Order Lifecycle
+Validate delivery locations, temporarily hold stock, and process order lifecycles.
+
+### 📋 Prerequisites & Requirements
+* Defined delivery fee rules and minimum order requirements.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Central orders queue with filters for status, date, and hub.
+  * [ ] Order detail page showing purchased items, totals, delivery address, and status timeline.
+  * [ ] Status progression controls (Confirm ➔ Pack ➔ Dispatch ➔ Deliver).
+  * [ ] SLA breach warning indicators showing orders not packed within 5 minutes or not dispatched within 8 minutes.
+* **Platform Storefront**:
+  * [ ] Saved address book CRUD manager with a map pin selector.
+  * [ ] Order summary breakdown displaying Subtotal, Coupons, GST (5%), Delivery Fee, and Final Total.
+  * [ ] Inventory stock lock holding items for 10 minutes during payment checkout.
+  * [ ] Real-time order progress timeline tracking pack and dispatch events.
+  * [ ] Cancellation initiator button (only active before order is packed).
+
+---
+
+## 💳 Module 5: Razorpay Payments & Finance
+Charge customers securely online, automate refunds, and track accounting ledgers.
+
+### 📋 Prerequisites & Requirements
+* Active Razorpay Merchant test/production credentials and Webhook signing secret.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel (Finance & Payments)**:
+  * [ ] Payments transactions auditing table.
+  * [ ] Failed & pending transactions logs dashboard (to recover abandoned checkouts).
+  * [ ] Direct refund initiator button on returned/cancelled order details.
+  * [ ] GST/tax reports exporter tool (filtered by date).
+* **Platform Storefront**:
+  * [ ] Razorpay Checkout SDK popup overlay on payment initiation.
+  * [ ] Signature-verified webhook handler for payment success, failure, and refund events.
+  * [ ] Transaction status redirection screens (Success / Failure feedback).
+  * [ ] Automatic invoice PDF generator available for download on order history.
+
+---
+
+## 🚴 Module 6: Fleet Operations & Delivery Dispatch
+Onboard delivery riders, coordinate shifts, and assign orders for 10-minute dispatch.
+
+### 📋 Prerequisites & Requirements
+* Rider KYC documentation guidelines and fleet zone mapping.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Rider directory showing name, phone, and delivery status (online, delivering, offline).
+  * [ ] Live dispatch board showing ready-to-dispatch orders and idle riders.
+  * [ ] Rider assignment button matching orders to closest idle delivery riders.
+  * [ ] 3PL Delivery Integration (e.g. Shiprocket/Dunzo API fallback) for out-of-zone orders.
+* **Platform Storefront**:
+  * [ ] Order track page displaying rider details (name, phone) once dispatched.
+  * [ ] Customer verification OTP display to show riders upon arrival.
+
+---
+
+## 🤝 Module 7: Vendors, Distributors & Supply Chain
+Manage manufacturers, local distributors, purchase orders, and audit incoming inventory.
+
+### 📋 Prerequisites & Requirements
+* Wholesaler and distributor contact database.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Vendors directory displaying manufacturer/brand details, contact persons, and GSTINs.
+  * [ ] Distributors directory to track regional distribution hubs, delivery lead times, and payment credit terms.
+  * [ ] Purchase Order (PO) builder to draft inventory requests with buying cost prices.
+  * [ ] Goods Received Note (GRN) sheet to confirm received quantities, updating active hub inventory count.
+
+---
+
+## 🧾 Module 8: Expenses, Support & Impersonation
+Track dark store expenditures, resolve customer complaints, and debug user errors.
+
+### 📋 Prerequisites & Requirements
+* Standard operating cost categories (rent, utilities, rider compensation, materials).
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel (Expenses & Support)**:
+  * [ ] Log Expense form to track warehouse expenditures and upload receipt files.
+  * [ ] Rider payouts settlement dashboard to approve or reject weekly rider claims.
+  * [ ] Customer tickets queue listing incoming queries tied to specific order IDs.
+  * [ ] Banning / Unbanning tools on user profiles to block malicious accounts.
+* **Admin Panel (Support Impersonation)**:
+  * [ ] audited Customer Impersonation module (let support staff safely log into the storefront as the customer to debug order/cart errors).
+* **Platform Storefront**:
+  * [ ] Help center / FAQ static pages directory.
+  * [ ] Support tickets initiator form (linked to orders).
+
+---
+
+## 🖼️ Module 9: CMS, Marketing & Subscriptions
+Configure app settings, promotion banners, referral rules, and repeat subscriptions.
+
+### 📋 Prerequisites & Requirements
+* Legal terms drafts and storefront promotional banners asset designs.
+
+### ✅ Deliverables & Verification Checklist
+* **Admin Panel**:
+  * [ ] Storefront banners manager (image upload, display order, target links).
+  * [ ] Feature flags list to enable/disable system features without redeploying.
+  * [ ] Rich-text static page editor for T&C, Refund policies, and Privacy guidelines.
+  * [ ] Subscriptions dashboard listing active recurring orders and upcoming delivery calendar.
+  * [ ] FCM push notifications templates builder and segment-based target broadcasts.
+* **Platform Storefront (Marketing & Subscriptions)**:
+  * [ ] Top header banner carousel slider on the Home page.
+  * [ ] Feature-flag gated client routing.
+  * [ ] "Subscribe & Forget" scheduler on PDPs (weekly, bi-weekly, monthly) with frequency updates.
+  * [ ] Subscription Manager dashboard under profile settings (Pause, Resume, or Edit next delivery date).
+  * [ ] Invite-a-Mom referral rewards program console.
