@@ -8,15 +8,15 @@ ENV SKIP_ENV_VALIDATION=1
 COPY . .
 RUN bun install
 
-# Build the storefront package
-RUN bun run build --filter @mumzo/platform
+# Build the admin package
+RUN bun run build --filter @mumzo/admin
 ENV SKIP_ENV_VALIDATION=
 
 # Step 2: Serve using Nginx
 FROM nginx:alpine
-COPY --from=builder /app/apps/platform/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/admin/dist /usr/share/nginx/html
 
 # Copy Nginx template to handle HTML5 client-side routing and dynamic Railway PORT variable
-COPY apps/platform/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY apps/admin/nginx.conf.template /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
