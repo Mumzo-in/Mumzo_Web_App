@@ -1,5 +1,6 @@
 import { Toaster } from "@mumzo/ui/components/sonner";
 import { TooltipProvider } from "@mumzo/ui/components/tooltip";
+import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   HeadContent,
@@ -20,7 +21,9 @@ import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
 import { TicketProvider } from "@/modules/support";
 import { WishlistProvider } from "@/modules/wishlist";
 
-export type RouterAppContext = {};
+export type RouterAppContext = {
+  queryClient: QueryClient;
+};
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,

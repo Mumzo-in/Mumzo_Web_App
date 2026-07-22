@@ -13,11 +13,12 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
-    "@mumzo/catalog-model": "workspace:*",
     "@mumzo/env": "workspace:*",
+    "@mumzo/schema": "workspace:*",
     "@mumzo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-form": "^1.33.0",
+    "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-router": "^1.170.17",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

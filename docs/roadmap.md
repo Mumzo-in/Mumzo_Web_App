@@ -30,15 +30,18 @@ Establish unified API communication and secure session gating on both applicatio
 
 ### ✅ Deliverables & Verification Checklist
 * **Admin Panel**:
-  * [ ] Secure route check redirects unauthenticated visitors to `/auth/login`.
-  * [ ] Clear auth cache on login/logout to prevent redirection loops.
-  * [ ] "My Profile" settings page displaying active staff details, roles, and resolved system permissions.
-* **Platform Storefront**:
-  * [ ] Shared TanStack Query data layer initialized.
-  * [ ] Secure route check redirects guests from profile/checkout pages.
-  * [ ] Working email and password sign-in and account registration flows.
-  * [ ] Account verification post-registration via email verification tokens.
-  * [ ] Secure self-serve account password reset flows (Forgot Password).
+  * [x] Secure route check redirects unauthenticated visitors to `/auth/login`.
+  * [x] Clear auth cache on login/logout to prevent redirection loops.
+  * [x] "My Profile" settings page displaying active staff details, roles, and resolved system permissions.
+* **Platform Storefront** (phone + OTP only — there is no email/password identity on this
+  app, so registration/email-verification/forgot-password by email do not apply):
+  * [x] Shared TanStack Query data layer initialized.
+  * [x] Secure route check redirects guests from profile/checkout pages.
+  * [x] Working phone + OTP sign-in flow (unified sign-in/sign-up via Better Auth's
+    `phoneNumber` plugin — no separate registration step needed).
+
+> Module 0 is done for both apps under the phone-OTP scope. Skipping straight to
+> **Module 1: Catalog, Products & Reviews** next.
 
 ---
 
@@ -55,6 +58,8 @@ Configure product variants, categories, media assets, and user-generated content
   * [ ] Direct Cloudflare R2 image upload tool on product forms.
   * [ ] Arched categories tree list with drag-and-drop ordering.
   * [ ] Category detail panel to add category icons, taglines, branding wash colors, and associate brands.
+  * [ ] Brands directory to organize products under manufacturers.
+  * [ ] Bundles & Combos manager to package multi-product deals with discount pricing.
 * **Admin Panel (UGC Moderation Queue)**:
   * [ ] Review Moderation Queue list showing submitted ratings, text, and user attachments.
   * [ ] Approval workflow (Approve / Reject review with reason) before reviews show on customer app.

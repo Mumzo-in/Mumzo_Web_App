@@ -44,6 +44,10 @@ function OrderDetailPage() {
   const meta = STATUS_META[order.status];
 
   const reorder = () => {
+    // `order` itself comes from the mock `findOrder` — a fully mock order
+    // history, not a real one — so resolving its line items back to a
+    // product for "reorder" stays on the mock catalog too, consistent with
+    // `@/modules/orders/data/order-data.ts`. Revisit once orders are real.
     let added = 0;
     for (const item of order.items) {
       const product = findProduct(item.id);

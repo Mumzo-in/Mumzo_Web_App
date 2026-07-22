@@ -1,5 +1,7 @@
+import { Button } from "@mumzo/ui/components/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import Loader from "@/core/components/loader";
@@ -7,9 +9,10 @@ import PageHeader from "@/core/components/page-header";
 import {
   getProduct,
   ProductForm,
+  type ProductFormHandle,
   type ProductInput,
   updateProduct,
-} from "@/modules/catalog-products";
+} from "@/modules/catalog/products";
 
 export const Route = createFileRoute(
   "/(admin)/catalog/products/$productId/edit",
@@ -21,6 +24,8 @@ function EditProductPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const formRef = useRef<ProductFormHandle>(null);
+  const [pending, setPending] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: queryKeys.products.detail(productId),
@@ -44,10 +49,25 @@ function EditProductPage() {
   return (
     <>
       <PageHeader
-        title={`Edit ${product.name}`}
+        actions={
+          <Button
+            data-testid="admin-product-submit-header"
+            disabled={pending}
+            onClick={() => formRef.current?.submit()}
+            type="button"
+          >
+            {pending ? "Saving…" : "Save changes"}
+          </Button>
+        }
         description={`${product.sku} · ${product.brand}`}
+        title={`Edit ${product.name}`}
       />
-      <ProductForm product={product} onSubmit={handleUpdate} />
+      <ProductForm
+        onPendingChange={setPending}
+        onSubmit={handleUpdate}
+        product={product}
+        ref={formRef}
+      />
     </>
   );
 }

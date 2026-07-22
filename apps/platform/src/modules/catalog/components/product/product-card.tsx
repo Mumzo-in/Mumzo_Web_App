@@ -1,4 +1,4 @@
-import { discountPct } from "@mumzo/catalog-model";
+import { discountPct } from "@mumzo/schema";
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Heart, Minus, Plus, Star } from "lucide-react";

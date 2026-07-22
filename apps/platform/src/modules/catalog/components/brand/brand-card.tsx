@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 
-import type { Brand } from "../../data/brand-data";
+import type { PublicBrand } from "../../api/brands-api";
 
-export default function BrandCard({ brand }: { brand: Brand }) {
+export default function BrandCard({ brand }: { brand: PublicBrand }) {
   return (
     <Link
       to="/brand/$brand"

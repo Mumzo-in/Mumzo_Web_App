@@ -4,7 +4,7 @@
  * SuperAdmin can drive which sorts/filters a category exposes later without
  * touching UI.
  */
-import { discountPct } from "@mumzo/catalog-model";
+import { discountPct } from "@mumzo/schema";
 import type { Product } from "@/core/data";
 import {
   type AgeGroup,
@@ -126,6 +126,33 @@ export function applyCategoryFilters(
     default:
       return list;
   }
+}
+
+/**
+ * `/search` only — filters the public products API genuinely doesn't
+ * support yet (`ages`, `types`: derived client-side from a per-product
+ * attribute map, see `product-attributes.ts`, so the API has nothing to
+ * filter on). `sort`/`brands`/`sizes`/`maxPrice`/`search`/`categorySlug` are
+ * all pushed server-side via `productsQueryOptions` and must NOT be
+ * reapplied here — the rows this runs over are already filtered/sorted by
+ * the API.
+ */
+export function applyClientOnlyFilters(
+  products: Product[],
+  state: Pick<CategoryFilterState, "ages" | "types">,
+): Product[] {
+  let list = products;
+
+  if (state.ages.length > 0) {
+    list = list.filter((p) =>
+      productAges(p).some((age) => state.ages.includes(age)),
+    );
+  }
+  if (state.types.length > 0) {
+    list = list.filter((p) => state.types.includes(productType(p)));
+  }
+
+  return list;
 }
 
 export const rupee = (n: number): string =>

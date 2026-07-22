@@ -1,5 +1,4 @@
 import {
-  Building2,
   LayoutDashboard,
   type LucideIcon,
   Receipt,
@@ -75,12 +74,19 @@ export const NAV_SECTIONS: NavSection[] = [
         items: [
           { label: "Products", to: "/catalog/products" },
           { label: "Categories", to: "/catalog/categories" },
+          { label: "Brands", to: "/catalog/brands" },
+          { label: "Vendors", to: "/catalog/vendors" },
+          {
+            label: "Bundles & Combos",
+            to: "/catalog/bundles",
+            comingSoon: true,
+          },
         ],
       },
       {
         label: "Dark Store",
         items: [
-          { label: "Inventory", to: "/catalog/inventory", comingSoon: true },
+          { label: "Inventory", to: "/catalog/inventory" },
           {
             label: "Riders & Dispatch",
             to: "/operations/dispatch",
@@ -111,30 +117,6 @@ export const NAV_SECTIONS: NavSection[] = [
         label: "System",
         items: [
           { label: "Feature Flags", to: "/platform/flags", comingSoon: true },
-        ],
-      },
-    ],
-  },
-  {
-    id: "vendors",
-    label: "Vendors",
-    icon: Building2,
-    to: "/vendors",
-    groups: [
-      {
-        label: "Supply Chain",
-        items: [
-          { label: "Vendors", to: "/vendors", comingSoon: true },
-          {
-            label: "Distributors",
-            to: "/vendors/distributors",
-            comingSoon: true,
-          },
-          {
-            label: "Purchase Orders",
-            to: "/vendors/purchase-orders",
-            comingSoon: true,
-          },
         ],
       },
     ],

@@ -1,17 +1,20 @@
-import { discountPct } from "@mumzo/catalog-model";
+import { discountPct } from "@mumzo/schema";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck, Clock, Leaf } from "lucide-react";
+import { useMemo } from "react";
 import SectionHeader from "@/core/components/section-header";
 import {
   BrandCard,
-  brands,
+  brandsQueryOptions,
   CategoryCard,
   CollectionCard,
-  categories,
+  categoriesQueryOptions,
   collections,
   ProductCard,
   ProductRail,
-  products,
+  productsQueryOptions,
+  toProduct,
 } from "@/modules/catalog";
 import { HeroCarousel } from "@/modules/home";
 import { OffersStrip } from "@/modules/offers";
@@ -43,6 +46,15 @@ function SeeAll({ cat, label = "See all" }: { cat: string; label?: string }) {
 }
 
 function HomePage() {
+  const { data: categories = [] } = useQuery(categoriesQueryOptions);
+  const { data: brands = [] } = useQuery(brandsQueryOptions);
+  // One generous live page backs all three rails below — the catalog is
+  // small enough today that a single fetch beats three separate ones.
+  const { data: productsPage } = useQuery(productsQueryOptions({ limit: 60 }));
+  const products = useMemo(
+    () => (productsPage?.data ?? []).map(toProduct),
+    [productsPage],
+  );
   const bestsellers = products.filter((p) => p.isBestseller).slice(0, 10);
   const topDeals = [...products]
     .filter((p) => discountPct(p) > 0)
@@ -50,6 +62,8 @@ function HomePage() {
     .slice(0, 10);
   // Two rows of the responsive grid (5 per row at lg).
   const picks = products.slice(0, 10);
+  // Falls back to an unfiltered search while categories are still loading.
+  const firstCategorySlug = categories[0]?.slug ?? "";
 
   return (
     <div className="pb-16">
@@ -102,7 +116,7 @@ function HomePage() {
         <SectionHeader
           kicker="Save big"
           title="Top deals today"
-          action={<SeeAll cat={categories[0].slug} />}
+          action={<SeeAll cat={firstCategorySlug} />}
         />
         <ProductRail products={topDeals} />
       </section>
@@ -129,7 +143,7 @@ function HomePage() {
         <SectionHeader
           kicker="Loved by mumzos"
           title="Bestsellers this week"
-          action={<SeeAll cat={categories[0].slug} />}
+          action={<SeeAll cat={firstCategorySlug} />}
         />
         <ProductRail products={bestsellers} />
       </section>
@@ -187,7 +201,7 @@ function HomePage() {
         <div className="mt-8 flex justify-center">
           <Link
             to="/search"
-            search={{ cat: categories[0].slug }}
+            search={{ cat: firstCategorySlug }}
             className="rounded-full border border-primary/30 px-8 py-3 font-semibold text-primary text-sm transition-colors hover:bg-primary/5"
           >
             View more products

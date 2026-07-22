@@ -1,4 +1,5 @@
-import { productsInCategory } from "../../index";
+import { useQuery } from "@tanstack/react-query";
+import { productsByCategoryQueryOptions, toProduct } from "../../index";
 import RecommendationCard from "./recommendation-card";
 
 interface RelatedProductsProps {
@@ -10,7 +11,11 @@ export default function RelatedProducts({
   categorySlug,
   currentProductId,
 }: RelatedProductsProps) {
-  const related = productsInCategory(categorySlug)
+  const { data: page } = useQuery(
+    productsByCategoryQueryOptions(categorySlug, { limit: 5 }),
+  );
+  const related = (page?.data ?? [])
+    .map(toProduct)
     .filter((p) => p.id !== currentProductId)
     .slice(0, 4);
 

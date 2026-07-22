@@ -22,6 +22,34 @@
       "when": 1784580034745,
       "tag": "0002_cloudy_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784666252591,
+      "tag": "0003_same_rick_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784669748305,
+      "tag": "0004_tidy_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784703996698,
+      "tag": "0005_safe_mach_iv",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784704615567,
+      "tag": "0006_add_pg_trgm_fuzzy_search",
+      "breakpoints": true
     }
   ]
 }

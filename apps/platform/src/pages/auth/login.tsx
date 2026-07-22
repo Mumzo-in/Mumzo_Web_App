@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { SignInForm } from "@/modules/auth";
 
 export const Route = createFileRoute("/auth/login")({
@@ -6,11 +6,9 @@ export const Route = createFileRoute("/auth/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border/60 bg-white shadow-warm">
-      <SignInForm onSwitchToSignUp={() => navigate({ to: "/auth/register" })} />
+      <SignInForm />
     </div>
   );
 }

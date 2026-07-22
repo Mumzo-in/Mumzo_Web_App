@@ -120,6 +120,19 @@ export const authClient = createAuthClient({
 | `GET` | `/api/v1/categories/:slug/brands` | All brands available in category |
 | `GET` | `/api/v1/categories/:slug/sizes` | Available sizes in category |
 
+> **Deviation from the original plan:** brands also get their own top-level,
+> first-class endpoints — `GET /api/v1/brands` (active brands, public fields:
+> `slug`, `name`, `logoUrl`, `productCount` — internal `id` dropped) and
+> `GET /api/v1/brands/:slug` (single brand by its real DB slug). These are
+> distinct from `/api/v1/categories/:slug/brands` above, which stays a
+> category-scoped filter facet (brand *names* only, for the category filter
+> panel). The standalone endpoints exist because the storefront has its own
+> brand directory/detail pages and the admin models `Brand` as a real entity
+> (with a logo) independent of any category — see
+> `apps/server/src/modules/platform/v1/brands/`. A later pass may add
+> `GET /api/v1/brands/:slug/products` for the brand detail page's product
+> listing; not built yet.
+
 ---
 
 ## 4. Products (`/api/v1/products`)

@@ -1,27 +1,84 @@
+import { Skeleton } from "@mumzo/ui/components/skeleton";
+import { cn } from "@mumzo/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import Breadcrumbs, {
   type BreadcrumbItem,
 } from "@/core/components/breadcrumbs";
 import {
-  applyCategoryFilters,
+  applyClientOnlyFilters,
   CategoryFilterDialog,
   CategoryFilterPanel,
   type CategoryFilterState,
   CategorySort,
-  findCategory,
+  categoriesQueryOptions,
   getCategoryFacets,
   initialFilterState,
+  PRICE_MAX,
   ProductCard,
-  products,
+  productsQueryOptions,
+  toProduct,
 } from "@/modules/catalog";
+import type { AgeGroup } from "@/modules/catalog/data/product-attributes";
 
+/** Comma-joined list ↔ string[] — matches the convention already used to
+ * send `brands`/`sizes` to the API (`products-api.ts`'s `.join(",")`). */
+function csv(value: string | undefined): string[] {
+  return value
+    ? value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean)
+    : [];
+}
+
+const SORT_KEYS = [
+  "relevance",
+  "price_asc",
+  "price_desc",
+  "discount",
+  "rating",
+] as const;
+
+const AGE_KEYS = ["0-6m", "6-12m", "1-2y", "2-4y", "4y+", "mom"] as const;
+
+/**
+ * Every filter/search/sort control on this page lives in the URL, not local
+ * state — shareable/bookmarkable/back-button-correct. Every field stays
+ * optional (no defaults baked in here) so `<Link to="/search" search={{ cat }}>`
+ * elsewhere in the app (footer, home, PDP breadcrumb, header search bar)
+ * keeps working with a partial search object — `toFilterState` below fills
+ * in `initialFilterState` defaults for actual use inside this page. Arrays
+ * serialize as comma-joined strings, consistent with how `products-api.ts`
+ * already sends `brands`/`sizes` to the API.
+ */
 const searchParamsSchema = z.object({
   q: z.string().optional(),
   cat: z.string().optional(),
+  sort: z.enum(SORT_KEYS).optional(),
+  ages: z.string().optional(),
+  brands: z.string().optional(),
+  sizes: z.string().optional(),
+  types: z.string().optional(),
+  maxPrice: z.coerce.number().int().positive().optional(),
 });
+
+type SearchParams = z.infer<typeof searchParamsSchema>;
+
+/** Stable keys for the loading skeleton grid — never reordered. */
+const SKELETON_KEYS = [
+  "sk-1",
+  "sk-2",
+  "sk-3",
+  "sk-4",
+  "sk-5",
+  "sk-6",
+  "sk-7",
+  "sk-8",
+];
 
 export const Route = createFileRoute("/(store)/search")({
   validateSearch: (search: Record<string, unknown>) =>
@@ -29,46 +86,140 @@ export const Route = createFileRoute("/(store)/search")({
   component: SearchPage,
 });
 
+/** URL search params → the shared `CategoryFilterState` shape the filter
+ * panel/dialog/sort components already render against — fills in
+ * `initialFilterState` defaults for whatever's absent from the URL (every
+ * field is optional in `searchParamsSchema` so other routes can link here
+ * with a partial search object). Brand values here are *slugs* (server/URL
+ * identity); translated to display names for the panel via `panelState`
+ * below, since facets/checkboxes key on display name. */
+function toFilterState(search: SearchParams): CategoryFilterState {
+  return {
+    sort: search.sort ?? initialFilterState.sort,
+    ages: csv(search.ages).filter((a): a is AgeGroup =>
+      (AGE_KEYS as readonly string[]).includes(a),
+    ),
+    brands: csv(search.brands),
+    sizes: csv(search.sizes),
+    types: csv(search.types),
+    maxPrice: search.maxPrice ?? initialFilterState.maxPrice,
+  };
+}
+
 function SearchPage() {
-  const { q, cat } = Route.useSearch();
-  const category = cat ? findCategory(cat) : null;
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { q, cat } = search;
 
-  const [filters, setFilters] =
-    useState<CategoryFilterState>(initialFilterState);
+  const { data: categories = [] } = useQuery(categoriesQueryOptions);
+  const category = cat
+    ? (categories.find((c) => c.slug === cat) ?? null)
+    : null;
 
-  // Reset filters when query or category changes
-  useEffect(() => {
-    setFilters(initialFilterState);
-  }, []);
-
-  // 1. Filter products based on search keyword 'q' and category slug 'cat'
-  const allProducts = useMemo(() => {
-    let list = products;
-    if (cat) {
-      list = list.filter((p) => p.categorySlug === cat);
-    }
-    if (q) {
-      const query = q.toLowerCase().trim();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.brand.toLowerCase().includes(query) ||
-          p.categorySlug.toLowerCase().includes(query),
-      );
-    }
-    return list;
-  }, [q, cat]);
-
-  // 2. Derive filter facets (age, brand, size, type) from matching products
-  const facets = useMemo(() => getCategoryFacets(allProducts), [allProducts]);
-
-  // 3. Apply active filters and sorting options to the matches list
-  const filtered = useMemo(
-    () => applyCategoryFilters(allProducts, filters),
-    [allProducts, filters],
+  // Facet query — cat + search only, unfiltered by sort/brand/price/size, so
+  // facets (and the brand slug↔name map) reflect the *whole* matching set,
+  // not just what's currently selected.
+  const { data: facetPage } = useQuery(
+    productsQueryOptions({ categorySlug: cat, search: q, limit: 100 }),
+  );
+  const facetProducts = useMemo(
+    () => (facetPage?.data ?? []).map(toProduct),
+    [facetPage],
+  );
+  const facets = useMemo(
+    () => getCategoryFacets(facetProducts),
+    [facetProducts],
   );
 
-  // 4. Construct dynamic breadcrumb trail
+  // Brand slugs are the URL/API identity; the filter panel's checkboxes key
+  // on display name (from `getCategoryFacets`) — bridge the two.
+  const brandSlugToName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of facetProducts) {
+      map.set(p.brandId, p.brand);
+    }
+    return map;
+  }, [facetProducts]);
+  const brandNameToSlug = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [slug, name] of brandSlugToName) {
+      map.set(name, slug);
+    }
+    return map;
+  }, [brandSlugToName]);
+
+  const filters = useMemo(() => toFilterState(search), [search]);
+  // Panel/dialog compare against display names — translate URL slugs.
+  const panelState: CategoryFilterState = useMemo(
+    () => ({
+      ...filters,
+      brands: filters.brands
+        .map((slug) => brandSlugToName.get(slug))
+        .filter((name): name is string => Boolean(name)),
+    }),
+    [filters, brandSlugToName],
+  );
+
+  /** Writes the full filter state back to the URL. `replace: true` so
+   * filter tweaks don't spam back-button history — only the initial
+   * category/search navigation (via `CategoryCard`/`CategoryLink`/the
+   * header search box, all outside this page) pushes a normal entry. */
+  const updateFilters = (next: CategoryFilterState) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        sort: next.sort,
+        ages: next.ages.length > 0 ? next.ages.join(",") : undefined,
+        brands:
+          next.brands.length > 0
+            ? next.brands
+                .map((name) => brandNameToSlug.get(name) ?? name)
+                .join(",")
+            : undefined,
+        sizes: next.sizes.length > 0 ? next.sizes.join(",") : undefined,
+        types: next.types.length > 0 ? next.types.join(",") : undefined,
+        maxPrice: next.maxPrice < PRICE_MAX ? next.maxPrice : undefined,
+      }),
+      replace: true,
+    });
+  };
+
+  const updateSort = (sort: CategoryFilterState["sort"]) =>
+    updateFilters({ ...filters, sort });
+
+  const selectCategory = (slug: string | undefined) => {
+    navigate({
+      search: (prev) => ({ ...prev, cat: slug }),
+      replace: true,
+    });
+  };
+
+  // Live products for this category/search — server now applies
+  // categorySlug/search/sort/brands(slugs)/sizes/maxPrice. Only `ages`/
+  // `types` still run client-side (the public API has no facet for them
+  // yet — see `applyClientOnlyFilters`'s doc comment).
+  const { data: page, isLoading } = useQuery(
+    productsQueryOptions({
+      categorySlug: cat,
+      search: q,
+      sort: filters.sort,
+      brands: filters.brands,
+      sizes: filters.sizes,
+      maxPrice: filters.maxPrice < PRICE_MAX ? filters.maxPrice : undefined,
+      limit: 100,
+    }),
+  );
+
+  const serverFiltered = useMemo(
+    () => (page?.data ?? []).map(toProduct),
+    [page],
+  );
+  const filtered = useMemo(
+    () => applyClientOnlyFilters(serverFiltered, filters),
+    [serverFiltered, filters],
+  );
+
+  // Construct dynamic breadcrumb trail
   const breadcrumbItems = useMemo(() => {
     const base: BreadcrumbItem[] = [{ label: "Home", to: "/" }];
     if (category) {
@@ -95,7 +246,7 @@ function SearchPage() {
   return (
     <div
       data-testid="web-category-page"
-      className="mx-auto max-w-[1280px] px-2 pt-8 pb-8 md:px-0 md:pb-0"
+      className="mx-auto max-w-7xl px-2 pt-8 pb-8 md:px-0 md:pb-0"
     >
       <Breadcrumbs items={breadcrumbItems} />
 
@@ -111,21 +262,57 @@ function SearchPage() {
         </div>
         <CategorySort
           value={filters.sort}
-          onChange={(sort) => setFilters({ ...filters, sort })}
+          onChange={updateSort}
           className="hidden lg:block"
         />
       </div>
 
+      {/* Category chips — inline switcher, no full navigation away from
+          /search. Highlights the active category via the `cat` param. */}
+      {categories.length > 0 && (
+        <div
+          data-testid="web-category-nav"
+          className="mt-6 flex gap-2 overflow-x-auto pb-1"
+        >
+          <button
+            type="button"
+            onClick={() => selectCategory(undefined)}
+            data-testid="web-category-chip-all"
+            className={cn(
+              "shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-2 font-medium text-sm transition-colors",
+              !cat
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border/70 bg-card text-foreground hover:border-primary",
+            )}
+          >
+            All
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => selectCategory(c.slug)}
+              data-testid={`web-category-chip-${c.slug}`}
+              className={cn(
+                "shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-2 font-medium text-sm transition-colors",
+                cat === c.slug
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/70 bg-card text-foreground hover:border-primary",
+              )}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Mobile toolbar — sort + filter inline (filters open in a dialog) */}
       <div className="mt-4 grid grid-cols-2 gap-2 md:px-4 lg:hidden">
-        <CategorySort
-          value={filters.sort}
-          onChange={(sort) => setFilters({ ...filters, sort })}
-        />
+        <CategorySort value={filters.sort} onChange={updateSort} />
         <CategoryFilterDialog
           facets={facets}
-          state={filters}
-          onChange={setFilters}
+          state={panelState}
+          onChange={updateFilters}
           resultCount={filtered.length}
         />
       </div>
@@ -135,13 +322,19 @@ function SearchPage() {
         <aside className="hidden h-fit self-start lg:sticky lg:top-24 lg:block">
           <CategoryFilterPanel
             facets={facets}
-            state={filters}
-            onChange={setFilters}
+            state={panelState}
+            onChange={updateFilters}
             className="rounded-3xl border border-border/60 bg-card p-6"
           />
         </aside>
 
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="grid 3xl:grid-cols-4 grid-cols-2 gap-5 md:grid-cols-3">
+            {SKELETON_KEYS.map((key) => (
+              <Skeleton key={key} className="aspect-square rounded-2xl" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="rounded-3xl border border-border/40 bg-accent/20 p-12 text-center">
             <p className="font-editorial text-2xl text-ink">Nothing matches</p>
             <p className="mt-1 text-foreground/60 text-sm">
@@ -150,7 +343,7 @@ function SearchPage() {
             <button
               type="button"
               onClick={() =>
-                setFilters({ ...initialFilterState, sort: filters.sort })
+                updateFilters({ ...initialFilterState, sort: filters.sort })
               }
               className="mt-4 cursor-pointer rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
             >

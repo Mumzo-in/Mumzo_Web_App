@@ -3,16 +3,31 @@ import {
   type CategorySlug,
   type Product,
   slugify,
-} from "@mumzo/catalog-model";
+} from "@mumzo/schema";
 
 // Re-exported so the 17 existing `@/core/data` importers keep working — the
 // types just come from the shared model now.
 export type { Category, CategorySlug, Product };
 
 /**
- * Mock catalogue for the storefront.
+ * Mock product catalogue for the storefront. Categories used to live here
+ * too but are now fetched live — see `@/modules/catalog`'s
+ * `categoriesQueryOptions` (backed by `GET /api/v1/categories`).
  *
- * Types now come from `@mumzo/catalog-model` — the same shape the admin
+ * Products are now live too, for the core catalog-browsing path (home
+ * rails, `/search`, PDP, related products) — see `@/modules/catalog`'s
+ * `productsQueryOptions`/`productQueryOptions`/`productsByCategoryQueryOptions`
+ * (backed by `GET /api/v1/products`) and `toProduct()`, which adapts the
+ * public wire shape into this same `Product` type so `ProductCard`/cart/
+ * wishlist don't need to change.
+ *
+ * What's left on this mock array: cart, wishlist, coupons/offers and order
+ * history — those are still mock end-to-end (no real cart/order persisted
+ * yet), so resolving a mock cart-item/order-line id to a `Product` for
+ * display still goes through `findProduct`/`productsInCategory` here. Wiring
+ * those to live data is follow-up work once carts/orders are real.
+ *
+ * Types now come from `@mumzo/schema` — the same shape the admin
  * authors — so a product created in the admin is one this app can render.
  * Previously each app had its own `Product` and they disagreed on nearly
  * every field.
@@ -30,119 +45,6 @@ export interface Offer {
   cap?: number;
   category?: string;
 }
-
-export const categories: Category[] = [
-  {
-    slug: "baby-essentials",
-    name: "Baby essentials",
-    tagline: "Wipes, cotton, sanitiser",
-    img: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=400&q=70",
-    color: "#FCE1E6",
-    brands: ["Pampers", "Mumzo", "Himalaya", "Sebamed"],
-    position: 1,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "baby-food",
-    name: "Baby food",
-    tagline: "Purées, snacks, formula",
-    img: "https://images.unsplash.com/photo-1633306002612-cbb98bb0a65d?w=400&q=70",
-    color: "#F1B3C2",
-    brands: ["Nestlé", "Gerber", "Slurrp Farm", "Timios"],
-    position: 2,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "bath-skin",
-    name: "Bath & shampoo",
-    tagline: "Soaps, oils, lotions",
-    img: "https://images.unsplash.com/photo-1616627454801-51b7c37ac547?w=400&q=70",
-    color: "#FDF1EC",
-    brands: ["Johnson's", "Mamaearth", "The Moms Co.", "Chicco"],
-    position: 3,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "diapers",
-    name: "Diapers",
-    tagline: "All sizes, in stock",
-    img: "https://images.unsplash.com/photo-1615397587950-3cbb55f95b77?w=400&q=70",
-    color: "#FCE1E6",
-    brands: ["Pampers", "Huggies", "MamyPoko", "Mumzo"],
-    position: 4,
-    isActive: true,
-    hasSizes: true,
-  },
-  {
-    slug: "clothing",
-    name: "Clothing 0–5Y",
-    tagline: "Onesies, sets, sleepwear",
-    img: "https://images.unsplash.com/photo-1622290319146-7b63df48a635?w=400&q=70",
-    color: "#F1B3C2",
-    brands: ["Mothercare", "Carter's", "Mini Klub", "H&M Kids"],
-    position: 5,
-    isActive: true,
-    hasSizes: true,
-  },
-  {
-    slug: "toys",
-    name: "Toys & learning",
-    tagline: "Wooden, sensory, safe",
-    img: "https://images.unsplash.com/photo-1600978398568-48175fd97cce?w=400&q=70",
-    color: "#FDF1EC",
-    brands: ["Chicco", "Fisher-Price", "Skola", "Shumee"],
-    position: 6,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "feeding",
-    name: "Feeding",
-    tagline: "Bottles, bibs, sippers",
-    img: "https://images.unsplash.com/photo-1580982172477-8f36f9c96b3d?w=400&q=70",
-    color: "#FCE1E6",
-    brands: ["Philips Avent", "Chicco", "MAM", "Pigeon"],
-    position: 7,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "health",
-    name: "Health & wellness",
-    tagline: "Thermometers, nasal, meds",
-    img: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400&q=70",
-    color: "#F1B3C2",
-    brands: ["Himalaya", "Dabur", "Cetaphil", "Sebamed"],
-    position: 8,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "mom-care",
-    name: "Mom care",
-    tagline: "Pregnancy & post-natal",
-    img: "https://images.unsplash.com/photo-1522008693277-086ad6075b78?w=400&q=70",
-    color: "#FDF1EC",
-    brands: ["The Moms Co.", "Mamaearth", "Blue Nectar"],
-    position: 9,
-    isActive: true,
-    hasSizes: false,
-  },
-  {
-    slug: "nursery",
-    name: "Nursery & sleep",
-    tagline: "Sleepwear, blankets",
-    img: "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=400&q=70",
-    color: "#FCE1E6",
-    brands: ["Mothercare", "Mee Mee", "Mumzo"],
-    position: 10,
-    isActive: true,
-    hasSizes: true,
-  },
-];
 
 /**
  * Builds a mock product. Keeps the original call signature so the 34 entries
@@ -168,6 +70,12 @@ const P = (
   categorySlug,
   name,
   brand,
+  // Mock-only stand-in — the platform doesn't read from the real `brand`
+  // table yet (see docs/roadmap.md, Module 1 phase 2). A real brandId is a
+  // DB uuid; this just keeps the mock Product shape valid until then.
+  brandId: slugify(brand),
+  vendor: null,
+  vendorId: null,
   price,
   mrp,
   costPrice: null,
@@ -618,8 +526,9 @@ export const offers: Offer[] = [
   },
 ];
 
-export const findCategory = (slug: string): Category | undefined =>
-  categories.find((c) => c.slug === slug);
+// `findCategory` was removed once every importer moved to the live
+// `categoriesQueryOptions` in `@/modules/catalog` (backed by
+// `GET /api/v1/categories`) — see that module's `api/categories-api.ts`.
 
 export const findProduct = (id: string): Product | undefined =>
   products.find((p) => p.id === id);

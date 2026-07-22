@@ -1,9 +1,10 @@
 import { Button } from "@mumzo/ui/components/button";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
 import { useCart } from "@/modules/cart";
-import { CategoryLink, categories } from "@/modules/catalog";
+import { CategoryLink, categoriesQueryOptions } from "@/modules/catalog";
 import { LocationSelector, useServiceability } from "@/modules/location";
 import { SearchBar } from "@/modules/search";
 import MumzoLogo from "./mumzo-logo";
@@ -13,6 +14,7 @@ export default function Header() {
   const { totals } = useCart();
   const { openModal } = useModalStore();
   const { query: currentLoc } = useServiceability();
+  const { data: categories = [] } = useQuery(categoriesQueryOptions);
 
   return (
     /* Top nav */

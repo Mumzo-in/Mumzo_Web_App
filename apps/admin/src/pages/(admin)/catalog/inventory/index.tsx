@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ComingSoon from "@/core/components/coming-soon";
 import PageHeader from "@/core/components/page-header";
+import { InventoryTable } from "@/modules/catalog/inventory";
 
 export const Route = createFileRoute("/(admin)/catalog/inventory/")({
   component: RouteComponent,
@@ -13,12 +13,7 @@ function RouteComponent() {
         title="Inventory"
         description="Per-hub stock across the dark-store network."
       />
-      <ComingSoon
-        title="Inventory"
-        description="Per-hub stock across the dark-store network."
-        phase={2}
-        needsApiSpec
-      />
+      <InventoryTable />
     </>
   );
 }

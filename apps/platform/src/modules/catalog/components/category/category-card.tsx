@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import type { Category } from "../../index";
+import type { PublicCategory } from "../../index";
 
 interface CategoryCardProps {
-  category: Category;
+  category: PublicCategory;
 }
 
 export default function CategoryCard({ category }: CategoryCardProps) {
@@ -12,14 +12,16 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       search={{ cat: category.slug }}
       data-testid={`web-cat-${category.slug}`}
       className="group relative aspect-[1/1.05] overflow-hidden rounded-2xl border border-border/50 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(31,27,58,0.10)]"
-      style={{ background: category.color }}
+      style={{ background: category.color ?? undefined }}
     >
-      <img
-        src={category.img}
-        alt={category.name}
-        loading="lazy"
-        className="absolute right-[-8%] bottom-[-6%] h-[62%] w-[70%] rounded-2xl object-cover shadow-md transition-transform duration-500 group-hover:scale-105"
-      />
+      {category.img ? (
+        <img
+          src={category.img}
+          alt={category.name}
+          loading="lazy"
+          className="absolute right-[-8%] bottom-[-6%] h-[62%] w-[70%] rounded-2xl object-cover shadow-md transition-transform duration-500 group-hover:scale-105"
+        />
+      ) : null}
       <div className="relative p-4">
         <p className="text-[10px] text-foreground/60 uppercase tracking-widest">
           Shelf

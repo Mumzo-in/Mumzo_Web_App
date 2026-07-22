@@ -1,5 +1,14 @@
 import { type Product, products } from "@/core/data";
 
+/**
+ * Left on the mock catalog: each collection's `productIds` below is a
+ * hand-picked list of the *mock* product ids (e.g. "wet-wipes-99"), not
+ * real DB ids/slugs. Swapping `productsInCollection` to live data needs each
+ * collection re-curated against real seeded product slugs first — a content
+ * task, not a wiring one — so it's left for a follow-up pass rather than
+ * bundled into this one. Collections aren't on the must-fix browsing path
+ * (search/PDP/home rails); worth revisiting once curated.
+ */
 export interface Collection {
   slug: string;
   name: string;

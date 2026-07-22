@@ -1,4 +1,7 @@
+import { seedCatalog } from "@mumzo/db/seed/catalog";
+
 import { seedAdminUser } from "./admin-user";
+import { backfillGrants } from "./backfill-grants";
 import { seedRoles } from "./roles";
 
 /**
@@ -16,7 +19,9 @@ import { seedRoles } from "./roles";
  *   bun seed --email you@mumzo.in --password 'a-longer-password'
  */
 
+export { seedCatalog } from "@mumzo/db/seed/catalog";
 export { seedAdminUser } from "./admin-user";
+export { backfillGrants } from "./backfill-grants";
 export { seedRoles } from "./roles";
 
 function readArg(flag: string): string | undefined {
@@ -38,6 +43,35 @@ export async function runSeed(
     roles.created > 0
       ? `Roles:  ${roles.created} created, ${roles.skipped} already present.`
       : `Roles:  all ${roles.skipped} already present.`,
+  );
+
+  const backfill = await backfillGrants();
+
+  if (backfill.added > 0) {
+    console.info(
+      `Grants: ${backfill.added} added to existing roles for new permissions.`,
+    );
+  }
+
+  const catalog = await seedCatalog();
+
+  console.info(
+    `Brands:      ${catalog.brands.created} created, ${catalog.brands.skipped} already present.`,
+  );
+  console.info(
+    `Vendors:     ${catalog.vendors.created} created, ${catalog.vendors.skipped} already present.`,
+  );
+  console.info(
+    `Hubs:        ${catalog.hubs.created} created, ${catalog.hubs.skipped} already present.`,
+  );
+  console.info(
+    `Categories:  ${catalog.categories.created} created, ${catalog.categories.skipped} already present.`,
+  );
+  console.info(
+    `Products:    ${catalog.products.created} created, ${catalog.products.skipped} already present.`,
+  );
+  console.info(
+    `Coupons:     ${catalog.coupons.created} created, ${catalog.coupons.skipped} already present.`,
   );
 
   const admin = await seedAdminUser(options);

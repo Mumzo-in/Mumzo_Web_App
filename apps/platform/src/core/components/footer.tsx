@@ -1,8 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { categories } from "@/core/data";
+import { categoriesQueryOptions } from "@/modules/catalog";
 import MumzoLogo from "./mumzo-logo";
 
 export default function Footer() {
+  const { data: categories = [] } = useQuery(categoriesQueryOptions);
+
   return (
     <footer className="mt-16 border-border/60 border-t">
       <div className="mx-auto grid max-w-[1280px] gap-8 px-6 py-10 text-sm md:grid-cols-4 lg:px-8">

@@ -1,9 +1,13 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { products } from "@/core/data";
-import { ProductCard } from "@/modules/catalog";
+import {
+  ProductCard,
+  productsQueryOptions,
+  toProduct,
+} from "@/modules/catalog";
 import { useWishlist } from "@/modules/wishlist";
 
 export const Route = createFileRoute("/(store)/(protected)/wishlist")({
@@ -12,7 +16,13 @@ export const Route = createFileRoute("/(store)/(protected)/wishlist")({
 
 function WishlistPage() {
   const { ids } = useWishlist();
-  const wished = products.filter((p) => ids.includes(p.id));
+  // A wishlisted id is a real product uuid (`ProductCard` toggles
+  // `product.id`, and products are live now) — pull a generous live page and
+  // filter, rather than adding a per-id endpoint just for this page.
+  const { data: page } = useQuery(productsQueryOptions({ limit: 100 }));
+  const wished = (page?.data ?? [])
+    .map(toProduct)
+    .filter((p) => ids.includes(p.id));
 
   return (
     <div className="mx-auto max-w-[1280px] pt-8 pb-16">

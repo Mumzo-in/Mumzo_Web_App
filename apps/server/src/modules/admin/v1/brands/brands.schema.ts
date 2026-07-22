@@ -1,0 +1,32 @@
+import { z } from "@hono/zod-openapi";
+
+export const brandSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    logoUrl: z.string().nullable(),
+    isActive: z.boolean(),
+    productCount: z.number().int(),
+  })
+  .openapi("Brand");
+
+export const createBrandSchema = z.object({
+  name: z.string().min(1).max(80),
+  slug: z
+    .string()
+    .min(1)
+    .max(80)
+    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
+  logoUrl: z.string().url().nullable().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const updateBrandSchema = createBrandSchema.partial();
+
+export const brandIdParamSchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .openapi({ param: { name: "id", in: "path" } }),
+});

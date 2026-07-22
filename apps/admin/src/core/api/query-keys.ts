@@ -29,6 +29,10 @@ export const queryKeys = {
     analytics: (metric: string) => ["dashboard", "analytics", metric] as const,
   },
   products: domainKeys("products"),
+  brands: domainKeys("brands"),
+  vendors: domainKeys("vendors"),
+  hubs: domainKeys("hubs"),
+  inventory: domainKeys("inventory"),
   /** Categories are keyed by slug, not id (api-plan §15c). */
   categories: {
     ...domainKeys("categories"),

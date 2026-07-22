@@ -1,24 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ComingSoon from "@/core/components/coming-soon";
 import PageHeader from "@/core/components/page-header";
+import { HubDialog, HubTable } from "@/modules/catalog/hubs";
+import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/hubs")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const canCreate = usePermission("hub", "create");
+
   return (
     <>
       <PageHeader
+        actions={canCreate ? <HubDialog /> : undefined}
+        description="Dark stores that fulfil orders."
         title="Hubs"
-        description="Dark stores and pincode serviceability."
       />
-      <ComingSoon
-        title="Hubs"
-        description="Dark stores and pincode serviceability."
-        phase={2}
-        needsApiSpec
-      />
+      <HubTable />
     </>
   );
 }

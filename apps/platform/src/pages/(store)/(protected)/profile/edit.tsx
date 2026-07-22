@@ -84,7 +84,7 @@ function ProfileEditPage() {
               type="button"
               variant="outline"
               className="rounded-full"
-              onClick={() => navigate({ to: "/auth/otp" })}
+              onClick={() => navigate({ to: "/auth/login" })}
             >
               Verify
             </Button>

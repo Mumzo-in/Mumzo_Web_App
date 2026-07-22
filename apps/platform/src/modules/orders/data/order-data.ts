@@ -1,5 +1,16 @@
 import { findProduct } from "@/core/data";
 
+/**
+ * Left on the mock catalog deliberately: every order below is itself
+ * fabricated mock data (fixed order ids, addresses, item lists referencing
+ * mock product ids like "wet-wipes-99"). Orders aren't backed by a real
+ * cart/checkout yet, so there is no live order to resolve real product ids
+ * from — swapping just this lookup to the live product API would require
+ * rewriting the mock orders below to reference real seeded product ids too,
+ * which is out of scope until orders themselves are real. Revisit once
+ * checkout/orders are wired to the DB.
+ */
+
 export type OrderStatus =
   | "placed"
   | "packed"

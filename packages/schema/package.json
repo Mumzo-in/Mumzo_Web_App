@@ -1,0 +1,17 @@
+{
+  "name": "@mumzo/schema",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mumzo/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

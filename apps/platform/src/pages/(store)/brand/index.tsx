@@ -1,14 +1,17 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { brands } from "@/modules/catalog";
+import { brandsQueryOptions } from "@/modules/catalog";
 
 export const Route = createFileRoute("/(store)/brand/")({
   component: BrandsIndexPage,
 });
 
 function BrandsIndexPage() {
+  const { data: brands = [] } = useQuery(brandsQueryOptions);
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Brands" }]} />

@@ -1,5 +1,6 @@
 import { Badge } from "@mumzo/ui/components/badge";
 import { Input } from "@mumzo/ui/components/input";
+import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { queryKeys } from "@/core/api/query-keys";
@@ -11,10 +12,10 @@ import {
   formatNumber,
 } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
-import { listCoupons } from "../api/coupons-api";
-import { type AdminCoupon, couponState } from "../data/coupon-data";
+import { type Coupon, listCoupons } from "../api/coupons-api";
+import { couponState } from "../data/coupon-data";
 
-function describeValue(coupon: AdminCoupon): string {
+function describeValue(coupon: Coupon): string {
   if (coupon.type === "flat") {
     return `${formatMoney(coupon.value)} off`;
   }
@@ -23,9 +24,10 @@ function describeValue(coupon: AdminCoupon): string {
 }
 
 export function CouponTable() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
-  const columns = useMemo<ColumnDef<AdminCoupon, unknown>[]>(
+  const columns = useMemo<ColumnDef<Coupon, unknown>[]>(
     () => [
       {
         accessorKey: "code",
@@ -132,6 +134,12 @@ export function CouponTable() {
         testId="admin-coupons-table"
         emptyTitle="No coupons found"
         emptyDescription="Try a different search."
+        onRowClick={(coupon) =>
+          navigate({
+            to: "/finance/coupons/$couponId",
+            params: { couponId: coupon.id },
+          })
+        }
       />
     </div>
   );

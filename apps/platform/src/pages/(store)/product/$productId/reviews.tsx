@@ -3,15 +3,22 @@ import { CheckCircle2, Star, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { findProduct } from "@/core/data";
-import { type Review, reviewSummary, seedReviews } from "@/modules/catalog";
+import {
+  productQueryOptions,
+  type Review,
+  reviewSummary,
+  seedReviews,
+  toProduct,
+} from "@/modules/catalog";
 
 export const Route = createFileRoute("/(store)/product/$productId/reviews")({
   component: ProductReviewsPage,
-  loader: ({ params }) => {
-    const product = findProduct(params.productId);
-    if (!product) throw notFound();
-    return product;
+  loader: async ({ params, context }) => {
+    const raw = await context.queryClient
+      .ensureQueryData(productQueryOptions(params.productId))
+      .catch(() => null);
+    if (!raw) throw notFound();
+    return toProduct(raw);
   },
 });
 

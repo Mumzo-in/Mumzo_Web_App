@@ -8,9 +8,7 @@ import {
   successSchema,
 } from "@/core";
 
-import authRoutes from "./auth";
-import rolesRoutes from "./roles";
-import staffRoutes from "./staff";
+import { adminRoutes } from "./routes";
 
 /**
  * Admin API v1 — the staff surface. Mounted at `/api/v1/admin`.
@@ -72,9 +70,9 @@ app.use("/*", async (c, next) => {
   return requireStaffAuth(c, next);
 });
 
-app.route("/auth", authRoutes);
-app.route("/roles", rolesRoutes);
-app.route("/staff", staffRoutes);
+for (const { path, router } of adminRoutes) {
+  app.route(path, router);
+}
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

@@ -9,6 +9,12 @@ import {
 } from "@/core";
 
 import authRoutes from "./auth";
+import brandsRoutes from "./brands/brands.module";
+import categoriesRoutes from "./categories/categories.module";
+import couponsRoutes from "./coupons/coupons.module";
+import productsRoutes, {
+  productsByCategory as categoryProductsRoutes,
+} from "./products/products.module";
 
 /**
  * Platform API v1 — the customer surface. Mounted at `/api/v1`.
@@ -54,6 +60,11 @@ const app = createRouter();
 app.use(optionalAuth);
 
 app.route("/auth", authRoutes);
+app.route("/categories", categoriesRoutes);
+app.route("/categories", categoryProductsRoutes);
+app.route("/brands", brandsRoutes);
+app.route("/products", productsRoutes);
+app.route("/coupons", couponsRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

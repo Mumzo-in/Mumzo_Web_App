@@ -5,17 +5,22 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { authClient } from "../../api/auth-client";
 
-export default function SignInForm({
-  onSwitchToSignUp,
-}: {
-  onSwitchToSignUp: () => void;
-}) {
+const RESEND_SECONDS = 30;
+
+function toE164(phone: string) {
+  return `+91${phone}`;
+}
+
+export default function SignInForm() {
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(RESEND_SECONDS);
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -27,30 +32,53 @@ export default function SignInForm({
     };
   }, [step, timer]);
 
-  const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone || phone.length < 10) {
+  const sendOtp = async () => {
+    if (phone.length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
-    toast.success(`OTP sent to +91 ${phone}`);
+    setSending(true);
+    const { error } = await authClient.phoneNumber.sendOtp({
+      phoneNumber: toE164(phone),
+    });
+    setSending(false);
+    if (error) {
+      toast.error(error.message ?? "Could not send the OTP. Try again.");
+      return;
+    }
+    toast.success(`OTP sent to ${toE164(phone)}`);
     setStep("otp");
-    setTimer(30);
+    setTimer(RESEND_SECONDS);
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp?.length !== 6) {
+    void sendOtp();
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
       toast.error("Please enter a 6-digit OTP");
       return;
     }
-    toast.success("Sign in successful!");
+    setVerifying(true);
+    const { error } = await authClient.phoneNumber.verify({
+      phoneNumber: toE164(phone),
+      code: otp,
+    });
+    setVerifying(false);
+    if (error) {
+      toast.error(error.message ?? "That code didn't work. Try again.");
+      return;
+    }
+    toast.success("Welcome to Mumzo!");
     navigate({ to: "/" });
   };
 
   const handleResend = () => {
-    toast.success("OTP resent successfully!");
-    setTimer(30);
+    if (timer > 0) return;
+    void sendOtp();
   };
 
   if (step === "phone") {
@@ -85,21 +113,12 @@ export default function SignInForm({
 
           <Button
             type="submit"
+            disabled={sending}
             className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
           >
-            Continue →
+            {sending ? "Sending…" : "Continue →"}
           </Button>
         </form>
-
-        <div className="mt-6 text-center">
-          <Button
-            variant="link"
-            onClick={onSwitchToSignUp}
-            className="cursor-pointer font-semibold text-primary text-xs hover:text-primary/80"
-          >
-            New to Mumzo? Create an account
-          </Button>
-        </div>
       </div>
     );
   }
@@ -116,7 +135,7 @@ export default function SignInForm({
 
       <h1 className="mb-2 font-editorial text-3xl text-ink">Verify OTP</h1>
       <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
-        Sent to +91 {phone}
+        Sent to {toE164(phone)}
       </p>
 
       <form onSubmit={handleVerifyOtp} className="space-y-5">
@@ -139,9 +158,10 @@ export default function SignInForm({
 
         <Button
           type="submit"
+          disabled={verifying}
           className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
         >
-          Verify & Log In →
+          {verifying ? "Verifying…" : "Verify & Log In →"}
         </Button>
       </form>
 

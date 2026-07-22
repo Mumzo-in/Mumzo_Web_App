@@ -1,12 +1,29 @@
-export type { Category, Offer, Product } from "../../core/data";
+export type { Offer, Product } from "../../core/data";
 export {
-  categories,
-  findCategory,
+  // `findProduct`/`productsInCategory` remain for the not-yet-migrated
+  // cart/wishlist/order consumers — see `../../core/data.ts`'s header
+  // comment. The core browsing path (search, PDP, rails) now reads live
+  // data via `productsQueryOptions`/`productQueryOptions` below.
   findProduct,
   offers,
   products,
   productsInCategory,
 } from "../../core/data";
+export { getBrand, listBrands, type PublicBrand } from "./api/brands-api";
+export {
+  getCategory,
+  listCategories,
+  type PublicCategory,
+} from "./api/categories-api";
+export {
+  getProduct as getPublicProduct,
+  type ListProductsFilters,
+  listProducts as listPublicProducts,
+  listProductsByCategory as listPublicProductsByCategory,
+  type ProductSort,
+  type PublicProduct,
+  type PublicProductSize,
+} from "./api/products-api";
 export { default as BrandCard } from "./components/brand/brand-card";
 export { default as CategoryCard } from "./components/category/category-card";
 export { default as CategoryFilterDialog } from "./components/category/category-filter-dialog";
@@ -22,16 +39,11 @@ export { default as ProductRail } from "./components/product/product-rail";
 export { default as ProductSizeSelector } from "./components/product/product-size-selector";
 export { default as RecommendationCard } from "./components/product/recommendation-card";
 export { default as RelatedProducts } from "./components/product/related-products";
-export {
-  type Brand,
-  brandSlug,
-  brands,
-  findBrand,
-  productsByBrand,
-} from "./data/brand-data";
+export { brandSlug, productsByBrand } from "./data/brand-data";
 export {
   activeFilterCount,
   applyCategoryFilters,
+  applyClientOnlyFilters,
   type CategoryFacets,
   type CategoryFilterState,
   getCategoryFacets,
@@ -50,6 +62,7 @@ export {
   findCollection,
   productsInCollection,
 } from "./data/collection-data";
+export { toProduct } from "./data/product-adapter";
 export {
   AGE_GROUPS,
   AGE_LABEL,
@@ -65,3 +78,10 @@ export {
   reviewSummary,
   seedReviews,
 } from "./data/review-data";
+export { brandQueryOptions, brandsQueryOptions } from "./queries/brands";
+export { categoriesQueryOptions } from "./queries/categories";
+export {
+  productQueryOptions,
+  productsByCategoryQueryOptions,
+  productsQueryOptions,
+} from "./queries/products";

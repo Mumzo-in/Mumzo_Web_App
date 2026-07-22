@@ -49,6 +49,7 @@ import { Route as adminFinancePaymentsIndexRouteImport } from './pages/(admin)/f
 import { Route as adminFinanceCouponsIndexRouteImport } from './pages/(admin)/finance/coupons/index'
 import { Route as adminCustomersUsersIndexRouteImport } from './pages/(admin)/customers/users/index'
 import { Route as adminCustomersBroadcastsIndexRouteImport } from './pages/(admin)/customers/broadcasts/index'
+import { Route as adminCatalogVendorsIndexRouteImport } from './pages/(admin)/catalog/vendors/index'
 import { Route as adminCatalogProductsIndexRouteImport } from './pages/(admin)/catalog/products/index'
 import { Route as adminCatalogInventoryIndexRouteImport } from './pages/(admin)/catalog/inventory/index'
 import { Route as adminCatalogCategoriesIndexRouteImport } from './pages/(admin)/catalog/categories/index'
@@ -60,16 +61,20 @@ import { Route as adminFinanceSubscriptionsUpcomingRouteImport } from './pages/(
 import { Route as adminFinancePaymentsFailedRouteImport } from './pages/(admin)/finance/payments/failed'
 import { Route as adminFinancePaymentsPaymentIdRouteImport } from './pages/(admin)/finance/payments/$paymentId'
 import { Route as adminFinanceCouponsNewRouteImport } from './pages/(admin)/finance/coupons/new'
-import { Route as adminFinanceCouponsCouponIdRouteImport } from './pages/(admin)/finance/coupons/$couponId'
 import { Route as adminCustomersUsersUserIdRouteImport } from './pages/(admin)/customers/users/$userId'
 import { Route as adminCustomersBroadcastsNewRouteImport } from './pages/(admin)/customers/broadcasts/new'
+import { Route as adminCatalogVendorsNewRouteImport } from './pages/(admin)/catalog/vendors/new'
 import { Route as adminCatalogProductsNewRouteImport } from './pages/(admin)/catalog/products/new'
 import { Route as adminCatalogProductsBulkRouteImport } from './pages/(admin)/catalog/products/bulk'
 import { Route as adminCatalogInventoryBatchesRouteImport } from './pages/(admin)/catalog/inventory/batches'
 import { Route as adminCatalogInventoryAdjustmentsRouteImport } from './pages/(admin)/catalog/inventory/adjustments'
 import { Route as adminCatalogCategoriesNewRouteImport } from './pages/(admin)/catalog/categories/new'
 import { Route as adminCatalogCategoriesSlugRouteImport } from './pages/(admin)/catalog/categories/$slug'
+import { Route as adminFinanceCouponsCouponIdIndexRouteImport } from './pages/(admin)/finance/coupons/$couponId/index'
+import { Route as adminCatalogVendorsVendorIdIndexRouteImport } from './pages/(admin)/catalog/vendors/$vendorId/index'
 import { Route as adminCatalogProductsProductIdIndexRouteImport } from './pages/(admin)/catalog/products/$productId/index'
+import { Route as adminFinanceCouponsCouponIdEditRouteImport } from './pages/(admin)/finance/coupons/$couponId/edit'
+import { Route as adminCatalogVendorsVendorIdEditRouteImport } from './pages/(admin)/catalog/vendors/$vendorId/edit'
 import { Route as adminCatalogProductsProductIdStockRouteImport } from './pages/(admin)/catalog/products/$productId/stock'
 import { Route as adminCatalogProductsProductIdImagesRouteImport } from './pages/(admin)/catalog/products/$productId/images'
 import { Route as adminCatalogProductsProductIdEditRouteImport } from './pages/(admin)/catalog/products/$productId/edit'
@@ -285,6 +290,12 @@ const adminCustomersBroadcastsIndexRoute =
     path: '/customers/broadcasts/',
     getParentRoute: () => adminLayoutRoute,
   } as any)
+const adminCatalogVendorsIndexRoute =
+  adminCatalogVendorsIndexRouteImport.update({
+    id: '/catalog/vendors/',
+    path: '/catalog/vendors/',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminCatalogProductsIndexRoute =
   adminCatalogProductsIndexRouteImport.update({
     id: '/catalog/products/',
@@ -349,12 +360,6 @@ const adminFinanceCouponsNewRoute = adminFinanceCouponsNewRouteImport.update({
   path: '/finance/coupons/new',
   getParentRoute: () => adminLayoutRoute,
 } as any)
-const adminFinanceCouponsCouponIdRoute =
-  adminFinanceCouponsCouponIdRouteImport.update({
-    id: '/finance/coupons/$couponId',
-    path: '/finance/coupons/$couponId',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminCustomersUsersUserIdRoute =
   adminCustomersUsersUserIdRouteImport.update({
     id: '/customers/users/$userId',
@@ -367,6 +372,11 @@ const adminCustomersBroadcastsNewRoute =
     path: '/customers/broadcasts/new',
     getParentRoute: () => adminLayoutRoute,
   } as any)
+const adminCatalogVendorsNewRoute = adminCatalogVendorsNewRouteImport.update({
+  id: '/catalog/vendors/new',
+  path: '/catalog/vendors/new',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
 const adminCatalogProductsNewRoute = adminCatalogProductsNewRouteImport.update({
   id: '/catalog/products/new',
   path: '/catalog/products/new',
@@ -402,10 +412,34 @@ const adminCatalogCategoriesSlugRoute =
     path: '/catalog/categories/$slug',
     getParentRoute: () => adminLayoutRoute,
   } as any)
+const adminFinanceCouponsCouponIdIndexRoute =
+  adminFinanceCouponsCouponIdIndexRouteImport.update({
+    id: '/finance/coupons/$couponId/',
+    path: '/finance/coupons/$couponId/',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
+const adminCatalogVendorsVendorIdIndexRoute =
+  adminCatalogVendorsVendorIdIndexRouteImport.update({
+    id: '/catalog/vendors/$vendorId/',
+    path: '/catalog/vendors/$vendorId/',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminCatalogProductsProductIdIndexRoute =
   adminCatalogProductsProductIdIndexRouteImport.update({
     id: '/catalog/products/$productId/',
     path: '/catalog/products/$productId/',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
+const adminFinanceCouponsCouponIdEditRoute =
+  adminFinanceCouponsCouponIdEditRouteImport.update({
+    id: '/finance/coupons/$couponId/edit',
+    path: '/finance/coupons/$couponId/edit',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
+const adminCatalogVendorsVendorIdEditRoute =
+  adminCatalogVendorsVendorIdEditRouteImport.update({
+    id: '/catalog/vendors/$vendorId/edit',
+    path: '/catalog/vendors/$vendorId/edit',
     getParentRoute: () => adminLayoutRoute,
   } as any)
 const adminCatalogProductsProductIdStockRoute =
@@ -464,9 +498,9 @@ export interface FileRoutesByFullPath {
   '/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
   '/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
   '/catalog/products/new': typeof adminCatalogProductsNewRoute
+  '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/customers/users/$userId': typeof adminCustomersUsersUserIdRoute
-  '/finance/coupons/$couponId': typeof adminFinanceCouponsCouponIdRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -478,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/catalog/categories/': typeof adminCatalogCategoriesIndexRoute
   '/catalog/inventory/': typeof adminCatalogInventoryIndexRoute
   '/catalog/products/': typeof adminCatalogProductsIndexRoute
+  '/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
   '/customers/users/': typeof adminCustomersUsersIndexRoute
   '/finance/coupons/': typeof adminFinanceCouponsIndexRoute
@@ -490,7 +525,11 @@ export interface FileRoutesByFullPath {
   '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
+  '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
+  '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
+  '/catalog/vendors/$vendorId/': typeof adminCatalogVendorsVendorIdIndexRoute
+  '/finance/coupons/$couponId/': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/forbidden': typeof ForbiddenRoute
@@ -529,9 +568,9 @@ export interface FileRoutesByTo {
   '/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
   '/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
   '/catalog/products/new': typeof adminCatalogProductsNewRoute
+  '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/customers/users/$userId': typeof adminCustomersUsersUserIdRoute
-  '/finance/coupons/$couponId': typeof adminFinanceCouponsCouponIdRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -543,6 +582,7 @@ export interface FileRoutesByTo {
   '/catalog/categories': typeof adminCatalogCategoriesIndexRoute
   '/catalog/inventory': typeof adminCatalogInventoryIndexRoute
   '/catalog/products': typeof adminCatalogProductsIndexRoute
+  '/catalog/vendors': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts': typeof adminCustomersBroadcastsIndexRoute
   '/customers/users': typeof adminCustomersUsersIndexRoute
   '/finance/coupons': typeof adminFinanceCouponsIndexRoute
@@ -555,7 +595,11 @@ export interface FileRoutesByTo {
   '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
+  '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
+  '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/catalog/products/$productId': typeof adminCatalogProductsProductIdIndexRoute
+  '/catalog/vendors/$vendorId': typeof adminCatalogVendorsVendorIdIndexRoute
+  '/finance/coupons/$couponId': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -596,9 +640,9 @@ export interface FileRoutesById {
   '/(admin)/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
   '/(admin)/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
   '/(admin)/catalog/products/new': typeof adminCatalogProductsNewRoute
+  '/(admin)/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/(admin)/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/(admin)/customers/users/$userId': typeof adminCustomersUsersUserIdRoute
-  '/(admin)/finance/coupons/$couponId': typeof adminFinanceCouponsCouponIdRoute
   '/(admin)/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/(admin)/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/(admin)/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -610,6 +654,7 @@ export interface FileRoutesById {
   '/(admin)/catalog/categories/': typeof adminCatalogCategoriesIndexRoute
   '/(admin)/catalog/inventory/': typeof adminCatalogInventoryIndexRoute
   '/(admin)/catalog/products/': typeof adminCatalogProductsIndexRoute
+  '/(admin)/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/(admin)/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
   '/(admin)/customers/users/': typeof adminCustomersUsersIndexRoute
   '/(admin)/finance/coupons/': typeof adminFinanceCouponsIndexRoute
@@ -622,7 +667,11 @@ export interface FileRoutesById {
   '/(admin)/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/(admin)/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
   '/(admin)/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
+  '/(admin)/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
+  '/(admin)/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/(admin)/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
+  '/(admin)/catalog/vendors/$vendorId/': typeof adminCatalogVendorsVendorIdIndexRoute
+  '/(admin)/finance/coupons/$couponId/': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -663,9 +712,9 @@ export interface FileRouteTypes {
     | '/catalog/inventory/batches'
     | '/catalog/products/bulk'
     | '/catalog/products/new'
+    | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
     | '/customers/users/$userId'
-    | '/finance/coupons/$couponId'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
     | '/finance/payments/failed'
@@ -677,6 +726,7 @@ export interface FileRouteTypes {
     | '/catalog/categories/'
     | '/catalog/inventory/'
     | '/catalog/products/'
+    | '/catalog/vendors/'
     | '/customers/broadcasts/'
     | '/customers/users/'
     | '/finance/coupons/'
@@ -689,7 +739,11 @@ export interface FileRouteTypes {
     | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
     | '/catalog/products/$productId/stock'
+    | '/catalog/vendors/$vendorId/edit'
+    | '/finance/coupons/$couponId/edit'
     | '/catalog/products/$productId/'
+    | '/catalog/vendors/$vendorId/'
+    | '/finance/coupons/$couponId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forbidden'
@@ -728,9 +782,9 @@ export interface FileRouteTypes {
     | '/catalog/inventory/batches'
     | '/catalog/products/bulk'
     | '/catalog/products/new'
+    | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
     | '/customers/users/$userId'
-    | '/finance/coupons/$couponId'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
     | '/finance/payments/failed'
@@ -742,6 +796,7 @@ export interface FileRouteTypes {
     | '/catalog/categories'
     | '/catalog/inventory'
     | '/catalog/products'
+    | '/catalog/vendors'
     | '/customers/broadcasts'
     | '/customers/users'
     | '/finance/coupons'
@@ -754,7 +809,11 @@ export interface FileRouteTypes {
     | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
     | '/catalog/products/$productId/stock'
+    | '/catalog/vendors/$vendorId/edit'
+    | '/finance/coupons/$couponId/edit'
     | '/catalog/products/$productId'
+    | '/catalog/vendors/$vendorId'
+    | '/finance/coupons/$couponId'
   id:
     | '__root__'
     | '/(admin)'
@@ -794,9 +853,9 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/inventory/batches'
     | '/(admin)/catalog/products/bulk'
     | '/(admin)/catalog/products/new'
+    | '/(admin)/catalog/vendors/new'
     | '/(admin)/customers/broadcasts/new'
     | '/(admin)/customers/users/$userId'
-    | '/(admin)/finance/coupons/$couponId'
     | '/(admin)/finance/coupons/new'
     | '/(admin)/finance/payments/$paymentId'
     | '/(admin)/finance/payments/failed'
@@ -808,6 +867,7 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/categories/'
     | '/(admin)/catalog/inventory/'
     | '/(admin)/catalog/products/'
+    | '/(admin)/catalog/vendors/'
     | '/(admin)/customers/broadcasts/'
     | '/(admin)/customers/users/'
     | '/(admin)/finance/coupons/'
@@ -820,7 +880,11 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/products/$productId/edit'
     | '/(admin)/catalog/products/$productId/images'
     | '/(admin)/catalog/products/$productId/stock'
+    | '/(admin)/catalog/vendors/$vendorId/edit'
+    | '/(admin)/finance/coupons/$couponId/edit'
     | '/(admin)/catalog/products/$productId/'
+    | '/(admin)/catalog/vendors/$vendorId/'
+    | '/(admin)/finance/coupons/$couponId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1111,6 +1175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCustomersBroadcastsIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/catalog/vendors/': {
+      id: '/(admin)/catalog/vendors/'
+      path: '/catalog/vendors'
+      fullPath: '/catalog/vendors/'
+      preLoaderRoute: typeof adminCatalogVendorsIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
     '/(admin)/catalog/products/': {
       id: '/(admin)/catalog/products/'
       path: '/catalog/products'
@@ -1188,13 +1259,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminFinanceCouponsNewRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/finance/coupons/$couponId': {
-      id: '/(admin)/finance/coupons/$couponId'
-      path: '/finance/coupons/$couponId'
-      fullPath: '/finance/coupons/$couponId'
-      preLoaderRoute: typeof adminFinanceCouponsCouponIdRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/customers/users/$userId': {
       id: '/(admin)/customers/users/$userId'
       path: '/customers/users/$userId'
@@ -1207,6 +1271,13 @@ declare module '@tanstack/react-router' {
       path: '/customers/broadcasts/new'
       fullPath: '/customers/broadcasts/new'
       preLoaderRoute: typeof adminCustomersBroadcastsNewRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/catalog/vendors/new': {
+      id: '/(admin)/catalog/vendors/new'
+      path: '/catalog/vendors/new'
+      fullPath: '/catalog/vendors/new'
+      preLoaderRoute: typeof adminCatalogVendorsNewRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/catalog/products/new': {
@@ -1251,11 +1322,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCatalogCategoriesSlugRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/finance/coupons/$couponId/': {
+      id: '/(admin)/finance/coupons/$couponId/'
+      path: '/finance/coupons/$couponId'
+      fullPath: '/finance/coupons/$couponId/'
+      preLoaderRoute: typeof adminFinanceCouponsCouponIdIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/catalog/vendors/$vendorId/': {
+      id: '/(admin)/catalog/vendors/$vendorId/'
+      path: '/catalog/vendors/$vendorId'
+      fullPath: '/catalog/vendors/$vendorId/'
+      preLoaderRoute: typeof adminCatalogVendorsVendorIdIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
     '/(admin)/catalog/products/$productId/': {
       id: '/(admin)/catalog/products/$productId/'
       path: '/catalog/products/$productId'
       fullPath: '/catalog/products/$productId/'
       preLoaderRoute: typeof adminCatalogProductsProductIdIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/finance/coupons/$couponId/edit': {
+      id: '/(admin)/finance/coupons/$couponId/edit'
+      path: '/finance/coupons/$couponId/edit'
+      fullPath: '/finance/coupons/$couponId/edit'
+      preLoaderRoute: typeof adminFinanceCouponsCouponIdEditRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/catalog/vendors/$vendorId/edit': {
+      id: '/(admin)/catalog/vendors/$vendorId/edit'
+      path: '/catalog/vendors/$vendorId/edit'
+      fullPath: '/catalog/vendors/$vendorId/edit'
+      preLoaderRoute: typeof adminCatalogVendorsVendorIdEditRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/catalog/products/$productId/stock': {
@@ -1317,9 +1416,9 @@ interface adminLayoutRouteChildren {
   adminCatalogInventoryBatchesRoute: typeof adminCatalogInventoryBatchesRoute
   adminCatalogProductsBulkRoute: typeof adminCatalogProductsBulkRoute
   adminCatalogProductsNewRoute: typeof adminCatalogProductsNewRoute
+  adminCatalogVendorsNewRoute: typeof adminCatalogVendorsNewRoute
   adminCustomersBroadcastsNewRoute: typeof adminCustomersBroadcastsNewRoute
   adminCustomersUsersUserIdRoute: typeof adminCustomersUsersUserIdRoute
-  adminFinanceCouponsCouponIdRoute: typeof adminFinanceCouponsCouponIdRoute
   adminFinanceCouponsNewRoute: typeof adminFinanceCouponsNewRoute
   adminFinancePaymentsPaymentIdRoute: typeof adminFinancePaymentsPaymentIdRoute
   adminFinancePaymentsFailedRoute: typeof adminFinancePaymentsFailedRoute
@@ -1331,6 +1430,7 @@ interface adminLayoutRouteChildren {
   adminCatalogCategoriesIndexRoute: typeof adminCatalogCategoriesIndexRoute
   adminCatalogInventoryIndexRoute: typeof adminCatalogInventoryIndexRoute
   adminCatalogProductsIndexRoute: typeof adminCatalogProductsIndexRoute
+  adminCatalogVendorsIndexRoute: typeof adminCatalogVendorsIndexRoute
   adminCustomersBroadcastsIndexRoute: typeof adminCustomersBroadcastsIndexRoute
   adminCustomersUsersIndexRoute: typeof adminCustomersUsersIndexRoute
   adminFinanceCouponsIndexRoute: typeof adminFinanceCouponsIndexRoute
@@ -1343,7 +1443,11 @@ interface adminLayoutRouteChildren {
   adminCatalogProductsProductIdEditRoute: typeof adminCatalogProductsProductIdEditRoute
   adminCatalogProductsProductIdImagesRoute: typeof adminCatalogProductsProductIdImagesRoute
   adminCatalogProductsProductIdStockRoute: typeof adminCatalogProductsProductIdStockRoute
+  adminCatalogVendorsVendorIdEditRoute: typeof adminCatalogVendorsVendorIdEditRoute
+  adminFinanceCouponsCouponIdEditRoute: typeof adminFinanceCouponsCouponIdEditRoute
   adminCatalogProductsProductIdIndexRoute: typeof adminCatalogProductsProductIdIndexRoute
+  adminCatalogVendorsVendorIdIndexRoute: typeof adminCatalogVendorsVendorIdIndexRoute
+  adminFinanceCouponsCouponIdIndexRoute: typeof adminFinanceCouponsCouponIdIndexRoute
 }
 
 const adminLayoutRouteChildren: adminLayoutRouteChildren = {
@@ -1381,9 +1485,9 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogInventoryBatchesRoute: adminCatalogInventoryBatchesRoute,
   adminCatalogProductsBulkRoute: adminCatalogProductsBulkRoute,
   adminCatalogProductsNewRoute: adminCatalogProductsNewRoute,
+  adminCatalogVendorsNewRoute: adminCatalogVendorsNewRoute,
   adminCustomersBroadcastsNewRoute: adminCustomersBroadcastsNewRoute,
   adminCustomersUsersUserIdRoute: adminCustomersUsersUserIdRoute,
-  adminFinanceCouponsCouponIdRoute: adminFinanceCouponsCouponIdRoute,
   adminFinanceCouponsNewRoute: adminFinanceCouponsNewRoute,
   adminFinancePaymentsPaymentIdRoute: adminFinancePaymentsPaymentIdRoute,
   adminFinancePaymentsFailedRoute: adminFinancePaymentsFailedRoute,
@@ -1396,6 +1500,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogCategoriesIndexRoute: adminCatalogCategoriesIndexRoute,
   adminCatalogInventoryIndexRoute: adminCatalogInventoryIndexRoute,
   adminCatalogProductsIndexRoute: adminCatalogProductsIndexRoute,
+  adminCatalogVendorsIndexRoute: adminCatalogVendorsIndexRoute,
   adminCustomersBroadcastsIndexRoute: adminCustomersBroadcastsIndexRoute,
   adminCustomersUsersIndexRoute: adminCustomersUsersIndexRoute,
   adminFinanceCouponsIndexRoute: adminFinanceCouponsIndexRoute,
@@ -1411,8 +1516,12 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
     adminCatalogProductsProductIdImagesRoute,
   adminCatalogProductsProductIdStockRoute:
     adminCatalogProductsProductIdStockRoute,
+  adminCatalogVendorsVendorIdEditRoute: adminCatalogVendorsVendorIdEditRoute,
+  adminFinanceCouponsCouponIdEditRoute: adminFinanceCouponsCouponIdEditRoute,
   adminCatalogProductsProductIdIndexRoute:
     adminCatalogProductsProductIdIndexRoute,
+  adminCatalogVendorsVendorIdIndexRoute: adminCatalogVendorsVendorIdIndexRoute,
+  adminFinanceCouponsCouponIdIndexRoute: adminFinanceCouponsCouponIdIndexRoute,
 }
 
 const adminLayoutRouteWithChildren = adminLayoutRoute._addFileChildren(

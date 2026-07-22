@@ -1,4 +1,5 @@
 import { env } from "@mumzo/env/web";
+import { phoneNumberClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 function getServerUrl(url: string) {
@@ -32,9 +33,11 @@ function getServerUrl(url: string) {
 }
 export const authClient = createAuthClient({
   // better-auth derives its route-matching base from this URL's path, so the
-  // public auth path must equal the server-side mount (/api/auth everywhere)
+  // public auth path must equal the server-side mount for the platform
+  // instance (apps/server/src/modules/platform/v1/auth → /api/v1/auth).
   baseURL:
     typeof window !== "undefined"
-      ? `${window.location.origin}/api/auth`
-      : new URL("/api/auth", getServerUrl(env.VITE_SERVER_URL)).toString(),
+      ? `${window.location.origin}/api/v1/auth`
+      : new URL("/api/v1/auth", getServerUrl(env.VITE_SERVER_URL)).toString(),
+  plugins: [phoneNumberClient()],
 });

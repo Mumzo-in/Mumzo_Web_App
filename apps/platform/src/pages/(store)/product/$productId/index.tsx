@@ -1,18 +1,21 @@
-import { discountPct, isPurchasable } from "@mumzo/catalog-model";
+import { discountPct, isPurchasable } from "@mumzo/schema";
+import { RichTextView } from "@mumzo/ui/components/rich-text-view";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import {
-  brandSlug,
-  findCategory,
-  findProduct,
+  categoriesQueryOptions,
   ProductImageCarousel,
   ProductQuantitySelector,
   ProductSizeSelector,
-  productsInCategory,
+  productQueryOptions,
+  productsByCategoryQueryOptions,
   RecommendationCard,
+  toProduct,
 } from "@/modules/catalog";
 
 export const Route = createFileRoute("/(store)/product/$productId/")({
@@ -23,17 +26,56 @@ function ProductDetailPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
 
-  const product = findProduct(productId);
-  const category = product ? findCategory(product.categorySlug) : null;
+  const {
+    data: rawProduct,
+    isLoading,
+    isError,
+  } = useQuery(productQueryOptions(productId));
+  const product = rawProduct ? toProduct(rawProduct) : undefined;
+  const { data: categories = [] } = useQuery(categoriesQueryOptions);
+  const category = product
+    ? (categories.find((c) => c.slug === product.categorySlug) ?? null)
+    : null;
 
-  // Default to the first size that's actually in stock, not merely the first.
-  const [size, setSize] = useState<string | null>(
-    () => product?.sizes.find((s) => s.stock > 0)?.label ?? null,
-  );
+  // Default to the first size that's actually in stock, not merely the
+  // first — recomputed via effect since the product now loads async.
+  const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [saved, setSaved] = useState(false);
 
-  if (!product) {
+  useEffect(() => {
+    setSize(product?.sizes.find((s) => s.stock > 0)?.label ?? null);
+  }, [product]);
+
+  // Hook must run unconditionally (before the loading/not-found guards
+  // below) — disabled until the product (and so its category) is known.
+  const { data: relatedPage } = useQuery({
+    ...productsByCategoryQueryOptions(product?.categorySlug ?? "", {
+      limit: 5,
+    }),
+    enabled: Boolean(product),
+  });
+
+  if (isLoading) {
+    return (
+      <div
+        data-testid="web-product-page"
+        className="mx-auto max-w-[1280px] bg-background px-0 pt-4 pb-12 md:pt-8"
+      >
+        <div className="mt-4 grid gap-6 md:grid-cols-2 lg:gap-16">
+          <Skeleton className="aspect-square rounded-3xl" />
+          <div className="flex flex-col gap-4 pt-5 md:pt-0">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !product) {
     return (
       <div className="p-12 text-center">
         <h2 className="mb-4 font-editorial text-2xl">Product not found.</h2>
@@ -54,7 +96,8 @@ function ProductDetailPage() {
   const stockForSelection = selectedSize ? selectedSize.stock : product.stock;
   const soldOut = !isPurchasable(product) || stockForSelection === 0;
 
-  const related = productsInCategory(product.categorySlug)
+  const related = (relatedPage?.data ?? [])
+    .map(toProduct)
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 
@@ -137,7 +180,7 @@ function ProductDetailPage() {
         <div className="flex flex-col pt-5 md:px-0 md:pt-0">
           <Link
             to="/brand/$brand"
-            params={{ brand: brandSlug(product.brand) }}
+            params={{ brand: product.brandId }}
             className="font-semibold text-[11px] text-primary uppercase tracking-widest transition-opacity hover:opacity-70 md:text-xs"
           >
             {product.brand}
@@ -246,12 +289,18 @@ function ProductDetailPage() {
               <h2 className="font-semibold text-foreground/55 text-xs uppercase tracking-widest">
                 About this product
               </h2>
-              <p className="mt-3 text-foreground/75 text-sm leading-relaxed">
-                {/* Authored in the admin. The generic line is a fallback for
-                    catalogue entries that predate the field. */}
-                {product.about ||
-                  `Carefully sourced and mom-approved. ${product.name} from ${product.brand} is designed to be gentle on your little one.`}
-              </p>
+              {/* Authored in the admin as rich text; the generic line is a
+                  fallback for catalogue entries that predate the field. */}
+              {product.about ? (
+                <RichTextView
+                  className="mt-3 text-foreground/75"
+                  html={product.about}
+                />
+              ) : (
+                <p className="mt-3 text-foreground/75 text-sm leading-relaxed">
+                  {`Carefully sourced and mom-approved. ${product.name} from ${product.brand} is designed to be gentle on your little one.`}
+                </p>
+              )}
             </div>
             <div>
               <h2 className="font-semibold text-foreground/55 text-xs uppercase tracking-widest">

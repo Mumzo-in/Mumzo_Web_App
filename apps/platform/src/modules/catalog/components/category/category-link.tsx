@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import type { Category } from "@/core/data";
+import type { PublicCategory } from "@/modules/catalog";
 
 interface CategoryLinkProps {
-  category: Category;
+  category: PublicCategory;
 }
 
 export default function CategoryLink({ category }: CategoryLinkProps) {

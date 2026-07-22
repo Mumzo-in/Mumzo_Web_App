@@ -12,8 +12,6 @@ import { Route as rootRouteImport } from './pages/__root'
 import { Route as AuthLayoutRouteImport } from './pages/auth/_layout'
 import { Route as storeLayoutRouteImport } from './pages/(store)/_layout'
 import { Route as storeIndexRouteImport } from './pages/(store)/index'
-import { Route as AuthRegisterRouteImport } from './pages/auth/register'
-import { Route as AuthOtpRouteImport } from './pages/auth/otp'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as storeSearchRouteImport } from './pages/(store)/search'
 import { Route as storeOffersRouteImport } from './pages/(store)/offers'
@@ -71,16 +69,6 @@ const storeIndexRoute = storeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => storeLayoutRoute,
-} as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AuthLayoutRoute,
-} as any)
-const AuthOtpRoute = AuthOtpRouteImport.update({
-  id: '/otp',
-  path: '/otp',
-  getParentRoute: () => AuthLayoutRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
@@ -327,8 +315,6 @@ export interface FileRoutesByFullPath {
   '/offers': typeof storeOffersRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/otp': typeof AuthOtpRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/': typeof storeIndexRoute
   '/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/addresses': typeof storeprotectedAddressesRoute
@@ -375,8 +361,6 @@ export interface FileRoutesByTo {
   '/offers': typeof storeOffersRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/otp': typeof AuthOtpRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/': typeof storeIndexRoute
   '/addresses': typeof storeprotectedAddressesRoute
   '/notifications': typeof storeprotectedNotificationsRoute
@@ -425,8 +409,6 @@ export interface FileRoutesById {
   '/(store)/offers': typeof storeOffersRoute
   '/(store)/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/otp': typeof AuthOtpRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/(store)/': typeof storeIndexRoute
   '/(store)/(protected)/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/(store)/(protected)/addresses': typeof storeprotectedAddressesRoute
@@ -475,8 +457,6 @@ export interface FileRouteTypes {
     | '/offers'
     | '/search'
     | '/auth/login'
-    | '/auth/otp'
-    | '/auth/register'
     | '/'
     | '/checkout'
     | '/addresses'
@@ -523,8 +503,6 @@ export interface FileRouteTypes {
     | '/offers'
     | '/search'
     | '/auth/login'
-    | '/auth/otp'
-    | '/auth/register'
     | '/'
     | '/addresses'
     | '/notifications'
@@ -572,8 +550,6 @@ export interface FileRouteTypes {
     | '/(store)/offers'
     | '/(store)/search'
     | '/auth/login'
-    | '/auth/otp'
-    | '/auth/register'
     | '/(store)/'
     | '/(store)/(protected)/checkout'
     | '/(store)/(protected)/addresses'
@@ -639,20 +615,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof storeIndexRouteImport
       parentRoute: typeof storeLayoutRoute
-    }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthLayoutRoute
-    }
-    '/auth/otp': {
-      id: '/auth/otp'
-      path: '/otp'
-      fullPath: '/auth/otp'
-      preLoaderRoute: typeof AuthOtpRouteImport
-      parentRoute: typeof AuthLayoutRoute
     }
     '/auth/login': {
       id: '/auth/login'
@@ -1083,14 +1045,10 @@ const storeLayoutRouteWithChildren = storeLayoutRoute._addFileChildren(
 
 interface AuthLayoutRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
-  AuthOtpRoute: typeof AuthOtpRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
-  AuthOtpRoute: AuthOtpRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
 }
 
 const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(

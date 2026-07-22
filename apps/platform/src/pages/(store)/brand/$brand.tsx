@@ -1,26 +1,69 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import {
-  brands,
-  findBrand,
+  brandQueryOptions,
+  brandsQueryOptions,
   ProductCard,
-  productsByBrand,
+  productsQueryOptions,
+  toProduct,
 } from "@/modules/catalog";
 
 export const Route = createFileRoute("/(store)/brand/$brand")({
   component: BrandPage,
-  loader: ({ params }) => {
-    const brand = findBrand(params.brand);
-    if (!brand) throw notFound();
-    return { brand, products: productsByBrand(params.brand) };
-  },
 });
 
+/** Stable keys for the loading skeleton grid — never reordered. */
+const BRAND_SKELETON_KEYS = [
+  "sk-1",
+  "sk-2",
+  "sk-3",
+  "sk-4",
+  "sk-5",
+  "sk-6",
+  "sk-7",
+  "sk-8",
+];
+
 function BrandPage() {
-  const { brand, products } = Route.useLoaderData();
-  const others = brands.filter((b) => b.slug !== brand.slug);
+  const { brand: brandSlugParam } = Route.useParams();
+  const {
+    data: brand,
+    isPending,
+    isError,
+  } = useQuery(brandQueryOptions(brandSlugParam));
+  const { data: allBrands = [] } = useQuery(brandsQueryOptions);
+
+  if (isPending) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
+        <p className="text-foreground/60 text-sm">Loading brand…</p>
+      </div>
+    );
+  }
+
+  if (isError || !brand) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
+        <p className="text-foreground/60 text-sm">Brand not found.</p>
+        <Link
+          to="/brand"
+          className="mt-2 inline-block font-semibold text-primary text-sm hover:underline"
+        >
+          Back to all brands →
+        </Link>
+      </div>
+    );
+  }
+
+  const { data: productsPage, isLoading: productsLoading } = useQuery(
+    productsQueryOptions({ brands: [brand.slug], limit: 60 }),
+  );
+  const products = (productsPage?.data ?? []).map(toProduct);
+  const others = allBrands.filter((b) => b.slug !== brand.slug);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
@@ -52,9 +95,13 @@ function BrandPage() {
       </section>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {productsLoading
+          ? BRAND_SKELETON_KEYS.map((key) => (
+              <Skeleton key={key} className="aspect-square rounded-2xl" />
+            ))
+          : products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
       </div>
 
       <section className="mt-14">

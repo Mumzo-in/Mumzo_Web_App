@@ -1,0 +1,119 @@
+import { notFound } from "@/core/errors";
+import { sizesByProductId } from "@/modules/admin/v1/products/products.repo";
+import type { PublicSort } from "./products.repo";
+import * as productsRepo from "./products.repo";
+
+type Size = { label: string; price: number; stock: number };
+
+/** Total stock across variants, or 0 for an unsized product — DB is the source. */
+function rollUpStock(sizes: Size[]): number {
+  return sizes.reduce((sum, size) => sum + size.stock, 0);
+}
+
+type ProductRow = Awaited<ReturnType<typeof productsRepo.findPublicById>>;
+
+function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    sku: row.sku,
+    name: row.name,
+    brand: row.brandName,
+    brandSlug: row.brandSlug,
+    categorySlug: row.categorySlug,
+    price: row.price,
+    mrp: row.mrp,
+    qty: row.qty,
+    weight: row.weight,
+    description: row.description,
+    about: row.about,
+    highlights: row.highlights,
+    countryOfOrigin: row.countryOfOrigin,
+    images: row.images,
+    sizes,
+    ages: row.ages,
+    type: row.type,
+    tags: row.tags,
+    stock: sizes.length > 0 ? rollUpStock(sizes) : 0,
+    rating: Number(row.rating),
+    isBestseller: row.isBestseller,
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export type ListPublicProductsFilters = {
+  page: number;
+  limit: number;
+  search?: string;
+  categorySlug?: string;
+  sort: PublicSort;
+  brands?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  sizes?: string[];
+  inStock?: boolean;
+};
+
+/**
+ * `sizes`/`inStock` filter on `productSize` rows, which the page query
+ * itself can't express without changing the row shape returned per page —
+ * simplest correct approach is to over-fetch the page from the DB query
+ * (price/brand/category/search/sort already narrowed it), then drop rows
+ * that don't match once sizes are loaded. Good enough at today's catalog
+ * size; a compound filter would move `sizes`/`inStock` server-side into
+ * `findPublicPage` on the next pass.
+ */
+export async function listPublicProducts(filters: ListPublicProductsFilters) {
+  const { rows, total } = await productsRepo.findPublicPage({
+    page: filters.page,
+    limit: filters.limit,
+    search: filters.search,
+    categorySlug: filters.categorySlug,
+    brandSlugs: filters.brands,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    sort: filters.sort,
+  });
+
+  const sizesByProduct = await sizesByProductId(rows.map((row) => row.id));
+
+  let data = rows.map((row) =>
+    serialize(row, sizesByProduct.get(row.id) ?? []),
+  );
+
+  if (filters.sizes && filters.sizes.length > 0) {
+    const wanted = new Set(filters.sizes);
+    data = data.filter((p) => p.sizes.some((size) => wanted.has(size.label)));
+  }
+  if (filters.inStock) {
+    data = data.filter((p) => p.stock > 0);
+  }
+
+  return {
+    data,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
+}
+
+export async function getPublicProduct(id: string) {
+  const row = await productsRepo.findPublicById(id);
+  if (!row) {
+    throw notFound("Product");
+  }
+
+  const sizesByProduct = await sizesByProductId([id]);
+  return serialize(row, sizesByProduct.get(id) ?? []);
+}
+
+/** `GET /api/v1/categories/:slug/products` — shares the main list query. */
+export async function listPublicProductsInCategory(
+  categorySlug: string,
+  filters: Omit<ListPublicProductsFilters, "categorySlug">,
+) {
+  return listPublicProducts({ ...filters, categorySlug });
+}
