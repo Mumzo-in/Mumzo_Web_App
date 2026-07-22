@@ -41,12 +41,15 @@ import ComingSoon from "@/core/components/coming-soon";
 import { formatMoney } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import { listProducts, PRODUCT_STATUS_META } from "@/modules/catalog/products";
+import {
+  listProducts,
+  PRODUCT_STATUS_META,
+} from "@/modules/operations/products";
 import {
   deleteVendor,
   getVendor,
   VENDOR_TYPE_META,
-} from "@/modules/catalog/vendors";
+} from "@/modules/operations/vendors";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/vendors/$vendorId/")({

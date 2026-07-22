@@ -24,12 +24,14 @@ interface CategoryFilterPanelProps {
 function FilterGroup({
   label,
   children,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="mb-6">
+    <div className={cn("mb-6", className)}>
       <p className="mb-3 font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
         {label}
       </p>
@@ -96,7 +98,8 @@ export default function CategoryFilterPanel({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="mb-5 flex items-center justify-between">
+      {/* Sticky header — stays pinned when the panel scrolls */}
+      <div className="sticky top-0 z-10 mb-5 flex items-center justify-between border-b bg-white px-6 pt-6 pb-2">
         <p className="font-semibold text-sm">
           Filters {count > 0 && `(${count})`}
         </p>
@@ -114,7 +117,7 @@ export default function CategoryFilterPanel({
 
       {/* Age */}
       {facets.ages.length > 0 && (
-        <FilterGroup label="Age">
+        <FilterGroup label="Age" className="px-6">
           <div className="flex flex-wrap gap-2">
             {facets.ages.map((age: AgeGroup) => (
               <Pill
@@ -132,7 +135,7 @@ export default function CategoryFilterPanel({
 
       {/* Type */}
       {facets.types.length > 0 && (
-        <FilterGroup label="Type">
+        <FilterGroup label="Type" className="px-6">
           <div className="flex flex-wrap gap-2">
             {facets.types.map((type) => (
               <Pill
@@ -150,7 +153,7 @@ export default function CategoryFilterPanel({
 
       {/* Brand */}
       {facets.brands.length > 0 && (
-        <FilterGroup label="Brand">
+        <FilterGroup label="Brand" className="px-6">
           <div className="flex max-h-56 flex-col gap-2 overflow-y-auto">
             {facets.brands.map((brand) => (
               <label
@@ -174,7 +177,7 @@ export default function CategoryFilterPanel({
       )}
 
       {/* Price */}
-      <FilterGroup label="Max price">
+      <FilterGroup label="Max price" className="px-6">
         <div className="-mt-1 mb-2 flex justify-end">
           <p className="font-semibold text-primary text-sm">
             {rupee(state.maxPrice)}
@@ -200,7 +203,7 @@ export default function CategoryFilterPanel({
 
       {/* Size */}
       {facets.sizes.length > 0 && (
-        <FilterGroup label="Size">
+        <FilterGroup label="Size" className="px-6">
           <div className="flex flex-wrap gap-2">
             {facets.sizes.map((size) => (
               <Pill

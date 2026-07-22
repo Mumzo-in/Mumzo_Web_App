@@ -16,7 +16,7 @@ import { queryKeys } from "@/core/api/query-keys";
 import { formatMoney, formatNumber } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import { getProduct, PRODUCT_STATUS_META } from "@/modules/catalog/products";
+import { getProduct, PRODUCT_STATUS_META } from "@/modules/operations/products";
 
 export const Route = createFileRoute("/(admin)/catalog/products/$productId/")({
   component: ProductDetailPage,

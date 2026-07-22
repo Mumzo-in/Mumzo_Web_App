@@ -27,7 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
-import { hubsQueryOptions } from "@/modules/catalog/hubs";
+import { hubsQueryOptions } from "@/modules/operations/hubs";
 import { usePermission } from "@/modules/roles";
 import { inventoryQueryOptions } from "../queries/inventory";
 import { AdjustInventoryDialog } from "./adjust-inventory-dialog";

@@ -2,7 +2,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import PageHeader from "@/core/components/page-header";
-import { VendorTable } from "@/modules/catalog/vendors";
+import { VendorTable } from "@/modules/operations/vendors";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/vendors/")({

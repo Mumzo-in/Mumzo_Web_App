@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import PageHeader from "@/core/components/page-header";
-import { BrandDialog, BrandTable } from "@/modules/catalog/brands";
+import { BrandDialog, BrandTable } from "@/modules/operations/brands";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/brands")({

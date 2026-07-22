@@ -51,6 +51,39 @@ Hono · Better Auth · Drizzle/Postgres · **Biome** (lint + format) · Zod.
 9. **Use the repo skills** when relevant: `shadcn`, `hono`, `better-auth-best-practices`,
    `turborepo` (under `.claude/skills` & `.agents/skills`).
 
+## Workflow rules — how agents verify & spend effort
+
+1. **Verify with `tsc` + Biome, nothing heavier.**
+   `cd apps/<app> && bunx tsc --noEmit` and `bunx biome check <paths>` are the
+   acceptance gates. Run tsc after each meaningful chunk, not only at the end —
+   a type error caught early is one file to fix, caught late it's ten.
+2. **No browser automation. Ever.** Do not install or run Playwright, Puppeteer,
+   Selenium, headless Chrome, or any DOM emulator to "see" the UI. The
+   verification ceiling for UI is: types pass, Biome passes, the app builds,
+   and (when a dev server is already running) modules transform. Pixel review
+   is the human's job — say plainly that rendering is unverified instead of
+   simulating a browser.
+3. **Logic gets executed, not eyeballed.** Pure functions (pricing, tier math,
+   filters, pagination) are cheap to prove: write a throwaway `bun run` script
+   with assertions, run it, delete it. Prefer that over claiming correctness
+   from reading the code.
+4. **Be token-frugal.**
+   - Read the specific lines you need (`offset`/`limit`, targeted grep), not
+     whole files; never re-read a file just edited.
+   - Batch repetitive file generation through one script instead of N
+     hand-written near-identical files.
+   - Don't paste long command output back into prose — summarize the verdict.
+   - No exploratory subagents for questions a single grep answers.
+5. **Mock-data seam is sacred.** Screens run on `modules/<domain>/data/*.ts`
+   behind `api/*.ts` until the real §15 endpoint exists. Never add a `fetch`
+   to a component; the swap to the real API must stay a one-file change.
+6. **Don't start servers you weren't asked to start**, and never bind port 3000
+   (the user runs the Hono server). Admin dev is 3002, platform 3001.
+7. **Generated files are read-only** — `routeTree.gen.ts` regenerates; if a
+   route id looks wrong, fix the file location, not the generated tree.
+8. **When verification is impossible, say so.** "Unverified: rendering" beats a
+   confident claim. Never report a step as done that wasn't run.
+
 ## Reference docs
 
 - Code conventions → [`docs/rules/code-rules.md`](docs/rules/code-rules.md)

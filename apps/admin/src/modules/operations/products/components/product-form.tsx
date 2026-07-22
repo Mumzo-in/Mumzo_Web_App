@@ -61,9 +61,9 @@ import {
 } from "@/core/components/form-fields";
 import { formatMoney } from "@/core/components/format";
 import StringListEditor from "@/core/components/string-list-editor";
-import { brandsQueryOptions } from "@/modules/catalog/brands";
-import { categoriesQueryOptions } from "@/modules/catalog/categories";
-import { vendorsQueryOptions } from "@/modules/catalog/vendors";
+import { brandsQueryOptions } from "@/modules/operations/brands";
+import { categoriesQueryOptions } from "@/modules/operations/categories";
+import { vendorsQueryOptions } from "@/modules/operations/vendors";
 import type { ProductInput } from "../api/products-api";
 import { FormSidebarTab } from "./form-sidebar-tab";
 import SizeEditor from "./size-editor";

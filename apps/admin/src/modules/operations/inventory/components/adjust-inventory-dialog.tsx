@@ -31,8 +31,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { queryKeys } from "@/core/api/query-keys";
-import { hubsQueryOptions } from "@/modules/catalog/hubs";
-import { listProducts } from "@/modules/catalog/products";
+import { hubsQueryOptions } from "@/modules/operations/hubs";
+import { listProducts } from "@/modules/operations/products";
 import { adjustInventory, type InventoryRow } from "../api/inventory-api";
 
 const schema = z.object({

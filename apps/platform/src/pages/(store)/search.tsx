@@ -319,12 +319,12 @@ function SearchPage() {
 
       {/* Sidebar + grid — pure CSS responsive (sidebar is desktop-only) */}
       <div className="mt-8 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-[260px_1fr]">
-        <aside className="hidden h-fit self-start lg:sticky lg:top-24 lg:block">
+        <aside className="hidden self-start lg:sticky lg:top-24 lg:block">
           <CategoryFilterPanel
             facets={facets}
             state={panelState}
             onChange={updateFilters}
-            className="rounded-3xl border border-border/60 bg-card p-6"
+            className="max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-border/60 bg-card"
           />
         </aside>
 

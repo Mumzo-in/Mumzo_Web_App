@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import PageHeader from "@/core/components/page-header";
-import { HubDialog, HubTable } from "@/modules/catalog/hubs";
+import { HubDialog, HubTable } from "@/modules/operations/hubs";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/hubs")({
