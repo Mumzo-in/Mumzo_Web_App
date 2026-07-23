@@ -12,6 +12,8 @@
  * assumptions beyond whatever cookies the browser already sends.
  */
 
+import { env } from "@mumzo/env/web";
+
 /** Error codes the API plan defines. Unknown codes stay representable. */
 export type ApiErrorCode =
   | "PRODUCT_OUT_OF_STOCK"
@@ -62,7 +64,21 @@ type ErrorEnvelope = {
 };
 type Envelope<T> = SuccessEnvelope<T> | ErrorEnvelope;
 
-const BASE_URL = "/api/v1";
+function getServerUrl(url: string) {
+  const normalized = url.endsWith("/") ? url.slice(0, -1) : url;
+
+  if (!normalized.startsWith("/")) {
+    return normalized;
+  }
+
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${normalized}`;
+  }
+
+  return `http://localhost:3000${normalized}`;
+}
+
+const BASE_URL = `${getServerUrl(env.VITE_SERVER_URL)}/api/v1`;
 
 export type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
