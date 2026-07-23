@@ -7,22 +7,13 @@ import {
   CardTitle,
 } from "@mumzo/ui/components/card";
 import { Field, FieldLabel } from "@mumzo/ui/components/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@mumzo/ui/components/select";
 import { Switch } from "@mumzo/ui/components/switch";
 import { useForm } from "@tanstack/react-form";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ControlField, TextField } from "@/core/components/form-fields";
+import { TextField } from "@/core/components/form-fields";
 import type { Vendor, VendorInput } from "../api/vendors-api";
-import { VENDOR_TYPE_OPTIONS } from "../data/vendor-data";
 
 const schema = z.object({
   name: z.string().min(1, "Give the vendor a name.").max(120),
@@ -31,7 +22,6 @@ const schema = z.object({
     .min(1, "Slug is required.")
     .max(120)
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
-  type: z.enum(["retailer", "store", "distributor"]),
   contactName: z.string().max(120).nullable(),
   phone: z.string().max(20).nullable(),
   email: z
@@ -58,7 +48,6 @@ function emptyValues() {
   return {
     name: "",
     slug: "",
-    type: "distributor" as const,
     contactName: null as string | null,
     phone: null as string | null,
     email: null as string | null,
@@ -72,7 +61,6 @@ function valuesFrom(vendor: Vendor) {
   return {
     name: vendor.name,
     slug: vendor.slug,
-    type: vendor.type,
     contactName: vendor.contactName,
     phone: vendor.phone,
     email: vendor.email,
@@ -175,30 +163,6 @@ export const VendorForm = forwardRef<
                   From name
                 </Button>
               </div>
-            )}
-          </form.Field>
-
-          <form.Field name="type">
-            {(field) => (
-              <ControlField field={field} label="Type">
-                <Select
-                  onValueChange={(value) => field.handleChange(value as never)}
-                  value={field.state.value}
-                >
-                  <SelectTrigger data-testid="admin-vendor-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {VENDOR_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </ControlField>
             )}
           </form.Field>
 

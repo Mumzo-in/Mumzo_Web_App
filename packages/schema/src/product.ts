@@ -35,13 +35,43 @@ export const AGE_LABEL: Record<AgeGroup, string> = Object.fromEntries(
   AGE_GROUPS.map((group) => [group.key, group.label]),
 ) as Record<AgeGroup, string>;
 
-export type ProductStatus = "draft" | "active" | "archived";
+/** `PRODUCT_STATUSES` is the canonical list — zod schemas and the admin
+ * form's `<Select>` both derive their options from it instead of repeating
+ * the literal tuple. */
+export const PRODUCT_STATUSES = [
+  "draft",
+  "active",
+  "inactive",
+  "archived",
+] as const;
+
+export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
 /** A purchasable variant. Price and stock are per-size, not per-product. */
 export type ProductSize = {
   label: string;
   price: number;
   stock: number;
+};
+
+/** "own" — we hold the stock ourselves. "retainer" — vendor holds stock,
+ * billed on a standing account. "distributor" — billed per order. */
+export type VendorRelationship = "own" | "retainer" | "distributor";
+
+/**
+ * Sourcing info — a product has at most one vendor on file. `null` means
+ * self-stocked (no `product_vendor` row). Replaces the old flat
+ * `vendorId`/`costPrice` columns on `product`.
+ */
+export type ProductVendor = {
+  vendorId: string;
+  /** Display name, resolved server-side. */
+  vendorName: string;
+  relationship: VendorRelationship;
+  /** What we pay the supplier. Drives margin; never exposed to customers. */
+  costPrice: number | null;
+  leadTimeDays: number | null;
+  notes: string | null;
 };
 
 export type Product = {
@@ -54,16 +84,13 @@ export type Product = {
   /** Display name, resolved server-side from `brandId`. */
   brand: string;
   brandId: string;
-  /** Display name, resolved server-side from `vendorId`. Null when unset. */
-  vendor: string | null;
-  vendorId: string | null;
+  /** Sourcing info, or `null` for a self-stocked product. */
+  vendor: ProductVendor | null;
   categorySlug: CategorySlug;
 
   /** Whole rupees. `discount` is derived from these two, never stored. */
   price: number;
   mrp: number;
-  /** What we pay the supplier. Drives margin; never exposed to customers. */
-  costPrice: number | null;
 
   /** Pack size as free text — "Pack of 72", "300 g". Rendered on the PDP. */
   qty: string;
@@ -132,14 +159,14 @@ export function primaryImage(product: Pick<Product, "images">): string | null {
   return product.images[0] ?? null;
 }
 
-/** Margin over supplier cost, or null when cost is unknown. */
-export function marginPct(
-  product: Pick<Product, "price" | "costPrice">,
-): number | null {
-  if (product.costPrice === null || product.costPrice <= 0) {
+/** Margin over supplier cost, or null when there's no vendor / cost on file. */
+export function marginPct(product: {
+  price: number;
+  vendor: Pick<ProductVendor, "costPrice"> | null;
+}): number | null {
+  const costPrice = product.vendor?.costPrice ?? null;
+  if (costPrice === null || costPrice <= 0) {
     return null;
   }
-  return Math.round(
-    ((product.price - product.costPrice) / product.price) * 100,
-  );
+  return Math.round(((product.price - costPrice) / product.price) * 100);
 }

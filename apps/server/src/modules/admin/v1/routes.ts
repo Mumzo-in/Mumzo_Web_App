@@ -10,6 +10,7 @@ import inventoryRoutes from "./inventory/inventory.module";
 import productsRoutes from "./products/products.module";
 import rolesRoutes from "./roles";
 import staffRoutes from "./staff";
+import uploadsRoutes from "./uploads/uploads.module";
 import vendorsRoutes from "./vendors/vendors.module";
 
 /**
@@ -29,4 +30,5 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/products", router: productsRoutes },
   { path: "/hubs", router: hubsRoutes },
   { path: "/inventory", router: inventoryRoutes },
+  { path: "/uploads", router: uploadsRoutes },
 ];

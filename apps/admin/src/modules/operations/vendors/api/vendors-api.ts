@@ -1,13 +1,10 @@
 import { apiList, apiRequest, type Paginated } from "@/core/api/client";
 import type { ListParams } from "@/core/api/query-keys";
 
-export type VendorType = "retailer" | "store" | "distributor";
-
 export type Vendor = {
   id: string;
   name: string;
   slug: string;
-  type: VendorType;
   contactName: string | null;
   phone: string | null;
   email: string | null;
@@ -29,7 +26,6 @@ export function getVendor(id: string): Promise<Vendor> {
 export type VendorInput = {
   name: string;
   slug: string;
-  type: VendorType;
   contactName: string | null;
   phone: string | null;
   email: string | null;

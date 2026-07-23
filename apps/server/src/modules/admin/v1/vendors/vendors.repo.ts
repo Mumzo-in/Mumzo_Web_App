@@ -1,5 +1,5 @@
 import { db } from "@mumzo/db";
-import { product, vendor } from "@mumzo/db/schema/catalog";
+import { productVendor, vendor } from "@mumzo/db/schema/catalog";
 import { count, eq, ilike, or } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
@@ -8,21 +8,20 @@ const selection = {
   id: vendor.id,
   name: vendor.name,
   slug: vendor.slug,
-  type: vendor.type,
   contactName: vendor.contactName,
   phone: vendor.phone,
   email: vendor.email,
   address: vendor.address,
   gstin: vendor.gstin,
   isActive: vendor.isActive,
-  productCount: count(product.id),
+  productCount: count(productVendor.productId),
 };
 
 function baseQuery() {
   return db
     .select(selection)
     .from(vendor)
-    .leftJoin(product, eq(product.vendorId, vendor.id));
+    .leftJoin(productVendor, eq(productVendor.vendorId, vendor.id));
 }
 
 export async function findPage(filters: {
@@ -80,7 +79,6 @@ export async function findBySlug(slug: string) {
 export async function insert(input: {
   name: string;
   slug: string;
-  type: string;
   contactName: string | null;
   phone: string | null;
   email: string | null;
@@ -103,7 +101,6 @@ export async function update(
   input: Partial<{
     name: string;
     slug: string;
-    type: string;
     contactName: string | null;
     phone: string | null;
     email: string | null;
@@ -121,8 +118,8 @@ export async function remove(id: string) {
 
 export async function productCount(vendorId: string) {
   const [row] = await db
-    .select({ count: count(product.id) })
-    .from(product)
-    .where(eq(product.vendorId, vendorId));
+    .select({ count: count(productVendor.productId) })
+    .from(productVendor)
+    .where(eq(productVendor.vendorId, vendorId));
   return row?.count ?? 0;
 }

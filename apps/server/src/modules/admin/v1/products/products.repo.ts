@@ -4,6 +4,7 @@ import {
   category,
   product,
   productSize,
+  productVendor,
   vendor,
 } from "@mumzo/db/schema/catalog";
 import { and, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
@@ -17,13 +18,16 @@ const selection = {
   name: product.name,
   brandId: product.brandId,
   brandName: brand.name,
-  vendorId: product.vendorId,
+  vendorId: productVendor.vendorId,
   vendorName: vendor.name,
+  vendorRelationship: productVendor.relationship,
+  vendorCostPrice: productVendor.costPrice,
+  vendorLeadTimeDays: productVendor.leadTimeDays,
+  vendorNotes: productVendor.notes,
   categoryId: product.categoryId,
   categorySlug: category.slug,
   price: product.price,
   mrp: product.mrp,
-  costPrice: product.costPrice,
   qty: product.qty,
   weight: product.weight,
   description: product.description,
@@ -47,7 +51,8 @@ function baseQuery() {
     .from(product)
     .innerJoin(brand, eq(brand.id, product.brandId))
     .innerJoin(category, eq(category.id, product.categoryId))
-    .leftJoin(vendor, eq(vendor.id, product.vendorId));
+    .leftJoin(productVendor, eq(productVendor.productId, product.id))
+    .leftJoin(vendor, eq(vendor.id, productVendor.vendorId));
 }
 
 export async function findPage(filters: {
@@ -77,7 +82,7 @@ export async function findPage(filters: {
     conditions.push(eq(category.slug, filters.categorySlug));
   }
   if (filters.vendorId) {
-    conditions.push(eq(product.vendorId, filters.vendorId));
+    conditions.push(eq(productVendor.vendorId, filters.vendorId));
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -93,6 +98,7 @@ export async function findPage(filters: {
       .from(product)
       .innerJoin(brand, eq(brand.id, product.brandId))
       .innerJoin(category, eq(category.id, product.categoryId))
+      .leftJoin(productVendor, eq(productVendor.productId, product.id))
       .where(where),
   ]);
 
@@ -181,9 +187,49 @@ export async function vendorExists(vendorId: string) {
 
 type ProductRow = typeof product.$inferInsert;
 
+export type VendorLinkInput = {
+  vendorId: string;
+  relationship: string;
+  costPrice: number | null;
+  leadTimeDays: number | null;
+  notes: string | null;
+} | null;
+
+/** Upsert or delete the 1:1 `product_vendor` link — `null` removes it
+ * (product becomes self-stocked). Called inside the same transaction as the
+ * product write so the two never disagree. */
+async function syncVendorLink(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  productId: string,
+  vendorLink: VendorLinkInput,
+) {
+  if (vendorLink === null) {
+    await tx
+      .delete(productVendor)
+      .where(eq(productVendor.productId, productId));
+    return;
+  }
+
+  await tx
+    .insert(productVendor)
+    .values({ productId, ...vendorLink })
+    .onConflictDoUpdate({
+      target: productVendor.productId,
+      set: {
+        vendorId: vendorLink.vendorId,
+        relationship: vendorLink.relationship,
+        costPrice: vendorLink.costPrice,
+        leadTimeDays: vendorLink.leadTimeDays,
+        notes: vendorLink.notes,
+        updatedAt: /* @__PURE__ */ new Date(),
+      },
+    });
+}
+
 export async function insert(
   values: Omit<ProductRow, "id" | "createdAt" | "updatedAt">,
   sizes: { label: string; price: number; stock: number }[],
+  vendorLink: VendorLinkInput,
 ) {
   return db.transaction(async (tx) => {
     const [row] = await tx
@@ -207,6 +253,8 @@ export async function insert(
       );
     }
 
+    await syncVendorLink(tx, row.id, vendorLink);
+
     return row.id;
   });
 }
@@ -215,6 +263,7 @@ export async function update(
   id: string,
   values: Partial<Omit<ProductRow, "id" | "createdAt" | "updatedAt">>,
   sizes: { label: string; price: number; stock: number }[],
+  vendorLink: VendorLinkInput,
 ) {
   await db.transaction(async (tx) => {
     if (Object.keys(values).length > 0) {
@@ -235,6 +284,8 @@ export async function update(
         })),
       );
     }
+
+    await syncVendorLink(tx, id, vendorLink);
   });
 }
 

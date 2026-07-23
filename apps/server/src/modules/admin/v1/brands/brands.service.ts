@@ -1,4 +1,6 @@
+import { buildKey, toPublicUrl } from "@mumzo/storage";
 import { conflict, notFound } from "@/core/errors";
+import { finalizeSession } from "../uploads/uploads.service";
 import * as brandsRepo from "./brands.repo";
 
 export async function listBrands(search?: string) {
@@ -13,12 +15,34 @@ async function requireBrand(id: string) {
   return brand;
 }
 
-export async function createBrand(input: {
-  name: string;
-  slug: string;
-  logoUrl?: string | null;
-  isActive: boolean;
-}) {
+/**
+ * Copies the draft logo (`mumzo/tmp/{sessionId}/logo.webp`) to its final
+ * `mumzo/admin/brands/{brandId}/logo.webp` destination and returns the
+ * public URL to store as `logoUrl`. No-op when no session was uploaded.
+ */
+async function finalizeLogo(
+  brandId: string,
+  uploadSessionId: string | undefined,
+  userId: string,
+): Promise<string | undefined> {
+  if (!uploadSessionId) {
+    return undefined;
+  }
+  const destKey = buildKey("admin", "brands", brandId, "logo");
+  await finalizeSession(uploadSessionId, userId, { logo: destKey });
+  return toPublicUrl(destKey);
+}
+
+export async function createBrand(
+  input: {
+    name: string;
+    slug: string;
+    logoUrl?: string | null;
+    isActive: boolean;
+    uploadSessionId?: string;
+  },
+  userId: string,
+) {
   const [byName, bySlug] = await Promise.all([
     brandsRepo.findByName(input.name),
     brandsRepo.findBySlug(input.slug),
@@ -31,12 +55,19 @@ export async function createBrand(input: {
     throw conflict(`The slug "${input.slug}" is already in use.`);
   }
 
-  return brandsRepo.insert({
+  const id = await brandsRepo.insert({
     name: input.name,
     slug: input.slug,
     logoUrl: input.logoUrl ?? null,
     isActive: input.isActive,
   });
+
+  const logoUrl = await finalizeLogo(id, input.uploadSessionId, userId);
+  if (logoUrl) {
+    await brandsRepo.update(id, { logoUrl });
+  }
+
+  return id;
 }
 
 export async function updateBrand(
@@ -46,7 +77,9 @@ export async function updateBrand(
     slug: string;
     logoUrl: string | null;
     isActive: boolean;
+    uploadSessionId: string;
   }>,
+  userId: string,
 ) {
   await requireBrand(id);
 
@@ -63,7 +96,13 @@ export async function updateBrand(
     }
   }
 
-  await brandsRepo.update(id, input);
+  const { uploadSessionId, ...rest } = input;
+  const logoUrl = await finalizeLogo(id, uploadSessionId, userId);
+  const patch = logoUrl ? { ...rest, logoUrl } : rest;
+
+  if (Object.keys(patch).length > 0) {
+    await brandsRepo.update(id, patch);
+  }
 }
 
 export async function deleteBrand(id: string) {

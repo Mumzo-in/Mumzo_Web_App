@@ -22,6 +22,8 @@ export type CategoryInput = {
   isActive: boolean;
   hasSizes: boolean;
   brandIds: string[];
+  /** Draft upload session carrying a new cover image, if one was uploaded. */
+  uploadSessionId?: string;
 };
 
 export function createCategory(input: CategoryInput): Promise<{ id: string }> {

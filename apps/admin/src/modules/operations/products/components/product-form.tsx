@@ -2,6 +2,7 @@ import {
   AGE_GROUPS,
   discountPct,
   marginPct,
+  PRODUCT_STATUSES,
   type Product,
   type ProductFormValues,
   productFormSchema,
@@ -44,11 +45,13 @@ import { Link } from "@tanstack/react-router";
 import {
   Banknote,
   FileText,
+  Images,
   Layers,
   type LucideIcon,
   PackagePlus,
   Sparkles,
   Tag,
+  Truck,
 } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
@@ -66,6 +69,7 @@ import { categoriesQueryOptions } from "@/modules/operations/categories";
 import { vendorsQueryOptions } from "@/modules/operations/vendors";
 import type { ProductInput } from "../api/products-api";
 import { FormSidebarTab } from "./form-sidebar-tab";
+import ProductImageGallery from "./product-image-gallery";
 import SizeEditor from "./size-editor";
 
 /** Blank defaults for the create form. */
@@ -75,12 +79,11 @@ function emptyValues(): ProductFormValues {
     slug: "",
     sku: "",
     brandId: "",
-    vendorId: null,
+    vendor: null,
     categorySlug: "baby-essentials",
     status: "draft",
     price: 0,
     mrp: 0,
-    costPrice: null,
     qty: "",
     weight: null,
     description: "",
@@ -103,12 +106,19 @@ function valuesFrom(product: Product): ProductFormValues {
     slug: product.slug,
     sku: product.sku,
     brandId: product.brandId,
-    vendorId: product.vendorId,
+    vendor: product.vendor
+      ? {
+          vendorId: product.vendor.vendorId,
+          relationship: product.vendor.relationship,
+          costPrice: product.vendor.costPrice,
+          leadTimeDays: product.vendor.leadTimeDays,
+          notes: product.vendor.notes,
+        }
+      : null,
     categorySlug: product.categorySlug,
     status: product.status,
     price: product.price,
     mrp: product.mrp,
-    costPrice: product.costPrice,
     qty: product.qty,
     weight: product.weight,
     description: product.description,
@@ -124,10 +134,22 @@ function valuesFrom(product: Product): ProductFormValues {
   };
 }
 
-const STATUS_OPTIONS = [
-  { value: "draft", label: "Draft" },
-  { value: "active", label: "Active" },
-  { value: "archived", label: "Archived" },
+const STATUS_LABELS: Record<(typeof PRODUCT_STATUSES)[number], string> = {
+  draft: "Draft",
+  active: "Active",
+  inactive: "Inactive",
+  archived: "Archived",
+};
+
+const STATUS_OPTIONS = PRODUCT_STATUSES.map((value) => ({
+  value,
+  label: STATUS_LABELS[value],
+}));
+
+const RELATIONSHIP_OPTIONS = [
+  { value: "own", label: "Own (self-stocked, tracked)" },
+  { value: "retainer", label: "Retainer (standing account)" },
+  { value: "distributor", label: "Distributor (billed per order)" },
 ] as const;
 
 /** Sections mirror the sidebar nav — each owns a slice of the field set. */
@@ -142,7 +164,6 @@ const SECTIONS = [
       "slug",
       "sku",
       "brandId",
-      "vendorId",
       "categorySlug",
       "status",
       "description",
@@ -156,7 +177,14 @@ const SECTIONS = [
     label: "Pricing & Stock",
     description: "Price, MRP, packaging",
     icon: Banknote,
-    fields: ["price", "mrp", "costPrice", "qty", "weight"],
+    fields: ["price", "mrp", "qty", "weight"],
+  },
+  {
+    key: "sourcing",
+    label: "Sourcing",
+    description: "Vendor, cost & lead time",
+    icon: Truck,
+    fields: ["vendor"],
   },
   {
     key: "variants",
@@ -164,6 +192,13 @@ const SECTIONS = [
     description: "Sizes & per-size stock",
     icon: Layers,
     fields: ["sizes"],
+  },
+  {
+    key: "media",
+    label: "Media",
+    description: "Photos & gallery order",
+    icon: Images,
+    fields: ["images"],
   },
   {
     key: "merchandising",
@@ -215,6 +250,10 @@ export const ProductForm = forwardRef<
   const [activeSection, setActiveSection] = useState<SectionKey>(
     SECTIONS[0].key,
   );
+  /** Draft image-upload session id, set once the Media tab uploads a new
+   * image this editing session. Not form state — it's write-only wire data
+   * the server uses to finalize draft images, not a product field. */
+  const [uploadSessionId, setUploadSessionId] = useState<string | null>(null);
   const { data: brands } = useQuery(brandsQueryOptions);
   const { data: vendors } = useQuery(vendorsQueryOptions);
   const { data: categories } = useQuery(categoriesQueryOptions);
@@ -226,7 +265,7 @@ export const ProductForm = forwardRef<
       setPending(true);
       try {
         // Schema output is the wire shape minus server-owned fields.
-        await onSubmit(value as ProductInput);
+        await onSubmit({ ...value, uploadSessionId } as ProductInput);
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Couldn't save the product.",
@@ -254,6 +293,39 @@ export const ProductForm = forwardRef<
         form.handleSubmit();
       }}
     >
+      <form.Field name="status">
+        {(field) => (
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-3xl border border-border bg-card p-4 shadow-warm">
+            <div className="flex items-center gap-3">
+              <FieldLabel htmlFor="admin-product-active-toggle">
+                {field.state.value === "active" ? "Active" : "Inactive"}
+              </FieldLabel>
+              <Switch
+                checked={field.state.value === "active"}
+                data-testid="admin-product-active-toggle"
+                id="admin-product-active-toggle"
+                onCheckedChange={(checked) =>
+                  field.handleChange(checked ? "active" : "inactive")
+                }
+              />
+              <span className="text-muted-foreground text-xs">
+                Controls storefront visibility once published.
+              </span>
+            </div>
+            <Button
+              data-testid="admin-product-publish"
+              disabled={field.state.value !== "draft"}
+              onClick={() => field.handleChange("active")}
+              size="sm"
+              type="button"
+              variant={field.state.value === "draft" ? "default" : "outline"}
+            >
+              {field.state.value === "draft" ? "Publish" : "Published"}
+            </Button>
+          </div>
+        )}
+      </form.Field>
+
       <div className="grid items-start gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="flex flex-col gap-1 rounded-3xl border border-border bg-card p-2 shadow-warm lg:sticky lg:top-6">
           <form.Subscribe selector={(state) => state.errorMap}>
@@ -355,33 +427,6 @@ export const ProductForm = forwardRef<
                             {(brands ?? []).map((brand) => (
                               <SelectItem key={brand.id} value={brand.id}>
                                 {brand.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </ControlField>
-                  )}
-                </form.Field>
-
-                <form.Field name="vendorId">
-                  {(field) => (
-                    <ControlField field={field} label="Vendor">
-                      <Select
-                        onValueChange={(value) =>
-                          field.handleChange(value === "none" ? null : value)
-                        }
-                        value={field.state.value ?? "none"}
-                      >
-                        <SelectTrigger data-testid="admin-product-vendor">
-                          <SelectValue placeholder="Pick a vendor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="none">No vendor</SelectItem>
-                            {(vendors ?? []).map((vendor) => (
-                              <SelectItem key={vendor.id} value={vendor.id}>
-                                {vendor.name}
                               </SelectItem>
                             ))}
                           </SelectGroup>
@@ -525,32 +570,24 @@ export const ProductForm = forwardRef<
                     />
                   )}
                 </form.Field>
-                <form.Field name="costPrice">
-                  {(field) => (
-                    <NumberField
-                      description="What we pay the supplier."
-                      field={field}
-                      label="Cost price ₹"
-                    />
-                  )}
-                </form.Field>
-
-                {/* Live derived preview — discount and margin. */}
+                {/* Live derived preview — discount and margin (cost price now lives in Sourcing). */}
                 <form.Subscribe
                   selector={(state) => ({
                     price: state.values.price,
                     mrp: state.values.mrp,
-                    cost: state.values.costPrice,
+                    vendor: state.values.vendor,
                   })}
                 >
-                  {({ price, mrp, cost }) => {
+                  {({ price, mrp, vendor }) => {
                     const off = discountPct({
                       price: price || 0,
                       mrp: mrp || 0,
                     });
                     const margin = marginPct({
                       price: price || 0,
-                      costPrice: cost,
+                      vendor: vendor
+                        ? { costPrice: vendor.costPrice ?? null }
+                        : null,
                     });
                     return (
                       <p
@@ -589,6 +626,138 @@ export const ProductForm = forwardRef<
             </Card>
           ) : null}
 
+          {activeSection === "sourcing" ? (
+            <Card className="shadow-warm">
+              <CardHeader>
+                <CardTitle>Sourcing</CardTitle>
+                <CardDescription>
+                  Who supplies this product, and on what terms.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-5 md:grid-cols-2">
+                <form.Field name="vendor">
+                  {(field) => (
+                    <div className="md:col-span-2">
+                      <ControlField field={field} label="Vendor">
+                        <Select
+                          onValueChange={(value) =>
+                            field.handleChange(
+                              !value || value === "none"
+                                ? null
+                                : {
+                                    vendorId: value,
+                                    relationship:
+                                      field.state.value?.relationship ??
+                                      "distributor",
+                                    costPrice:
+                                      field.state.value?.costPrice ?? null,
+                                    leadTimeDays:
+                                      field.state.value?.leadTimeDays ?? null,
+                                    notes: field.state.value?.notes ?? null,
+                                  },
+                            )
+                          }
+                          value={field.state.value?.vendorId ?? "none"}
+                        >
+                          <SelectTrigger data-testid="admin-product-vendor">
+                            <SelectValue placeholder="Pick a vendor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="none">
+                                None (self-stocked)
+                              </SelectItem>
+                              {(vendors ?? []).map((vendor) => (
+                                <SelectItem key={vendor.id} value={vendor.id}>
+                                  {vendor.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </ControlField>
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Subscribe selector={(state) => state.values.vendor}>
+                  {(vendorValue) =>
+                    vendorValue ? (
+                      <>
+                        <form.Field name="vendor.relationship">
+                          {(field) => (
+                            <ControlField field={field} label="Relationship">
+                              <Select
+                                onValueChange={(value) =>
+                                  field.handleChange(value as never)
+                                }
+                                value={field.state.value}
+                              >
+                                <SelectTrigger data-testid="admin-product-vendor-relationship">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    {RELATIONSHIP_OPTIONS.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                            </ControlField>
+                          )}
+                        </form.Field>
+
+                        <form.Field name="vendor.costPrice">
+                          {(field) => (
+                            <NumberField
+                              description="What we pay the supplier."
+                              field={field}
+                              label="Cost price ₹"
+                              testId="admin-product-vendor-cost"
+                            />
+                          )}
+                        </form.Field>
+
+                        <form.Field name="vendor.leadTimeDays">
+                          {(field) => (
+                            <NumberField
+                              description="Days from order to delivery."
+                              field={field}
+                              label="Lead time (days)"
+                              testId="admin-product-vendor-lead-time"
+                            />
+                          )}
+                        </form.Field>
+
+                        <form.Field name="vendor.notes">
+                          {(field) => (
+                            <div className="md:col-span-2">
+                              <TextareaField
+                                field={field}
+                                label="Notes"
+                                rows={3}
+                              />
+                            </div>
+                          )}
+                        </form.Field>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground text-sm md:col-span-2">
+                        Self-stocked — no vendor sourcing on file.
+                      </p>
+                    )
+                  }
+                </form.Subscribe>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {activeSection === "variants" ? (
             <Card className="shadow-warm">
               <CardHeader>
@@ -604,6 +773,30 @@ export const ProductForm = forwardRef<
                     <SizeEditor
                       onChange={(next) => field.handleChange(next)}
                       value={field.state.value ?? []}
+                    />
+                  )}
+                </form.Field>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {activeSection === "media" ? (
+            <Card className="shadow-warm">
+              <CardHeader>
+                <CardTitle>Media</CardTitle>
+                <CardDescription>
+                  Product photos. Drag to reorder — the first image is the
+                  storefront cover.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form.Field name="images">
+                  {(field) => (
+                    <ProductImageGallery
+                      images={field.state.value ?? []}
+                      onChange={(next) => field.handleChange(next)}
+                      onSessionChange={setUploadSessionId}
+                      uploadSessionId={uploadSessionId}
                     />
                   )}
                 </form.Field>

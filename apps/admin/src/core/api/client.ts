@@ -152,3 +152,59 @@ export function apiList<T>(
 ): Promise<Paginated<T>> {
   return apiRequest<Paginated<T>>(path, { query: params });
 }
+
+/**
+ * POSTs a `FormData` body (multipart uploads). Same envelope-unwrapping and
+ * `ApiError` logic as `apiRequest`, but deliberately omits `Content-Type` —
+ * the browser sets it (with the multipart boundary) when `body` is a
+ * `FormData` instance, and setting it manually breaks the boundary.
+ */
+export async function apiUpload<T>(
+  path: string,
+  formData: FormData,
+  opts: { signal?: AbortSignal } = {},
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+      signal: opts.signal,
+    });
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === "AbortError") {
+      throw cause;
+    }
+    throw new ApiError("NETWORK_ERROR", "Could not reach the server.", 0);
+  }
+
+  let envelope: Envelope<T>;
+  try {
+    envelope = (await response.json()) as Envelope<T>;
+  } catch {
+    throw new ApiError(
+      "INVALID_RESPONSE",
+      `Server returned an unreadable response (${response.status}).`,
+      response.status,
+    );
+  }
+
+  if (!envelope.success) {
+    throw new ApiError(
+      envelope.error.code,
+      envelope.error.message,
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    throw new ApiError(
+      "UNEXPECTED_STATUS",
+      `Request failed (${response.status}).`,
+      response.status,
+    );
+  }
+
+  return envelope.data;
+}

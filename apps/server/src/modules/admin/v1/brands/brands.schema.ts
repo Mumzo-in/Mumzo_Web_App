@@ -20,6 +20,13 @@ export const createBrandSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
   logoUrl: z.string().url().nullable().optional(),
   isActive: z.boolean().default(true),
+  /**
+   * Draft upload session carrying the logo (slot "logo"), if the admin
+   * uploaded one via `POST /admin/uploads`. On save, the service copies
+   * `mumzo/tmp/{sessionId}/logo.webp` to its final destination and sets
+   * `logoUrl` to the resulting public URL.
+   */
+  uploadSessionId: z.uuid().optional(),
 });
 
 export const updateBrandSchema = createBrandSchema.partial();

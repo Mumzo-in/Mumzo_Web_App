@@ -53,10 +53,18 @@ const productsForPickerQueryOptions = {
  * (prefilled from `row`) and a hub carrying a product for the first time —
  * the server upserts, so there's no separate "add" endpoint.
  */
-export function AdjustInventoryDialog({ row }: { row?: InventoryRow }) {
+export function AdjustInventoryDialog({
+  row,
+  defaultProductId,
+}: {
+  row?: InventoryRow;
+  /** Preselects and locks the product picker — used from a product's own stock page. */
+  defaultProductId?: string;
+}) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const isEdit = Boolean(row);
+  const isProductLocked = isEdit || Boolean(defaultProductId);
 
   const hubs = useQuery(hubsQueryOptions);
   const products = useQuery(productsForPickerQueryOptions);
@@ -81,7 +89,7 @@ export function AdjustInventoryDialog({ row }: { row?: InventoryRow }) {
   const form = useForm({
     defaultValues: {
       hubId: row?.hubId ?? "",
-      productId: row?.productId ?? "",
+      productId: row?.productId ?? defaultProductId ?? "",
       stock: row?.stock ?? 0,
       reorderPoint: row?.reorderPoint ?? 12,
     },
@@ -170,7 +178,7 @@ export function AdjustInventoryDialog({ row }: { row?: InventoryRow }) {
                   <Field data-invalid={invalid || undefined}>
                     <FieldLabel htmlFor={field.name}>Product</FieldLabel>
                     <Select
-                      disabled={isEdit}
+                      disabled={isProductLocked}
                       onValueChange={(value) => field.handleChange(value ?? "")}
                       value={field.state.value}
                     >

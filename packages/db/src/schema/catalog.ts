@@ -35,18 +35,11 @@ export const brand = pgTable("brand", {
     .notNull(),
 });
 
-/**
- * Suppliers a product is sourced from. `type` distinguishes how the supply
- * relationship works — a retailer/store is billed per order, a distributor
- * carries a standing account — without splitting them into separate tables;
- * nothing else about the record differs by type.
- */
+/** Suppliers a product is sourced from. */
 export const vendor = pgTable("vendor", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
-  /** VendorType: "retailer" | "store" | "distributor". */
-  type: text("type").default("distributor").notNull(),
   contactName: text("contact_name"),
   phone: text("phone"),
   email: text("email"),
@@ -116,14 +109,8 @@ export const product = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => category.id, { onDelete: "restrict" }),
-    /** Supplier this product is sourced from. Optional — not every product has one on file yet. */
-    vendorId: uuid("vendor_id").references(() => vendor.id, {
-      onDelete: "restrict",
-    }),
-
     price: integer("price").notNull(),
     mrp: integer("mrp").notNull(),
-    costPrice: integer("cost_price"),
 
     qty: text("qty").notNull(),
     weight: text("weight"),
@@ -139,7 +126,7 @@ export const product = pgTable(
     tags: text("tags").array().default([]).notNull(),
 
     isBestseller: boolean("is_bestseller").default(false).notNull(),
-    /** ProductStatus: "draft" | "active" | "archived". */
+    /** ProductStatus: "draft" | "active" | "inactive" | "archived". */
     status: text("status").default("draft").notNull(),
     /** Derived from reviews; written only by the (future) reviews module. */
     rating: numeric("rating", { precision: 2, scale: 1 })
@@ -155,9 +142,40 @@ export const product = pgTable(
   (table) => [
     index("product_categoryId_idx").on(table.categoryId),
     index("product_brandId_idx").on(table.brandId),
-    index("product_vendorId_idx").on(table.vendorId),
     index("product_status_idx").on(table.status),
   ],
+);
+
+/**
+ * Sourcing info for a product — which vendor supplies it, on what terms, and
+ * at what cost. 1:1 with `product` (one sourcing record per product, not a
+ * history), so `productId` is both the primary key and the FK. Split out of
+ * `product` itself so a product with no vendor on file (self-stocked) simply
+ * has no row here, instead of a column full of nulls.
+ */
+export const productVendor = pgTable(
+  "product_vendor",
+  {
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" })
+      .primaryKey(),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => vendor.id, { onDelete: "restrict" }),
+    /** "own" | "retainer" | "distributor" — how the supply relationship works. */
+    relationship: text("relationship").default("distributor").notNull(),
+    /** What we pay the supplier. Drives margin; never exposed to customers. */
+    costPrice: integer("cost_price"),
+    leadTimeDays: integer("lead_time_days"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("product_vendor_vendorId_idx").on(table.vendorId)],
 );
 
 /**
@@ -232,7 +250,7 @@ export const brandRelations = relations(brand, ({ many }) => ({
 }));
 
 export const vendorRelations = relations(vendor, ({ many }) => ({
-  products: many(product),
+  sourcing: many(productVendor),
 }));
 
 export const categoryRelations = relations(category, ({ many }) => ({
@@ -257,12 +275,23 @@ export const productRelations = relations(product, ({ one, many }) => ({
     fields: [product.categoryId],
     references: [category.id],
   }),
-  vendor: one(vendor, {
-    fields: [product.vendorId],
-    references: [vendor.id],
+  vendor: one(productVendor, {
+    fields: [product.id],
+    references: [productVendor.productId],
   }),
   sizes: many(productSize),
   inventory: many(inventory),
+}));
+
+export const productVendorRelations = relations(productVendor, ({ one }) => ({
+  product: one(product, {
+    fields: [productVendor.productId],
+    references: [product.id],
+  }),
+  vendor: one(vendor, {
+    fields: [productVendor.vendorId],
+    references: [vendor.id],
+  }),
 }));
 
 export const productSizeRelations = relations(productSize, ({ one }) => ({

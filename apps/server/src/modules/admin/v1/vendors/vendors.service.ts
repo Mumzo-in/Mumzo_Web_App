@@ -1,12 +1,6 @@
 import { conflict, notFound } from "@/core/errors";
 import * as vendorsRepo from "./vendors.repo";
 
-type VendorType = "retailer" | "store" | "distributor";
-
-function serialize<T extends { type: string }>(row: T) {
-  return { ...row, type: row.type as VendorType };
-}
-
 export async function listVendors(filters: {
   page: number;
   limit: number;
@@ -15,7 +9,7 @@ export async function listVendors(filters: {
   const { rows, total } = await vendorsRepo.findPage(filters);
 
   return {
-    data: rows.map(serialize),
+    data: rows,
     meta: {
       page: filters.page,
       limit: filters.limit,
@@ -28,7 +22,7 @@ export async function listVendors(filters: {
 export async function getVendor(id: string) {
   const row = await requireVendor(id);
   const productCount = await vendorsRepo.productCount(id);
-  return serialize({ ...row, productCount });
+  return { ...row, productCount };
 }
 
 async function requireVendor(id: string) {
@@ -42,7 +36,6 @@ async function requireVendor(id: string) {
 type VendorInput = {
   name: string;
   slug: string;
-  type: string;
   contactName?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -67,7 +60,6 @@ export async function createVendor(input: VendorInput) {
   return vendorsRepo.insert({
     name: input.name,
     slug: input.slug,
-    type: input.type,
     contactName: input.contactName ?? null,
     phone: input.phone ?? null,
     email: input.email ?? null,

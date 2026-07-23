@@ -15,16 +15,20 @@ export {
   isPurchasable,
   LOW_STOCK_THRESHOLD,
   marginPct,
+  PRODUCT_STATUSES,
   type Product,
   type ProductSize,
   type ProductStatus,
+  type ProductVendor,
   primaryImage,
   totalStock,
+  type VendorRelationship,
 } from "./product";
 export {
   type ProductFormOutput,
   type ProductFormValues,
   productFormSchema,
   productSizeSchema,
+  productVendorSchema,
   slugify,
 } from "./product-schema";

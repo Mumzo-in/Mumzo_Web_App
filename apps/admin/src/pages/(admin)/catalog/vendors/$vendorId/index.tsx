@@ -45,11 +45,7 @@ import {
   listProducts,
   PRODUCT_STATUS_META,
 } from "@/modules/operations/products";
-import {
-  deleteVendor,
-  getVendor,
-  VENDOR_TYPE_META,
-} from "@/modules/operations/vendors";
+import { deleteVendor, getVendor } from "@/modules/operations/vendors";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/vendors/$vendorId/")({
@@ -109,7 +105,7 @@ function VendorDetailPage() {
     <>
       <PageHeader
         title={vendor.name}
-        description={`${vendor.slug} · ${VENDOR_TYPE_META[vendor.type].label}`}
+        description={vendor.slug}
         actions={
           <>
             {canWrite ? (

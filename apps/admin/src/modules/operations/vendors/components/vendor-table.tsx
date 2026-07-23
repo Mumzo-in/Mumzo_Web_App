@@ -8,7 +8,6 @@ import DataTable from "@/core/components/data-table";
 import { formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
 import { listVendors, type Vendor } from "../api/vendors-api";
-import { VENDOR_TYPE_META } from "../data/vendor-data";
 
 export function VendorTable() {
   const navigate = useNavigate();
@@ -27,12 +26,6 @@ export function VendorTable() {
             </span>
           </div>
         ),
-      },
-      {
-        accessorKey: "type",
-        header: "Type",
-        enableSorting: false,
-        cell: ({ row }) => VENDOR_TYPE_META[row.original.type].label,
       },
       {
         id: "contact",

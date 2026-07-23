@@ -59,6 +59,31 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
+    /** Cloudflare R2 S3-compatible endpoint: `https://<account-id>.r2.cloudflarestorage.com`. */
+    R2_ENDPOINT: z.url(),
+    /** R2 API token access key id. */
+    R2_ACCESS_KEY_ID: z.string().min(1),
+    /** R2 API token secret. */
+    R2_SECRET_ACCESS_KEY: z.string().min(1),
+    /** Bucket for publicly served assets (product/category/brand images, avatars). */
+    R2_PUBLIC_BUCKET: z.string().default("mumzo-public"),
+    /** Bucket for private documents (invoices, exports) — no public binding. */
+    R2_PRIVATE_BUCKET: z.string().default("mumzo-private"),
+    /** CDN base URL objects in the public bucket are served from. */
+    R2_PUBLIC_URL: z.url(),
+    /** Reject uploads larger than this before Sharp ever runs. */
+    R2_MAX_UPLOAD_MB: intFromEnv(20),
+    /** Processed images above this size are flagged `resizeable` for CDN-side resize. */
+    R2_RESIZE_THRESHOLD_MB: intFromEnv(1),
+    /** Enables appending `?w=&q=` resize params — flip on once the Image Resizing Worker is live. */
+    R2_ENABLE_CDN_RESIZE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+    /** Max long-edge pixels the Sharp pipeline resizes uploads to. */
+    R2_IMAGE_MAX_DIMENSION: intFromEnv(2048),
+    /** WebP encode quality (1-100) the Sharp pipeline uses. */
+    R2_IMAGE_QUALITY: z.coerce.number().min(1).max(100).default(82),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

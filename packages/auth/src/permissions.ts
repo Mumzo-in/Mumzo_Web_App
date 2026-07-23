@@ -38,6 +38,7 @@ export const statement = {
   fleet: ["read", "assign"],
   staff: ["create", "read", "update", "delete"],
   report: ["read", "export"],
+  upload: ["create", "delete"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -60,6 +61,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   fleet: "Fleet",
   staff: "Staff & roles",
   report: "Reports",
+  upload: "Media uploads",
 };
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -131,6 +133,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       fleet: ["read", "assign"],
       staff: ["create", "read", "update", "delete"],
       report: ["read", "export"],
+      upload: ["create", "delete"],
     },
   },
   {
@@ -152,6 +155,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       ticket: ["read", "respond", "close"],
       fleet: ["read", "assign"],
       report: ["read", "export"],
+      upload: ["create", "delete"],
     },
   },
   {
@@ -166,6 +170,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       inventory: ["read", "adjust"],
       review: ["read", "moderate"],
       report: ["read"],
+      upload: ["create", "delete"],
     },
   },
   {

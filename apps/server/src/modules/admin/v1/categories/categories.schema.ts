@@ -35,6 +35,14 @@ export const createCategorySchema = z.object({
   hasSizes: z.boolean().default(false),
   /** Brand ids stocked in this category. */
   brandIds: z.array(z.string()).default([]),
+  /**
+   * Draft upload session carrying the cover image (slot "cover"), if the
+   * admin uploaded one via `POST /admin/uploads`. On save, the service
+   * copies `mumzo/tmp/{sessionId}/cover.webp` to its final destination and
+   * sets `img` to the resulting public URL — the client never sends a
+   * final R2 URL directly.
+   */
+  uploadSessionId: z.uuid().optional(),
 });
 
 export const updateCategorySchema = createCategorySchema

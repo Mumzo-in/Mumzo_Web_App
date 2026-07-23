@@ -1,4 +1,5 @@
 import { createRouter, requirePermission } from "@/core";
+import { unauthorized } from "@/core/errors";
 import {
   createRouteDef,
   deleteRouteDef,
@@ -34,11 +35,19 @@ const products = app
     return c.json({ success: true as const, data: product }, 200);
   })
   .openapi(createRouteDef, async (c) => {
-    const id = await createProduct(c.req.valid("json"));
+    const user = c.get("user");
+    if (!user) {
+      throw unauthorized();
+    }
+    const id = await createProduct(c.req.valid("json"), user.id);
     return c.json({ success: true as const, data: { id } }, 201);
   })
   .openapi(updateRouteDef, async (c) => {
-    await updateProduct(c.req.valid("param").id, c.req.valid("json"));
+    const user = c.get("user");
+    if (!user) {
+      throw unauthorized();
+    }
+    await updateProduct(c.req.valid("param").id, c.req.valid("json"), user.id);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   })
   .openapi(deleteRouteDef, async (c) => {

@@ -8,5 +8,9 @@ export {
   reorderCategories,
   updateCategory,
 } from "./api/categories-api";
+export {
+  type CategoryFormHandle,
+  default as CategoryForm,
+} from "./components/category-form";
 export { default as CategoryList } from "./components/category-list";
 export { categoriesQueryOptions } from "./queries/categories";

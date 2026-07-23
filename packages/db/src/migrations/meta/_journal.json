@@ -50,6 +50,20 @@
       "when": 1784704615567,
       "tag": "0006_add_pg_trgm_fuzzy_search",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784745780869,
+      "tag": "0007_remove_vendor_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784745984390,
+      "tag": "0008_add_product_vendor_and_upload_sessions",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,6 @@
+import { buildKey, toPublicUrl } from "@mumzo/storage";
 import { conflict, notFound } from "@/core/errors";
+import { finalizeSession } from "../uploads/uploads.service";
 import * as categoriesRepo from "./categories.repo";
 
 export async function listCategories() {
@@ -13,16 +15,38 @@ export async function getCategory(slug: string) {
   return category;
 }
 
-export async function createCategory(input: {
-  slug: string;
-  name: string;
-  tagline?: string | null;
-  img?: string | null;
-  color?: string | null;
-  isActive: boolean;
-  hasSizes: boolean;
-  brandIds: string[];
-}) {
+/**
+ * Copies the draft cover (`mumzo/tmp/{sessionId}/cover.webp`) to its final
+ * `mumzo/admin/categories/{categoryId}/cover.webp` destination and returns
+ * the public URL to store as `img`. No-op when no session was uploaded.
+ */
+async function finalizeCover(
+  categoryId: string,
+  uploadSessionId: string | undefined,
+  userId: string,
+): Promise<string | undefined> {
+  if (!uploadSessionId) {
+    return undefined;
+  }
+  const destKey = buildKey("admin", "categories", categoryId, "cover");
+  await finalizeSession(uploadSessionId, userId, { cover: destKey });
+  return toPublicUrl(destKey);
+}
+
+export async function createCategory(
+  input: {
+    slug: string;
+    name: string;
+    tagline?: string | null;
+    img?: string | null;
+    color?: string | null;
+    isActive: boolean;
+    hasSizes: boolean;
+    brandIds: string[];
+    uploadSessionId?: string;
+  },
+  userId: string,
+) {
   const existing = await categoriesRepo.findIdBySlug(input.slug);
   if (existing) {
     throw conflict(`The slug "${input.slug}" is already in use.`);
@@ -43,6 +67,11 @@ export async function createCategory(input: {
 
   if (input.brandIds.length > 0) {
     await categoriesRepo.setBrands(id, input.brandIds);
+  }
+
+  const coverUrl = await finalizeCover(id, input.uploadSessionId, userId);
+  if (coverUrl) {
+    await categoriesRepo.update(id, { img: coverUrl });
   }
 
   return id;
@@ -66,14 +95,19 @@ export async function updateCategory(
     isActive: boolean;
     hasSizes: boolean;
     brandIds: string[];
+    uploadSessionId: string;
   }>,
+  userId: string,
 ) {
   const id = await requireCategoryId(slug);
 
-  const { brandIds, ...rest } = input;
+  const { brandIds, uploadSessionId, ...rest } = input;
 
-  if (Object.keys(rest).length > 0) {
-    await categoriesRepo.update(id, rest);
+  const coverUrl = await finalizeCover(id, uploadSessionId, userId);
+  const patch = coverUrl ? { ...rest, img: coverUrl } : rest;
+
+  if (Object.keys(patch).length > 0) {
+    await categoriesRepo.update(id, patch);
   }
   if (brandIds !== undefined) {
     await categoriesRepo.setBrands(id, brandIds);

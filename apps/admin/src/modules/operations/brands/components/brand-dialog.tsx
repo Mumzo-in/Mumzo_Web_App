@@ -24,11 +24,12 @@ import { Input } from "@mumzo/ui/components/input";
 import { Switch } from "@mumzo/ui/components/switch";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Plus, RotateCw, Upload } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { queryKeys } from "@/core/api/query-keys";
+import { useImageSlotUpload } from "@/core/api/use-image-slot-upload";
 import { type Brand, createBrand, updateBrand } from "../api/brands-api";
 
 const schema = z.object({
@@ -38,11 +39,6 @@ const schema = z.object({
     .min(1, "Slug is required.")
     .max(80)
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
-  logoUrl: z
-    .string()
-    .url("Enter a valid image URL.")
-    .nullable()
-    .or(z.literal("").transform(() => null)),
   isActive: z.boolean(),
 });
 
@@ -59,14 +55,19 @@ export function BrandDialog({ brand }: { brand?: Brand }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const isEdit = Boolean(brand);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoUpload = useImageSlotUpload("logo");
+  const [logoSessionId, setLogoSessionId] = useState<string | undefined>();
+  const logoPreview = logoUpload.url ?? brand?.logoUrl ?? null;
 
   const mutation = useMutation({
     mutationFn: async (value: z.infer<typeof schema>) => {
+      const payload = { ...value, uploadSessionId: logoSessionId };
       if (brand) {
-        await updateBrand(brand.id, value);
+        await updateBrand(brand.id, payload);
         return;
       }
-      await createBrand(value);
+      await createBrand(payload);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all });
@@ -85,7 +86,6 @@ export function BrandDialog({ brand }: { brand?: Brand }) {
     defaultValues: {
       name: brand?.name ?? "",
       slug: brand?.slug ?? "",
-      logoUrl: brand?.logoUrl ?? null,
       isActive: brand?.isActive ?? true,
     },
     validators: { onSubmit: schema },
@@ -193,44 +193,85 @@ export function BrandDialog({ brand }: { brand?: Brand }) {
               }}
             </form.Field>
 
-            <form.Field name="logoUrl">
-              {(field) => {
-                const invalid = field.state.meta.errors.length > 0;
-                return (
-                  <Field data-invalid={invalid || undefined}>
-                    <FieldLabel htmlFor={field.name}>Logo URL</FieldLabel>
-                    <div className="flex items-center gap-3">
-                      <Avatar size="lg">
-                        {field.state.value && (
-                          <AvatarImage alt="" src={field.state.value} />
-                        )}
-                        <AvatarFallback>
-                          {form.getFieldValue("name").slice(0, 2) || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Input
-                        aria-invalid={invalid || undefined}
-                        className="flex-1"
-                        data-testid="brand-logo-url"
-                        id={field.name}
-                        onBlur={field.handleBlur}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value || null)
-                        }
-                        placeholder="https://…/logo.png"
-                        value={field.state.value ?? ""}
+            <Field>
+              <FieldLabel htmlFor="brand-logo-upload">Logo</FieldLabel>
+              <div className="flex items-center gap-3">
+                <Avatar size="lg">
+                  {logoPreview && <AvatarImage alt="" src={logoPreview} />}
+                  <AvatarFallback>
+                    {form.getFieldValue("name").slice(0, 2) || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <input
+                  accept="image/*"
+                  className="hidden"
+                  id="brand-logo-upload"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      logoUpload
+                        .upload(file, {
+                          entity: "brands",
+                          sessionId: logoSessionId,
+                        })
+                        .then((result) => setLogoSessionId(result.sessionId))
+                        .catch(() => undefined);
+                    }
+                    event.target.value = "";
+                  }}
+                  ref={fileInputRef}
+                  type="file"
+                />
+                <Button
+                  data-testid="brand-logo-upload-trigger"
+                  disabled={logoUpload.status === "uploading"}
+                  onClick={() => fileInputRef.current?.click()}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  {logoUpload.status === "uploading" ? (
+                    <>
+                      <RotateCw
+                        className="animate-spin"
+                        data-icon="inline-start"
                       />
-                    </div>
-                    <FieldDescription>
-                      Shown in the brand directory and product listings.
-                    </FieldDescription>
-                    {invalid ? (
-                      <FieldError errors={field.state.meta.errors} />
-                    ) : null}
-                  </Field>
-                );
-              }}
-            </form.Field>
+                      Uploading…
+                    </>
+                  ) : (
+                    <>
+                      <Upload data-icon="inline-start" />
+                      {logoPreview ? "Replace logo" : "Upload logo"}
+                    </>
+                  )}
+                </Button>
+                {logoUpload.status === "error" ? (
+                  <Button
+                    onClick={() =>
+                      logoUpload
+                        .retry()
+                        .then(
+                          (result) =>
+                            result && setLogoSessionId(result.sessionId),
+                        )
+                    }
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    Retry
+                  </Button>
+                ) : null}
+              </div>
+              <FieldDescription>
+                Shown in the brand directory and product listings.
+              </FieldDescription>
+              {logoUpload.status === "error" ? (
+                <FieldError
+                  errors={[{ message: logoUpload.error ?? "Upload failed." }]}
+                />
+              ) : null}
+            </Field>
 
             <form.Field name="isActive">
               {(field) => (

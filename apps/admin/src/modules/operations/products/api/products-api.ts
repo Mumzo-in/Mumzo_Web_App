@@ -15,14 +15,22 @@ export function getProduct(id: string): Promise<Product> {
 /**
  * Everything the form owns. Excludes `id`/`stock`/`rating`/`updatedAt`:
  * `stock` rolls up server-side from `sizes`, `rating` is derived from
- * reviews, `id`/`updatedAt` are server-owned. `brandId`/`vendorId` replace
- * the display `brand`/`vendor` names the read shape carries — the form picks
- * an id, the server resolves it to the name on the way back out.
+ * reviews, `id`/`updatedAt` are server-owned. `brandId` replaces the display
+ * `brand` name the read shape carries — the form picks an id, the server
+ * resolves it to the name on the way back out. `vendor` keeps its nested
+ * sourcing shape (the form edits `vendorId`/`relationship`/etc directly;
+ * `vendorName` isn't part of the input). `uploadSessionId` is write-only —
+ * set when the Media tab uploaded new images this submit, so the server can
+ * finalize that draft session's images to their final product-scoped keys.
  */
 export type ProductInput = Omit<
   Product,
   "id" | "brand" | "vendor" | "stock" | "rating" | "updatedAt"
-> & { brandId: string; vendorId: string | null };
+> & {
+  brandId: string;
+  vendor: Omit<NonNullable<Product["vendor"]>, "vendorName"> | null;
+  uploadSessionId?: string | null;
+};
 
 export function createProduct(input: ProductInput): Promise<Product> {
   return apiRequest<{ id: string }>("/products", {

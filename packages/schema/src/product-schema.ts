@@ -1,6 +1,6 @@
 import z from "zod";
 import { CATEGORY_SLUGS } from "./category";
-import { AGE_GROUPS } from "./product";
+import { AGE_GROUPS, PRODUCT_STATUSES } from "./product";
 
 /**
  * Validation for authoring products. Lives beside the model so the admin form
@@ -19,6 +19,17 @@ export const productSizeSchema = z.object({
   stock: z.number().int().min(0, "Stock can't be negative."),
 });
 
+/** Sourcing info the Sourcing tab collects. `null` = self-stocked. */
+export const productVendorSchema = z
+  .object({
+    vendorId: z.string().min(1, "Pick a vendor."),
+    relationship: z.enum(["own", "retainer", "distributor"]),
+    costPrice: z.number().int().positive().nullable().default(null),
+    leadTimeDays: z.number().int().min(0).nullable().default(null),
+    notes: z.string().max(2000).nullable().default(null),
+  })
+  .nullable();
+
 export const productFormSchema = z
   .object({
     name: z.string().min(2, "Name is too short.").max(120),
@@ -28,13 +39,12 @@ export const productFormSchema = z
       .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
     sku: z.string().min(2, "SKU is required.").max(40),
     brandId: z.string().min(1, "Pick a brand."),
-    vendorId: z.string().nullable().default(null),
+    vendor: productVendorSchema.default(null),
     categorySlug: z.enum(CATEGORY_SLUGS),
-    status: z.enum(["draft", "active", "archived"]),
+    status: z.enum(PRODUCT_STATUSES),
 
     price: z.number().int().positive("Price must be more than zero."),
     mrp: z.number().int().positive("MRP must be more than zero."),
-    costPrice: z.number().int().positive().nullable(),
 
     qty: z.string().min(1, "Pack size is required (e.g. “Pack of 72”)."),
     weight: z.string().nullable(),
@@ -60,10 +70,11 @@ export const productFormSchema = z
     path: ["mrp"],
   })
   // Selling below cost is nearly always a typo; block it where cost is known.
-  .refine((data) => data.costPrice === null || data.price >= data.costPrice, {
-    message: "Selling price is below cost.",
-    path: ["price"],
-  })
+  .refine(
+    (data) =>
+      data.vendor?.costPrice == null || data.price >= data.vendor.costPrice,
+    { message: "Selling price is below cost.", path: ["price"] },
+  )
   // Duplicate size labels make the variant picker ambiguous.
   .refine(
     (data) =>

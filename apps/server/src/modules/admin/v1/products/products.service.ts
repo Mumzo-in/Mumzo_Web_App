@@ -1,7 +1,19 @@
+import { buildKey, KEY_PREFIXES, toPublicUrl } from "@mumzo/storage";
 import { conflict, notFound } from "@/core/errors";
+import { finalizeSession } from "@/modules/admin/v1/uploads/uploads.service";
 import * as productsRepo from "./products.repo";
 
 type Size = { label: string; price: number; stock: number };
+
+type VendorRelationship = "own" | "retainer" | "distributor";
+
+type VendorInput = {
+  vendorId: string;
+  relationship: VendorRelationship;
+  costPrice: number | null;
+  leadTimeDays: number | null;
+  notes: string | null;
+} | null;
 
 /** Total stock across variants, or 0 for an unsized product — DB is the source. */
 function rollUpStock(sizes: Size[]): number {
@@ -18,12 +30,19 @@ function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
     name: row.name,
     brand: row.brandName,
     brandId: row.brandId,
-    vendor: row.vendorName,
-    vendorId: row.vendorId,
+    vendor: row.vendorId
+      ? {
+          vendorId: row.vendorId,
+          vendorName: row.vendorName ?? "",
+          relationship: row.vendorRelationship as VendorRelationship,
+          costPrice: row.vendorCostPrice,
+          leadTimeDays: row.vendorLeadTimeDays,
+          notes: row.vendorNotes,
+        }
+      : null,
     categorySlug: row.categorySlug,
     price: row.price,
     mrp: row.mrp,
-    costPrice: row.costPrice,
     qty: row.qty,
     weight: row.weight,
     description: row.description,
@@ -38,7 +57,7 @@ function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
     stock: sizes.length > 0 ? rollUpStock(sizes) : 0,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
-    status: row.status as "draft" | "active" | "archived",
+    status: row.status as "draft" | "active" | "inactive" | "archived",
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -82,12 +101,11 @@ type ProductInput = {
   slug: string;
   sku: string;
   brandId: string;
-  vendorId: string | null;
+  vendor: VendorInput;
   categorySlug: string;
-  status: "draft" | "active" | "archived";
+  status: "draft" | "active" | "inactive" | "archived";
   price: number;
   mrp: number;
-  costPrice: number | null;
   qty: string;
   weight: string | null;
   description: string;
@@ -95,6 +113,8 @@ type ProductInput = {
   highlights: string[];
   countryOfOrigin: string;
   images: string[];
+  /** Draft image-upload session to finalize before persisting `images`. */
+  uploadSessionId?: string | null;
   sizes: Size[];
   ages: string[];
   type: string;
@@ -117,17 +137,60 @@ async function assertBrandExists(brandId: string) {
   }
 }
 
-async function assertVendorExists(vendorId: string | null) {
-  if (vendorId === null) {
+async function assertVendorExists(vendor: VendorInput) {
+  if (vendor === null) {
     return;
   }
-  const exists = await productsRepo.vendorExists(vendorId);
+  const exists = await productsRepo.vendorExists(vendor.vendorId);
   if (!exists) {
     throw notFound("Vendor");
   }
 }
 
-export async function createProduct(input: ProductInput) {
+/**
+ * Moves a draft session's images from `mumzo/tmp/{sessionId}/*` to their
+ * final `mumzo/admin/products/{productId}/{slot}.webp` keys (via
+ * `@mumzo/storage`'s `finalizeSession` — an R2 copy per slot, then the tmp
+ * prefix is wiped) and returns the final public URLs to persist on
+ * `product.images`. Images not drafted this session (already-final URLs on
+ * an edit that didn't touch the gallery) pass through untouched.
+ */
+async function finalizeImages(
+  productId: string,
+  images: string[],
+  uploadSessionId: string,
+  userId: string,
+): Promise<string[]> {
+  const tmpPrefix = KEY_PREFIXES.tmp + uploadSessionId;
+  const slotByIndex = new Map<number, string>();
+  const targetKeys: Record<string, string> = {};
+
+  images.forEach((url, index) => {
+    if (!url.includes(tmpPrefix)) {
+      return;
+    }
+    const slot =
+      url
+        .split("/")
+        .pop()
+        ?.replace(/\.webp$/, "") ?? `${index}`;
+    slotByIndex.set(index, slot);
+    targetKeys[slot] = buildKey("admin", "products", productId, slot);
+  });
+
+  if (Object.keys(targetKeys).length === 0) {
+    return images;
+  }
+
+  await finalizeSession(uploadSessionId, userId, targetKeys);
+
+  return images.map((url, index) => {
+    const slot = slotByIndex.get(index);
+    return slot ? toPublicUrl(targetKeys[slot] as string) : url;
+  });
+}
+
+export async function createProduct(input: ProductInput, userId: string) {
   const [bySlug, bySku] = await Promise.all([
     productsRepo.findIdBySlug(input.slug),
     productsRepo.findIdBySku(input.sku),
@@ -141,12 +204,31 @@ export async function createProduct(input: ProductInput) {
   }
 
   await assertBrandExists(input.brandId);
-  await assertVendorExists(input.vendorId);
+  await assertVendorExists(input.vendor);
   const categoryId = await resolveCategoryId(input.categorySlug);
 
-  const { sizes, categorySlug, ...rest } = input;
+  const { sizes, categorySlug, vendor, uploadSessionId, images, ...rest } =
+    input;
 
-  return productsRepo.insert({ ...rest, categoryId }, sizes);
+  // Product row doesn't exist yet to key the final image path on — insert
+  // first with draft images, then finalize once the id is known.
+  const id = await productsRepo.insert(
+    { ...rest, categoryId, images },
+    sizes,
+    vendor,
+  );
+
+  if (uploadSessionId) {
+    const finalImages = await finalizeImages(
+      id,
+      images,
+      uploadSessionId,
+      userId,
+    );
+    await productsRepo.update(id, { images: finalImages }, sizes, vendor);
+  }
+
+  return id;
 }
 
 async function requireProductId(id: string) {
@@ -157,7 +239,11 @@ async function requireProductId(id: string) {
   return row;
 }
 
-export async function updateProduct(id: string, input: ProductInput) {
+export async function updateProduct(
+  id: string,
+  input: ProductInput,
+  userId: string,
+) {
   await requireProductId(id);
 
   const [bySlug, bySku] = await Promise.all([
@@ -173,12 +259,22 @@ export async function updateProduct(id: string, input: ProductInput) {
   }
 
   await assertBrandExists(input.brandId);
-  await assertVendorExists(input.vendorId);
+  await assertVendorExists(input.vendor);
   const categoryId = await resolveCategoryId(input.categorySlug);
 
-  const { sizes, categorySlug, ...rest } = input;
+  const { sizes, categorySlug, vendor, uploadSessionId, images, ...rest } =
+    input;
 
-  await productsRepo.update(id, { ...rest, categoryId }, sizes);
+  const finalImages = uploadSessionId
+    ? await finalizeImages(id, images, uploadSessionId, userId)
+    : images;
+
+  await productsRepo.update(
+    id,
+    { ...rest, categoryId, images: finalImages },
+    sizes,
+    vendor,
+  );
 }
 
 export async function deleteProduct(id: string) {

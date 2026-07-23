@@ -18,6 +18,8 @@ export type BrandInput = {
   slug: string;
   logoUrl?: string | null;
   isActive: boolean;
+  /** Draft upload session carrying a new logo, if one was uploaded. */
+  uploadSessionId?: string;
 };
 
 export function createBrand(input: BrandInput): Promise<{ id: string }> {

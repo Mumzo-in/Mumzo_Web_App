@@ -1,13 +1,10 @@
 import { z } from "@hono/zod-openapi";
 
-export const vendorTypeSchema = z.enum(["retailer", "store", "distributor"]);
-
 export const vendorSchema = z
   .object({
     id: z.string(),
     name: z.string(),
     slug: z.string(),
-    type: vendorTypeSchema,
     contactName: z.string().nullable(),
     phone: z.string().nullable(),
     email: z.string().nullable(),
@@ -25,7 +22,6 @@ export const createVendorSchema = z.object({
     .min(1)
     .max(120)
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
-  type: vendorTypeSchema.default("distributor"),
   contactName: z.string().max(120).nullable().optional(),
   phone: z.string().max(20).nullable().optional(),
   email: z.string().email().nullable().optional(),
