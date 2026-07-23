@@ -64,18 +64,30 @@ type ErrorEnvelope = {
 };
 type Envelope<T> = SuccessEnvelope<T> | ErrorEnvelope;
 
-function getServerUrl(url: string) {
-  const normalized = url.endsWith("/") ? url.slice(0, -1) : url;
+function getServerUrl(url?: string): string {
+  const DEFAULT_PROD_API = "https://api.mumzo.in";
 
-  if (!normalized.startsWith("/")) {
-    return normalized;
+  if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+    if (!url.includes("localhost") && !url.includes("127.0.0.1")) {
+      return url.endsWith("/") ? url.slice(0, -1) : url;
+    }
   }
 
   if (typeof window !== "undefined") {
-    return `${window.location.origin}${normalized}`;
+    if (window.location.hostname.endsWith("mumzo.in")) {
+      return DEFAULT_PROD_API;
+    }
+    if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+      return url.endsWith("/") ? url.slice(0, -1) : url;
+    }
+    return window.location.origin;
   }
 
-  return `http://localhost:3000${normalized}`;
+  if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+    return url.endsWith("/") ? url.slice(0, -1) : url;
+  }
+
+  return "http://localhost:3000";
 }
 
 const BASE_URL = `${getServerUrl(env.VITE_SERVER_URL)}/api/v1`;
