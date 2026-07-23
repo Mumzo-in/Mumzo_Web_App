@@ -31,6 +31,7 @@ export const queryKeys = {
   products: domainKeys("products"),
   brands: domainKeys("brands"),
   vendors: domainKeys("vendors"),
+  bundles: domainKeys("bundles"),
   hubs: domainKeys("hubs"),
   inventory: domainKeys("inventory"),
   /** Categories are keyed by slug, not id (api-plan §15c). */

@@ -1,5 +1,16 @@
 import { discountPct, isLowStock, type Product } from "@mumzo/schema";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@mumzo/ui/components/alert-dialog";
 import { Badge } from "@mumzo/ui/components/badge";
+import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import {
   Select,
@@ -9,15 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mumzo/ui/components/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import { usePaginatedList } from "@/core/api/use-paginated-list";
 import DataTable from "@/core/components/data-table";
 import { formatMoney, formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
-import { listProducts } from "../api/products-api";
+import { usePermission } from "@/modules/roles";
+import { deleteProduct, listProducts } from "../api/products-api";
 import { PRODUCT_STATUS_META } from "../data/product-data";
 
 const STATUS_FILTERS = [
@@ -29,8 +44,29 @@ const STATUS_FILTERS = [
 
 export function ProductTable() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const canDelete = usePermission("product", "delete");
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteProduct(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.products.all,
+      });
+      setPendingDelete(null);
+      toast.success("Product deleted.");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not delete the product.");
+      setPendingDelete(null);
+    },
+  });
 
   const columns = useMemo<ColumnDef<Product, unknown>[]>(
     () => [
@@ -107,8 +143,36 @@ export function ProductTable() {
           return <StatusChip label={meta.label} tint={meta.tint} />;
         },
       },
+      ...(canDelete
+        ? [
+            {
+              id: "actions",
+              header: "",
+              enableSorting: false,
+              cell: ({ row }: { row: { original: Product } }) => (
+                <div className="flex justify-end">
+                  <Button
+                    className="hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
+                    data-testid={`admin-product-delete-${row.original.id}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setPendingDelete({
+                        id: row.original.id,
+                        name: row.original.name,
+                      });
+                    }}
+                    size="icon-sm"
+                    variant="outline"
+                  >
+                    <Trash2 aria-hidden="true" className="size-3.5" />
+                  </Button>
+                </div>
+              ),
+            } satisfies ColumnDef<Product, unknown>,
+          ]
+        : []),
     ],
-    [],
+    [canDelete],
   );
 
   const filters = useMemo(
@@ -181,6 +245,40 @@ export function ProductTable() {
           })
         }
       />
+
+      <AlertDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null);
+          }
+        }}
+        open={pendingDelete !== null}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.name} will be permanently removed. This cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (pendingDelete) {
+                  deleteMutation.mutate(pendingDelete.id);
+                }
+              }}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete product"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

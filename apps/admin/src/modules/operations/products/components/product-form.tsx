@@ -55,7 +55,6 @@ import {
 } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
-import ComingSoon from "@/core/components/coming-soon";
 import {
   ControlField,
   NumberField,
@@ -65,6 +64,7 @@ import {
 import { formatMoney } from "@/core/components/format";
 import StringListEditor from "@/core/components/string-list-editor";
 import { brandsQueryOptions } from "@/modules/operations/brands";
+import { bundlesForProductQueryOptions } from "@/modules/operations/bundles";
 import { categoriesQueryOptions } from "@/modules/operations/categories";
 import { vendorsQueryOptions } from "@/modules/operations/vendors";
 import type { ProductInput } from "../api/products-api";
@@ -890,12 +890,22 @@ export const ProductForm = forwardRef<
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ComingSoon
-                  description="Needs a bundles table and admin API — grouped SKUs with combo pricing aren't built yet."
-                  phase={3}
-                  needsApiSpec
-                  title="Bundles & combos"
-                />
+                {product?.id ? (
+                  <ProductBundles productId={product.id} />
+                ) : (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <PackagePlus />
+                      </EmptyMedia>
+                      <EmptyTitle>Save the product first</EmptyTitle>
+                      <EmptyDescription>
+                        Bundles can be managed once this product has been
+                        created.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                )}
               </CardContent>
             </Card>
           ) : null}
@@ -964,5 +974,63 @@ export const ProductForm = forwardRef<
     </form>
   );
 });
+
+/**
+ * Read/discovery surface for the Bundles tab — lists bundles that already
+ * include this product, with a link to edit each one on its own page, and a
+ * shortcut to create a new bundle prefilled with this product. Bundle
+ * *composition* (which products, quantities) is edited on the bundle's own
+ * form; this tab intentionally doesn't duplicate that editor.
+ */
+function ProductBundles({ productId }: { productId: string }) {
+  const { data, isLoading } = useQuery(
+    bundlesForProductQueryOptions(productId),
+  );
+  const bundles = data?.data ?? [];
+
+  return (
+    <div className="flex flex-col gap-4">
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">Loading…</p>
+      ) : bundles.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <PackagePlus />
+            </EmptyMedia>
+            <EmptyTitle>Not in any bundle</EmptyTitle>
+            <EmptyDescription>
+              This product isn't part of a combo yet.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {bundles.map((bundle) => (
+            <Link
+              className="flex items-center justify-between gap-3 rounded-2xl border p-3 transition-colors hover:bg-secondary"
+              key={bundle.id}
+              params={{ bundleId: bundle.id }}
+              to="/catalog/bundles/$bundleId"
+            >
+              <span className="font-medium">{bundle.name}</span>
+              <span className="numeric text-muted-foreground text-sm">
+                {formatMoney(bundle.price)}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <Button
+        render={<Link search={{ productId }} to="/catalog/bundles/new" />}
+        variant="outline"
+      >
+        <PackagePlus data-icon="inline-start" />
+        Create a new bundle with this product
+      </Button>
+    </div>
+  );
+}
 
 export default ProductForm;

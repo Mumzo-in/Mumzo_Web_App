@@ -48,3 +48,7 @@ export function updateProduct(
     body: input,
   }).then(() => getProduct(id));
 }
+
+export function deleteProduct(id: string): Promise<{ ok: true }> {
+  return apiRequest<{ ok: true }>(`/products/${id}`, { method: "DELETE" });
+}

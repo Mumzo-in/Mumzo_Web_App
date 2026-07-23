@@ -17,8 +17,9 @@ export async function getCategory(slug: string) {
 
 /**
  * Copies the draft cover (`mumzo/tmp/{sessionId}/cover.webp`) to its final
- * `mumzo/admin/categories/{categoryId}/cover.webp` destination and returns
- * the public URL to store as `img`. No-op when no session was uploaded.
+ * `mumzo/platform/categories/{categoryId}/cover.webp` destination and
+ * returns the public URL to store as `img`. No-op when no session was
+ * uploaded.
  */
 async function finalizeCover(
   categoryId: string,
@@ -28,7 +29,7 @@ async function finalizeCover(
   if (!uploadSessionId) {
     return undefined;
   }
-  const destKey = buildKey("admin", "categories", categoryId, "cover");
+  const destKey = buildKey("platform", "categories", categoryId, "cover");
   await finalizeSession(uploadSessionId, userId, { cover: destKey });
   return toPublicUrl(destKey);
 }

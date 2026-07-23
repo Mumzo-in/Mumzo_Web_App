@@ -1,7 +1,11 @@
 import { createRoute, z } from "@hono/zod-openapi";
 
 import { authErrorResponses, jsonContent, successSchema } from "@/core";
-import { sessionIdParamSchema, uploadResponseSchema } from "./uploads.schema";
+import {
+  retireImageBodySchema,
+  sessionIdParamSchema,
+  uploadResponseSchema,
+} from "./uploads.schema";
 
 const TAG = "Admin | Uploads";
 
@@ -34,6 +38,26 @@ export const discardSessionRoute = createRoute({
     200: jsonContent(
       successSchema(z.object({ ok: z.literal(true) })),
       "Session discarded",
+    ),
+    ...authErrorResponses,
+  },
+});
+
+export const retireImageRoute = createRoute({
+  method: "delete",
+  path: "/retire",
+  tags: [TAG],
+  summary: "Retire an already-persisted image (moves it into `tmp/`)",
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: {
+      content: { "application/json": { schema: retireImageBodySchema } },
+    },
+  },
+  responses: {
+    200: jsonContent(
+      successSchema(z.object({ ok: z.literal(true) })),
+      "Image retired",
     ),
     ...authErrorResponses,
   },

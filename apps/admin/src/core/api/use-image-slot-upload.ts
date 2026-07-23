@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import { ApiError, apiUpload } from "./client";
+import { ApiError, apiRequest, apiUpload } from "./client";
 
 /** Response shape returned by `POST /api/v1/admin/uploads`. */
 type UploadResponse = {
@@ -99,4 +99,16 @@ export function useImageSlotUpload(slot: string): UseImageSlotUploadResult {
   }, [runUpload]);
 
   return { status, url, error, sizeBytes, upload, retry };
+}
+
+/**
+ * "Retires" an already-persisted image: moves its R2 object into `tmp/`
+ * (`DELETE /api/v1/admin/uploads/retire`) rather than deleting it outright —
+ * the existing 24h R2 lifecycle rule on `tmp/` sweeps it from there.
+ */
+export function retireImage(url: string): Promise<void> {
+  return apiRequest<{ ok: true }>("/uploads/retire", {
+    method: "DELETE",
+    body: { url },
+  }).then(() => undefined);
 }

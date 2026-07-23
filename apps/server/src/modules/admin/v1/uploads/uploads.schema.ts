@@ -39,3 +39,7 @@ export const uploadResponseSchema = z
 export const sessionIdParamSchema = z.object({
   sessionId: z.uuid().openapi({ param: { name: "sessionId", in: "path" } }),
 });
+
+export const retireImageBodySchema = z.object({
+  url: z.url(),
+});

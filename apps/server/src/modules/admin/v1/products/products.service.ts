@@ -149,7 +149,7 @@ async function assertVendorExists(vendor: VendorInput) {
 
 /**
  * Moves a draft session's images from `mumzo/tmp/{sessionId}/*` to their
- * final `mumzo/admin/products/{productId}/{slot}.webp` keys (via
+ * final `mumzo/platform/products/{productId}/{slot}.webp` keys (via
  * `@mumzo/storage`'s `finalizeSession` — an R2 copy per slot, then the tmp
  * prefix is wiped) and returns the final public URLs to persist on
  * `product.images`. Images not drafted this session (already-final URLs on
@@ -175,7 +175,7 @@ async function finalizeImages(
         .pop()
         ?.replace(/\.webp$/, "") ?? `${index}`;
     slotByIndex.set(index, slot);
-    targetKeys[slot] = buildKey("admin", "products", productId, slot);
+    targetKeys[slot] = buildKey("platform", "products", productId, slot);
   });
 
   if (Object.keys(targetKeys).length === 0) {

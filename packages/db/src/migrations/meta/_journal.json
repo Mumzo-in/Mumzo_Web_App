@@ -64,6 +64,13 @@
       "when": 1784745984390,
       "tag": "0008_add_product_vendor_and_upload_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784790353726,
+      "tag": "0009_loud_blue_blade",
+      "breakpoints": true
     }
   ]
 }

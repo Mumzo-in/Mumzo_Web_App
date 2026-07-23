@@ -1,7 +1,9 @@
+import { randomUUID } from "node:crypto";
 import { env } from "@mumzo/env/server";
 import {
   buildTmpKey,
   copyObject,
+  deleteObject,
   deleteObjects,
   KEY_PREFIXES,
   listKeys,
@@ -121,4 +123,49 @@ export async function finalizeSession(
   const remaining = await listKeys("public", tmpPrefix(sessionId));
   await deleteObjects("public", remaining);
   await uploadsRepo.markFinalized(session.id);
+}
+
+/**
+ * Derives the R2 key back out of a public URL the client holds. The gallery
+ * only ever sees `toPublicUrl` output, never raw keys — this is the inverse.
+ * Rejects anything that doesn't start with the configured public base so a
+ * caller can't be tricked into operating on an arbitrary key/bucket.
+ */
+function keyFromPublicUrl(url: string): string {
+  const base = `${env.R2_PUBLIC_URL}/`;
+  if (!url.startsWith(base)) {
+    throw badRequest("URL is not a recognized upload URL.");
+  }
+
+  // Strip resize query params (`?w=&q=`) appended by `toPublicUrl`.
+  const withoutQuery = url.slice(base.length).split("?")[0];
+  if (!withoutQuery) {
+    throw badRequest("URL is not a recognized upload URL.");
+  }
+
+  return withoutQuery;
+}
+
+/**
+ * "Retires" an already-final, persisted image: moves its R2 object into the
+ * `tmp/` prefix (copy + delete-original) so the existing 24h R2 bucket
+ * lifecycle rule on `mumzo/tmp/*` sweeps it, without deleting it outright.
+ *
+ * No `uploadSessions` row is created — per `packages/db/src/schema/media.ts`,
+ * that table only tracks *active* draft sessions for a form in progress; the
+ * TTL cleanup itself is a bucket-level R2 lifecycle rule on the `tmp/`
+ * prefix, independent of any DB row (see
+ * `docs/infra/cloudflare-r2-architecture.md`). A bare `tmp/{uuid}/retired`
+ * key rides the same rule with no need to anchor it in Postgres.
+ */
+export async function retireImage({ url }: { url: string }): Promise<void> {
+  const srcKey = keyFromPublicUrl(url);
+  if (srcKey.startsWith(KEY_PREFIXES.tmp)) {
+    // Already a draft — nothing persisted to retire.
+    return;
+  }
+
+  const destKey = buildTmpKey(randomUUID(), "retired");
+  await copyObject("public", srcKey, destKey);
+  await deleteObject("public", srcKey);
 }

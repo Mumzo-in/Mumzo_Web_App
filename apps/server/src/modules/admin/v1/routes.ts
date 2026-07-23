@@ -3,6 +3,7 @@ import type { AppEnv } from "@/core";
 
 import authRoutes from "./auth";
 import brandsRoutes from "./brands/brands.module";
+import bundlesRoutes from "./bundles/bundles.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
 import hubsRoutes from "./hubs/hubs.module";
@@ -25,6 +26,7 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/staff", router: staffRoutes },
   { path: "/brands", router: brandsRoutes },
   { path: "/vendors", router: vendorsRoutes },
+  { path: "/bundles", router: bundlesRoutes },
   { path: "/coupons", router: couponsRoutes },
   { path: "/categories", router: categoriesRoutes },
   { path: "/products", router: productsRoutes },

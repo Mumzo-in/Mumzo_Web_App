@@ -26,9 +26,14 @@ import {
 import { Spinner } from "@mumzo/ui/components/spinner";
 import { cn } from "@mumzo/ui/lib/utils";
 import { GripVertical, ImagePlus, Star, Trash2 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useImageSlotUpload } from "@/core/api/use-image-slot-upload";
+import {
+  retireImage,
+  useImageSlotUpload,
+} from "@/core/api/use-image-slot-upload";
+
+const TMP_URL_MARKER = "mumzo/tmp/";
 
 /**
  * Multi-image upload & reorder for a product. Each image is uploaded through
@@ -52,6 +57,7 @@ export function ProductImageGallery({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sessionRef = useRef(uploadSessionId);
   sessionRef.current = uploadSessionId;
+  const [retiringUrls, setRetiringUrls] = useState<Set<string>>(new Set());
 
   const nextSlot = images.length;
   const { status, upload } = useImageSlotUpload(`gallery-${nextSlot}`);
@@ -101,8 +107,27 @@ export function ProductImageGallery({
     onChange(reordered);
   }
 
-  function handleRemove(url: string) {
-    onChange(images.filter((image) => image !== url));
+  async function handleRemove(url: string) {
+    if (url.includes(TMP_URL_MARKER)) {
+      // Still a draft sitting in the session's tmp prefix — nothing
+      // persisted yet, so a plain local-state removal is enough.
+      onChange(images.filter((image) => image !== url));
+      return;
+    }
+
+    setRetiringUrls((prev) => new Set(prev).add(url));
+    try {
+      await retireImage(url);
+      onChange(images.filter((image) => image !== url));
+    } catch {
+      toast.error("Couldn't remove that image. Try again.");
+    } finally {
+      setRetiringUrls((prev) => {
+        const next = new Set(prev);
+        next.delete(url);
+        return next;
+      });
+    }
   }
 
   function handleMakePrimary(url: string) {
@@ -134,6 +159,7 @@ export function ProductImageGallery({
               {images.map((url, index) => (
                 <SortableImageCard
                   isPrimary={index === 0}
+                  isRetiring={retiringUrls.has(url)}
                   key={url}
                   onMakePrimary={() => handleMakePrimary(url)}
                   onRemove={() => handleRemove(url)}
@@ -182,11 +208,13 @@ export function ProductImageGallery({
 function SortableImageCard({
   url,
   isPrimary,
+  isRetiring,
   onMakePrimary,
   onRemove,
 }: {
   url: string;
   isPrimary: boolean;
+  isRetiring: boolean;
   onMakePrimary: () => void;
   onRemove: () => void;
 }) {
@@ -216,15 +244,22 @@ function SortableImageCard({
     >
       <img
         alt="Product"
-        className="size-full object-cover"
+        className={cn("size-full object-cover", isRetiring && "opacity-50")}
         loading="lazy"
         src={url}
       />
+
+      {isRetiring ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+          <Spinner />
+        </div>
+      ) : null}
 
       <div className="pointer-events-none absolute inset-0 flex items-start justify-between p-2">
         <button
           className="pointer-events-auto flex cursor-grab items-center justify-center rounded-full border border-white/40 bg-white/70 p-1.5 shadow-sm backdrop-blur-md active:cursor-grabbing"
           data-testid={`admin-product-gallery-drag-${url}`}
+          disabled={isRetiring}
           type="button"
           {...attributes}
           {...listeners}
@@ -233,8 +268,9 @@ function SortableImageCard({
         </button>
 
         <button
-          className="pointer-events-auto flex items-center justify-center rounded-full border border-white/40 bg-white/70 p-1.5 shadow-sm backdrop-blur-md hover:bg-destructive hover:text-destructive-foreground"
+          className="pointer-events-auto flex items-center justify-center rounded-full border border-white/40 bg-white/70 p-1.5 shadow-sm backdrop-blur-md hover:bg-destructive hover:text-destructive-foreground disabled:pointer-events-none disabled:opacity-50"
           data-testid={`admin-product-gallery-remove-${url}`}
+          disabled={isRetiring}
           onClick={onRemove}
           type="button"
         >

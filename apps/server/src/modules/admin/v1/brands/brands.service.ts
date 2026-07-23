@@ -17,7 +17,7 @@ async function requireBrand(id: string) {
 
 /**
  * Copies the draft logo (`mumzo/tmp/{sessionId}/logo.webp`) to its final
- * `mumzo/admin/brands/{brandId}/logo.webp` destination and returns the
+ * `mumzo/platform/brands/{brandId}/logo.webp` destination and returns the
  * public URL to store as `logoUrl`. No-op when no session was uploaded.
  */
 async function finalizeLogo(
@@ -28,7 +28,7 @@ async function finalizeLogo(
   if (!uploadSessionId) {
     return undefined;
   }
-  const destKey = buildKey("admin", "brands", brandId, "logo");
+  const destKey = buildKey("platform", "brands", brandId, "logo");
   await finalizeSession(uploadSessionId, userId, { logo: destKey });
   return toPublicUrl(destKey);
 }

@@ -1,5 +1,6 @@
 export {
   createProduct,
+  deleteProduct,
   getProduct,
   listProducts,
   type ProductInput,

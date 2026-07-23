@@ -79,7 +79,6 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: "Bundles & Combos",
             to: "/catalog/bundles",
-            comingSoon: true,
           },
         ],
       },

@@ -242,6 +242,60 @@ export const inventory = pgTable(
   ],
 );
 
+/**
+ * A named, priced grouping of 2+ products sold as a combo (e.g. "Newborn
+ * Starter Kit"). `price` is the combo price — same whole-rupee convention as
+ * `product.price`/`product.mrp`. `status` mirrors `ProductStatus` (the same
+ * draft/active/inactive/archived lifecycle applies to a bundle listing).
+ */
+export const bundle = pgTable(
+  "bundle",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    description: text("description"),
+    price: integer("price").notNull(),
+    images: text("images").array().default([]).notNull(),
+    /** BundleStatus: "draft" | "active" | "inactive" | "archived". */
+    status: text("status").default("draft").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("bundle_status_idx").on(table.status)],
+);
+
+/**
+ * `Bundle.items` — one row per product in the combo. `quantity` is how many
+ * units of that product the combo includes; `sortOrder` drives display order
+ * in the admin editor and on the (future) storefront combo card.
+ */
+export const bundleItem = pgTable(
+  "bundle_item",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bundleId: uuid("bundle_id")
+      .notNull()
+      .references(() => bundle.id, { onDelete: "cascade" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "restrict" }),
+    quantity: integer("quantity").default(1).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+  },
+  (table) => [
+    unique("bundle_item_bundleId_productId_key").on(
+      table.bundleId,
+      table.productId,
+    ),
+    index("bundle_item_bundleId_idx").on(table.bundleId),
+    index("bundle_item_productId_idx").on(table.productId),
+  ],
+);
+
 // -------------------------------------------------------------------- relations
 
 export const brandRelations = relations(brand, ({ many }) => ({
@@ -281,6 +335,7 @@ export const productRelations = relations(product, ({ one, many }) => ({
   }),
   sizes: many(productSize),
   inventory: many(inventory),
+  bundleItems: many(bundleItem),
 }));
 
 export const productVendorRelations = relations(productVendor, ({ one }) => ({
@@ -309,6 +364,21 @@ export const inventoryRelations = relations(inventory, ({ one }) => ({
   hub: one(hub, { fields: [inventory.hubId], references: [hub.id] }),
   product: one(product, {
     fields: [inventory.productId],
+    references: [product.id],
+  }),
+}));
+
+export const bundleRelations = relations(bundle, ({ many }) => ({
+  items: many(bundleItem),
+}));
+
+export const bundleItemRelations = relations(bundleItem, ({ one }) => ({
+  bundle: one(bundle, {
+    fields: [bundleItem.bundleId],
+    references: [bundle.id],
+  }),
+  product: one(product, {
+    fields: [bundleItem.productId],
     references: [product.id],
   }),
 }));
