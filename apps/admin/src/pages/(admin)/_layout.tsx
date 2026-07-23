@@ -27,18 +27,13 @@ export const Route = createFileRoute("/(admin)")({
     const session =
       await context.queryClient.ensureQueryData(sessionQueryOptions);
 
-    const hasValidSession = Boolean(session?.user && session?.session);
+    const role = resolveRole(session?.user);
 
-    if (!hasValidSession) {
+    if (!session || !session.user || !session.session || !role) {
       throw redirect({
         to: "/auth/login",
         search: { redirect: location.href },
       });
-    }
-
-    const role = resolveRole(session.user);
-    if (!role) {
-      throw redirect({ to: "/forbidden" });
     }
 
     return { session, role };
