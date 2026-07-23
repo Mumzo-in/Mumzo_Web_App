@@ -43,13 +43,10 @@ export const authClient = createAuthClient({
   // better-auth derives its route-matching base from this URL's path, so this
   // must equal the server-side mount exactly — `basePath` in
   // `packages/auth/src/admin.ts`.
-  baseURL:
-    typeof window !== "undefined"
-      ? `${window.location.origin}/api/v1/admin/auth`
-      : new URL(
-          "/api/v1/admin/auth",
-          getServerUrl(env.VITE_SERVER_URL),
-        ).toString(),
+  baseURL: new URL(
+    "/api/v1/admin/auth",
+    getServerUrl(env.VITE_SERVER_URL),
+  ).toString(),
   // Mirrors the server's admin plugin. Without it the client has no typed
   // `admin.*` methods (createUser, setRole, listUsers) and no `role` on the
   // session user.

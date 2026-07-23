@@ -27,7 +27,9 @@ export const Route = createFileRoute("/(admin)")({
     const session =
       await context.queryClient.ensureQueryData(sessionQueryOptions);
 
-    if (!session) {
+    const hasValidSession = Boolean(session?.user && session?.session);
+
+    if (!hasValidSession) {
       throw redirect({
         to: "/auth/login",
         search: { redirect: location.href },

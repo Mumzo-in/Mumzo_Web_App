@@ -33,7 +33,7 @@ export const Route = createFileRoute("/auth/login")({
     const session =
       await context.queryClient.ensureQueryData(sessionQueryOptions);
 
-    if (session) {
+    if (session?.user && session?.session) {
       throw redirect({ to: search.redirect ?? "/" });
     }
   },

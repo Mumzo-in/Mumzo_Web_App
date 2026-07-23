@@ -24,7 +24,7 @@ not a build order; phases guide sequencing.
 | Phone OTP login | SMS OTP via MSG91 (DLT-registered) | P1 | P0 |
 | Google OAuth | One-tap social sign-in | P2 | P1 |
 | Guest browsing | Browse & build cart before auth | P1 | P0 |
-| Pincode / serviceability gate | Check delivery availability before shopping | P1 | P0 |
+| Pincode / serviceability gate | Check delivery availability before shopping ([geofencing spec](./geofencing-location-spec.md)) | P1 | P0 |
 | First-run onboarding | Capture mom name + baby name/age for personalization | P2 | P1 |
 | Forgot / reset password | Email reset flow | P1 | P0 |
 | Email verification | Verify address post-signup | P1 | P1 |
