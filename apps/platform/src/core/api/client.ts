@@ -64,33 +64,11 @@ type ErrorEnvelope = {
 };
 type Envelope<T> = SuccessEnvelope<T> | ErrorEnvelope;
 
-function getServerUrl(url?: string): string {
-  const DEFAULT_PROD_API = "https://api.mumzo.in";
+const SERVER_URL = env.VITE_SERVER_URL.endsWith("/")
+  ? env.VITE_SERVER_URL.slice(0, -1)
+  : env.VITE_SERVER_URL;
 
-  if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-    if (!url.includes("localhost") && !url.includes("127.0.0.1")) {
-      return url.endsWith("/") ? url.slice(0, -1) : url;
-    }
-  }
-
-  if (typeof window !== "undefined") {
-    if (window.location.hostname.endsWith("mumzo.in")) {
-      return DEFAULT_PROD_API;
-    }
-    if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-      return url.endsWith("/") ? url.slice(0, -1) : url;
-    }
-    return window.location.origin;
-  }
-
-  if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-    return url.endsWith("/") ? url.slice(0, -1) : url;
-  }
-
-  return "http://localhost:3000";
-}
-
-const BASE_URL = `${getServerUrl(env.VITE_SERVER_URL)}/api/v1`;
+const BASE_URL = `${SERVER_URL}/api/v1`;
 
 export type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
