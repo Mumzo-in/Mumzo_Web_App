@@ -15,6 +15,7 @@ import couponsRoutes from "./coupons/coupons.module";
 import productsRoutes, {
   productsByCategory as categoryProductsRoutes,
 } from "./products/products.module";
+import profileRoutes from "./profile/profile.module";
 
 /**
  * Platform API v1 — the customer surface. Mounted at `/api/v1`.
@@ -65,6 +66,7 @@ app.route("/categories", categoryProductsRoutes);
 app.route("/brands", brandsRoutes);
 app.route("/products", productsRoutes);
 app.route("/coupons", couponsRoutes);
+app.route("/profile", profileRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

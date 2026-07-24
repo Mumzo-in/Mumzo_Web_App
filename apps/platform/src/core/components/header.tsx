@@ -1,8 +1,9 @@
 import { Button } from "@mumzo/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
+import { useRequireAuth } from "@/modules/auth";
 import { useCart } from "@/modules/cart";
 import { CategoryLink, categoriesQueryOptions } from "@/modules/catalog";
 import { LocationSelector, useServiceability } from "@/modules/location";
@@ -11,10 +12,12 @@ import MumzoLogo from "./mumzo-logo";
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { totals } = useCart();
   const { openModal } = useModalStore();
   const { query: currentLoc } = useServiceability();
   const { data: categories = [] } = useQuery(categoriesQueryOptions);
+  const { run: requireAuth, isAuthed } = useRequireAuth();
 
   return (
     /* Top nav */
@@ -46,21 +49,29 @@ export default function Header() {
           <Bell size={18} />
           <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
         </Link>
-        <Link
-          to="/profile"
+        <button
+          type="button"
+          onClick={() =>
+            requireAuth(
+              () => navigate({ to: "/profile" }),
+              "Sign in to view your profile.",
+            )
+          }
           data-testid="web-profile-btn"
           aria-label="Profile"
           className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white text-foreground transition-colors hover:text-primary"
         >
           <User size={18} />
-        </Link>
-        <Link
-          to="/auth/login"
-          data-testid="web-login-btn"
-          className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
-        >
-          Login
-        </Link>
+        </button>
+        {!isAuthed && (
+          <Link
+            to="/auth/login"
+            data-testid="web-login-btn"
+            className="hidden items-center gap-1.5 px-3 py-2 text-foreground/75 text-sm hover:text-primary md:flex"
+          >
+            Login
+          </Link>
+        )}
         <Button
           variant="default"
           className="flex h-10 items-center gap-2 rounded-full px-4"

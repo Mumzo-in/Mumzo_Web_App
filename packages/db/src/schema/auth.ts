@@ -17,6 +17,13 @@ export const user = pgTable("user", {
   // the number is attached, and unique because it is the login identifier.
   phoneNumber: text("phone_number").unique(),
   phoneNumberVerified: boolean("phone_number_verified").default(false),
+  // Set the moment the customer completes (or explicitly skips the optional
+  // parts of) the post-signup "complete your profile" flow. Null means the
+  // account still carries `getTempName`'s phone-number placeholder as its
+  // name and has never been through onboarding. Explicit column rather than
+  // inferring from `name === phoneNumber` so a later legitimate name change
+  // can never be mistaken for "still needs onboarding".
+  onboardedAt: timestamp("onboarded_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

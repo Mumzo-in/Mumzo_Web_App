@@ -14,6 +14,7 @@ import { Route as storeLayoutRouteImport } from './pages/(store)/_layout'
 import { Route as storeIndexRouteImport } from './pages/(store)/index'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as storeSearchRouteImport } from './pages/(store)/search'
+import { Route as storeReferralsRouteImport } from './pages/(store)/referrals'
 import { Route as storeOffersRouteImport } from './pages/(store)/offers'
 import { Route as storeHelpRouteImport } from './pages/(store)/help'
 import { Route as storeContactRouteImport } from './pages/(store)/contact'
@@ -32,7 +33,6 @@ import { Route as storeLegalPrivacyRouteImport } from './pages/(store)/legal/pri
 import { Route as storeCollectionSlugRouteImport } from './pages/(store)/collection/$slug'
 import { Route as storeBrandBrandRouteImport } from './pages/(store)/brand/$brand'
 import { Route as storeprotectedWishlistRouteImport } from './pages/(store)/(protected)/wishlist'
-import { Route as storeprotectedReferralsRouteImport } from './pages/(store)/(protected)/referrals'
 import { Route as storeprotectedNotificationsRouteImport } from './pages/(store)/(protected)/notifications'
 import { Route as storeprotectedAddressesRouteImport } from './pages/(store)/(protected)/addresses'
 import { Route as storeprotectedCheckoutLayoutRouteImport } from './pages/(store)/(protected)/checkout/_layout'
@@ -78,6 +78,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const storeSearchRoute = storeSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeReferralsRoute = storeReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
   getParentRoute: () => storeLayoutRoute,
 } as any)
 const storeOffersRoute = storeOffersRouteImport.update({
@@ -167,11 +172,6 @@ const storeBrandBrandRoute = storeBrandBrandRouteImport.update({
 const storeprotectedWishlistRoute = storeprotectedWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
-  getParentRoute: () => storeprotectedLayoutRoute,
-} as any)
-const storeprotectedReferralsRoute = storeprotectedReferralsRouteImport.update({
-  id: '/referrals',
-  path: '/referrals',
   getParentRoute: () => storeprotectedLayoutRoute,
 } as any)
 const storeprotectedNotificationsRoute =
@@ -313,13 +313,13 @@ export interface FileRoutesByFullPath {
   '/contact': typeof storeContactRoute
   '/help': typeof storeHelpRoute
   '/offers': typeof storeOffersRoute
+  '/referrals': typeof storeReferralsRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/': typeof storeIndexRoute
   '/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/addresses': typeof storeprotectedAddressesRoute
   '/notifications': typeof storeprotectedNotificationsRoute
-  '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
   '/brand/$brand': typeof storeBrandBrandRoute
   '/collection/$slug': typeof storeCollectionSlugRoute
@@ -359,12 +359,12 @@ export interface FileRoutesByTo {
   '/contact': typeof storeContactRoute
   '/help': typeof storeHelpRoute
   '/offers': typeof storeOffersRoute
+  '/referrals': typeof storeReferralsRoute
   '/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/': typeof storeIndexRoute
   '/addresses': typeof storeprotectedAddressesRoute
   '/notifications': typeof storeprotectedNotificationsRoute
-  '/referrals': typeof storeprotectedReferralsRoute
   '/wishlist': typeof storeprotectedWishlistRoute
   '/brand/$brand': typeof storeBrandBrandRoute
   '/collection/$slug': typeof storeCollectionSlugRoute
@@ -407,13 +407,13 @@ export interface FileRoutesById {
   '/(store)/contact': typeof storeContactRoute
   '/(store)/help': typeof storeHelpRoute
   '/(store)/offers': typeof storeOffersRoute
+  '/(store)/referrals': typeof storeReferralsRoute
   '/(store)/search': typeof storeSearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/(store)/': typeof storeIndexRoute
   '/(store)/(protected)/checkout': typeof storeprotectedCheckoutLayoutRouteWithChildren
   '/(store)/(protected)/addresses': typeof storeprotectedAddressesRoute
   '/(store)/(protected)/notifications': typeof storeprotectedNotificationsRoute
-  '/(store)/(protected)/referrals': typeof storeprotectedReferralsRoute
   '/(store)/(protected)/wishlist': typeof storeprotectedWishlistRoute
   '/(store)/brand/$brand': typeof storeBrandBrandRoute
   '/(store)/collection/$slug': typeof storeCollectionSlugRoute
@@ -455,13 +455,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/help'
     | '/offers'
+    | '/referrals'
     | '/search'
     | '/auth/login'
     | '/'
     | '/checkout'
     | '/addresses'
     | '/notifications'
-    | '/referrals'
     | '/wishlist'
     | '/brand/$brand'
     | '/collection/$slug'
@@ -501,12 +501,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/help'
     | '/offers'
+    | '/referrals'
     | '/search'
     | '/auth/login'
     | '/'
     | '/addresses'
     | '/notifications'
-    | '/referrals'
     | '/wishlist'
     | '/brand/$brand'
     | '/collection/$slug'
@@ -548,13 +548,13 @@ export interface FileRouteTypes {
     | '/(store)/contact'
     | '/(store)/help'
     | '/(store)/offers'
+    | '/(store)/referrals'
     | '/(store)/search'
     | '/auth/login'
     | '/(store)/'
     | '/(store)/(protected)/checkout'
     | '/(store)/(protected)/addresses'
     | '/(store)/(protected)/notifications'
-    | '/(store)/(protected)/referrals'
     | '/(store)/(protected)/wishlist'
     | '/(store)/brand/$brand'
     | '/(store)/collection/$slug'
@@ -628,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof storeSearchRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/referrals': {
+      id: '/(store)/referrals'
+      path: '/referrals'
+      fullPath: '/referrals'
+      preLoaderRoute: typeof storeReferralsRouteImport
       parentRoute: typeof storeLayoutRoute
     }
     '/(store)/offers': {
@@ -754,13 +761,6 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof storeprotectedWishlistRouteImport
-      parentRoute: typeof storeprotectedLayoutRoute
-    }
-    '/(store)/(protected)/referrals': {
-      id: '/(store)/(protected)/referrals'
-      path: '/referrals'
-      fullPath: '/referrals'
-      preLoaderRoute: typeof storeprotectedReferralsRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
     '/(store)/(protected)/notifications': {
@@ -944,7 +944,6 @@ interface storeprotectedLayoutRouteChildren {
   storeprotectedCheckoutLayoutRoute: typeof storeprotectedCheckoutLayoutRouteWithChildren
   storeprotectedAddressesRoute: typeof storeprotectedAddressesRoute
   storeprotectedNotificationsRoute: typeof storeprotectedNotificationsRoute
-  storeprotectedReferralsRoute: typeof storeprotectedReferralsRoute
   storeprotectedWishlistRoute: typeof storeprotectedWishlistRoute
   storeprotectedPaymentStatusRoute: typeof storeprotectedPaymentStatusRoute
   storeprotectedProfileEditRoute: typeof storeprotectedProfileEditRoute
@@ -966,7 +965,6 @@ const storeprotectedLayoutRouteChildren: storeprotectedLayoutRouteChildren = {
     storeprotectedCheckoutLayoutRouteWithChildren,
   storeprotectedAddressesRoute: storeprotectedAddressesRoute,
   storeprotectedNotificationsRoute: storeprotectedNotificationsRoute,
-  storeprotectedReferralsRoute: storeprotectedReferralsRoute,
   storeprotectedWishlistRoute: storeprotectedWishlistRoute,
   storeprotectedPaymentStatusRoute: storeprotectedPaymentStatusRoute,
   storeprotectedProfileEditRoute: storeprotectedProfileEditRoute,
@@ -998,6 +996,7 @@ interface storeLayoutRouteChildren {
   storeContactRoute: typeof storeContactRoute
   storeHelpRoute: typeof storeHelpRoute
   storeOffersRoute: typeof storeOffersRoute
+  storeReferralsRoute: typeof storeReferralsRoute
   storeSearchRoute: typeof storeSearchRoute
   storeIndexRoute: typeof storeIndexRoute
   storeBrandBrandRoute: typeof storeBrandBrandRoute
@@ -1022,6 +1021,7 @@ const storeLayoutRouteChildren: storeLayoutRouteChildren = {
   storeContactRoute: storeContactRoute,
   storeHelpRoute: storeHelpRoute,
   storeOffersRoute: storeOffersRoute,
+  storeReferralsRoute: storeReferralsRoute,
   storeSearchRoute: storeSearchRoute,
   storeIndexRoute: storeIndexRoute,
   storeBrandBrandRoute: storeBrandBrandRoute,

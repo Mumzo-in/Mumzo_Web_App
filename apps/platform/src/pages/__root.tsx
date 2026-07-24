@@ -16,6 +16,7 @@ import {
   PreferencesProvider,
   ProfileProvider,
 } from "@/modules/account";
+import { OnboardingModalHost, RequireAuthModalHost } from "@/modules/auth";
 import { CartProvider } from "@/modules/cart";
 import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
 import { TicketProvider } from "@/modules/support";
@@ -69,6 +70,8 @@ function RootComponent() {
 
                           <ConsentBanner />
                           <LocationModalHost />
+                          <RequireAuthModalHost />
+                          <OnboardingModalHost />
                         </CartProvider>
                       </WishlistProvider>
                     </TicketProvider>

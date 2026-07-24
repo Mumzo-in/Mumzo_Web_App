@@ -211,6 +211,15 @@
   display: none;
 }
 
+/* iOS safe-area insets — real padding, not the no-op Tailwind guessed at
+   without `viewport-fit=cover` on the viewport meta tag. */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* ---------------------------------------------------------
    6. Mumzo component classes
       (use these for consistent brand-level patterns)

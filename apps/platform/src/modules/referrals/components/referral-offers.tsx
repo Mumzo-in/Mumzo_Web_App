@@ -18,7 +18,7 @@ export default function ReferralOffers({
   }
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-white p-6">
+    <div className="rounded-3xl border border-border/60 bg-card p-6">
       <h2 className="font-editorial text-ink text-xl">Offers to share</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {offers.map((offer) => (
@@ -60,7 +60,7 @@ function OfferRow({ offer }: { offer: ReferralOffer }) {
       <button
         type="button"
         onClick={copy}
-        className="mt-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 border-dashed bg-white px-4 py-2 font-semibold text-ink text-sm transition-colors hover:bg-secondary"
+        className="mt-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 border-dashed bg-card px-4 py-2 font-semibold text-ink text-sm transition-colors hover:bg-secondary"
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}
         {offer.code}

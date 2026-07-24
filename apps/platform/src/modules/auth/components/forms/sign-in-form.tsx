@@ -1,11 +1,13 @@
 import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { authClient } from "../../api/auth-client";
+import { savePendingReferralCode } from "../../api/pending-referral";
 
 const RESEND_SECONDS = 30;
 
@@ -13,14 +15,23 @@ function toE164(phone: string) {
   return `+91${phone}`;
 }
 
-export default function SignInForm() {
+export default function SignInForm({
+  onSuccess,
+}: {
+  /** Called instead of navigating home once verification succeeds — used
+   * when the form is embedded in a modal opened from an arbitrary page. */
+  onSuccess?: () => void;
+}) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(RESEND_SECONDS);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -45,6 +56,9 @@ export default function SignInForm() {
     if (error) {
       toast.error(error.message ?? "Could not send the OTP. Try again.");
       return;
+    }
+    if (referralCode.trim()) {
+      savePendingReferralCode(referralCode.trim().toUpperCase());
     }
     toast.success(`OTP sent to ${toE164(phone)}`);
     setStep("otp");
@@ -73,7 +87,23 @@ export default function SignInForm() {
       return;
     }
     toast.success("Welcome to Mumzo!");
-    navigate({ to: "/" });
+
+    // Re-fetch rather than trust a stale cookie-cached session — the verify
+    // response doesn't reliably carry custom fields like `onboardedAt`.
+    // `OnboardingModalHost` (mounted globally in __root.tsx) watches this
+    // query and opens the onboarding modal itself whenever it sees a
+    // session with `onboardedAt` unset, so nothing else needs to trigger it
+    // here.
+    const { data } = await authClient.getSession({
+      query: { disableCookieCache: true },
+    });
+    queryClient.setQueryData(["auth-session"], data);
+
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      navigate({ to: "/" });
+    }
   };
 
   const handleResend = () => {
@@ -110,6 +140,29 @@ export default function SignInForm() {
               />
             </div>
           </div>
+
+          {showReferral ? (
+            <div className="space-y-2">
+              <Label htmlFor="referral-code">Referral code</Label>
+              <Input
+                id="referral-code"
+                type="text"
+                placeholder="e.g. ANANYA150"
+                className="h-11 rounded-xl uppercase tracking-wide"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowReferral(true)}
+              className="flex cursor-pointer items-center gap-1.5 font-semibold text-primary text-xs transition-colors hover:text-primary/80"
+            >
+              <Tag size={13} />
+              Have a referral code?
+            </button>
+          )}
 
           <Button
             type="submit"

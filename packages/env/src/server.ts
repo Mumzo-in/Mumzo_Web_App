@@ -84,6 +84,16 @@ export const env = createEnv({
     R2_IMAGE_MAX_DIMENSION: intFromEnv(2048),
     /** WebP encode quality (1-100) the Sharp pipeline uses. */
     R2_IMAGE_QUALITY: z.coerce.number().min(1).max(100).default(82),
+    /**
+     * When enabled, submitting the fixed code "111111" verifies successfully
+     * for any phone number, regardless of the OTP actually sent — lets
+     * staging/local testing sign in without a working SMS provider. Never
+     * enable in production.
+     */
+    OTP_BYPASS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

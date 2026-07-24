@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ModalType = "location" | "login" | string;
+export type ModalType = "location" | "login" | "onboarding" | string;
 
 interface ModalStore {
   activeModal: ModalType | null;

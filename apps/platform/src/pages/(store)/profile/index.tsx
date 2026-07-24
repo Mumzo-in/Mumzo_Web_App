@@ -21,15 +21,7 @@ export const Route = createFileRoute("/(store)/profile/")({
 
 function ProfilePage() {
   const navigate = useNavigate();
-  // const { data: session, isPending } = authClient.useSession();
-  const session = {
-    user: {
-      name: "Bikram",
-      email: "[EMAIL_ADDRESS]",
-      phone: "9999999999",
-    },
-  };
-  const isPending = false;
+  const { data: session, isPending } = authClient.useSession();
 
   const handleSignOut = async () => {
     const res = await authClient.signOut();
