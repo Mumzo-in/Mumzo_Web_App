@@ -23,7 +23,7 @@ export default function InviteTracker({
     <div className="rounded-3xl border border-border/60 bg-card p-6">
       <h2 className="font-editorial text-ink text-xl">Your invites</h2>
 
-      <div className="mt-4 grid gap-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {invites.map((invite) => (
           <InviteRow key={invite.id} invite={invite} />
         ))}
@@ -39,19 +39,16 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
 
   return (
     <div
-      className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card p-4"
+      className="rounded-3xl border border-border/60 bg-card p-4"
       data-testid={`referral-invite-${invite.id}`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/40 font-semibold text-ink text-sm">
           {invite.name.charAt(0)}
         </span>
-
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-ink text-sm">{invite.name}</p>
-          <p className="text-foreground/55 text-xs">{invite.note}</p>
-        </div>
-
+        <p className="min-w-0 flex-1 truncate font-semibold text-ink text-sm">
+          {invite.name}
+        </p>
         <span
           className={cn(
             "shrink-0 rounded-full px-3 py-1 font-semibold text-xs",
@@ -62,20 +59,15 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
         </span>
       </div>
 
-      <div className="flex items-center">
+      <div className="mt-4 flex flex-col pl-4">
         {INVITE_FUNNEL_STAGES.map((stage, index) => {
           const isDone = index < reached || (index === reached && !returned);
           const isCurrent = index === reached && !returned;
+          const isLast = index === INVITE_FUNNEL_STAGES.length - 1;
 
           return (
-            <div
-              key={stage}
-              className={cn(
-                "flex items-center",
-                index < INVITE_FUNNEL_STAGES.length - 1 && "flex-1",
-              )}
-            >
-              <div className="flex flex-col items-center gap-1">
+            <div className="flex gap-3" key={stage}>
+              <div className="flex flex-col items-center">
                 <span
                   className={cn(
                     "size-3 shrink-0 rounded-full",
@@ -84,18 +76,24 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
                     !isDone && !isCurrent && "bg-secondary",
                   )}
                 />
-                <span className="whitespace-nowrap text-[10px] text-foreground/50">
-                  {STAGE_LABELS[index]}
-                </span>
+                {!isLast && (
+                  <span
+                    className={cn(
+                      "my-1 w-0.5 flex-1",
+                      index < reached ? "bg-primary" : "bg-border",
+                    )}
+                  />
+                )}
               </div>
-              {index < INVITE_FUNNEL_STAGES.length - 1 && (
-                <span
-                  className={cn(
-                    "-mt-4 h-0.5 flex-1",
-                    index < reached ? "bg-primary" : "bg-border",
-                  )}
-                />
-              )}
+              <span
+                className={cn(
+                  "pb-3 text-xs",
+                  isLast && "pb-0",
+                  isDone ? "text-ink" : "text-foreground/50",
+                )}
+              >
+                {STAGE_LABELS[index]}
+              </span>
             </div>
           );
         })}

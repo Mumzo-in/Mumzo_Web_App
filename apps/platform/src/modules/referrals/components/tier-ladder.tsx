@@ -1,115 +1,114 @@
 import { cn } from "@mumzo/ui/lib/utils";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, PartyPopper } from "lucide-react";
 
 import {
   currentTier,
-  describeReward,
   nextTier,
   type ReferralProgram,
   referralsToNext,
 } from "../data/referral-data";
+import ConfettiBurst from "./confetti-burst";
 
 /**
- * The tier ladder — each rung is a referral count that unlocks a reward.
- * Unlocked rungs are ticked; the next one shows how many referrals remain.
+ * The tier ladder — a vertical milestone track. Each circle is a referral
+ * count; reaching it unlocks that tier's coupon. Minimal by design: the
+ * number + reward carry the meaning, no supporting paragraphs.
  */
 export default function TierLadder({
   program,
   locked = false,
 }: {
   program: ReferralProgram;
-  /** Guest view — every rung renders locked, no progress copy. */
+  /** Guest view — every milestone renders locked, no progress copy. */
   locked?: boolean;
 }) {
-  const active = currentTier(program);
   const upcoming = nextTier(program);
   const remaining = referralsToNext(program);
+  const latestUnlocked = !locked ? currentTier(program) : null;
 
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-editorial text-ink text-xl">Your reward tiers</h2>
+        <h2 className="font-editorial text-ink text-xl">Reward tiers</h2>
         {!locked && (
-          <p className="text-foreground/60 text-sm">
-            <span className="font-semibold text-ink">
-              {program.successfulReferrals}
-            </span>{" "}
-            successful referral
-            {program.successfulReferrals === 1 ? "" : "s"}
+          <p className="font-semibold text-ink text-sm">
+            {program.successfulReferrals} referred
           </p>
         )}
       </div>
 
-      {locked ? (
-        <p className="mt-1 text-foreground/60 text-sm">
-          Sign up to start earning coupons for every friend you refer.
-        </p>
-      ) : upcoming ? (
-        <p className="mt-1 text-foreground/60 text-sm">
-          {remaining} more to unlock{" "}
-          <span className="font-semibold text-ink">{upcoming.name}</span> —{" "}
-          {describeReward(upcoming.reward)}.
-        </p>
-      ) : (
-        <p className="mt-1 text-foreground/60 text-sm">
-          You've unlocked every tier. Thank you 💜
-        </p>
-      )}
+      <p className="mt-1 text-muted-foreground text-xs">
+        {locked
+          ? "Sign up to start unlocking coupons."
+          : upcoming
+            ? `${remaining} more to unlock ₹${upcoming.reward.amount}`
+            : "All tiers unlocked 💜"}
+      </p>
 
-      <ol className="mt-5 flex flex-col gap-3">
-        {program.tiers.map((tier) => {
+      <div className="mt-6 flex flex-col">
+        {program.tiers.map((tier, index) => {
           const unlocked =
             !locked && program.successfulReferrals >= tier.threshold;
           const isNext = !locked && upcoming?.id === tier.id;
-          const isActive = !locked && active?.id === tier.id;
+          const isLast = index === program.tiers.length - 1;
+          const isLatest = latestUnlocked?.id === tier.id;
 
           return (
-            <li
+            <div
+              className="flex gap-4"
               key={tier.id}
               data-testid={`referral-tier-${tier.id}`}
-              className={cn(
-                "flex flex-col gap-3 rounded-2xl border p-4 transition-colors sm:flex-row sm:items-center",
-                isActive
-                  ? "border-primary/40 bg-accent/15"
-                  : isNext
-                    ? "border-primary/20 bg-sage/10"
-                    : "border-border/60 bg-secondary/30",
-              )}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center">
                 <span
                   className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full",
+                    "relative flex size-11 shrink-0 items-center justify-center rounded-full font-semibold text-sm transition-colors",
                     unlocked
                       ? "bg-primary text-primary-foreground"
-                      : "bg-card text-foreground/40",
+                      : isNext
+                        ? "bg-accent text-ink ring-2 ring-primary/40"
+                        : "bg-secondary text-foreground/40",
+                    isLatest && "ring-4 ring-accent",
                   )}
                 >
-                  {unlocked ? <Check size={16} /> : <Lock size={14} />}
+                  {isLatest && <ConfettiBurst />}
+                  {unlocked ? <Check size={18} /> : <Lock size={14} />}
                 </span>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-ink text-sm">
-                      {tier.name}
-                    </p>
-                    <span className="rounded-full bg-card px-2 py-0.5 font-semibold text-[11px] text-foreground/60">
-                      {tier.threshold} referral{tier.threshold === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-foreground/60 text-xs leading-relaxed">
-                    {tier.blurb}
-                  </p>
-                </div>
+                {!isLast && (
+                  <span
+                    className={cn(
+                      "my-1 w-0.5 flex-1",
+                      unlocked ? "bg-primary" : "bg-border",
+                    )}
+                  />
+                )}
               </div>
 
-              <span className="self-start pl-12 font-editorial text-ink text-sm sm:shrink-0 sm:self-center sm:pl-0">
-                {describeReward(tier.reward)}
-              </span>
-            </li>
+              <div
+                className={cn("flex items-center gap-2 pb-6", isLast && "pb-0")}
+              >
+                <div>
+                  <p className="font-editorial text-ink text-lg">
+                    ₹{tier.reward.amount}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {tier.threshold} referral{tier.threshold === 1 ? "" : "s"}
+                  </p>
+                </div>
+                {isLatest && (
+                  <span
+                    className="flex items-center gap-1 rounded-full bg-accent/60 px-2 py-0.5 font-semibold text-[10px] text-ink"
+                    data-testid="referral-tier-unlocked-badge"
+                  >
+                    <PartyPopper size={11} />
+                    Unlocked!
+                  </span>
+                )}
+              </div>
+            </div>
           );
         })}
-      </ol>
+      </div>
     </div>
   );
 }

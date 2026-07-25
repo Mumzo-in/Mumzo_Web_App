@@ -220,6 +220,22 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Confetti burst — a one-shot celebration for the most-recently-unlocked
+   reward tier. Pure CSS: each dot flies out from center then fades. */
+@keyframes confetti-pop {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--confetti-x), var(--confetti-y)) scale(0.4);
+    opacity: 0;
+  }
+}
+.confetti-dot {
+  animation: confetti-pop 900ms ease-out forwards;
+}
+
 /* ---------------------------------------------------------
    6. Mumzo component classes
       (use these for consistent brand-level patterns)

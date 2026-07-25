@@ -71,8 +71,6 @@ export type ReferralInvite = {
   id: string;
   name: string;
   status: ReferralInviteStatus;
-  /** Human-readable state, e.g. "Coupon issued" or "Return window open". */
-  note: string;
 };
 
 export type ReferralProgram = {
@@ -217,43 +215,13 @@ export const referralProgram: ReferralProgram = {
     },
   ],
   invites: [
-    {
-      id: "i1",
-      name: "Meera",
-      status: "completed",
-      note: "Coupon issued",
-    },
-    {
-      id: "i2",
-      name: "Kavya",
-      status: "signed_up",
-      note: "Waiting on first order",
-    },
-    {
-      id: "i3",
-      name: "Ritu",
-      status: "completed",
-      note: "Coupon issued",
-    },
-    {
-      id: "i4",
-      name: "Divya",
-      status: "link_shared",
-      note: "Link sent, hasn't joined yet",
-    },
-    {
-      id: "i5",
-      name: "Priya",
-      status: "returned",
-      note: "Order returned within window",
-    },
+    { id: "i1", name: "Meera", status: "completed" },
+    { id: "i2", name: "Kavya", status: "signed_up" },
+    { id: "i3", name: "Ritu", status: "completed" },
+    { id: "i4", name: "Divya", status: "link_shared" },
+    { id: "i5", name: "Priya", status: "returned" },
   ],
 };
-
-/** Formats a reward for display. */
-export function describeReward(reward: ReferralReward): string {
-  return `₹${reward.amount} OFF coupon`;
-}
 
 /**
  * Personalizes a referral code from the signed-in user's name — "Bikram" →

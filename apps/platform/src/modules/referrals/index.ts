@@ -6,9 +6,7 @@ export { default as ReferralOffers } from "./components/referral-offers";
 export { default as TierLadder } from "./components/tier-ladder";
 export {
   COUPON_STATUS_META,
-  currentTier,
   deriveReferralCode,
-  describeReward,
   INVITE_FUNNEL_STAGES,
   INVITE_STATUS_META,
   inviteStageIndex,
