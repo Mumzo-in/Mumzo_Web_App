@@ -5,6 +5,7 @@ export {
   type CartItem,
   CartProvider,
   type CartTotals,
+  FREE_DELIVERY_OVER,
   rupee,
   useCart,
 } from "./store/cart-provider";

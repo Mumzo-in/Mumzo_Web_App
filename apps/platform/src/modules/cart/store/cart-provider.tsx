@@ -47,7 +47,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 const STORAGE_KEY = "mumzo_cart_v1";
-const FREE_DELIVERY_OVER = 299;
+export const FREE_DELIVERY_OVER = 499;
 const DELIVERY_FEE = 25;
 const GST_RATE = 0.05;
 

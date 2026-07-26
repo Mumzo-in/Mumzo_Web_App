@@ -1,6 +1,6 @@
 import { cn } from "@mumzo/ui/lib/utils";
 
-import { rupee, useCart } from "../../store/cart-provider";
+import { FREE_DELIVERY_OVER, rupee, useCart } from "../../store/cart-provider";
 
 function Row({
   label,
@@ -96,12 +96,17 @@ export default function CartSummary({
         </p>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-border/50 bg-pinkSoft p-4 text-foreground/70 text-xs">
-        <p className="mb-1 font-semibold text-foreground">
-          Free delivery over ₹299
-        </p>
-        <p>Add just a few more items to unlock free delivery.</p>
-      </div>
+      {totals.subtotal < FREE_DELIVERY_OVER && (
+        <div className="mt-4 rounded-2xl border border-border/50 bg-pinkSoft p-4 text-foreground/70 text-xs">
+          <p className="mb-1 font-semibold text-foreground">
+            Free delivery over {rupee(FREE_DELIVERY_OVER)}
+          </p>
+          <p>
+            Add {rupee(FREE_DELIVERY_OVER - totals.subtotal)} more to unlock
+            free delivery.
+          </p>
+        </div>
+      )}
     </aside>
   );
 }
