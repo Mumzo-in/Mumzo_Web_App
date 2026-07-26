@@ -38,13 +38,20 @@ export const PRICE_MIN = 100;
 export const PRICE_MAX = 2000;
 export const PRICE_STEP = 50;
 
+export type PriceDirection = "above" | "below";
+
+export interface PriceFilter {
+  direction: PriceDirection;
+  value: number;
+}
+
 export interface CategoryFilterState {
   sort: SortKey;
   ages: AgeGroup[];
   brands: string[];
   sizes: string[];
   types: string[];
-  maxPrice: number;
+  price: PriceFilter | null;
 }
 
 export const initialFilterState: CategoryFilterState = {
@@ -53,7 +60,7 @@ export const initialFilterState: CategoryFilterState = {
   brands: [],
   sizes: [],
   types: [],
-  maxPrice: PRICE_MAX,
+  price: null,
 };
 
 export interface CategoryFacets {
@@ -85,7 +92,7 @@ export function activeFilterCount(state: CategoryFilterState): number {
     state.brands.length +
     state.sizes.length +
     state.types.length +
-    (state.maxPrice < PRICE_MAX ? 1 : 0)
+    (state.price ? 1 : 0)
   );
 }
 
@@ -94,7 +101,13 @@ export function applyCategoryFilters(
   products: Product[],
   state: CategoryFilterState,
 ): Product[] {
-  let list = products.filter((p) => p.price <= state.maxPrice);
+  let list = products;
+  if (state.price) {
+    const { direction, value } = state.price;
+    list = list.filter((p) =>
+      direction === "above" ? p.price >= value : p.price <= value,
+    );
+  }
 
   if (state.ages.length > 0) {
     list = list.filter((p) =>

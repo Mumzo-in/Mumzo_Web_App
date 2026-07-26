@@ -91,6 +91,7 @@ function AddressesPage() {
           </DialogTitle>
           <AddressForm
             initial={editing ?? undefined}
+            existing={addresses}
             onSubmit={(draft) => {
               if (editing) {
                 updateAddress(editing.id, draft);

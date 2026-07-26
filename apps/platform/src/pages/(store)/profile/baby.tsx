@@ -29,7 +29,7 @@ import {
   milestoneForMonths,
   monthsLabel,
   monthsToDob,
-  seedBabies,
+  useBabies,
 } from "@/modules/account";
 
 const MAX_AGE_MONTHS = 60;
@@ -45,7 +45,7 @@ const GENDERS: { value: BabyGender; label: string }[] = [
 ];
 
 function BabyProfilePage() {
-  const [babies, setBabies] = useState<Baby[]>(seedBabies);
+  const { babies, addBaby, updateBaby, removeBaby } = useBabies();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Baby | null>(null);
 
@@ -60,19 +60,17 @@ function BabyProfilePage() {
 
   const save = (draft: Omit<Baby, "id">) => {
     if (editing) {
-      setBabies((prev) =>
-        prev.map((b) => (b.id === editing.id ? { ...draft, id: b.id } : b)),
-      );
+      updateBaby(editing.id, draft);
       toast.success("Baby profile updated");
     } else {
-      setBabies((prev) => [...prev, { ...draft, id: `baby_${Date.now()}` }]);
+      addBaby(draft);
       toast.success("Baby profile added");
     }
     setOpen(false);
   };
 
   const remove = (id: string) => {
-    setBabies((prev) => prev.filter((b) => b.id !== id));
+    removeBaby(id);
     toast.success("Baby profile removed");
   };
 

@@ -116,15 +116,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const mrpTotal = items.reduce((s, i) => s + i.mrp * i.qty, 0);
     const savings = mrpTotal - subtotal;
 
+    const eligibleAmt = coupon?.category
+      ? items
+          .filter((i) => i.categorySlug === coupon.category)
+          .reduce((s, i) => s + i.price * i.qty, 0)
+      : subtotal;
+
     let discount = 0;
-    if (coupon?.discount) {
-      discount = subtotal >= (coupon.minAmt ?? 0) ? coupon.discount : 0;
-    }
-    if (coupon?.pct) {
-      discount = Math.min(
-        Math.floor(subtotal * (coupon.pct / 100)),
-        coupon.cap ?? Number.POSITIVE_INFINITY,
-      );
+    if (items.length > 0 && eligibleAmt >= (coupon?.minAmt ?? 0)) {
+      if (coupon?.discount) {
+        discount = coupon.discount;
+      }
+      if (coupon?.pct) {
+        discount = Math.min(
+          Math.floor(subtotal * (coupon.pct / 100)),
+          coupon.cap ?? Number.POSITIVE_INFINITY,
+        );
+      }
     }
 
     const delivery = subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;

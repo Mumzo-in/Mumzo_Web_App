@@ -26,6 +26,7 @@ export {
   seedNotifications,
 } from "./data/notification-data";
 export { AddressProvider, useAddresses } from "./store/address-provider";
+export { BabiesProvider, useBabies } from "./store/babies-provider";
 export {
   CONSENT_PURPOSES,
   ConsentProvider,

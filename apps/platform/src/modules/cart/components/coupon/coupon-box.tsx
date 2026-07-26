@@ -19,20 +19,43 @@ interface CouponMessage {
 }
 
 export default function CouponBox() {
-  const { coupon, setCoupon, totals } = useCart();
+  const { coupon, setCoupon, totals, items } = useCart();
   const [code, setCode] = useState(coupon?.code ?? "");
   const [msg, setMsg] = useState<CouponMessage | null>(null);
 
   const applyOffer = (offer: Offer) => {
     setCode(offer.code);
-    if (offer.minAmt && totals.subtotal < offer.minAmt) {
+
+    if (items.length === 0) {
+      setCoupon(null);
+      setMsg({ ok: false, text: "Add items to your cart to use a coupon." });
+      return;
+    }
+
+    const eligibleAmt = offer.category
+      ? items
+          .filter((i) => i.categorySlug === offer.category)
+          .reduce((s, i) => s + i.price * i.qty, 0)
+      : totals.subtotal;
+
+    if (offer.category && eligibleAmt === 0) {
       setCoupon(null);
       setMsg({
         ok: false,
-        text: `Add ${rupee(offer.minAmt - totals.subtotal)} more to use ${offer.code}.`,
+        text: `${offer.code} only applies to ${offer.category.replace("-", " ")} items.`,
       });
       return;
     }
+
+    if (offer.minAmt && eligibleAmt < offer.minAmt) {
+      setCoupon(null);
+      setMsg({
+        ok: false,
+        text: `Add ${rupee(offer.minAmt - eligibleAmt)} more to use ${offer.code}.`,
+      });
+      return;
+    }
+
     setCoupon(offer);
     setMsg({ ok: true, text: `Yay! ${offer.desc}` });
   };

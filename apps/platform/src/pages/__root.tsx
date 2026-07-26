@@ -10,6 +10,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/core/components/theme-provider";
 import {
   AddressProvider,
+  BabiesProvider,
   ConsentBanner,
   ConsentProvider,
   PaymentMethodsProvider,
@@ -63,18 +64,20 @@ function RootComponent() {
               <PreferencesProvider>
                 <PaymentMethodsProvider>
                   <AddressProvider>
-                    <TicketProvider>
-                      <WishlistProvider>
-                        <CartProvider>
-                          <Outlet />
+                    <BabiesProvider>
+                      <TicketProvider>
+                        <WishlistProvider>
+                          <CartProvider>
+                            <Outlet />
 
-                          <ConsentBanner />
-                          <LocationModalHost />
-                          <RequireAuthModalHost />
-                          <OnboardingModalHost />
-                        </CartProvider>
-                      </WishlistProvider>
-                    </TicketProvider>
+                            <ConsentBanner />
+                            <LocationModalHost />
+                            <RequireAuthModalHost />
+                            <OnboardingModalHost />
+                          </CartProvider>
+                        </WishlistProvider>
+                      </TicketProvider>
+                    </BabiesProvider>
                   </AddressProvider>
                 </PaymentMethodsProvider>
               </PreferencesProvider>

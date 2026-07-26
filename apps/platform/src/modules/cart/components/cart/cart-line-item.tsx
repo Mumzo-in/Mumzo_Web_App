@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 import { type CartItem, rupee, useCart } from "../../store/cart-provider";
@@ -14,18 +15,28 @@ export default function CartLineItem({ item }: CartLineItemProps) {
       data-testid={`web-cart-item-${item.id}`}
       className="flex gap-3 p-4 sm:gap-4 sm:p-5"
     >
-      <img
-        src={item.img}
-        alt={item.name}
-        className="size-20 shrink-0 rounded-2xl bg-blush/40 object-cover sm:size-24"
-      />
+      <Link
+        to="/product/$productId"
+        params={{ productId: item.id }}
+        className="shrink-0"
+      >
+        <img
+          src={item.img}
+          alt={item.name}
+          className="size-20 rounded-2xl bg-blush/40 object-cover sm:size-24"
+        />
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col">
         <p className="font-semibold text-[10px] text-foreground/50 uppercase tracking-wider">
           {item.brand}
         </p>
-        <p className="mt-0.5 line-clamp-2 font-medium text-foreground text-sm leading-snug">
+        <Link
+          to="/product/$productId"
+          params={{ productId: item.id }}
+          className="mt-0.5 line-clamp-2 font-medium text-foreground text-sm leading-snug hover:underline"
+        >
           {item.name}
-        </p>
+        </Link>
         {item.size && (
           <p className="mt-0.5 text-foreground/60 text-xs">Size: {item.size}</p>
         )}

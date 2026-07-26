@@ -17,7 +17,6 @@ import {
   categoriesQueryOptions,
   getCategoryFacets,
   initialFilterState,
-  PRICE_MAX,
   ProductCard,
   productsQueryOptions,
   toProduct,
@@ -63,7 +62,8 @@ const searchParamsSchema = z.object({
   brands: z.string().optional(),
   sizes: z.string().optional(),
   types: z.string().optional(),
-  maxPrice: z.coerce.number().int().positive().optional(),
+  priceDir: z.enum(["above", "below"]).optional(),
+  priceVal: z.coerce.number().int().positive().optional(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -102,7 +102,10 @@ function toFilterState(search: SearchParams): CategoryFilterState {
     brands: csv(search.brands),
     sizes: csv(search.sizes),
     types: csv(search.types),
-    maxPrice: search.maxPrice ?? initialFilterState.maxPrice,
+    price:
+      search.priceDir && search.priceVal
+        ? { direction: search.priceDir, value: search.priceVal }
+        : initialFilterState.price,
   };
 }
 
@@ -178,7 +181,8 @@ function SearchPage() {
             : undefined,
         sizes: next.sizes.length > 0 ? next.sizes.join(",") : undefined,
         types: next.types.length > 0 ? next.types.join(",") : undefined,
-        maxPrice: next.maxPrice < PRICE_MAX ? next.maxPrice : undefined,
+        priceDir: next.price?.direction,
+        priceVal: next.price?.value,
       }),
       replace: true,
     });
@@ -205,7 +209,10 @@ function SearchPage() {
       sort: filters.sort,
       brands: filters.brands,
       sizes: filters.sizes,
-      maxPrice: filters.maxPrice < PRICE_MAX ? filters.maxPrice : undefined,
+      minPrice:
+        filters.price?.direction === "above" ? filters.price.value : undefined,
+      maxPrice:
+        filters.price?.direction === "below" ? filters.price.value : undefined,
       limit: 100,
     }),
   );

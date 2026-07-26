@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/core/components/loader";
+import { useBabies } from "@/modules/account";
 import { authClient } from "@/modules/auth";
 
 export const Route = createFileRoute("/(store)/profile/")({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/(store)/profile/")({
 function ProfilePage() {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
+  const { babies } = useBabies();
 
   const handleSignOut = async () => {
     const res = await authClient.signOut();
@@ -173,6 +175,12 @@ function ProfilePage() {
             <p className="font-semibold text-foreground/70">{userPhone}</p>
             {user.email && <p className="text-foreground/40">{user.email}</p>}
           </div>
+          {babies.length > 0 && (
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-primary text-xs sm:justify-start">
+              <Baby size={14} />
+              Parent of {babies.map((baby) => baby.name).join(", ")}
+            </p>
+          )}
         </div>
         <button
           type="button"

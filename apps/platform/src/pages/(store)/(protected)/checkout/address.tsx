@@ -5,7 +5,12 @@ import { toast } from "sonner";
 
 import { AddressCard, AddressForm, useAddresses } from "@/modules/account";
 import { CartSummary, useCart } from "@/modules/cart";
-import { CheckoutSteps, SlotSelector, useCheckout } from "@/modules/checkout";
+import {
+  CheckoutSteps,
+  findWindow,
+  SlotSelector,
+  useCheckout,
+} from "@/modules/checkout";
 import { NotServiceable, useServiceability } from "@/modules/location";
 
 export const Route = createFileRoute("/(store)/(protected)/checkout/address")({
@@ -16,8 +21,11 @@ function CheckoutAddressPage() {
   const navigate = useNavigate();
   const { items } = useCart();
   const { addresses, defaultAddress, addAddress } = useAddresses();
-  const { addressId, setAddressId, slotReady } = useCheckout();
+  const { addressId, setAddressId, slotReady, mode, slotWindowId } =
+    useCheckout();
   const { serviceable, expressAvailable } = useServiceability();
+  const slotFee =
+    mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -76,6 +84,7 @@ function CheckoutAddressPage() {
             {adding ? (
               <div className="rounded-3xl border border-border/60 bg-secondary/40 p-5">
                 <AddressForm
+                  existing={addresses}
                   onSubmit={(draft) => {
                     const created = addAddress(draft);
                     setAddressId(created.id);
@@ -106,13 +115,14 @@ function CheckoutAddressPage() {
                 pick a scheduled slot.
               </p>
             )}
-            <SlotSelector />
+            <SlotSelector expressAvailable={expressAvailable} />
           </section>
         </div>
 
         <CartSummary
           onPlaceOrder={continueToPayment}
           ctaLabel="Continue to payment →"
+          slotFee={slotFee}
         />
       </div>
     </div>

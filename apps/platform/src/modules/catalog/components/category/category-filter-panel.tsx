@@ -1,5 +1,4 @@
 import { cn } from "@mumzo/ui/lib/utils";
-import { X } from "lucide-react";
 
 import {
   activeFilterCount,
@@ -9,6 +8,7 @@ import {
   PRICE_MAX,
   PRICE_MIN,
   PRICE_STEP,
+  type PriceDirection,
   rupee,
 } from "../../data/category-config";
 import { AGE_LABEL, type AgeGroup } from "../../data/product-attributes";
@@ -19,6 +19,9 @@ interface CategoryFilterPanelProps {
   onChange: (next: CategoryFilterState) => void;
   /** Container chrome (card on desktop sidebar, bare in the mobile dialog). */
   className?: string;
+  /** Extra classes for the sticky "Filters / Clear" header row — the mobile
+   * dialog uses this to keep "Clear" clear of the dialog's own close button. */
+  headerClassName?: string;
 }
 
 function FilterGroup({
@@ -79,6 +82,7 @@ export default function CategoryFilterPanel({
   state,
   onChange,
   className,
+  headerClassName,
 }: CategoryFilterPanelProps) {
   const count = activeFilterCount(state);
 
@@ -99,7 +103,12 @@ export default function CategoryFilterPanel({
   return (
     <div className={cn("flex flex-col", className)}>
       {/* Sticky header — stays pinned when the panel scrolls */}
-      <div className="sticky top-0 z-10 mb-5 flex items-center justify-between border-b bg-white px-6 pt-6 pb-2">
+      <div
+        className={cn(
+          "sticky top-0 z-10 mb-5 flex items-center justify-between border-b bg-white px-6 pt-6 pb-2",
+          headerClassName,
+        )}
+      >
         <p className="font-semibold text-sm">
           Filters {count > 0 && `(${count})`}
         </p>
@@ -108,9 +117,9 @@ export default function CategoryFilterPanel({
             type="button"
             onClick={clearAll}
             data-testid="clear-filters"
-            className="flex cursor-pointer items-center gap-1 font-semibold text-primary text-xs"
+            className="cursor-pointer font-semibold text-primary text-xs"
           >
-            <X size={12} /> Clear
+            Clear
           </button>
         )}
       </div>
@@ -177,28 +186,58 @@ export default function CategoryFilterPanel({
       )}
 
       {/* Price */}
-      <FilterGroup label="Max price" className="px-6">
-        <div className="-mt-1 mb-2 flex justify-end">
-          <p className="font-semibold text-primary text-sm">
-            {rupee(state.maxPrice)}
-          </p>
+      <FilterGroup label="Price" className="px-6">
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          {(["below", "above"] as PriceDirection[]).map((direction) => (
+            <Pill
+              key={direction}
+              active={state.price?.direction === direction}
+              onClick={() =>
+                onChange({
+                  ...state,
+                  price: {
+                    direction,
+                    value: state.price?.value ?? PRICE_MIN,
+                  },
+                })
+              }
+              testId={`filter-price-${direction}`}
+            >
+              {direction === "below" ? "Below" : "Above"}
+            </Pill>
+          ))}
         </div>
-        <input
-          type="range"
-          min={PRICE_MIN}
-          max={PRICE_MAX}
-          step={PRICE_STEP}
-          value={state.maxPrice}
-          onChange={(e) =>
-            onChange({ ...state, maxPrice: Number(e.target.value) })
-          }
-          data-testid="filter-price"
-          className="w-full accent-primary"
-        />
-        <div className="mt-1 flex justify-between text-[11px] text-foreground/50">
-          <span>{rupee(PRICE_MIN)}</span>
-          <span>{rupee(PRICE_MAX)}</span>
-        </div>
+        {state.price && (
+          <>
+            <div className="-mt-1 mb-2 flex justify-end">
+              <p className="font-semibold text-primary text-sm">
+                {rupee(state.price.value)}
+              </p>
+            </div>
+            <input
+              type="range"
+              min={PRICE_MIN}
+              max={PRICE_MAX}
+              step={PRICE_STEP}
+              value={state.price.value}
+              onChange={(e) =>
+                onChange({
+                  ...state,
+                  price: {
+                    direction: state.price?.direction ?? "below",
+                    value: Number(e.target.value),
+                  },
+                })
+              }
+              data-testid="filter-price"
+              className="w-full accent-primary"
+            />
+            <div className="mt-1 flex justify-between text-[11px] text-foreground/50">
+              <span>{rupee(PRICE_MIN)}</span>
+              <span>{rupee(PRICE_MAX)}</span>
+            </div>
+          </>
+        )}
       </FilterGroup>
 
       {/* Size */}

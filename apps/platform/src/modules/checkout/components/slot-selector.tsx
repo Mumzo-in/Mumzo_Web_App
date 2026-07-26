@@ -1,10 +1,17 @@
 import { CalendarClock, Check, Zap } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { availableWindows, deliveryDays, EXPRESS_ETA } from "../data/slot-data";
 import { useCheckout } from "../store/checkout-provider";
 
-export default function SlotSelector() {
+interface SlotSelectorProps {
+  /** false when the address falls outside the express (10-min) zone. */
+  expressAvailable?: boolean;
+}
+
+export default function SlotSelector({
+  expressAvailable = true,
+}: SlotSelectorProps) {
   const {
     mode,
     setMode,
@@ -17,6 +24,11 @@ export default function SlotSelector() {
   const days = useMemo(() => deliveryDays(), []);
   const activeDate = slotDate ?? days[0].date;
   const windows = useMemo(() => availableWindows(activeDate), [activeDate]);
+
+  // Outer zones can't do express — force scheduled instead.
+  useEffect(() => {
+    if (!expressAvailable && mode === "express") setMode("scheduled");
+  }, [expressAvailable, mode, setMode]);
 
   const pickDay = (date: string) => {
     setSlotDate(date);
@@ -32,12 +44,15 @@ export default function SlotSelector() {
       <div className="grid gap-3 sm:grid-cols-2">
         <button
           type="button"
-          onClick={() => setMode("express")}
+          onClick={() => expressAvailable && setMode("express")}
+          disabled={!expressAvailable}
           data-testid="web-slot-express"
           className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
-            mode === "express"
-              ? "border-primary ring-1 ring-primary/30"
-              : "border-border/60 hover:border-primary/40"
+            !expressAvailable
+              ? "cursor-not-allowed border-border/60 opacity-50"
+              : mode === "express"
+                ? "border-primary ring-1 ring-primary/30"
+                : "border-border/60 hover:border-primary/40"
           }`}
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent/40 text-primary">
@@ -48,7 +63,9 @@ export default function SlotSelector() {
               Express delivery
             </span>
             <span className="block text-foreground/60 text-xs">
-              Arrives in {EXPRESS_ETA}
+              {expressAvailable
+                ? `Arrives in ${EXPRESS_ETA}`
+                : "Not available at your location"}
             </span>
           </span>
           {mode === "express" && (

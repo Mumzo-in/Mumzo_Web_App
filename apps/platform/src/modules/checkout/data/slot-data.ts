@@ -21,18 +21,44 @@ export interface TimeWindow {
 export const EXPRESS_ETA = "10–15 minutes";
 export const SCHEDULE_DAYS = 4;
 
+export const SCHEDULED_DELIVERY_FEE = 49;
+
 export const timeWindows: TimeWindow[] = [
-  { id: "w_morning", label: "8 AM – 11 AM", startHour: 8, endHour: 11, fee: 0 },
-  { id: "w_midday", label: "11 AM – 2 PM", startHour: 11, endHour: 14, fee: 0 },
+  {
+    id: "w_morning",
+    label: "8 AM – 11 AM",
+    startHour: 8,
+    endHour: 11,
+    fee: SCHEDULED_DELIVERY_FEE,
+  },
+  {
+    id: "w_midday",
+    label: "11 AM – 2 PM",
+    startHour: 11,
+    endHour: 14,
+    fee: SCHEDULED_DELIVERY_FEE,
+  },
   {
     id: "w_afternoon",
     label: "2 PM – 5 PM",
     startHour: 14,
     endHour: 17,
-    fee: 0,
+    fee: SCHEDULED_DELIVERY_FEE,
   },
-  { id: "w_evening", label: "5 PM – 8 PM", startHour: 17, endHour: 20, fee: 0 },
-  { id: "w_night", label: "8 PM – 10 PM", startHour: 20, endHour: 22, fee: 0 },
+  {
+    id: "w_evening",
+    label: "5 PM – 8 PM",
+    startHour: 17,
+    endHour: 20,
+    fee: SCHEDULED_DELIVERY_FEE,
+  },
+  {
+    id: "w_night",
+    label: "8 PM – 10 PM",
+    startHour: 20,
+    endHour: 22,
+    fee: SCHEDULED_DELIVERY_FEE,
+  },
 ];
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

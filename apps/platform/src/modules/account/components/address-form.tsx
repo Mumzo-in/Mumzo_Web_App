@@ -14,12 +14,15 @@ type AddressDraft = Omit<Address, "id">;
 
 interface AddressFormProps {
   initial?: Address;
+  /** Other saved addresses — used to block a second Home/Work label. */
+  existing?: Address[];
   onSubmit: (draft: AddressDraft) => void;
   onCancel?: () => void;
 }
 
 export default function AddressForm({
   initial,
+  existing = [],
   onSubmit,
   onCancel,
 }: AddressFormProps) {
@@ -29,32 +32,56 @@ export default function AddressForm({
     isDefault: initial?.isDefault ?? false,
   }));
 
+  // Home/Work are one-per-user; Other can repeat.
+  const takenLabels = new Set(
+    existing
+      .filter((a) => a.id !== initial?.id && a.label !== "Other")
+      .map((a) => a.label),
+  );
+  const isLabelDisabled = (label: AddressLabel) => takenLabels.has(label);
+
   const set = <K extends keyof AddressDraft>(key: K, val: AddressDraft[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (isLabelDisabled(form.label)) return;
     onSubmit(form as AddressDraft);
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex gap-2">
-        {ADDRESS_LABELS.map((label) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => set("label", label as AddressLabel)}
-            className={`flex-1 cursor-pointer rounded-full border px-4 py-2 font-semibold text-sm transition-colors ${
-              form.label === label
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-foreground/70 hover:bg-secondary"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        {ADDRESS_LABELS.map((label) => {
+          const disabled = isLabelDisabled(label);
+          return (
+            <button
+              key={label}
+              type="button"
+              disabled={disabled}
+              onClick={() => set("label", label as AddressLabel)}
+              title={
+                disabled ? `You already have a ${label} address` : undefined
+              }
+              className={`flex-1 cursor-pointer rounded-full border px-4 py-2 font-semibold text-sm transition-colors ${
+                disabled
+                  ? "cursor-not-allowed border-border/60 text-foreground/30"
+                  : form.label === label
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-foreground/70 hover:bg-secondary"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
+      {isLabelDisabled(form.label) && (
+        <p className="text-destructive text-xs">
+          You already have a {form.label} address — save this one under "Other"
+          instead.
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">

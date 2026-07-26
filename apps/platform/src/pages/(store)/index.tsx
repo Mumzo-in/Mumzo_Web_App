@@ -33,7 +33,7 @@ const VALUE_PROPS = [
   { icon: Leaf, title: "Gentle & safe", body: "Expiry & batch checked" },
 ];
 
-function SeeAll({ cat, label = "See all" }: { cat: string; label?: string }) {
+function SeeAll({ cat, label = "See all" }: { cat?: string; label?: string }) {
   return (
     <Link
       to="/search"
@@ -62,8 +62,6 @@ function HomePage() {
     .slice(0, 10);
   // Two rows of the responsive grid (5 per row at lg).
   const picks = products.slice(0, 10);
-  // Falls back to an unfiltered search while categories are still loading.
-  const firstCategorySlug = categories[0]?.slug ?? "";
 
   return (
     <div className="pb-16">
@@ -116,7 +114,7 @@ function HomePage() {
         <SectionHeader
           kicker="Save big"
           title="Top deals today"
-          action={<SeeAll cat={firstCategorySlug} />}
+          action={<SeeAll />}
         />
         <ProductRail products={topDeals} />
       </section>
@@ -143,7 +141,7 @@ function HomePage() {
         <SectionHeader
           kicker="Loved by mumzos"
           title="Bestsellers this week"
-          action={<SeeAll cat={firstCategorySlug} />}
+          action={<SeeAll />}
         />
         <ProductRail products={bestsellers} />
       </section>
@@ -201,7 +199,6 @@ function HomePage() {
         <div className="mt-8 flex justify-center">
           <Link
             to="/search"
-            search={{ cat: firstCategorySlug }}
             className="rounded-full border border-primary/30 px-8 py-3 font-semibold text-primary text-sm transition-colors hover:bg-primary/5"
           >
             View more products

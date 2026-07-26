@@ -4,7 +4,12 @@ import { toast } from "sonner";
 
 import { useAddresses } from "@/modules/account";
 import { CartSummary, rupee, useCart } from "@/modules/cart";
-import { CheckoutSteps, paymentMethods, useCheckout } from "@/modules/checkout";
+import {
+  CheckoutSteps,
+  findWindow,
+  paymentMethods,
+  useCheckout,
+} from "@/modules/checkout";
 
 export const Route = createFileRoute("/(store)/(protected)/checkout/review")({
   component: CheckoutReviewPage,
@@ -14,8 +19,11 @@ function CheckoutReviewPage() {
   const navigate = useNavigate();
   const { items, clear } = useCart();
   const { addresses } = useAddresses();
-  const { addressId, slotLabel, mode, paymentMethod } = useCheckout();
+  const { addressId, slotLabel, mode, slotWindowId, paymentMethod } =
+    useCheckout();
   const SlotIcon = mode === "express" ? Zap : CalendarClock;
+  const slotFee =
+    mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
   const payment = paymentMethods.find((p) => p.id === paymentMethod) ?? null;
@@ -110,7 +118,11 @@ function CheckoutReviewPage() {
           </section>
         </div>
 
-        <CartSummary onPlaceOrder={placeOrder} ctaLabel="Place order" />
+        <CartSummary
+          onPlaceOrder={placeOrder}
+          ctaLabel="Place order"
+          slotFee={slotFee}
+        />
       </div>
     </div>
   );

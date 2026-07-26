@@ -24,13 +24,17 @@ function Row({
 interface CartSummaryProps {
   onPlaceOrder: () => void;
   ctaLabel?: string;
+  /** Extra fee for a scheduled (non-express) delivery slot, if any. */
+  slotFee?: number;
 }
 
 export default function CartSummary({
   onPlaceOrder,
   ctaLabel,
+  slotFee = 0,
 }: CartSummaryProps) {
   const { totals, coupon } = useCart();
+  const total = totals.total + slotFee;
 
   return (
     <aside className="h-fit lg:sticky lg:top-24">
@@ -59,6 +63,9 @@ export default function CartSummary({
             value={totals.delivery === 0 ? "FREE" : rupee(totals.delivery)}
             highlight={totals.delivery === 0}
           />
+          {slotFee > 0 && (
+            <Row label="Scheduled delivery fee" value={rupee(slotFee)} />
+          )}
           <Row label="GST & taxes (5%)" value={rupee(totals.gst)} />
           <div className="mt-3 flex items-center justify-between border-border/50 border-t pt-3">
             <span className="font-semibold">To pay</span>
@@ -66,7 +73,7 @@ export default function CartSummary({
               data-testid="web-cart-total"
               className="font-editorial font-semibold text-2xl"
             >
-              {rupee(totals.total)}
+              {rupee(total)}
             </span>
           </div>
         </div>
@@ -81,7 +88,7 @@ export default function CartSummary({
           data-testid="web-place-order"
           className="mt-6 w-full rounded-full bg-pinkDeep py-4 font-semibold text-sm text-white transition-all hover:bg-[#A93F63] active:scale-[0.99]"
         >
-          {ctaLabel ?? `Place order → ${rupee(totals.total)}`}
+          {ctaLabel ?? `Place order → ${rupee(total)}`}
         </button>
         <p className="mt-3 text-center text-[11px] text-foreground/50">
           By placing your order, you agree to our terms of service and refund

@@ -58,6 +58,7 @@ export default function CategoryFilterDialog({
           facets={facets}
           state={state}
           onChange={onChange}
+          headerClassName="pr-10"
         />
         <DialogClose className="w-full rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground text-sm">
           Show {resultCount} results

@@ -31,6 +31,8 @@ function NotificationsPage() {
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
 
+  const clearAll = () => setItems([]);
+
   return (
     <div className="mx-auto max-w-[720px] pt-8 pb-16">
       <Breadcrumbs
@@ -46,14 +48,26 @@ function NotificationsPage() {
             {unread > 0 ? `${unread} unread` : "You're all caught up"}
           </p>
         </div>
-        {unread > 0 && (
-          <button
-            type="button"
-            onClick={markAllRead}
-            className="cursor-pointer font-semibold text-primary text-sm hover:underline"
-          >
-            Mark all read
-          </button>
+        {items.length > 0 && (
+          <div className="flex items-center gap-4">
+            {unread > 0 && (
+              <button
+                type="button"
+                onClick={markAllRead}
+                className="cursor-pointer font-semibold text-primary text-sm hover:underline"
+              >
+                Mark all read
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={clearAll}
+              data-testid="web-clear-notifications"
+              className="cursor-pointer font-semibold text-foreground/60 text-sm hover:text-destructive hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
         )}
       </div>
 

@@ -51,6 +51,8 @@ export {
   PRICE_MAX,
   PRICE_MIN,
   PRICE_STEP,
+  type PriceDirection,
+  type PriceFilter,
   rupee,
   SORTS,
   type SortKey,

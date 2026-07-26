@@ -6,6 +6,7 @@ import { useAddresses } from "@/modules/account";
 import { CartSummary } from "@/modules/cart";
 import {
   CheckoutSteps,
+  findWindow,
   PaymentMethodSelector,
   useCheckout,
 } from "@/modules/checkout";
@@ -17,8 +18,11 @@ export const Route = createFileRoute("/(store)/(protected)/checkout/payment")({
 function CheckoutPaymentPage() {
   const navigate = useNavigate();
   const { addresses } = useAddresses();
-  const { addressId, slotLabel, mode, paymentMethod } = useCheckout();
+  const { addressId, slotLabel, mode, slotWindowId, paymentMethod } =
+    useCheckout();
   const SlotIcon = mode === "express" ? Zap : CalendarClock;
+  const slotFee =
+    mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
 
@@ -76,6 +80,7 @@ function CheckoutPaymentPage() {
         <CartSummary
           onPlaceOrder={continueToReview}
           ctaLabel="Review order →"
+          slotFee={slotFee}
         />
       </div>
     </div>
