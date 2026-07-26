@@ -12,7 +12,7 @@ export default function CollectionCard({
       to="/collection/$slug"
       params={{ slug: collection.slug }}
       data-testid={`web-collection-${collection.slug}`}
-      className="group relative min-w-[240px] flex-1 overflow-hidden rounded-3xl border border-border/60"
+      className="group relative w-[240px] shrink-0 overflow-hidden rounded-3xl border border-border/60"
     >
       <img
         src={collection.img}

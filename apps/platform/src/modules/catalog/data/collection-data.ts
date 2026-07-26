@@ -25,7 +25,7 @@ export const collections: Collection[] = [
     tagline: "The first-week kit",
     description:
       "Everything you actually need in those first few weeks — gentle, tested and ready in minutes.",
-    img: "https://d1rannd7dfx5r5.cloudfront.net/product/90120260089_1.jpg?width=600",
+    img: "https://d14xdfvauagpvz.cloudfront.net/category_mapper/f7e2f0e6-624e-4e38-b209-8edb7a92c4b6.webp",
     productIds: [
       "wet-wipes-99",
       "cotton-balls",
@@ -41,7 +41,7 @@ export const collections: Collection[] = [
     tagline: "Soft, tear-free, calming",
     description:
       "Gentle cleansers and lotions for delicate skin — everything for a calm, happy bath.",
-    img: "https://d1rannd7dfx5r5.cloudfront.net/product/2026-06-25-ecdb751343454.png?width=600",
+    img: "https://d14xdfvauagpvz.cloudfront.net/category_mapper/729ae082-b4fd-4919-b357-c49e71140f1a.webp",
     productIds: ["baby-shampoo", "body-wash", "baby-lotion", "baby-oil"],
   },
   {
@@ -50,7 +50,7 @@ export const collections: Collection[] = [
     tagline: "From 6 months",
     description:
       "Cereals, purees and feeding gear for the messy, wonderful weaning stage.",
-    img: "https://d1rannd7dfx5r5.cloudfront.net/product/401418901001_1.jpg?width=600",
+    img: "https://d14xdfvauagpvz.cloudfront.net/category_mapper/3c944aff-fd76-4190-950f-0e3c6b2efd3f.webp",
     productIds: [
       "cerelac-rice",
       "ragi-cereal",
@@ -66,7 +66,7 @@ export const collections: Collection[] = [
     tagline: "Learn through play",
     description:
       "Safe, sturdy toys that grow with your little one's curiosity.",
-    img: "https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=1200&q=75",
+    img: "https://d14xdfvauagpvz.cloudfront.net/category_mapper/9170a17f-c9d0-49ea-957f-ec6611160712.webp",
     productIds: ["wooden-blocks", "stacking-cups", "rattle-set"],
   },
   {
@@ -74,7 +74,7 @@ export const collections: Collection[] = [
     name: "For mom",
     tagline: "You matter too",
     description: "Because looking after yourself is looking after your baby.",
-    img: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=1200&q=75",
+    img: "https://d14xdfvauagpvz.cloudfront.net/category_mapper/3d1bb2d8-6317-4ef9-b598-c438792919d6.webp",
     productIds: ["nursing-pads", "stretch-oil"],
   },
 ];

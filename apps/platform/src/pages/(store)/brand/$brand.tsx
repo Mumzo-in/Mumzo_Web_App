@@ -37,6 +37,11 @@ function BrandPage() {
   } = useQuery(brandQueryOptions(brandSlugParam));
   const { data: allBrands = [] } = useQuery(brandsQueryOptions);
 
+  const { data: productsPage, isLoading: productsLoading } = useQuery({
+    ...productsQueryOptions({ brands: brand ? [brand.slug] : [], limit: 60 }),
+    enabled: !!brand?.slug,
+  });
+
   if (isPending) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
@@ -59,9 +64,6 @@ function BrandPage() {
     );
   }
 
-  const { data: productsPage, isLoading: productsLoading } = useQuery(
-    productsQueryOptions({ brands: [brand.slug], limit: 60 }),
-  );
   const products = (productsPage?.data ?? []).map(toProduct);
   const others = allBrands.filter((b) => b.slug !== brand.slug);
 

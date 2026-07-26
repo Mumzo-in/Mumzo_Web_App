@@ -485,7 +485,7 @@ export const products: Product[] = [
     899,
     "Set of 3",
     null,
-    "https://d1rannd7dfx5r5.cloudfront.net/product/401419901001_2.jpg?width=340",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/3119_2.webp?width=340",
     4.7,
   ),
   P(
@@ -497,7 +497,7 @@ export const products: Product[] = [
     1199,
     "1 pc",
     "3-6M",
-    "https://d1rannd7dfx5r5.cloudfront.net/product/401419901001_1.jpg?width=340",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/3119_1.webp?width=340",
     4.5,
   ),
 ];
