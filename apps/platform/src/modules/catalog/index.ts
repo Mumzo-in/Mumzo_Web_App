@@ -64,6 +64,11 @@ export {
   findCollection,
   productsInCollection,
 } from "./data/collection-data";
+export {
+  categoryOgImage,
+  defaultOgImage,
+  productOgImage,
+} from "./data/og-image";
 export { toProduct } from "./data/product-adapter";
 export {
   AGE_GROUPS,

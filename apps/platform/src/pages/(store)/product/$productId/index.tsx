@@ -13,6 +13,7 @@ import {
   ProductImageCarousel,
   ProductQuantitySelector,
   ProductSizeSelector,
+  productOgImage,
   productQueryOptions,
   productsByCategoryQueryOptions,
   RecommendationCard,
@@ -21,6 +22,12 @@ import {
 
 export const Route = createFileRoute("/(store)/product/$productId/")({
   component: ProductDetailPage,
+  head: ({ params }) => ({
+    meta: [
+      { property: "og:image", content: productOgImage(params.productId) },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
 });
 
 function ProductDetailPage() {

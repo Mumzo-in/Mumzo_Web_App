@@ -92,12 +92,20 @@ export default function Header() {
 
       {/* Mobile Header (matches custom design) */}
       <div className="flex flex-col gap-3.5 px-4 py-3 md:hidden">
-        {/* Row 1: Location selector & Notification bell */}
-        <div className="flex items-center justify-between">
+        {/* Row 1: Logo, location selector & Notification bell */}
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            to="/"
+            data-testid="web-logo-mobile"
+            className="shrink-0 text-foreground"
+          >
+            <MumzoLogo variant="mark" height={32} />
+          </Link>
+
           <button
             type="button"
             onClick={() => openModal("location")}
-            className="flex min-w-0 items-center gap-2 text-left"
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
           >
             <MapPin size={18} className="flex-shrink-0 text-primary" />
             <div className="min-w-0">
@@ -122,7 +130,7 @@ export default function Header() {
             to="/notifications"
             data-testid="web-notifications-btn-mobile"
             aria-label="Notifications"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
           >
             <Bell size={18} className="text-foreground" />
             <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />

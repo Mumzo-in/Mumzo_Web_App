@@ -15,6 +15,8 @@ import {
   type CategoryFilterState,
   CategorySort,
   categoriesQueryOptions,
+  categoryOgImage,
+  defaultOgImage,
   getCategoryFacets,
   initialFilterState,
   ProductCard,
@@ -84,6 +86,17 @@ export const Route = createFileRoute("/(store)/search")({
   validateSearch: (search: Record<string, unknown>) =>
     searchParamsSchema.parse(search),
   component: SearchPage,
+  head: ({ match }) => ({
+    meta: [
+      {
+        property: "og:image",
+        content: match.search.cat
+          ? categoryOgImage(match.search.cat)
+          : defaultOgImage(),
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
 });
 
 /** URL search params → the shared `CategoryFilterState` shape the filter

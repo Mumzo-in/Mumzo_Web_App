@@ -12,6 +12,7 @@ import authRoutes from "./auth";
 import brandsRoutes from "./brands/brands.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
+import ogRoutes from "./og/og.module";
 import productsRoutes, {
   productsByCategory as categoryProductsRoutes,
 } from "./products/products.module";
@@ -67,6 +68,7 @@ app.route("/brands", brandsRoutes);
 app.route("/products", productsRoutes);
 app.route("/coupons", couponsRoutes);
 app.route("/profile", profileRoutes);
+app.route("/og", ogRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>
   c.json(

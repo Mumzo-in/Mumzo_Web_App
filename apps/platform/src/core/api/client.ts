@@ -68,7 +68,10 @@ const SERVER_URL = env.VITE_SERVER_URL.endsWith("/")
   ? env.VITE_SERVER_URL.slice(0, -1)
   : env.VITE_SERVER_URL;
 
-const BASE_URL = `${SERVER_URL}/api/v1`;
+/** `/api/v1` base — exported so callers that need a raw non-JSON endpoint
+ * (e.g. the OG image routes, which return PNG bytes) can build a URL without
+ * duplicating the origin-resolution logic above. */
+export const BASE_URL = `${SERVER_URL}/api/v1`;
 
 export type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

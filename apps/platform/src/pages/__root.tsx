@@ -19,6 +19,7 @@ import {
 } from "@/modules/account";
 import { OnboardingModalHost, RequireAuthModalHost } from "@/modules/auth";
 import { CartProvider } from "@/modules/cart";
+import { defaultOgImage } from "@/modules/catalog";
 import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
 import { TicketProvider } from "@/modules/support";
 import { WishlistProvider } from "@/modules/wishlist";
@@ -36,13 +37,33 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
       {
         name: "description",
-        content: "mumzo is a web application",
+        content:
+          "Mumzo — the deepest shelf for the tiniest humans. Quick commerce for moms & babies, 10-minute delivery in Hyderabad.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "mumzo" },
+      {
+        property: "og:description",
+        content:
+          "The deepest shelf for the tiniest humans. Quick commerce for moms & babies, 10-minute delivery in Hyderabad.",
+      },
+      { property: "og:image", content: defaultOgImage() },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
         rel: "icon",
         href: "/favicon.ico",
+        sizes: "any",
+      },
+      {
+        rel: "icon",
+        href: "/favicon.svg",
+        type: "image/svg+xml",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/apple-touch-icon.png",
       },
     ],
   }),

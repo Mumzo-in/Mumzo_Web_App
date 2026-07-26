@@ -29,7 +29,7 @@ export const Route = createFileRoute("/(admin)")({
 
     const role = resolveRole(session?.user);
 
-    if (!session || !session.user || !session.session || !role) {
+    if (!session?.user || !session.session || !role) {
       throw redirect({
         to: "/auth/login",
         search: { redirect: location.href },
