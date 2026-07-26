@@ -1,8 +1,8 @@
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../index";
 import { brand, category, categoryBrand, hub, vendor } from "../schema/catalog";
 import { seedCoupons } from "./marketing";
-import { seedProducts } from "./products";
+import { backfillProductPlaceholderImages, seedProducts } from "./products";
 
 /**
  * Seed brands, vendors, and categories.
@@ -57,12 +57,40 @@ const BRAND_SEEDS: BrandSeed[] = [
   { name: "NutriBaby", slug: "nutribaby" },
   { name: "LittleSip", slug: "littlesip" },
   { name: "Mumzo Care", slug: "mumzo-care" },
+  { name: "Pampers", slug: "pampers" },
+  { name: "R for Rabbit", slug: "r-for-rabbit" },
+  { name: "Bambo Nature", slug: "bambo-nature" },
+  { name: "Teddyy", slug: "teddyy" },
+  { name: "Sebamed", slug: "sebamed" },
+  { name: "SuperBottoms", slug: "superbottoms" },
+  { name: "Little's", slug: "littles" },
+  { name: "Chicco", slug: "chicco" },
+  { name: "Mother Sparsh", slug: "mother-sparsh" },
+  { name: "Bumtum", slug: "bumtum" },
+  { name: "Kidology", slug: "kidology" },
+  { name: "Infantino", slug: "infantino" },
+  { name: "Theoni", slug: "theoni" },
+  { name: "Boingg", slug: "boingg" },
+  { name: "Abracadabra", slug: "abracadabra" },
+  { name: "StarAndDaisy", slug: "staranddaisy" },
+  { name: "Simply Premium", slug: "simply-premium" },
+  { name: "Snubbi", slug: "snubbi" },
+  { name: "Bbluv", slug: "bbluv" },
+  { name: "Haus & Kinder", slug: "haus-and-kinder" },
+  { name: "Joie", slug: "joie" },
+  { name: "Loopie", slug: "loopie" },
+  { name: "Lifelong", slug: "lifelong" },
+  { name: "BABYZEN", slug: "babyzen" },
+  { name: "Maxi-Cosi", slug: "maxi-cosi" },
+  { name: "Momcozy", slug: "momcozy" },
+  { name: "LuvLap", slug: "luvlap" },
 ];
 
 type CategorySeed = {
   slug: string;
   name: string;
   tagline: string;
+  img: string;
   color: string;
   position: number;
   isActive: boolean;
@@ -70,31 +98,64 @@ type CategorySeed = {
   brandNames: string[];
 };
 
+const CATEGORY_MAPPER_CDN =
+  "https://d14xdfvauagpvz.cloudfront.net/category_mapper";
+
+/** Supplied category imagery. `babyCare` doubles as the fallback for
+ * categories that don't have a dedicated image of their own. */
+const CATEGORY_IMAGES = {
+  diapers: `${CATEGORY_MAPPER_CDN}/bde9c4aa-d145-4813-bbd7-e51dfd5996d7.webp`,
+  feeding: `${CATEGORY_MAPPER_CDN}/3c944aff-fd76-4190-950f-0e3c6b2efd3f.webp`,
+  bath: `${CATEGORY_MAPPER_CDN}/729ae082-b4fd-4919-b357-c49e71140f1a.webp`,
+  clothes: `${CATEGORY_MAPPER_CDN}/c6e6c8e4-19d0-494e-88ca-de3398c0aefe.webp`,
+  toys: `${CATEGORY_MAPPER_CDN}/9170a17f-c9d0-49ea-957f-ec6611160712.webp`,
+  momCare: `${CATEGORY_MAPPER_CDN}/3d1bb2d8-6317-4ef9-b598-c438792919d6.webp`,
+  babyCare: `${CATEGORY_MAPPER_CDN}/f7e2f0e6-624e-4e38-b209-8edb7a92c4b6.webp`,
+} as const;
+
 const CATEGORY_SEEDS: CategorySeed[] = [
   {
     slug: "baby-essentials",
     name: "Baby Essentials",
     tagline: "The everyday basics",
+    img: CATEGORY_IMAGES.babyCare,
     color: "#FCE1E6",
     position: 1,
     isActive: true,
     hasSizes: false,
-    brandNames: ["Mumzo Essentials", "TinyTouch"],
+    brandNames: [
+      "Mumzo Essentials",
+      "TinyTouch",
+      "R for Rabbit",
+      "Sebamed",
+      "Mother Sparsh",
+    ],
   },
   {
     slug: "diapers",
     name: "Diapers",
     tagline: "Dry, happy and rash-free",
+    img: CATEGORY_IMAGES.diapers,
     color: "#FDE2CE",
     position: 2,
     isActive: true,
     hasSizes: true,
-    brandNames: ["Mumzo Essentials"],
+    brandNames: [
+      "Mumzo Essentials",
+      "Pampers",
+      "Bambo Nature",
+      "Teddyy",
+      "SuperBottoms",
+      "Little's",
+      "Chicco",
+    ],
   },
   {
     slug: "baby-food",
     name: "Baby Food",
     tagline: "Formula, purées and first spoons",
+    // No dedicated image supplied — feeding is the closest visual match.
+    img: CATEGORY_IMAGES.feeding,
     color: "#D8E2D5",
     position: 3,
     isActive: true,
@@ -105,6 +166,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "feeding",
     name: "Feeding",
     tagline: "Bottles, bibs and sippers",
+    img: CATEGORY_IMAGES.feeding,
     color: "#F6F3EC",
     position: 4,
     isActive: true,
@@ -115,6 +177,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "bath-skin",
     name: "Bath & Skin",
     tagline: "Gentle on the softest skin",
+    img: CATEGORY_IMAGES.bath,
     color: "#FDF1EC",
     position: 5,
     isActive: true,
@@ -125,6 +188,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "clothing",
     name: "Clothing",
     tagline: "Soft layers for tiny humans",
+    img: CATEGORY_IMAGES.clothes,
     color: "#FCE1E6",
     position: 6,
     isActive: true,
@@ -135,6 +199,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "toys",
     name: "Toys & Play",
     tagline: "Play that grows with them",
+    img: CATEGORY_IMAGES.toys,
     color: "#D8E2D5",
     position: 7,
     isActive: true,
@@ -145,6 +210,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "mom-care",
     name: "Mom Care",
     tagline: "Because you matter too",
+    img: CATEGORY_IMAGES.momCare,
     color: "#FDE2CE",
     position: 8,
     isActive: true,
@@ -155,6 +221,8 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "health",
     name: "Health",
     tagline: "Thermometers, medicine and care",
+    // No dedicated image supplied — mom care is the closest visual match.
+    img: CATEGORY_IMAGES.momCare,
     color: "#F6F3EC",
     position: 9,
     isActive: true,
@@ -165,21 +233,50 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     slug: "nursery",
     name: "Nursery",
     tagline: "Sleep, soothe and settle",
+    // No dedicated image supplied — falls back to the general baby-care shot.
+    img: CATEGORY_IMAGES.babyCare,
     color: "#FDF1EC",
     position: 10,
     isActive: true,
     hasSizes: true,
-    brandNames: ["TinyTouch"],
+    brandNames: [
+      "TinyTouch",
+      "Bumtum",
+      "Kidology",
+      "Infantino",
+      "Theoni",
+      "Boingg",
+      "Abracadabra",
+      "StarAndDaisy",
+      "R for Rabbit",
+      "Simply Premium",
+      "Snubbi",
+      "Bbluv",
+    ],
   },
   {
     slug: "gear",
     name: "Baby Gear",
     tagline: "Strollers, carriers and car seats",
+    // No dedicated image supplied — falls back to the general baby-care shot.
+    img: CATEGORY_IMAGES.babyCare,
     color: "#D8E2D5",
     position: 11,
-    isActive: false,
+    isActive: true,
     hasSizes: false,
-    brandNames: [],
+    brandNames: [
+      "Haus & Kinder",
+      "LuvLap",
+      "Joie",
+      "Loopie",
+      "StarAndDaisy",
+      "Chicco",
+      "Lifelong",
+      "BABYZEN",
+      "R for Rabbit",
+      "Maxi-Cosi",
+      "Momcozy",
+    ],
   },
 ];
 
@@ -272,6 +369,7 @@ export async function seedCategories() {
           slug: seed.slug,
           name: seed.name,
           tagline: seed.tagline,
+          img: seed.img,
           color: seed.color,
           position: seed.position,
           isActive: seed.isActive,
@@ -304,6 +402,75 @@ export async function seedCategories() {
 }
 
 /**
+ * Fills `category.img` for rows that were seeded before `CATEGORY_SEEDS`
+ * carried imagery (or for any category that otherwise still has no image).
+ * `seedCategories()` only inserts categories that don't exist at all, so an
+ * existing row never picks up a newly added image on its own — this is the
+ * catch-up step, mirroring `backfillGrants` in `@mumzo/auth`. Only touches
+ * rows where `img` is currently null; never overwrites an image an operator
+ * may have set from the admin panel.
+ */
+export async function backfillCategoryImages() {
+  let updated = 0;
+
+  for (const seed of CATEGORY_SEEDS) {
+    const result = await db
+      .update(category)
+      .set({ img: seed.img })
+      .where(and(eq(category.slug, seed.slug), isNull(category.img)));
+
+    updated += result.rowCount ?? 0;
+  }
+
+  return { updated };
+}
+
+/**
+ * Ensures that the junction table relations in `category_brand` are backfilled
+ * for existing categories when new brand associations are added.
+ */
+export async function backfillCategoryBrands() {
+  const [dbBrands, dbCategories] = await Promise.all([
+    db.select({ id: brand.id, name: brand.name }).from(brand),
+    db.select({ id: category.id, slug: category.slug }).from(category),
+  ]);
+
+  const brandIdByName = new Map(dbBrands.map((b) => [b.name, b.id]));
+  const categoryIdBySlug = new Map(dbCategories.map((c) => [c.slug, c.id]));
+
+  let created = 0;
+
+  for (const seed of CATEGORY_SEEDS) {
+    const categoryId = categoryIdBySlug.get(seed.slug);
+    if (!categoryId) {
+      continue;
+    }
+
+    const existing = await db
+      .select({ brandId: categoryBrand.brandId })
+      .from(categoryBrand)
+      .where(eq(categoryBrand.categoryId, categoryId));
+
+    const existingBrandIds = new Set(existing.map((row) => row.brandId));
+
+    const brandIdsToLink = seed.brandNames
+      .map((name) => brandIdByName.get(name))
+      .filter(
+        (id): id is string => id !== undefined && !existingBrandIds.has(id),
+      );
+
+    if (brandIdsToLink.length > 0) {
+      await db
+        .insert(categoryBrand)
+        .values(brandIdsToLink.map((brandId) => ({ categoryId, brandId })));
+      created += brandIdsToLink.length;
+    }
+  }
+
+  return { created };
+}
+
+/**
  * Brands and categories before products — products reference both by id.
  * Vendors and hubs are independent of the rest and can seed in any order.
  */
@@ -312,7 +479,20 @@ export async function seedCatalog() {
   const vendors = await seedVendors();
   const hubs = await seedHubs();
   const categories = await seedCategories();
+  const categoryImages = await backfillCategoryImages();
+  const categoryBrands = await backfillCategoryBrands();
   const products = await seedProducts();
+  const productImages = await backfillProductPlaceholderImages();
   const coupons = await seedCoupons();
-  return { brands, vendors, hubs, categories, products, coupons };
+  return {
+    brands,
+    vendors,
+    hubs,
+    categories,
+    categoryImages,
+    categoryBrands,
+    products,
+    productImages,
+    coupons,
+  };
 }

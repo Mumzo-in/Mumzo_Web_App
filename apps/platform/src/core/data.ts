@@ -75,10 +75,8 @@ const P = (
   // DB uuid; this just keeps the mock Product shape valid until then.
   brandId: slugify(brand),
   vendor: null,
-  vendorId: null,
   price,
   mrp,
-  costPrice: null,
   qty,
   weight: null,
   description: "",
@@ -109,7 +107,7 @@ export const products: Product[] = [
     349,
     "Pack of 72",
     null,
-    "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/2025-09-06-68bc04e289a2c.png?width=340",
     4.7,
   ),
   P(
@@ -145,7 +143,7 @@ export const products: Product[] = [
     399,
     "50 g",
     null,
-    "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/2026-06-25-ecdb751343454.png?width=340",
     4.6,
   ),
 
@@ -271,7 +269,7 @@ export const products: Product[] = [
     649,
     "Pack of 46",
     "S",
-    "https://images.unsplash.com/photo-1615397587950-3cbb55f95b77?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/90120260089_1.jpg?width=340",
     4.7,
   ),
   P(
@@ -283,7 +281,7 @@ export const products: Product[] = [
     749,
     "Pack of 44",
     "M",
-    "https://images.unsplash.com/photo-1615397587950-3cbb55f95b77?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/90120260089_2.jpg?width=340",
     4.7,
   ),
   P(
@@ -295,7 +293,7 @@ export const products: Product[] = [
     849,
     "Pack of 34",
     "L",
-    "https://images.unsplash.com/photo-1615397587950-3cbb55f95b77?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/1014_1.webp?width=340",
     4.6,
   ),
   P(
@@ -307,7 +305,7 @@ export const products: Product[] = [
     899,
     "Pack of 30",
     "XL",
-    "https://images.unsplash.com/photo-1615397587950-3cbb55f95b77?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/6808_1.jpg?width=340",
     4.5,
   ),
 
@@ -487,7 +485,7 @@ export const products: Product[] = [
     899,
     "Set of 3",
     null,
-    "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/401419901001_2.jpg?width=340",
     4.7,
   ),
   P(
@@ -499,7 +497,7 @@ export const products: Product[] = [
     1199,
     "1 pc",
     "3-6M",
-    "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=600&q=75",
+    "https://d1rannd7dfx5r5.cloudfront.net/product/401419901001_1.jpg?width=340",
     4.5,
   ),
 ];

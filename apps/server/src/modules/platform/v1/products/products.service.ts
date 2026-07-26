@@ -100,7 +100,16 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
   };
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getPublicProduct(id: string) {
+  // A non-uuid id (e.g. a stray slug) can never match a row — treat it as
+  // not-found rather than letting it reach the DB as a malformed uuid param.
+  if (!UUID_RE.test(id)) {
+    throw notFound("Product");
+  }
+
   const row = await productsRepo.findPublicById(id);
   if (!row) {
     throw notFound("Product");

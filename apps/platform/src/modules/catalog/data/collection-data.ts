@@ -25,7 +25,7 @@ export const collections: Collection[] = [
     tagline: "The first-week kit",
     description:
       "Everything you actually need in those first few weeks — gentle, tested and ready in minutes.",
-    img: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=1200&q=75",
+    img: "https://d1rannd7dfx5r5.cloudfront.net/product/90120260089_1.jpg?width=600",
     productIds: [
       "wet-wipes-99",
       "cotton-balls",
@@ -41,7 +41,7 @@ export const collections: Collection[] = [
     tagline: "Soft, tear-free, calming",
     description:
       "Gentle cleansers and lotions for delicate skin — everything for a calm, happy bath.",
-    img: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=1200&q=75",
+    img: "https://d1rannd7dfx5r5.cloudfront.net/product/2026-06-25-ecdb751343454.png?width=600",
     productIds: ["baby-shampoo", "body-wash", "baby-lotion", "baby-oil"],
   },
   {
@@ -50,7 +50,7 @@ export const collections: Collection[] = [
     tagline: "From 6 months",
     description:
       "Cereals, purees and feeding gear for the messy, wonderful weaning stage.",
-    img: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=1200&q=75",
+    img: "https://d1rannd7dfx5r5.cloudfront.net/product/401418901001_1.jpg?width=600",
     productIds: [
       "cerelac-rice",
       "ragi-cereal",

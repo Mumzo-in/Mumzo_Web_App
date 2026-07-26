@@ -7,6 +7,7 @@ import { ArrowLeft, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
+import { useCart } from "@/modules/cart";
 import {
   categoriesQueryOptions,
   ProductImageCarousel,
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/(store)/product/$productId/")({
 function ProductDetailPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   const {
     data: rawProduct,
@@ -102,9 +104,10 @@ function ProductDetailPage() {
     .slice(0, 4);
 
   const handleAdd = () => {
-    if (soldOut) {
+    if (soldOut || (needsSize && !size)) {
       return;
     }
+    addItem(product, size, qty);
     toast.success(`${product.name} added to cart!`);
     navigate({ to: "/cart" });
   };
