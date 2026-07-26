@@ -9,10 +9,17 @@ export default function ProductSizeSelector({
   selectedSize,
   onSelectSize,
 }: ProductSizeSelectorProps) {
+  const isAllSizes = sizes.every((s) =>
+    /^(s|m|l|xl|xxl|\d+-\d+[mya-z+]*|\d+[mya-z+]*|pack of \d+|combo of \d+|\d+\s*ml)$/i.test(
+      s.trim(),
+    ),
+  );
+  const displayLabel = isAllSizes ? "Choose size" : "Choose option";
+
   return (
     <div className="mt-6">
       <p className="mb-3 font-semibold text-foreground/60 text-xs uppercase tracking-widest">
-        Choose size
+        {displayLabel}
       </p>
       <div className="flex flex-wrap gap-2">
         {sizes.map((s) => (

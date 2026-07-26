@@ -4,7 +4,7 @@ import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { useCart } from "@/modules/cart";
@@ -33,7 +33,9 @@ function ProductDetailPage() {
     isLoading,
     isError,
   } = useQuery(productQueryOptions(productId));
-  const product = rawProduct ? toProduct(rawProduct) : undefined;
+  const product = useMemo(() => {
+    return rawProduct ? toProduct(rawProduct) : undefined;
+  }, [rawProduct]);
   const { data: categories = [] } = useQuery(categoriesQueryOptions);
   const category = product
     ? (categories.find((c) => c.slug === product.categorySlug) ?? null)
@@ -45,9 +47,10 @@ function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [saved, setSaved] = useState(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only initialize size on product load
   useEffect(() => {
     setSize(product?.sizes.find((s) => s.stock > 0)?.label ?? null);
-  }, [product]);
+  }, [product?.id]);
 
   // Hook must run unconditionally (before the loading/not-found guards
   // below) — disabled until the product (and so its category) is known.
@@ -92,6 +95,12 @@ function ProductDetailPage() {
   const availableSizes = product.sizes.map((s) => s.label);
   const needsSize = product.sizes.length > 0;
   const selectedSize = product.sizes.find((s) => s.label === size) ?? null;
+  const displayPrice = selectedSize ? selectedSize.price : product.price;
+  const displayMrp = selectedSize
+    ? product.price > 0
+      ? Math.round((selectedSize.price * product.mrp) / product.price)
+      : selectedSize.price
+    : product.mrp;
 
   // The chosen variant governs availability; fall back to product stock when
   // the product isn't sized.
@@ -234,15 +243,15 @@ function ProductDetailPage() {
           {/* Pricing */}
           <div className="flex items-end gap-3">
             <span className="animate-fade-in font-editorial text-3xl text-foreground md:text-4xl">
-              ₹{product.price}
+              ₹{displayPrice}
             </span>
-            {product.mrp > product.price && (
+            {displayMrp > displayPrice && (
               <>
                 <span className="mb-1 text-foreground/45 text-sm line-through md:text-base">
-                  ₹{product.mrp}
+                  ₹{displayMrp}
                 </span>
                 <span className="mb-1 font-semibold text-primary text-sm md:text-base">
-                  {discountPct(product)}% off
+                  {discountPct({ price: displayPrice, mrp: displayMrp })}% off
                 </span>
               </>
             )}
