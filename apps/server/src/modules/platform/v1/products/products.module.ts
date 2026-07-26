@@ -16,6 +16,24 @@ import {
  * API plan, alongside the existing category directory routes).
  */
 
+/**
+ * `listPublicProducts`/`listPublicProductsInCategory` never vary by
+ * session — they don't look at `c.var.user` — so the response body is
+ * identical for every caller hitting the same URL. A short public cache
+ * absorbs repeat identical searches/listings (e.g. many shoppers browsing
+ * the same category, or a search term trending) without re-running the
+ * trigram-scored fuzzy-search query — the most expensive read on this
+ * surface — for each one. `stale-while-revalidate` keeps a cache hit fast
+ * while a background revalidation picks up genuinely new products.
+ *
+ * Deliberately NOT applied to `getPublicProduct` (the single-product detail
+ * route) — it carries live per-size stock, and a stale "in stock" badge on
+ * the product page for the cache TTL is a worse failure mode than the
+ * staleness this buys on a browse/search grid, where checkout re-validates
+ * stock server-side regardless.
+ */
+const LIST_CACHE_CONTROL = "public, max-age=30, stale-while-revalidate=300";
+
 const app = createRouter();
 
 const products = app
@@ -33,6 +51,7 @@ const products = app
       sizes: query.sizes,
       inStock: query.inStock,
     });
+    c.header("Cache-Control", LIST_CACHE_CONTROL);
     return c.json({ success: true as const, data: { data, meta } }, 200);
   })
   .openapi(getRoute, async (c) => {
@@ -58,6 +77,7 @@ const productsByCategory = categoryApp.openapi(
       sizes: query.sizes,
       inStock: query.inStock,
     });
+    c.header("Cache-Control", LIST_CACHE_CONTROL);
     return c.json({ success: true as const, data: { data, meta } }, 200);
   },
 );

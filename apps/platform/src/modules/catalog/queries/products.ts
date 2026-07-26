@@ -1,10 +1,12 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import {
   getProduct,
   type ListProductsFilters,
   listProducts,
   listProductsByCategory,
 } from "../api/products-api";
+
+export const INFINITE_PAGE_SIZE = 20;
 
 /** Serializable key so identical filter sets share a cache entry. */
 function filtersKey(filters: ListProductsFilters) {
@@ -41,6 +43,26 @@ export const productsByCategoryQueryOptions = (
       filtersKey(filters),
     ],
     queryFn: () => listProductsByCategory(categorySlug, filters),
+    staleTime: 60_000,
+  });
+
+/**
+ * Infinite-scroll variant of `productsQueryOptions` — first page loads
+ * `INFINITE_PAGE_SIZE` (20) products; `fetchNextPage` pulls the next 20
+ * instead of the page reloading everything up to that point. Excludes
+ * `page`/`limit` from the filter set since those are driven by the infinite
+ * query itself, not the caller.
+ */
+export const productsInfiniteQueryOptions = (
+  filters: Omit<ListProductsFilters, "page" | "limit"> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: ["products", "list-infinite", filtersKey(filters)],
+    queryFn: ({ pageParam }) =>
+      listProducts({ ...filters, page: pageParam, limit: INFINITE_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.hasNext ? lastPage.meta.page + 1 : undefined,
     staleTime: 60_000,
   });
 

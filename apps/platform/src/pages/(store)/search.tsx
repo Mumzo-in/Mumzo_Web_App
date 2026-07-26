@@ -1,6 +1,6 @@
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { cn } from "@mumzo/ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import Breadcrumbs, {
   type BreadcrumbItem,
 } from "@/core/components/breadcrumbs";
+import { useInfiniteScroll } from "@/core/hooks/use-infinite-scroll";
 import {
   applyClientOnlyFilters,
   CategoryFilterDialog,
@@ -20,6 +21,7 @@ import {
   getCategoryFacets,
   initialFilterState,
   ProductCard,
+  productsInfiniteQueryOptions,
   productsQueryOptions,
   toProduct,
 } from "@/modules/catalog";
@@ -214,9 +216,16 @@ function SearchPage() {
   // Live products for this category/search — server now applies
   // categorySlug/search/sort/brands(slugs)/sizes/maxPrice. Only `ages`/
   // `types` still run client-side (the public API has no facet for them
-  // yet — see `applyClientOnlyFilters`'s doc comment).
-  const { data: page, isLoading } = useQuery(
-    productsQueryOptions({
+  // yet — see `applyClientOnlyFilters`'s doc comment). Infinite-scrolled:
+  // 20 products per page instead of fetching everything up front.
+  const {
+    data: infiniteData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(
+    productsInfiniteQueryOptions({
       categorySlug: cat,
       search: q,
       sort: filters.sort,
@@ -226,13 +235,18 @@ function SearchPage() {
         filters.price?.direction === "above" ? filters.price.value : undefined,
       maxPrice:
         filters.price?.direction === "below" ? filters.price.value : undefined,
-      limit: 100,
     }),
   );
 
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: hasNextPage ?? false,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
+
   const serverFiltered = useMemo(
-    () => (page?.data ?? []).map(toProduct),
-    [page],
+    () => (infiniteData?.pages ?? []).flatMap((p) => p.data.map(toProduct)),
+    [infiniteData],
   );
   const filtered = useMemo(
     () => applyClientOnlyFilters(serverFiltered, filters),
@@ -371,11 +385,27 @@ function SearchPage() {
             </button>
           </div>
         ) : (
-          <div className="grid 3xl:grid-cols-4 grid-cols-2 gap-5 md:grid-cols-3">
-            {filtered.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="grid 3xl:grid-cols-4 grid-cols-2 gap-5 md:grid-cols-3">
+              {filtered.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Sentinel — fetches the next 20 once this scrolls into view. */}
+            <div ref={sentinelRef} className="h-1" />
+
+            {isFetchingNextPage && (
+              <div className="mt-5 grid 3xl:grid-cols-4 grid-cols-2 gap-5 md:grid-cols-3">
+                {SKELETON_KEYS.slice(0, 4).map((key) => (
+                  <Skeleton
+                    key={`next-${key}`}
+                    className="aspect-square rounded-2xl"
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

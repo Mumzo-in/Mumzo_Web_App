@@ -88,7 +88,9 @@ export {
 export { brandQueryOptions, brandsQueryOptions } from "./queries/brands";
 export { categoriesQueryOptions } from "./queries/categories";
 export {
+  INFINITE_PAGE_SIZE,
   productQueryOptions,
   productsByCategoryQueryOptions,
+  productsInfiniteQueryOptions,
   productsQueryOptions,
 } from "./queries/products";

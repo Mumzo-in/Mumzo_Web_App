@@ -67,7 +67,9 @@ export type PublicSort =
  * "cerela" → "Cereal") and `word_similarity` (good for a short search term
  * matching one word inside a longer, multi-word product/brand name, e.g.
  * "shampu" → "No-Tear Baby Shampoo"), taken across both `product.name` and
- * `brand.name` since search already matches on both.
+ * `brand.name` since search already matches on both. Used only for
+ * *ranking* (`ORDER BY`) — see `searchCondition` below for the actual
+ * inclusion filter, which composes per-word.
  *
  * Tuned by hand against the seeded catalog (see products.repo test notes in
  * the PR/report) — 0.35 was forgiving enough to catch real typos
@@ -84,6 +86,40 @@ function relevanceScore(term: string) {
     similarity(${brand.name}, ${term}),
     word_similarity(${term}, ${brand.name})
   )`;
+}
+
+/**
+ * A single word's fuzzy-match score against name/brand — the same shape as
+ * `relevanceScore` but scoped to one query word instead of the whole term.
+ */
+function wordScore(word: string) {
+  return sql<number>`greatest(
+    similarity(${product.name}, ${word}),
+    word_similarity(${word}, ${product.name}),
+    similarity(${brand.name}, ${word}),
+    word_similarity(${word}, ${brand.name})
+  )`;
+}
+
+/**
+ * Inclusion filter for a search term — **every** significant word must
+ * independently clear `SIMILARITY_THRESHOLD` against name/brand.
+ *
+ * `relevanceScore` alone (greatest-of across the *whole* query string) isn't
+ * enough: for a multi-word query like "baby oil", `word_similarity` measures
+ * how well the query matches *some* word-run in the target, so any product
+ * whose name merely contains "Baby" — e.g. "LuvLap Galaxy Baby Stroller
+ * Pram" — scores ~0.55, matching real oil products (0.42–0.67) almost
+ * exactly. Requiring each word to clear the threshold on its own means
+ * "oil" has to match *something*, which strollers never do — while a
+ * single-word query (e.g. "diprs", "shampu") behaves identically to before,
+ * since there's only one word to require.
+ */
+function searchCondition(term: string): SQL {
+  const words = term.trim().split(/\s+/).filter(Boolean);
+  return and(
+    ...words.map((word) => sql`${wordScore(word)} > ${SIMILARITY_THRESHOLD}`),
+  ) as SQL;
 }
 
 function orderFor(sort: PublicSort, search?: string) {
@@ -120,12 +156,10 @@ export async function findPublicPage(filters: {
   const conditions: SQL[] = [eq(product.status, "active")];
 
   if (filters.search) {
-    // `pg_trgm`-powered fuzzy match — see `relevanceScore` doc comment.
+    // `pg_trgm`-powered fuzzy match — see `searchCondition` doc comment.
     // GIN trigram indexes on `product.name`/`brand.name`
     // (migration 0006) back this comparison.
-    conditions.push(
-      sql`${relevanceScore(filters.search)} > ${SIMILARITY_THRESHOLD}`,
-    );
+    conditions.push(searchCondition(filters.search));
   }
   if (filters.categorySlug) {
     conditions.push(eq(category.slug, filters.categorySlug));
