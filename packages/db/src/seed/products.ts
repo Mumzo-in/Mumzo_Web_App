@@ -1,6 +1,12 @@
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../index";
-import { brand, category, product, productSize } from "../schema/catalog";
+import {
+  brand,
+  category,
+  product,
+  productColor,
+  productSize,
+} from "../schema/catalog";
 import { productPlaceholderImage } from "./placeholder-image";
 
 /**
@@ -42,6 +48,10 @@ type ProductSeed = {
   tags: string[];
   isBestseller?: boolean;
   sizes?: { label: string; price: number; stock: number }[];
+  /** Color/style variants (stroller colors, car-seat colors) — a separate
+   * axis from `sizes`, not a size. Most products have one or the other, not
+   * both, but nothing here forces that. */
+  colors?: { label: string; price: number; stock: number }[];
   /** Flat stock when there are no sized variants. */
   stock?: number;
   images?: string[];
@@ -196,13 +206,12 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     sku: "MZ-ESS-0006",
     name: "Sebamed Diaper Rash Baby Cream",
     brandName: "Sebamed",
-    categorySlug: "baby-essentials",
+    categorySlug: "bath-skin",
     price: 649,
     mrp: 699,
     costPrice: 422,
     qty: "Pack of 1",
-    description:
-      " 독일施巴 (Sebamed) protective baby cream for diaper rash relief.",
+    description: "Protective baby cream for diaper rash relief.",
     about:
       "<p>Promotes the development of skin's protective acid mantle. Titanium dioxide helps to protect the skin.</p>",
     highlights: [
@@ -212,7 +221,7 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     ],
     ages: ["0-6m", "6-12m", "1-2y"],
     type: "Diaper Rash Cream",
-    tags: ["baby-essentials", "skincare", "rash-cream", "bestseller"],
+    tags: ["bath-skin", "skincare", "rash-cream", "bestseller"],
     isBestseller: true,
     images: [
       "https://d1rannd7dfx5r5.cloudfront.net/product/2026-06-25-ecdb751343454.png?width=340",
@@ -384,6 +393,293 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     ],
   },
   {
+    slug: "pampers-complete-skin-comfort-pant-style-diaper-nb-pack-of-88",
+    sku: "MZ-DIA-0010",
+    name: "Pampers Complete Skin Comfort Pant Style Baby Diaper, NB, Pack of 88",
+    brandName: "Pampers",
+    categorySlug: "diapers",
+    price: 799,
+    mrp: 899,
+    costPrice: 520,
+    qty: "Pack of 88",
+    weight: "Up to 5 kg",
+    description: "Pant-style newborn diapers with an all-round soft fit.",
+    about:
+      "<p>A large pack of newborn-size pant diapers designed for an all-round soft, stretchy fit with quick absorption for a newborn's frequent changes.</p>",
+    highlights: [
+      "All-round soft fit",
+      "Quick absorption",
+      "Newborn size, 88-pack",
+    ],
+    ages: ["0-6m"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2026-07-16-65ebb11565fb4.png?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "luvlap-diaper-pants-xxl-bogo-20s",
+    sku: "MZ-DIA-0011",
+    name: "LuvLap Diaper Pants, XXL, 20's",
+    brandName: "LuvLap",
+    categorySlug: "diapers",
+    price: 399,
+    mrp: 499,
+    costPrice: 260,
+    qty: "Pack of 20",
+    weight: "XXL",
+    description: "XXL pant-style diapers for growing toddlers.",
+    about:
+      "<p>Stretchable pant-style diapers sized XXL, built with a soft waistband and high absorbency for older toddlers.</p>",
+    highlights: ["XXL size", "Stretchable waistband", "High absorbency"],
+    ages: ["2-4y", "4y+"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2560_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "r-for-rabbit-pant-diapers-xl-46-pieces",
+    sku: "MZ-DIA-0012",
+    name: "R for Rabbit Pant Diapers XL, 46 Pieces",
+    brandName: "R for Rabbit",
+    categorySlug: "diapers",
+    price: 649,
+    mrp: 749,
+    costPrice: 420,
+    qty: "Pack of 46",
+    weight: "XL",
+    description: "Soft, leak-proof pant diapers in XL size.",
+    about:
+      "<p>Pant-style diapers with a soft, breathable outer layer and leak-proof sides, sized XL for a comfortable all-day fit.</p>",
+    highlights: ["Leak-proof sides", "Breathable outer layer", "XL, 46-pack"],
+    ages: ["1-2y", "2-4y"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1275_1.webp?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "teddyy-premium-baby-tape-diapers-nb-pack-of-21",
+    sku: "MZ-DIA-0013",
+    name: "Teddyy Premium Baby Tape Diapers, NB (2-5 kg), Pack of 21",
+    brandName: "Teddyy",
+    categorySlug: "diapers",
+    price: 249,
+    mrp: 279,
+    costPrice: 162,
+    qty: "Pack of 21",
+    weight: "2-5 kg",
+    description: "Tape-style diapers for newborns, 2-5 kg.",
+    about:
+      "<p>Tape-fastened diapers designed for newborns weighing 2-5 kg, with an adjustable waist tape for a secure fit on tiny bodies.</p>",
+    highlights: [
+      "Adjustable tape fastening",
+      "For 2-5 kg newborns",
+      "Soft inner layer",
+    ],
+    ages: ["0-6m"],
+    type: "Diaper Tape",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/190260016_1.jpg?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "allter-breeze-airy-soft-diaper-pants-m-32-pieces",
+    sku: "MZ-DIA-0014",
+    name: ".allter Breeze Airy Soft Diaper Pants, M (7-12 kg), 32 Pieces",
+    brandName: ".allter",
+    categorySlug: "diapers",
+    price: 549,
+    mrp: 649,
+    costPrice: 355,
+    qty: "Pack of 32",
+    weight: "7-12 kg",
+    description: "Airy, breathable pant diapers for 7-12 kg babies.",
+    about:
+      "<p>Pant-style diapers with an airy, breathable core designed to reduce heat and rash, sized medium for babies weighing 7-12 kg.</p>",
+    highlights: [
+      "Breathable, airy core",
+      "Reduces rash risk",
+      "M size, 7-12 kg",
+    ],
+    ages: ["6-12m", "1-2y"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/12020220260221_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "teddyy-premium-anti-bacterial-diaper-pants-m-pack-of-20",
+    sku: "MZ-DIA-0015",
+    name: "Teddyy Premium Anti Bacterial Baby Diaper Pants, M (6-11 kgs), Pack of 20",
+    brandName: "Teddyy",
+    categorySlug: "diapers",
+    price: 349,
+    mrp: 399,
+    costPrice: 227,
+    qty: "Pack of 20",
+    weight: "6-11 kg",
+    description: "Anti-bacterial pant diapers, medium size.",
+    about:
+      "<p>Pant-style diapers with an anti-bacterial layer to guard against rash-causing bacteria, sized medium for 6-11 kg babies.</p>",
+    highlights: ["Anti-bacterial layer", "M size, 6-11 kg", "20-count pack"],
+    ages: ["6-12m", "1-2y"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/21020260007_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "mamypoko-pants-extra-absorb-diaper-pants-s-pack-of-66",
+    sku: "MZ-DIA-0016",
+    name: "MamyPoko Pants Extra Absorb Diaper Pants, S (4-8 kg), Pack of 66",
+    brandName: "MamyPokoPants",
+    categorySlug: "diapers",
+    price: 699,
+    mrp: 799,
+    costPrice: 455,
+    qty: "Pack of 66",
+    weight: "4-8 kg",
+    description: "Extra-absorbent small-size diaper pants for infants.",
+    about:
+      "<p>Pant-style diapers with an extra-absorbent core sized small, built for infants weighing 4-8 kg who need frequent changes.</p>",
+    highlights: [
+      "Extra-absorbent core",
+      "S size, 4-8 kg",
+      "Large 66-count pack",
+    ],
+    ages: ["0-6m", "6-12m"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/30220260394_1.jpg?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "r-for-rabbit-pant-style-feather-diapers-medium-26-pieces",
+    sku: "MZ-DIA-0017",
+    name: "R for Rabbit Pant Style Feather Diapers Medium, 26 Pieces",
+    brandName: "R for Rabbit",
+    categorySlug: "diapers",
+    price: 349,
+    mrp: 399,
+    costPrice: 227,
+    qty: "Pack of 26",
+    weight: "Medium",
+    description: "Soft, leak-proof feather-light pant diapers.",
+    about:
+      "<p>Lightweight pant-style diapers with a soft, feather-touch inner layer and leak-proof sides, sized medium.</p>",
+    highlights: [
+      "Feather-soft inner layer",
+      "Leak-proof sides",
+      "26-count pack",
+    ],
+    ages: ["6-12m", "1-2y"],
+    type: "Diaper Pants",
+    tags: ["diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1292_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "superbottoms-uno-cloth-diaper-starter-kit-3m-3y",
+    sku: "MZ-DIA-0018",
+    name: "SuperBottoms UNO Cloth Diaper Starter Kit, 3M-3Y",
+    brandName: "SuperBottoms",
+    categorySlug: "diapers",
+    price: 1499,
+    mrp: 1799,
+    costPrice: 975,
+    qty: "Starter kit",
+    weight: "3M-3Y",
+    description: "Reusable cloth diaper starter kit for 3 months to 3 years.",
+    about:
+      "<p>A reusable, adjustable cloth diaper kit designed to fit from 3 months to 3 years, paired with absorbent inserts for a washable, budget-friendly alternative to disposables.</p>",
+    highlights: [
+      "Reusable & washable",
+      "Adjustable fit, 3M-3Y",
+      "Includes absorbent inserts",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Cloth Diaper",
+    tags: ["diapers", "cloth-diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2089_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "superbottoms-uno-cloth-diaper-little-wheels-3m-3y",
+    sku: "MZ-DIA-0019",
+    name: "SuperBottoms UNO Cloth Diaper, Little Wheels, 3M-3Y",
+    brandName: "SuperBottoms",
+    categorySlug: "diapers",
+    price: 799,
+    mrp: 949,
+    costPrice: 520,
+    qty: "1 unit",
+    weight: "3M-3Y",
+    description: "Reusable cloth diaper with a printed design.",
+    about:
+      "<p>A single reusable cloth diaper with an adjustable fit spanning 3 months to 3 years, printed in a little-wheels design.</p>",
+    highlights: [
+      "Reusable & washable",
+      "Adjustable fit, 3M-3Y",
+      "Printed design",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Cloth Diaper",
+    tags: ["diapers", "cloth-diapers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2088_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "superbottoms-basic-easy-cloth-diaper-pack-of-5",
+    sku: "MZ-DIA-0020",
+    name: "SuperBottoms Basic Easy Cloth Diaper, Pack of 5, (3-36)M",
+    brandName: "SuperBottoms",
+    categorySlug: "diapers",
+    price: 3499,
+    mrp: 3999,
+    costPrice: 2275,
+    qty: "Pack of 5",
+    weight: "3-36 months",
+    description: "Pack of 5 reusable cloth diapers for daily use.",
+    about:
+      "<p>A pack of five reusable, adjustable cloth diapers sized for 3-36 months, built for everyday use as a full washable diapering system.</p>",
+    highlights: [
+      "Pack of 5 for daily rotation",
+      "Reusable & washable",
+      "Adjustable fit, 3-36M",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Cloth Diaper",
+    tags: ["diapers", "cloth-diapers"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2077_1.jpg?width=340",
+    ],
+    stock: 15,
+  },
+  {
     slug: "mother-sparsh-99-pure-water-unscented-baby-wipes-travel-pack-10-pcs",
     sku: "MZ-ESS-0008",
     name: "Mother Sparsh 99% Pure Water Unscented Baby Wipes - Travel Pack (10 pcs)",
@@ -399,7 +695,7 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "<p>Now, baby traveling is easier and more convenient with 99% Pure Water Unscented Baby Wipes. Made with Cotton & Pure Water, our baby wet wipes are Super Thick and Extra Watery to ensure the gentlest care for your baby's sensitive skin. Suitable for baby’s face, hand, & body cleaning, and preventing Diaper Rashes.</p>",
     highlights: ["Premium quality", "Baby safe", "Dermatologically tested"],
     ages: ["0-6m"],
-    type: "Diaper Rash Cream",
+    type: "Baby Wipes",
     tags: ["baby-essentials", "wipes"],
     stock: 35,
     images: [
@@ -407,6 +703,461 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/2025-08-27-68ae992fe3d16.png?width=340",
       "https://d1rannd7dfx5r5.cloudfront.net/product/2025-08-27-68ae99300a6e5.png?width=340",
     ],
+  },
+  {
+    slug: "bumtum-baby-99-water-wipes-with-lid-72-count",
+    sku: "MZ-ESS-0016",
+    name: "Bumtum Baby 99% Water Wipes with Lid, 72 Count",
+    brandName: "Bumtum",
+    categorySlug: "baby-essentials",
+    price: 199,
+    mrp: 225,
+    costPrice: 130,
+    qty: "72 wipes",
+    description: "99% water wipes with a resealable lid.",
+    about:
+      "<p>Thick, soft wipes made with 99% purified water, packed in a lidded tub that keeps them moist and ready to use.</p>",
+    highlights: ["99% pure water", "Resealable lid", "Soft, thick texture"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/200120260003_1.jpg?width=340",
+    ],
+    stock: 40,
+  },
+  {
+    slug: "mee-mee-caring-baby-wet-wipes-with-lid-aloe-vera-72-wipes",
+    sku: "MZ-ESS-0017",
+    name: "Mee Mee Caring Baby Wet Wipes with Lid, Aloe Vera, 72 Wipes",
+    brandName: "Mee Mee",
+    categorySlug: "baby-essentials",
+    price: 179,
+    mrp: 199,
+    costPrice: 115,
+    qty: "72 wipes",
+    description: "Aloe vera infused wet wipes with a lid.",
+    about:
+      "<p>Gentle wet wipes infused with aloe vera and vitamin E to soothe baby's skin, packed in a lidded pack for easy dispensing.</p>",
+    highlights: ["Aloe vera & vitamin E", "Resealable lid", "Gentle formula"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1149_1.jpg?width=340",
+    ],
+    stock: 35,
+  },
+  {
+    slug: "tedibar-b4-nappi-baby-wipes-30-pieces",
+    sku: "MZ-ESS-0018",
+    name: "Tedibar B4 Nappi Baby Wipes, 30 Pieces",
+    brandName: "Tedibar",
+    categorySlug: "baby-essentials",
+    price: 99,
+    mrp: 115,
+    costPrice: 65,
+    qty: "30 wipes",
+    description: "Compact travel pack of baby wipes.",
+    about:
+      "<p>A compact 30-count pack of soft, gentle wipes sized for the diaper bag, made for quick cleanups on the go.</p>",
+    highlights: ["Travel-friendly pack size", "Soft texture", "Gentle formula"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2810251182_1.jpg?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "himalaya-gentle-baby-wipes-pack-of-72",
+    sku: "MZ-ESS-0019",
+    name: "Himalaya Gentle Baby Wipes, Pack of 72",
+    brandName: "Himalaya",
+    categorySlug: "baby-essentials",
+    price: 149,
+    mrp: 179,
+    costPrice: 97,
+    qty: "72 wipes",
+    description: "Soft, mild wipes for baby's sensitive skin.",
+    about:
+      "<p>Gentle wipes formulated to be soft and mild on baby's sensitive skin, suitable for everyday cleaning.</p>",
+    highlights: ["Soft & mild", "For sensitive skin", "Everyday use"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2025-09-09-68c0226c05034.png?width=340",
+    ],
+    stock: 40,
+  },
+  {
+    slug: "growgether-999-purified-water-baby-wipes-72-pieces",
+    sku: "MZ-ESS-0020",
+    name: "Growgether 99.9% Purified Water Baby Wipes, 72 Pieces",
+    brandName: "Growgether",
+    categorySlug: "baby-essentials",
+    price: 189,
+    mrp: 219,
+    costPrice: 123,
+    qty: "72 wipes",
+    description: "Wipes made with 99.9% purified water.",
+    about:
+      "<p>Wipes made with 99.9% purified water and minimal additives, formulated for newborns and sensitive skin.</p>",
+    highlights: ["99.9% purified water", "Minimal additives", "For newborns"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2026-03-26-69c4c16f651e0.png?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "windmill-baby-natural-dry-baby-wipes-72-count",
+    sku: "MZ-ESS-0021",
+    name: "Windmill Baby Natural Dry Baby Wipes, 72 Wipes",
+    brandName: "WindMill",
+    categorySlug: "baby-essentials",
+    price: 159,
+    mrp: 189,
+    costPrice: 103,
+    qty: "72 wipes",
+    description: "Dry wipes, moistened before use, for baby's skin.",
+    about:
+      "<p>Dry cloth wipes designed to be moistened with water before use, cutting down on preservatives while still being soft on baby's skin.</p>",
+    highlights: [
+      "Dry-wipe format",
+      "Fewer preservatives",
+      "Soft cloth texture",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Baby Wipes",
+    tags: ["baby-essentials", "wipes"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/9085318_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+
+  // ---------------------------------------------------------------- scraped-essentials-feeding-bottles
+  {
+    slug: "philips-avent-natural-response-bottle-1m-260ml-twin",
+    sku: "MZ-ESS-0022",
+    name: "Philips Avent Natural Response Bottle 1M+, 260ml (Twin)",
+    brandName: "Philips Avent",
+    categorySlug: "baby-essentials",
+    price: 899,
+    mrp: 999,
+    costPrice: 585,
+    qty: "Pack of 2",
+    weight: "260 ml",
+    description: "Twin-pack feeding bottle with a natural-latch nipple.",
+    about:
+      "<p>A wide-neck feeding bottle with a soft, breast-shaped nipple designed to encourage a natural latch, sold as a twin pack.</p>",
+    highlights: ["Natural-latch nipple", "Anti-colic venting", "Twin pack"],
+    ages: ["0-6m", "6-12m"],
+    type: "Feeding Bottle",
+    tags: ["baby-essentials", "feeding", "bottles"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2026-06-25-5b499244992b4.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "pigeon-wide-neck-glass-feeding-bottle-240ml",
+    sku: "MZ-ESS-0023",
+    name: "Pigeon Wide Neck Glass Feeding Bottle, Y-cut Anti Colic Nipple, 240ml",
+    brandName: "Pigeon",
+    categorySlug: "baby-essentials",
+    price: 649,
+    mrp: 749,
+    costPrice: 420,
+    qty: "240 ml",
+    description: "Wide-neck glass feeding bottle with anti-colic nipple.",
+    about:
+      "<p>A heat-resistant glass feeding bottle with a wide neck for easy cleaning and a Y-cut nipple designed to reduce colic and air intake.</p>",
+    highlights: [
+      "Heat-resistant glass",
+      "Y-cut anti-colic nipple",
+      "Wide neck",
+    ],
+    ages: ["0-6m", "6-12m"],
+    type: "Feeding Bottle",
+    tags: ["baby-essentials", "feeding", "bottles"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/2025-10-23-68fa26365381f.png?width=340",
+    ],
+    stock: 18,
+  },
+  {
+    slug: "chicco-wellbeing-feeding-bottle-anti-colic-330ml",
+    sku: "MZ-ESS-0024",
+    name: "Chicco Well Being Feeding Bottle, Anti Colic, 330ml, 4M+",
+    brandName: "Chicco",
+    categorySlug: "baby-essentials",
+    price: 749,
+    mrp: 849,
+    costPrice: 485,
+    qty: "330 ml",
+    description: "Large-capacity anti-colic feeding bottle.",
+    about:
+      "<p>A 330ml feeding bottle with an anti-colic valve system and a soft silicone nipple, sized for older babies with bigger appetites.</p>",
+    highlights: ["Anti-colic valve", "Soft silicone nipple", "330ml capacity"],
+    ages: ["6-12m", "1-2y"],
+    type: "Feeding Bottle",
+    tags: ["baby-essentials", "feeding", "bottles"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1071_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "mee-mee-baby-steel-feeding-bottle-240ml",
+    sku: "MZ-ESS-0025",
+    name: "Mee Mee Baby Steel Feeding Bottle, 240ml, 0-2 Years",
+    brandName: "Mee Mee",
+    categorySlug: "baby-essentials",
+    price: 499,
+    mrp: 599,
+    costPrice: 325,
+    qty: "240 ml",
+    description: "Insulated stainless-steel feeding bottle.",
+    about:
+      "<p>A stainless-steel feeding bottle that keeps milk warmer for longer than plastic, built to be durable and shatterproof for daily use.</p>",
+    highlights: ["Stainless steel body", "Shatterproof", "Retains warmth"],
+    ages: ["0-6m", "6-12m", "1-2y"],
+    type: "Feeding Bottle",
+    tags: ["baby-essentials", "feeding", "bottles"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1151_1.jpg?width=340",
+    ],
+    stock: 15,
+  },
+  {
+    slug: "luvlap-natura-flo-wide-neck-feeding-bottle-250ml",
+    sku: "MZ-ESS-0026",
+    name: "LuvLap Natura Flo Wide Neck Feeding Bottle, PP, 3M-3Y, 250ml",
+    brandName: "LuvLap",
+    categorySlug: "baby-essentials",
+    price: 349,
+    mrp: 399,
+    costPrice: 230,
+    qty: "250 ml",
+    description: "Wide-neck feeding bottle for 3 months to 3 years.",
+    about:
+      "<p>A wide-neck polypropylene feeding bottle with a natural-flow nipple, built for a long usage span from 3 months to 3 years.</p>",
+    highlights: [
+      "Natural-flow nipple",
+      "Wide neck, easy to clean",
+      "3M-3Y usage",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Feeding Bottle",
+    tags: ["baby-essentials", "feeding", "bottles"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/70120260157_1.jpg?width=340",
+    ],
+    stock: 22,
+  },
+
+  // ---------------------------------------------------------------- scraped-essentials-strollers-carseats
+  {
+    slug: "luvlap-galaxy-baby-stroller-pram-baby-essentials",
+    sku: "MZ-ESS-0009",
+    name: "LuvLap Galaxy Baby Stroller Pram",
+    brandName: "LuvLap",
+    categorySlug: "baby-essentials",
+    price: 6300,
+    mrp: 8799,
+    costPrice: 4095,
+    qty: "Pack of 1",
+    description:
+      "Galaxy Stroller with reversible handlebar, 3 position reclining seat, and 5-point safety harness.",
+    about:
+      "<p>Galaxy Stroller with reversible handlebar, 3 position reclining seat, and 5-point safety harness.</p>",
+    highlights: [
+      "Reversible Handlebar",
+      "3-position reclining seat",
+      "5-point safety harness",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Stroller",
+    tags: ["baby-essentials", "strollers", "bestseller"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/70120260172_1.jpg?width=340",
+      "https://d1rannd7dfx5r5.cloudfront.net/product/70120260172_2.jpg?width=340",
+      "https://d1rannd7dfx5r5.cloudfront.net/product/70120260172_3.jpg?width=340",
+    ],
+    colors: [
+      { label: "Green & Black", price: 6300, stock: 10 },
+      { label: "Classic Black", price: 6300, stock: 8 },
+    ],
+  },
+  {
+    slug: "joie-nutmeg-lightweight-baby-stroller-baby-essentials",
+    sku: "MZ-ESS-0010",
+    name: "Joie Nutmeg Lightweight Baby Stroller",
+    brandName: "Joie",
+    categorySlug: "baby-essentials",
+    price: 24700,
+    mrp: 25999,
+    costPrice: 16055,
+    qty: "Pack of 1",
+    description:
+      "Lightweight stroller featuring one-hand quick fold, multi-position recline, and robust suspension.",
+    about:
+      "<p>Lightweight stroller featuring one-hand quick fold, multi-position recline, and robust suspension.</p>",
+    highlights: [
+      "One-hand quick fold",
+      "SoftTouch 5-point harness",
+      "UPF 50+ extendable canopy",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Stroller",
+    tags: ["baby-essentials", "strollers"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/401939701001_1.jpg?width=340",
+      "https://d1rannd7dfx5r5.cloudfront.net/product/401939701001_2.jpg?width=340",
+    ],
+    colors: [
+      { label: "Shale", price: 24700, stock: 5 },
+      { label: "Thunder", price: 24700, stock: 4 },
+    ],
+  },
+  {
+    slug: "r-for-rabbit-jack-n-jill-grand-isofix-convertible-car-seat",
+    sku: "MZ-ESS-0011",
+    name: "R for Rabbit Jack N Jill Grand Isofix Convertible Baby Car Seat, Black Grey",
+    brandName: "R for Rabbit",
+    categorySlug: "baby-essentials",
+    price: 12999,
+    mrp: 15999,
+    costPrice: 8450,
+    qty: "Pack of 1",
+    description: "Isofix convertible car seat for infants through toddlers.",
+    about:
+      "<p>A convertible car seat with Isofix installation for a secure, tool-free fit, adjustable through multiple recline positions to grow with your child from infant to toddler.</p>",
+    highlights: [
+      "Isofix installation",
+      "Convertible, grows with child",
+      "5-point safety harness",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Car Seat",
+    tags: ["baby-essentials", "car-seats"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/150120260157_1.jpg?width=340",
+    ],
+    stock: 15,
+  },
+  {
+    slug: "loopie-lap-360-convertible-baby-car-seat-0-12y",
+    sku: "MZ-ESS-0012",
+    name: "Loopie Lap 360° Convertible Baby Car Seat for 0-12 Y",
+    brandName: "Loopie",
+    categorySlug: "baby-essentials",
+    price: 10999,
+    mrp: 12999,
+    costPrice: 7150,
+    qty: "Pack of 1",
+    description: "360° rotating convertible car seat for 0-12 years.",
+    about:
+      "<p>A 360° rotating car seat that lets you turn the seat toward the door for easy loading, with a long usage span from newborn through age 12.</p>",
+    highlights: [
+      "360° rotating base",
+      "0-12 years usage",
+      "Multi-position recline",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y", "4y+"],
+    type: "Car Seat",
+    tags: ["baby-essentials", "car-seats"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1010250414_1.jpg?width=340",
+    ],
+    stock: 12,
+  },
+  {
+    slug: "luvlap-galaxy-convertible-car-seat-for-baby-black",
+    sku: "MZ-ESS-0013",
+    name: "LuvLap Galaxy Convertible Car Seat for Baby, Black",
+    brandName: "LuvLap",
+    categorySlug: "baby-essentials",
+    price: 8999,
+    mrp: 10999,
+    costPrice: 5850,
+    qty: "Pack of 1",
+    description: "Convertible car seat with adjustable recline positions.",
+    about:
+      "<p>A convertible car seat designed to transition from rear-facing to forward-facing as your child grows, with a padded, adjustable harness for a secure fit.</p>",
+    highlights: [
+      "Rear- & forward-facing modes",
+      "Adjustable 5-point harness",
+      "Padded, breathable fabric",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Car Seat",
+    tags: ["baby-essentials", "car-seats"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/240420260046_1.jpg?width=340",
+    ],
+    stock: 10,
+  },
+  {
+    slug: "lifelong-cuppy-car-seat-with-mirror-adjustable-0-7y",
+    sku: "MZ-ESS-0014",
+    name: "Lifelong Cuppy Car Seat with Mirror, Adjustable, Blue & Grey, 0-7Y",
+    brandName: "Lifelong",
+    categorySlug: "baby-essentials",
+    price: 5499,
+    mrp: 6999,
+    costPrice: 3575,
+    qty: "Pack of 1",
+    description: "Adjustable car seat with rear-view mirror, for 0-7 years.",
+    about:
+      "<p>An adjustable car seat with a built-in rear-view mirror so parents can keep an eye on baby while driving, suitable from birth through age 7.</p>",
+    highlights: [
+      "Built-in rear-view mirror",
+      "Adjustable recline",
+      "0-7 years usage",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y", "4y+"],
+    type: "Car Seat",
+    tags: ["baby-essentials", "car-seats"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/90120260024_1.jpg?width=340",
+    ],
+    stock: 10,
+  },
+  {
+    slug: "joie-infant-carrier-i-snug-2-moonlight-pro-0-12m",
+    sku: "MZ-ESS-0015",
+    name: "Joie Infant Carrier I-Snug 2, Moonlight Pro, 0-12M",
+    brandName: "Joie",
+    categorySlug: "baby-essentials",
+    price: 13999,
+    mrp: 15999,
+    costPrice: 9100,
+    qty: "Pack of 1",
+    description: "Infant carrier car seat for newborns up to 12 months.",
+    about:
+      "<p>A rear-facing infant carrier car seat designed for newborns up to 12 months, with a side-impact protection shell and a carry handle that doubles as a stroller click-in.</p>",
+    highlights: [
+      "Side-impact protection",
+      "Newborn to 12 months",
+      "Stroller travel-system compatible",
+    ],
+    ages: ["0-6m", "6-12m"],
+    type: "Car Seat",
+    tags: ["baby-essentials", "car-seats"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/10401_1.jpg?width=340",
+    ],
+    stock: 8,
   },
 
   // ---------------------------------------------------------------- scraped-sleeping-and-travel-gear
@@ -816,7 +1567,7 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/70120260172_2.jpg?width=340",
       "https://d1rannd7dfx5r5.cloudfront.net/product/70120260172_3.jpg?width=340",
     ],
-    sizes: [
+    colors: [
       { label: "Green & Black", price: 6300, stock: 10 },
       { label: "Classic Black", price: 6300, stock: 8 },
     ],
@@ -848,7 +1599,7 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/401939701001_1.jpg?width=340",
       "https://d1rannd7dfx5r5.cloudfront.net/product/401939701001_2.jpg?width=340",
     ],
-    sizes: [
+    colors: [
       { label: "Shale", price: 24700, stock: 5 },
       { label: "Thunder", price: 24700, stock: 4 },
     ],
@@ -882,7 +1633,7 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/401660901001_2.jpg?width=340",
       "https://d1rannd7dfx5r5.cloudfront.net/product/401660901001_3.jpg?width=340",
     ],
-    sizes: [
+    colors: [
       { label: "Midnight Black", price: 17000, stock: 6 },
       { label: "Jade Blue", price: 18000, stock: 5 },
       { label: "Olive Fern", price: 18000, stock: 4 },
@@ -2050,6 +2801,375 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     ],
     stock: 25,
   },
+
+  // ---------------------------------------------------------------- scraped-toys
+  {
+    slug: "hot-wheels-formula-1-die-cast-toy-cars-set-of-5",
+    sku: "MZ-TOY-0001",
+    name: "Hot Wheels Formula 1 Die-Cast Toy Cars, Set of 5, Multicolor, 3Y+",
+    brandName: "Mattel Toys",
+    categorySlug: "toys",
+    price: 799,
+    mrp: 899,
+    costPrice: 520,
+    qty: "Set of 5",
+    description: "Die-cast F1-style toy cars, set of 5.",
+    about:
+      "<p>A set of five die-cast, F1-styled toy cars with rolling wheels, sized for collecting and imaginative racing play.</p>",
+    highlights: ["Die-cast metal body", "Set of 5 cars", "Rolling wheels"],
+    ages: ["2-4y", "4y+"],
+    type: "Toy Vehicle",
+    tags: ["toys", "vehicles"],
+    isBestseller: true,
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/401891501001_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "frank-fruits-set-of-3-my-first-jigsaw-puzzle",
+    sku: "MZ-TOY-0002",
+    name: "Frank Fruits Set of 3 My First Jigsaw Puzzle, 3Y-8Y",
+    brandName: "Frank",
+    categorySlug: "toys",
+    price: 349,
+    mrp: 399,
+    costPrice: 227,
+    qty: "Set of 3",
+    description: "A set of 3 fruit-themed first jigsaw puzzles.",
+    about:
+      "<p>Three simple, chunky-piece jigsaw puzzles with a fruit theme, designed as a child's first introduction to puzzle-solving.</p>",
+    highlights: ["Chunky, easy-grip pieces", "Set of 3 puzzles", "Fruit theme"],
+    ages: ["2-4y", "4y+"],
+    type: "Puzzle",
+    tags: ["toys", "puzzles"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/22112510009_1.jpg?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "dearjoy-elephant-shaped-baby-pillow",
+    sku: "MZ-TOY-0003",
+    name: "DearJoy Elephant Shaped Baby Pillow for Infants & Toddlers, 0M-10Y",
+    brandName: "DearJoy",
+    categorySlug: "toys",
+    price: 399,
+    mrp: 449,
+    costPrice: 260,
+    qty: "1 unit",
+    description: "Soft elephant-shaped pillow toy for infants and toddlers.",
+    about:
+      "<p>A soft, plush elephant-shaped pillow that doubles as a comfort toy, suitable from infancy through early childhood.</p>",
+    highlights: [
+      "Plush, huggable design",
+      "Doubles as pillow & toy",
+      "Wide age range",
+    ],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Soft Toy",
+    tags: ["toys", "soft-toys"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/110520260109_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "curious-cub-montessori-geometric-rattle-ball-toy",
+    sku: "MZ-TOY-0004",
+    name: "Curious Cub Montessori Geometric Rattle Ball Toy for Babies, 6M-2Y, Level 3",
+    brandName: "Curious Cub",
+    categorySlug: "toys",
+    price: 449,
+    mrp: 499,
+    costPrice: 292,
+    qty: "1 unit",
+    description: "Montessori-style geometric rattle ball for babies.",
+    about:
+      "<p>A Montessori-inspired rattle ball with cut-out geometric shapes, designed to encourage grasping, shaking, and early sensory play.</p>",
+    highlights: [
+      "Montessori design",
+      "Encourages grasp & sensory play",
+      "For 6M-2Y",
+    ],
+    ages: ["6-12m", "1-2y"],
+    type: "Sensory Toy",
+    tags: ["toys", "montessori"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/10520260425_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "kriiddaank-minnie-theme-musician-music-set-piano",
+    sku: "MZ-TOY-0005",
+    name: "Kriiddaank Minnie Theme Musician Music Set, 25 Key Piano with Microphone, 2Y+",
+    brandName: "KRIIDDAANK",
+    categorySlug: "toys",
+    price: 699,
+    mrp: 799,
+    costPrice: 455,
+    qty: "1 unit",
+    description: "25-key toy piano with microphone, Minnie theme.",
+    about:
+      "<p>A 25-key toy piano paired with a microphone, themed around Minnie, for early musical and pretend-play exploration.</p>",
+    highlights: ["25-key piano", "Includes microphone", "Minnie theme"],
+    ages: ["1-2y", "2-4y"],
+    type: "Musical Toy",
+    tags: ["toys", "musical"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/401986901001_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "avenir-silky-crayon-12-colors-unicorn",
+    sku: "MZ-TOY-0006",
+    name: "Avenir Silky Crayon 12 Colors - Unicorn",
+    brandName: "Avenir",
+    categorySlug: "toys",
+    price: 299,
+    mrp: 349,
+    costPrice: 195,
+    qty: "12 colors",
+    description: "Smooth, silky-textured crayons, set of 12.",
+    about:
+      "<p>A set of 12 smooth, silky-textured crayons in a unicorn-themed pack, designed for easy blending and early art play.</p>",
+    highlights: [
+      "Silky, smooth texture",
+      "12 vibrant colors",
+      "Unicorn packaging",
+    ],
+    ages: ["2-4y", "4y+"],
+    type: "Art & Craft",
+    tags: ["toys", "art-craft"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1635_1.jpg?width=340",
+    ],
+    stock: 30,
+  },
+  {
+    slug: "funskool-giggles-rattle-strider-wooden-toy",
+    sku: "MZ-TOY-0007",
+    name: "Funskool Giggles Rattle Strider Wooden Toy, Multicolor, 18M-5Y",
+    brandName: "Funskool",
+    categorySlug: "toys",
+    price: 549,
+    mrp: 649,
+    costPrice: 357,
+    qty: "1 unit",
+    description: "Wooden rattle strider toy for toddlers.",
+    about:
+      "<p>A wooden push-and-pull strider toy with a rattling action, designed to support early walking and gross motor play.</p>",
+    highlights: [
+      "Wooden construction",
+      "Push-along rattle action",
+      "Supports early walking",
+    ],
+    ages: ["1-2y", "2-4y"],
+    type: "Push & Pull Toy",
+    tags: ["toys", "wooden-toys"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/311250124_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "skoodle-spiderman-air-soccer-ball-hover-football",
+    sku: "MZ-TOY-0008",
+    name: "SKoodle Spiderman Air Soccer Ball, Non-Rechargeable Battery Powered Hover Football, 3Y+",
+    brandName: "Skoodle",
+    categorySlug: "toys",
+    price: 599,
+    mrp: 699,
+    costPrice: 390,
+    qty: "1 unit",
+    description: "Battery-powered hover football, Spiderman theme.",
+    about:
+      "<p>A battery-powered hover football that glides across smooth floors, themed around Spiderman for active indoor play.</p>",
+    highlights: [
+      "Glides on smooth floors",
+      "Battery powered",
+      "Spiderman theme",
+    ],
+    ages: ["2-4y", "4y+"],
+    type: "Active Play Toy",
+    tags: ["toys", "active-play"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/401655401001_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "kriiddaank-hotwheel-thunder-storm-nerf-gun",
+    sku: "MZ-TOY-0009",
+    name: "Kriiddaank Hotwheel Thunder Storm Nerf Gun Multicolor For Kids, Pack Of 1, 4Y+",
+    brandName: "KRIIDDAANK",
+    categorySlug: "toys",
+    price: 449,
+    mrp: 549,
+    costPrice: 292,
+    qty: "1 unit",
+    description: "Foam-dart blaster toy for kids.",
+    about:
+      "<p>A foam-dart blaster toy designed for active outdoor and indoor play, suitable for children aged 4 and up.</p>",
+    highlights: ["Foam-dart blaster", "For ages 4Y+", "Active play"],
+    ages: ["4y+"],
+    type: "Active Play Toy",
+    tags: ["toys", "active-play"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/300120260087_1.jpg?width=340",
+    ],
+    stock: 15,
+  },
+  {
+    slug: "jarmelo-finger-paint-10-colors-set",
+    sku: "MZ-TOY-0010",
+    name: "Jarmelo Finger Paint 10 Colors Set",
+    brandName: "Jarmelo",
+    categorySlug: "toys",
+    price: 399,
+    mrp: 449,
+    costPrice: 260,
+    qty: "10 colors",
+    description: "Washable finger paint set, 10 colors.",
+    about:
+      "<p>A set of 10 washable finger paints designed for toddler-safe, mess-friendly early art exploration.</p>",
+    highlights: ["Washable formula", "10-color set", "Toddler-safe"],
+    ages: ["1-2y", "2-4y"],
+    type: "Art & Craft",
+    tags: ["toys", "art-craft"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/1593_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "westland-kabuliwala-and-the-postmaster-comic-book",
+    sku: "MZ-TOY-0011",
+    name: "Westland Kabuliwala & The Postmaster Comic Book, 8-14Y",
+    brandName: "Westland",
+    categorySlug: "toys",
+    price: 199,
+    mrp: 249,
+    costPrice: 130,
+    qty: "1 unit",
+    description: "Illustrated comic book adaptation for young readers.",
+    about:
+      "<p>An illustrated comic-book adaptation of two classic short stories, aimed at building reading habits in children aged 8 to 14.</p>",
+    highlights: [
+      "Illustrated comic format",
+      "Classic story adaptation",
+      "For ages 8-14",
+    ],
+    ages: ["4y+"],
+    type: "Book",
+    tags: ["toys", "books"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/312251112_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "ekta-smart-builders-basic-set",
+    sku: "MZ-TOY-0012",
+    name: "Smart Builders Basic Set, Multicolor, 3Y-12Y",
+    brandName: "Ekta",
+    categorySlug: "toys",
+    price: 649,
+    mrp: 749,
+    costPrice: 422,
+    qty: "1 set",
+    description: "Building block construction set for kids.",
+    about:
+      "<p>A multicolor building block construction set designed to build fine motor skills and creative construction play across a wide age range.</p>",
+    highlights: [
+      "Building block set",
+      "Builds fine motor skills",
+      "For ages 3-12",
+    ],
+    ages: ["2-4y", "4y+"],
+    type: "Building Set",
+    tags: ["toys", "building-sets"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/311250165_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "mi-arcus-stampy-knitted-elephant-soft-toy",
+    sku: "MZ-TOY-0013",
+    name: "Mi Arcus Stampy Knitted Elephant Soft Toys, Polyester, Green",
+    brandName: "Mi Arcus",
+    categorySlug: "toys",
+    price: 499,
+    mrp: 599,
+    costPrice: 325,
+    qty: "1 unit",
+    description: "Knitted elephant soft toy.",
+    about:
+      "<p>A soft, knitted elephant plush toy made from polyester, sized for cuddling and comfort play.</p>",
+    highlights: ["Knitted plush texture", "Polyester fill", "Huggable size"],
+    ages: ["0-6m", "6-12m", "1-2y", "2-4y"],
+    type: "Soft Toy",
+    tags: ["toys", "soft-toys"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/6516_1.jpg?width=340",
+    ],
+    stock: 25,
+  },
+  {
+    slug: "open-ended-minimag-travel-38-magnetic-tiles",
+    sku: "MZ-TOY-0014",
+    name: "Open Ended Minimag Travel 38 Magnetic Tiles, Multicolor, 3Y+",
+    brandName: "Open Ended",
+    categorySlug: "toys",
+    price: 1299,
+    mrp: 1499,
+    costPrice: 845,
+    qty: "38 pieces",
+    description: "Travel-size magnetic building tile set, 38 pieces.",
+    about:
+      "<p>A compact, travel-friendly set of 38 magnetic building tiles that snap together for open-ended construction play.</p>",
+    highlights: [
+      "Magnetic tiles",
+      "38-piece travel set",
+      "Open-ended construction play",
+    ],
+    ages: ["2-4y", "4y+"],
+    type: "Building Set",
+    tags: ["toys", "building-sets"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/160320260108_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
+  {
+    slug: "funskool-giggles-pretend-and-play-cooking-set",
+    sku: "MZ-TOY-0015",
+    name: "Funskool Giggles Pretend And Play Cooking Set, 3Y+",
+    brandName: "Funskool",
+    categorySlug: "toys",
+    price: 599,
+    mrp: 699,
+    costPrice: 390,
+    qty: "1 set",
+    description: "Pretend-play cooking set for kids.",
+    about:
+      "<p>A pretend-play cooking set with kitchen-themed pieces, designed to encourage imaginative role-play.</p>",
+    highlights: [
+      "Pretend-play cooking pieces",
+      "Encourages role-play",
+      "For ages 3Y+",
+    ],
+    ages: ["2-4y", "4y+"],
+    type: "Pretend Play",
+    tags: ["toys", "pretend-play"],
+    images: [
+      "https://d1rannd7dfx5r5.cloudfront.net/product/310320260040_1.jpg?width=340",
+    ],
+    stock: 20,
+  },
 ];
 
 export async function seedProducts() {
@@ -2092,6 +3212,7 @@ export async function seedProducts() {
       }
 
       const sizes = seed.sizes ?? [];
+      const colors = seed.colors ?? [];
 
       const [row] = await tx
         .insert(product)
@@ -2133,6 +3254,16 @@ export async function seedProducts() {
             label: size.label,
             price: size.price,
             stock: size.stock,
+            position: index,
+          })),
+        );
+      } else if (colors.length > 0) {
+        await tx.insert(productColor).values(
+          colors.map((color, index) => ({
+            productId: row.id,
+            label: color.label,
+            price: color.price,
+            stock: color.stock,
             position: index,
           })),
         );
@@ -2202,4 +3333,63 @@ export async function backfillProductPlaceholderImages() {
   }
 
   return { updated };
+}
+
+/**
+ * The exact color/style labels that were wrongly seeded into `productSize`
+ * before the `productColor` split — every distinct color-looking label in
+ * `PRODUCT_SEEDS`' history (`git blame` gives the full set; there's no
+ * reliable regex for "is this a color", so this is a fixed, hand-checked
+ * list rather than a heuristic).
+ */
+const MISCLASSIFIED_COLOR_LABELS = [
+  "Midnight Black",
+  "Olive Fern",
+  "Jade Blue",
+  "Green & Black",
+  "Classic Black",
+  "Shale",
+  "Thunder",
+];
+
+/**
+ * Moves rows already in the real (non-local) database that were seeded back
+ * when color variants lived in `productSize` — before the size/color split —
+ * out of `productSize` and into `productColor`. `seedProducts()` only
+ * inserts missing SKUs, so a product seeded before this split keeps its
+ * misclassified `productSize` rows until this runs. Matches by exact label
+ * against `MISCLASSIFIED_COLOR_LABELS`, never touches a differently-labeled
+ * row an operator may have added since (additive/corrective only, like the
+ * other backfills in this file).
+ */
+export async function backfillMisclassifiedColorSizes() {
+  const rows = await db
+    .select({
+      id: productSize.id,
+      productId: productSize.productId,
+      label: productSize.label,
+      price: productSize.price,
+      stock: productSize.stock,
+      position: productSize.position,
+    })
+    .from(productSize)
+    .where(inArray(productSize.label, MISCLASSIFIED_COLOR_LABELS));
+
+  let moved = 0;
+
+  for (const row of rows) {
+    await db.transaction(async (tx) => {
+      await tx.insert(productColor).values({
+        productId: row.productId,
+        label: row.label,
+        price: row.price,
+        stock: row.stock,
+        position: row.position,
+      });
+      await tx.delete(productSize).where(eq(productSize.id, row.id));
+    });
+    moved += 1;
+  }
+
+  return { moved };
 }

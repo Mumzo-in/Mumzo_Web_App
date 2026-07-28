@@ -3,6 +3,7 @@ import {
   brand,
   category,
   product,
+  productColor,
   productSize,
   productVendor,
   vendor,
@@ -140,6 +141,36 @@ export async function sizesByProductId(productIds: string[]) {
   return byProduct;
 }
 
+export async function colorsByProductId(productIds: string[]) {
+  if (productIds.length === 0) {
+    return new Map<string, { label: string; price: number; stock: number }[]>();
+  }
+
+  const rows = await db
+    .select({
+      productId: productColor.productId,
+      label: productColor.label,
+      price: productColor.price,
+      stock: productColor.stock,
+    })
+    .from(productColor)
+    .where(inArray(productColor.productId, productIds))
+    .orderBy(productColor.position);
+
+  const byProduct = new Map<
+    string,
+    { label: string; price: number; stock: number }[]
+  >();
+
+  for (const row of rows) {
+    const list = byProduct.get(row.productId) ?? [];
+    list.push({ label: row.label, price: row.price, stock: row.stock });
+    byProduct.set(row.productId, list);
+  }
+
+  return byProduct;
+}
+
 export async function findIdBySlug(slug: string) {
   const [row] = await db
     .select({ id: product.id })
@@ -229,6 +260,7 @@ async function syncVendorLink(
 export async function insert(
   values: Omit<ProductRow, "id" | "createdAt" | "updatedAt">,
   sizes: { label: string; price: number; stock: number }[],
+  colors: { label: string; price: number; stock: number }[],
   vendorLink: VendorLinkInput,
 ) {
   return db.transaction(async (tx) => {
@@ -253,6 +285,18 @@ export async function insert(
       );
     }
 
+    if (colors.length > 0) {
+      await tx.insert(productColor).values(
+        colors.map((color, index) => ({
+          productId: row.id,
+          label: color.label,
+          price: color.price,
+          stock: color.stock,
+          position: index,
+        })),
+      );
+    }
+
     await syncVendorLink(tx, row.id, vendorLink);
 
     return row.id;
@@ -263,6 +307,7 @@ export async function update(
   id: string,
   values: Partial<Omit<ProductRow, "id" | "createdAt" | "updatedAt">>,
   sizes: { label: string; price: number; stock: number }[],
+  colors: { label: string; price: number; stock: number }[],
   vendorLink: VendorLinkInput,
 ) {
   await db.transaction(async (tx) => {
@@ -270,8 +315,10 @@ export async function update(
       await tx.update(product).set(values).where(eq(product.id, id));
     }
 
-    // Sizes are always fully replaced — the form submits the complete set.
+    // Sizes/colors are always fully replaced — the form submits the
+    // complete set for each.
     await tx.delete(productSize).where(eq(productSize.productId, id));
+    await tx.delete(productColor).where(eq(productColor.productId, id));
 
     if (sizes.length > 0) {
       await tx.insert(productSize).values(
@@ -280,6 +327,18 @@ export async function update(
           label: size.label,
           price: size.price,
           stock: size.stock,
+          position: index,
+        })),
+      );
+    }
+
+    if (colors.length > 0) {
+      await tx.insert(productColor).values(
+        colors.map((color, index) => ({
+          productId: id,
+          label: color.label,
+          price: color.price,
+          stock: color.stock,
           position: index,
         })),
       );

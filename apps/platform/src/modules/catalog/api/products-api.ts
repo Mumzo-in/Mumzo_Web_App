@@ -10,6 +10,13 @@ export type PublicProductSize = {
   stock: number;
 };
 
+/** Same shape as `PublicProductSize` — color/style, a separate axis. */
+export type PublicProductColor = {
+  label: string;
+  price: number;
+  stock: number;
+};
+
 /**
  * Public product shape. Slug/brandSlug/categorySlug are plain strings here
  * (not `@mumzo/schema`'s closed unions) since they come live from the
@@ -33,6 +40,7 @@ export type PublicProduct = {
   countryOfOrigin: string;
   images: string[];
   sizes: PublicProductSize[];
+  colors: PublicProductColor[];
   ages: string[];
   type: string;
   tags: string[];

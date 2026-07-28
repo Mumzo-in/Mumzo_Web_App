@@ -13,6 +13,13 @@ export const productSizeSchema = z.object({
   stock: z.number().int().min(0),
 });
 
+/** Same shape as `productSizeSchema` — color/style, a separate axis. */
+export const productColorSchema = z.object({
+  label: z.string().min(1),
+  price: z.number().int().positive(),
+  stock: z.number().int().min(0),
+});
+
 /** Sourcing info, wire shape — `null` for a self-stocked product. */
 export const productVendorSchema = z
   .object({
@@ -49,6 +56,7 @@ export const productSchema = z
 
     images: z.array(z.string()),
     sizes: z.array(productSizeSchema),
+    colors: z.array(productColorSchema),
 
     ages: z.array(z.string()),
     type: z.string(),
@@ -114,6 +122,7 @@ export const productWriteSchema = z
      * already holds final URLs (no pending uploads this submit). */
     uploadSessionId: z.string().nullable().default(null),
     sizes: z.array(productSizeSchema).default([]),
+    colors: z.array(productColorSchema).default([]),
 
     ages: z.array(z.string()).default([]),
     type: z.string().min(1),
@@ -135,6 +144,12 @@ export const productWriteSchema = z
       new Set(data.sizes.map((size) => size.label.trim().toLowerCase()))
         .size === data.sizes.length,
     { message: "Size labels must be unique.", path: ["sizes"] },
+  )
+  .refine(
+    (data) =>
+      new Set(data.colors.map((color) => color.label.trim().toLowerCase()))
+        .size === data.colors.length,
+    { message: "Color labels must be unique.", path: ["colors"] },
   );
 
 export const createProductSchema = productWriteSchema;

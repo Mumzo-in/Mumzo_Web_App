@@ -49,14 +49,18 @@ function ProductDetailPage() {
     : null;
 
   // Default to the first size that's actually in stock, not merely the
-  // first — recomputed via effect since the product now loads async.
+  // first — recomputed via effect since the product now loads async. Colors
+  // are a separate axis with their own default-in-stock pick; a product
+  // carries one or the other, not both, in practice.
   const [size, setSize] = useState<string | null>(null);
+  const [color, setColor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [saved, setSaved] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only initialize size on product load
   useEffect(() => {
     setSize(product?.sizes.find((s) => s.stock > 0)?.label ?? null);
+    setColor(product?.colors.find((c) => c.stock > 0)?.label ?? null);
   }, [product?.id]);
 
   // Hook must run unconditionally (before the loading/not-found guards
@@ -102,16 +106,28 @@ function ProductDetailPage() {
   const availableSizes = product.sizes.map((s) => s.label);
   const needsSize = product.sizes.length > 0;
   const selectedSize = product.sizes.find((s) => s.label === size) ?? null;
-  const displayPrice = selectedSize ? selectedSize.price : product.price;
-  const displayMrp = selectedSize
+
+  // Colors are a separate axis — only relevant when the product has no
+  // sizes (the two are mutually exclusive in practice).
+  const availableColors = product.colors.map((c) => c.label);
+  const needsColor = !needsSize && product.colors.length > 0;
+  const selectedColor = needsColor
+    ? (product.colors.find((c) => c.label === color) ?? null)
+    : null;
+
+  const selectedVariant = selectedSize ?? selectedColor;
+  const displayPrice = selectedVariant ? selectedVariant.price : product.price;
+  const displayMrp = selectedVariant
     ? product.price > 0
-      ? Math.round((selectedSize.price * product.mrp) / product.price)
-      : selectedSize.price
+      ? Math.round((selectedVariant.price * product.mrp) / product.price)
+      : selectedVariant.price
     : product.mrp;
 
   // The chosen variant governs availability; fall back to product stock when
-  // the product isn't sized.
-  const stockForSelection = selectedSize ? selectedSize.stock : product.stock;
+  // the product has no variants at all.
+  const stockForSelection = selectedVariant
+    ? selectedVariant.stock
+    : product.stock;
   const soldOut = !isPurchasable(product) || stockForSelection === 0;
 
   const related = (relatedPage?.data ?? [])
@@ -120,10 +136,10 @@ function ProductDetailPage() {
     .slice(0, 4);
 
   const handleAdd = () => {
-    if (soldOut || (needsSize && !size)) {
+    if (soldOut || (needsSize && !size) || (needsColor && !color)) {
       return;
     }
-    addItem(product, size, qty);
+    addItem(product, size ?? color, qty);
     toast.success(`${product.name} added to cart!`);
     navigate({ to: "/cart" });
   };
@@ -273,6 +289,16 @@ function ProductDetailPage() {
               sizes={availableSizes}
               selectedSize={size}
               onSelectSize={setSize}
+            />
+          )}
+
+          {/* Color selector — separate axis, only when the product has no
+              sizes. Reuses the same pill-selector pattern. */}
+          {needsColor && (
+            <ProductSizeSelector
+              sizes={availableColors}
+              selectedSize={color}
+              onSelectSize={setColor}
             />
           )}
 

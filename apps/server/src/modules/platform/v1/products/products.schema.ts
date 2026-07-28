@@ -13,6 +13,13 @@ export const publicProductSizeSchema = z.object({
   stock: z.number().int(),
 });
 
+/** Same shape as `publicProductSizeSchema` — color/style, a separate axis. */
+export const publicProductColorSchema = z.object({
+  label: z.string(),
+  price: z.number().int(),
+  stock: z.number().int(),
+});
+
 export const publicProductSchema = z
   .object({
     id: z.string(),
@@ -36,6 +43,7 @@ export const publicProductSchema = z
 
     images: z.array(z.string()),
     sizes: z.array(publicProductSizeSchema),
+    colors: z.array(publicProductColorSchema),
 
     ages: z.array(z.string()),
     type: z.string(),

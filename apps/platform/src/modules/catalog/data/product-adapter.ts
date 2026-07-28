@@ -36,6 +36,7 @@ export function toProduct(p: PublicProduct): Product {
     countryOfOrigin: p.countryOfOrigin,
     images: p.images,
     sizes: p.sizes,
+    colors: p.colors,
     ages: p.ages as Product["ages"],
     type: p.type,
     tags: p.tags,

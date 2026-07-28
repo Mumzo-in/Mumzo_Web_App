@@ -28,6 +28,7 @@ export {
   marginPct,
   PRODUCT_STATUSES,
   type Product,
+  type ProductColor,
   type ProductSize,
   type ProductStatus,
   type ProductVendor,
@@ -38,6 +39,7 @@ export {
 export {
   type ProductFormOutput,
   type ProductFormValues,
+  productColorSchema,
   productFormSchema,
   productSizeSchema,
   productVendorSchema,

@@ -201,6 +201,36 @@ export const productSize = pgTable(
   ],
 );
 
+/**
+ * `Product.colors: ProductColor[]`. Same shape as `productSize` — one row
+ * per variant — but a separate axis: color/style options (stroller colors,
+ * car-seat colors) are not sizes, and mixing the two into `productSize` is
+ * what produced garbage like "Midnight Black" in the storefront's Size
+ * filter. A product has at most one of `sizes`/`colors` populated in
+ * practice, but nothing here enforces that — some gear could legitimately
+ * have both.
+ */
+export const productColor = pgTable(
+  "product_color",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    price: integer("price").notNull(),
+    stock: integer("stock").default(0).notNull(),
+    position: integer("position").default(0).notNull(),
+  },
+  (table) => [
+    unique("product_color_productId_label_key").on(
+      table.productId,
+      table.label,
+    ),
+    index("product_color_productId_idx").on(table.productId),
+  ],
+);
+
 /** Dark-store locations. Just enough for inventory to have somewhere to live. */
 export const hub = pgTable("hub", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -334,6 +364,7 @@ export const productRelations = relations(product, ({ one, many }) => ({
     references: [productVendor.productId],
   }),
   sizes: many(productSize),
+  colors: many(productColor),
   inventory: many(inventory),
   bundleItems: many(bundleItem),
 }));
@@ -352,6 +383,13 @@ export const productVendorRelations = relations(productVendor, ({ one }) => ({
 export const productSizeRelations = relations(productSize, ({ one }) => ({
   product: one(product, {
     fields: [productSize.productId],
+    references: [product.id],
+  }),
+}));
+
+export const productColorRelations = relations(productColor, ({ one }) => ({
+  product: one(product, {
+    fields: [productColor.productId],
     references: [product.id],
   }),
 }));

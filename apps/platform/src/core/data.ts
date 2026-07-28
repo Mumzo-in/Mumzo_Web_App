@@ -86,6 +86,7 @@ const P = (
   images: [img],
   // The old mock carried a single `size` string; the model wants variants.
   sizes: size ? [{ label: size, price, stock }] : [],
+  colors: [],
   ages: [],
   type: "",
   tags: [],

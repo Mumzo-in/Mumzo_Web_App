@@ -20,6 +20,8 @@ import {
   defaultOgImage,
   getCategoryFacets,
   initialFilterState,
+  PRICE_MAX,
+  PRICE_MIN,
   ProductCard,
   productsInfiniteQueryOptions,
   productsQueryOptions,
@@ -65,9 +67,10 @@ const searchParamsSchema = z.object({
   ages: z.string().optional(),
   brands: z.string().optional(),
   sizes: z.string().optional(),
+  colors: z.string().optional(),
   types: z.string().optional(),
-  priceDir: z.enum(["above", "below"]).optional(),
-  priceVal: z.coerce.number().int().positive().optional(),
+  priceMin: z.coerce.number().int().nonnegative().optional(),
+  priceMax: z.coerce.number().int().positive().optional(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -116,10 +119,11 @@ function toFilterState(search: SearchParams): CategoryFilterState {
     ),
     brands: csv(search.brands),
     sizes: csv(search.sizes),
+    colors: csv(search.colors),
     types: csv(search.types),
     price:
-      search.priceDir && search.priceVal
-        ? { direction: search.priceDir, value: search.priceVal }
+      search.priceMin !== undefined && search.priceMax !== undefined
+        ? { min: search.priceMin, max: search.priceMax }
         : initialFilterState.price,
   };
 }
@@ -195,9 +199,10 @@ function SearchPage() {
                 .join(",")
             : undefined,
         sizes: next.sizes.length > 0 ? next.sizes.join(",") : undefined,
+        colors: next.colors.length > 0 ? next.colors.join(",") : undefined,
         types: next.types.length > 0 ? next.types.join(",") : undefined,
-        priceDir: next.price?.direction,
-        priceVal: next.price?.value,
+        priceMin: next.price?.min,
+        priceMax: next.price?.max,
       }),
       replace: true,
     });
@@ -232,9 +237,13 @@ function SearchPage() {
       brands: filters.brands,
       sizes: filters.sizes,
       minPrice:
-        filters.price?.direction === "above" ? filters.price.value : undefined,
+        filters.price && filters.price.min > PRICE_MIN
+          ? filters.price.min
+          : undefined,
       maxPrice:
-        filters.price?.direction === "below" ? filters.price.value : undefined,
+        filters.price && filters.price.max < PRICE_MAX
+          ? filters.price.max
+          : undefined,
     }),
   );
 
@@ -297,7 +306,7 @@ function SearchPage() {
         <CategorySort
           value={filters.sort}
           onChange={updateSort}
-          className="hidden lg:block"
+          className="hidden lg:flex"
         />
       </div>
 

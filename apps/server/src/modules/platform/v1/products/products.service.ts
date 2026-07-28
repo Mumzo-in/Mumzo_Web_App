@@ -1,9 +1,13 @@
 import { notFound } from "@/core/errors";
-import { sizesByProductId } from "@/modules/admin/v1/products/products.repo";
+import {
+  colorsByProductId,
+  sizesByProductId,
+} from "@/modules/admin/v1/products/products.repo";
 import type { PublicSort } from "./products.repo";
 import * as productsRepo from "./products.repo";
 
 type Size = { label: string; price: number; stock: number };
+type Color = { label: string; price: number; stock: number };
 
 /** Total stock across variants, or 0 for an unsized product — DB is the source. */
 function rollUpStock(sizes: Size[]): number {
@@ -12,7 +16,11 @@ function rollUpStock(sizes: Size[]): number {
 
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findPublicById>>;
 
-function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
+function serialize(
+  row: NonNullable<ProductRow>,
+  sizes: Size[],
+  colors: Color[],
+) {
   return {
     id: row.id,
     slug: row.slug,
@@ -31,6 +39,7 @@ function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
     countryOfOrigin: row.countryOfOrigin,
     images: row.images,
     sizes,
+    colors,
     ages: row.ages,
     type: row.type,
     tags: row.tags,
@@ -75,10 +84,18 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
     sort: filters.sort,
   });
 
-  const sizesByProduct = await sizesByProductId(rows.map((row) => row.id));
+  const productIds = rows.map((row) => row.id);
+  const [sizesByProduct, colorsByProduct] = await Promise.all([
+    sizesByProductId(productIds),
+    colorsByProductId(productIds),
+  ]);
 
   let data = rows.map((row) =>
-    serialize(row, sizesByProduct.get(row.id) ?? []),
+    serialize(
+      row,
+      sizesByProduct.get(row.id) ?? [],
+      colorsByProduct.get(row.id) ?? [],
+    ),
   );
 
   if (filters.sizes && filters.sizes.length > 0) {
@@ -115,8 +132,15 @@ export async function getPublicProduct(id: string) {
     throw notFound("Product");
   }
 
-  const sizesByProduct = await sizesByProductId([id]);
-  return serialize(row, sizesByProduct.get(id) ?? []);
+  const [sizesByProduct, colorsByProduct] = await Promise.all([
+    sizesByProductId([id]),
+    colorsByProductId([id]),
+  ]);
+  return serialize(
+    row,
+    sizesByProduct.get(id) ?? [],
+    colorsByProduct.get(id) ?? [],
+  );
 }
 
 /** `GET /api/v1/categories/:slug/products` — shares the main list query. */

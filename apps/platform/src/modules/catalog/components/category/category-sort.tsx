@@ -1,3 +1,12 @@
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@mumzo/ui/components/select";
 import { cn } from "@mumzo/ui/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 
@@ -17,23 +26,32 @@ export default function CategorySort({
   className,
 }: CategorySortProps) {
   return (
-    <div className={cn("relative", className)}>
-      <ArrowUpDown
-        size={14}
-        className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-      />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as SortKey)}
-        data-testid="web-sort"
-        className="w-full appearance-none rounded-full border border-border/70 bg-card py-2.5 pr-8 pl-9 font-medium text-foreground text-sm outline-none focus:border-primary"
-      >
-        {SORTS.map((s) => (
-          <option key={s.key} value={s.key}>
-            {s.label}
-          </option>
-        ))}
-      </select>
+    <div className="flex flex-nowrap items-center gap-2">
+      <span className="hidden shrink-0 whitespace-nowrap text-foreground/60 text-sm sm:inline">
+        Sort by
+      </span>
+      <Select value={value} onValueChange={(v) => onChange(v as SortKey)}>
+        <SelectTrigger
+          data-testid="web-sort"
+          className={cn(
+            "w-full flex-nowrap whitespace-nowrap rounded-full border-border/70 bg-card pl-3.5 font-medium text-foreground",
+            className,
+          )}
+        >
+          <ArrowUpDown size={14} className="shrink-0" />
+          <SelectValue className="truncate" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Sort by</SelectLabel>
+            {SORTS.map((s) => (
+              <SelectItem key={s.key} value={s.key}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

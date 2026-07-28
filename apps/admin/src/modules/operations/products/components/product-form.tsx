@@ -92,6 +92,7 @@ function emptyValues(): ProductFormValues {
     countryOfOrigin: "India",
     images: [],
     sizes: [],
+    colors: [],
     ages: [],
     type: "",
     tags: [],
@@ -127,6 +128,7 @@ function valuesFrom(product: Product): ProductFormValues {
     countryOfOrigin: product.countryOfOrigin,
     images: product.images,
     sizes: product.sizes,
+    colors: product.colors,
     ages: product.ages,
     type: product.type,
     tags: product.tags,
@@ -189,9 +191,9 @@ const SECTIONS = [
   {
     key: "variants",
     label: "Variants",
-    description: "Sizes & per-size stock",
+    description: "Sizes, colors & per-variant stock",
     icon: Layers,
-    fields: ["sizes"],
+    fields: ["sizes", "colors"],
   },
   {
     key: "media",
@@ -759,25 +761,47 @@ export const ProductForm = forwardRef<
           ) : null}
 
           {activeSection === "variants" ? (
-            <Card className="shadow-warm">
-              <CardHeader>
-                <CardTitle>Variants</CardTitle>
-                <CardDescription>
-                  Sizes with their own price and stock. Total stock is their
-                  sum.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form.Field mode="array" name="sizes">
-                  {(field) => (
-                    <SizeEditor
-                      onChange={(next) => field.handleChange(next)}
-                      value={field.state.value ?? []}
-                    />
-                  )}
-                </form.Field>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-6">
+              <Card className="shadow-warm">
+                <CardHeader>
+                  <CardTitle>Sizes</CardTitle>
+                  <CardDescription>
+                    Sizes with their own price and stock. Total stock is their
+                    sum.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form.Field mode="array" name="sizes">
+                    {(field) => (
+                      <SizeEditor
+                        onChange={(next) => field.handleChange(next)}
+                        value={field.state.value ?? []}
+                      />
+                    )}
+                  </form.Field>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-warm">
+                <CardHeader>
+                  <CardTitle>Colors</CardTitle>
+                  <CardDescription>
+                    Color/style options (e.g. stroller or car-seat colors) — a
+                    separate axis from sizes, not sold together with them.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form.Field mode="array" name="colors">
+                    {(field) => (
+                      <SizeEditor
+                        onChange={(next) => field.handleChange(next)}
+                        value={field.state.value ?? []}
+                      />
+                    )}
+                  </form.Field>
+                </CardContent>
+              </Card>
+            </div>
           ) : null}
 
           {activeSection === "media" ? (

@@ -54,6 +54,14 @@ export type ProductSize = {
   stock: number;
 };
 
+/** A color/style variant — same shape as `ProductSize`, but a separate axis
+ * (stroller colors, car-seat colors are not sizes). */
+export type ProductColor = {
+  label: string;
+  price: number;
+  stock: number;
+};
+
 /** "own" — we hold the stock ourselves. "retainer" — vendor holds stock,
  * billed on a standing account. "distributor" — billed per order. */
 export type VendorRelationship = "own" | "retainer" | "distributor";
@@ -105,6 +113,7 @@ export type Product = {
   /** `images[0]` is the primary image. */
   images: string[];
   sizes: ProductSize[];
+  colors: ProductColor[];
 
   ages: AgeGroup[];
   /** Sub-type within a category — "Wipes", "Formula", "Teethers & rattles". */

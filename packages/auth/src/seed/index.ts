@@ -70,6 +70,11 @@ export async function runSeed(
   console.info(
     `Products:    ${catalog.products.created} created, ${catalog.products.skipped} already present.`,
   );
+  if (catalog.misclassifiedColors.moved > 0) {
+    console.info(
+      `Colors:      ${catalog.misclassifiedColors.moved} moved from product_size to product_color.`,
+    );
+  }
   console.info(
     `Coupons:     ${catalog.coupons.created} created, ${catalog.coupons.skipped} already present.`,
   );

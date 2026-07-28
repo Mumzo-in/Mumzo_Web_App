@@ -19,6 +19,14 @@ export const productSizeSchema = z.object({
   stock: z.number().int().min(0, "Stock can't be negative."),
 });
 
+/** Same shape as `productSizeSchema` — a separate axis (color/style) rather
+ * than a size. */
+export const productColorSchema = z.object({
+  label: z.string().min(1, "Give the color a label."),
+  price: z.number().int().positive("Price must be more than zero."),
+  stock: z.number().int().min(0, "Stock can't be negative."),
+});
+
 /** Sourcing info the Sourcing tab collects. `null` = self-stocked. */
 export const productVendorSchema = z
   .object({
@@ -56,6 +64,7 @@ export const productFormSchema = z
 
     images: z.array(z.string()).default([]),
     sizes: z.array(productSizeSchema).default([]),
+    colors: z.array(productColorSchema).default([]),
 
     ages: z.array(z.enum(ageKeys)).default([]),
     type: z.string().min(1, "Give the product a type."),
@@ -81,6 +90,13 @@ export const productFormSchema = z
       new Set(data.sizes.map((size) => size.label.trim().toLowerCase()))
         .size === data.sizes.length,
     { message: "Size labels must be unique.", path: ["sizes"] },
+  )
+  // Same for colors.
+  .refine(
+    (data) =>
+      new Set(data.colors.map((color) => color.label.trim().toLowerCase()))
+        .size === data.colors.length,
+    { message: "Color labels must be unique.", path: ["colors"] },
   );
 
 export type ProductFormValues = z.input<typeof productFormSchema>;

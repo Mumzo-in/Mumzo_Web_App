@@ -1,7 +1,6 @@
 import { discountPct } from "@mumzo/schema";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BadgeCheck, Clock, Leaf } from "lucide-react";
 import { useMemo } from "react";
 import SectionHeader from "@/core/components/section-header";
 import {
@@ -23,15 +22,15 @@ export const Route = createFileRoute("/(store)/")({
   component: HomePage,
 });
 
-const VALUE_PROPS = [
-  {
-    icon: Clock,
-    title: "10-minute delivery",
-    body: "From our Hyderabad stores",
-  },
-  { icon: BadgeCheck, title: "100% genuine", body: "Authorised brands only" },
-  { icon: Leaf, title: "Gentle & safe", body: "Expiry & batch checked" },
-];
+// const VALUE_PROPS = [
+//   {
+//     icon: Clock,
+//     title: "10-minute delivery",
+//     body: "From our Hyderabad stores",
+//   },
+//   { icon: BadgeCheck, title: "100% genuine", body: "Authorised brands only" },
+//   { icon: Leaf, title: "Gentle & safe", body: "Expiry & batch checked" },
+// ];
 
 function SeeAll({ cat, label = "See all" }: { cat?: string; label?: string }) {
   return (
@@ -70,7 +69,7 @@ function HomePage() {
         <HeroCarousel />
       </div>
 
-      {/* Value props */}
+      {/* Value props
       <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {VALUE_PROPS.map((v) => {
           const Icon = v.icon;
@@ -89,7 +88,7 @@ function HomePage() {
             </div>
           );
         })}
-      </section>
+      </section> */}
 
       {/* Shop by category */}
       <section className="mt-12">

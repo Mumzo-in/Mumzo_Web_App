@@ -2,7 +2,11 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../index";
 import { brand, category, categoryBrand, hub, vendor } from "../schema/catalog";
 import { seedCoupons } from "./marketing";
-import { backfillProductPlaceholderImages, seedProducts } from "./products";
+import {
+  backfillMisclassifiedColorSizes,
+  backfillProductPlaceholderImages,
+  seedProducts,
+} from "./products";
 
 /**
  * Seed brands, vendors, and categories.
@@ -96,6 +100,24 @@ const BRAND_SEEDS: BrandSeed[] = [
   { name: "Growgether", slug: "growgether" },
   { name: "I'm NOT A Baby!", slug: "im-not-a-baby" },
   { name: "Pure Aura", slug: "pure-aura" },
+  { name: "WindMill", slug: "windmill" },
+  { name: "Philips Avent", slug: "philips-avent" },
+  { name: "Pigeon", slug: "pigeon" },
+  { name: ".allter", slug: "allter" },
+  { name: "MamyPokoPants", slug: "mamypokopants" },
+  { name: "Mattel Toys", slug: "mattel-toys" },
+  { name: "Frank", slug: "frank" },
+  { name: "DearJoy", slug: "dearjoy" },
+  { name: "Curious Cub", slug: "curious-cub" },
+  { name: "KRIIDDAANK", slug: "kriiddaank" },
+  { name: "Avenir", slug: "avenir" },
+  { name: "Funskool", slug: "funskool" },
+  { name: "Skoodle", slug: "skoodle" },
+  { name: "Jarmelo", slug: "jarmelo" },
+  { name: "Westland", slug: "westland" },
+  { name: "Ekta", slug: "ekta" },
+  { name: "Mi Arcus", slug: "mi-arcus" },
+  { name: "Open Ended", slug: "open-ended" },
   { name: "Slurrp Farm", slug: "slurrp-farm" },
   { name: "Little Joys", slug: "little-joys" },
   { name: "Troovy", slug: "troovy" },
@@ -150,6 +172,19 @@ const CATEGORY_SEEDS: CategorySeed[] = [
       "R for Rabbit",
       "Sebamed",
       "Mother Sparsh",
+      "LuvLap",
+      "Joie",
+      "Loopie",
+      "Lifelong",
+      "Bumtum",
+      "Mee Mee",
+      "Tedibar",
+      "Himalaya",
+      "Growgether",
+      "WindMill",
+      "Philips Avent",
+      "Pigeon",
+      "Chicco",
     ],
   },
   {
@@ -169,6 +204,10 @@ const CATEGORY_SEEDS: CategorySeed[] = [
       "SuperBottoms",
       "Little's",
       "Chicco",
+      "LuvLap",
+      "R for Rabbit",
+      ".allter",
+      "MamyPokoPants",
     ],
   },
   {
@@ -252,7 +291,22 @@ const CATEGORY_SEEDS: CategorySeed[] = [
     position: 7,
     isActive: true,
     hasSizes: false,
-    brandNames: ["TinyTouch"],
+    brandNames: [
+      "TinyTouch",
+      "Mattel Toys",
+      "Frank",
+      "DearJoy",
+      "Curious Cub",
+      "KRIIDDAANK",
+      "Avenir",
+      "Funskool",
+      "Skoodle",
+      "Jarmelo",
+      "Westland",
+      "Ekta",
+      "Mi Arcus",
+      "Open Ended",
+    ],
   },
   {
     slug: "mom-care",
@@ -531,6 +585,7 @@ export async function seedCatalog() {
   const categoryBrands = await backfillCategoryBrands();
   const products = await seedProducts();
   const productImages = await backfillProductPlaceholderImages();
+  const misclassifiedColors = await backfillMisclassifiedColorSizes();
   const coupons = await seedCoupons();
   return {
     brands,
@@ -541,6 +596,7 @@ export async function seedCatalog() {
     categoryBrands,
     products,
     productImages,
+    misclassifiedColors,
     coupons,
   };
 }

@@ -4,6 +4,7 @@ import { finalizeSession } from "@/modules/admin/v1/uploads/uploads.service";
 import * as productsRepo from "./products.repo";
 
 type Size = { label: string; price: number; stock: number };
+type Color = { label: string; price: number; stock: number };
 
 type VendorRelationship = "own" | "retainer" | "distributor";
 
@@ -22,7 +23,11 @@ function rollUpStock(sizes: Size[]): number {
 
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findById>>;
 
-function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
+function serialize(
+  row: NonNullable<ProductRow>,
+  sizes: Size[],
+  colors: Color[],
+) {
   return {
     id: row.id,
     slug: row.slug,
@@ -51,6 +56,7 @@ function serialize(row: NonNullable<ProductRow>, sizes: Size[]) {
     countryOfOrigin: row.countryOfOrigin,
     images: row.images,
     sizes,
+    colors,
     ages: row.ages,
     type: row.type,
     tags: row.tags,
@@ -71,12 +77,20 @@ export async function listProducts(filters: {
   vendorId?: string;
 }) {
   const { rows, total } = await productsRepo.findPage(filters);
-  const sizesByProduct = await productsRepo.sizesByProductId(
-    rows.map((row) => row.id),
-  );
+  const productIds = rows.map((row) => row.id);
+  const [sizesByProduct, colorsByProduct] = await Promise.all([
+    productsRepo.sizesByProductId(productIds),
+    productsRepo.colorsByProductId(productIds),
+  ]);
 
   return {
-    data: rows.map((row) => serialize(row, sizesByProduct.get(row.id) ?? [])),
+    data: rows.map((row) =>
+      serialize(
+        row,
+        sizesByProduct.get(row.id) ?? [],
+        colorsByProduct.get(row.id) ?? [],
+      ),
+    ),
     meta: {
       page: filters.page,
       limit: filters.limit,
@@ -92,8 +106,15 @@ export async function getProduct(id: string) {
     throw notFound("Product");
   }
 
-  const sizesByProduct = await productsRepo.sizesByProductId([id]);
-  return serialize(row, sizesByProduct.get(id) ?? []);
+  const [sizesByProduct, colorsByProduct] = await Promise.all([
+    productsRepo.sizesByProductId([id]),
+    productsRepo.colorsByProductId([id]),
+  ]);
+  return serialize(
+    row,
+    sizesByProduct.get(id) ?? [],
+    colorsByProduct.get(id) ?? [],
+  );
 }
 
 type ProductInput = {
@@ -116,6 +137,7 @@ type ProductInput = {
   /** Draft image-upload session to finalize before persisting `images`. */
   uploadSessionId?: string | null;
   sizes: Size[];
+  colors: Color[];
   ages: string[];
   type: string;
   tags: string[];
@@ -207,14 +229,22 @@ export async function createProduct(input: ProductInput, userId: string) {
   await assertVendorExists(input.vendor);
   const categoryId = await resolveCategoryId(input.categorySlug);
 
-  const { sizes, categorySlug, vendor, uploadSessionId, images, ...rest } =
-    input;
+  const {
+    sizes,
+    colors,
+    categorySlug,
+    vendor,
+    uploadSessionId,
+    images,
+    ...rest
+  } = input;
 
   // Product row doesn't exist yet to key the final image path on — insert
   // first with draft images, then finalize once the id is known.
   const id = await productsRepo.insert(
     { ...rest, categoryId, images },
     sizes,
+    colors,
     vendor,
   );
 
@@ -225,7 +255,13 @@ export async function createProduct(input: ProductInput, userId: string) {
       uploadSessionId,
       userId,
     );
-    await productsRepo.update(id, { images: finalImages }, sizes, vendor);
+    await productsRepo.update(
+      id,
+      { images: finalImages },
+      sizes,
+      colors,
+      vendor,
+    );
   }
 
   return id;
@@ -262,8 +298,15 @@ export async function updateProduct(
   await assertVendorExists(input.vendor);
   const categoryId = await resolveCategoryId(input.categorySlug);
 
-  const { sizes, categorySlug, vendor, uploadSessionId, images, ...rest } =
-    input;
+  const {
+    sizes,
+    colors,
+    categorySlug,
+    vendor,
+    uploadSessionId,
+    images,
+    ...rest
+  } = input;
 
   const finalImages = uploadSessionId
     ? await finalizeImages(id, images, uploadSessionId, userId)
@@ -273,6 +316,7 @@ export async function updateProduct(
     id,
     { ...rest, categoryId, images: finalImages },
     sizes,
+    colors,
     vendor,
   );
 }
