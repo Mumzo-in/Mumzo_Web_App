@@ -53,7 +53,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: "Control Room",
         items: [
           { label: "Dashboard", to: "/" },
-          { label: "Live Ops Board", to: "/overview/ops", comingSoon: true },
+          { label: "Live Ops Board", to: "/overview/ops" },
           { label: "Analytics", to: "/overview/analytics", comingSoon: true },
         ],
       },
@@ -102,15 +102,18 @@ export const NAV_SECTIONS: NavSection[] = [
     to: "/finance/coupons",
     groups: [
       {
+        label: "Users",
+        items: [
+          { label: "Analytics", to: "/platform/users/analytics" },
+          { label: "Users", to: "/platform/users/list" },
+        ],
+      },
+      {
         label: "Marketing",
         items: [
           { label: "Coupons & Offers", to: "/finance/coupons" },
           { label: "Banners CMS", to: "/legal/banners", comingSoon: true },
         ],
-      },
-      {
-        label: "Users",
-        items: [{ label: "Customer Base", to: "/customers/users" }],
       },
       {
         label: "System",

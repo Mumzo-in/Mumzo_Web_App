@@ -174,7 +174,7 @@ function BundleDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-2xl border">
+          <div className="overflow-x-auto border">
             <Table>
               <TableHeader>
                 <TableRow>

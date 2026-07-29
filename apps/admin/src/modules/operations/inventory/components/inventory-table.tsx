@@ -103,7 +103,7 @@ export function InventoryTable() {
         {canAdjust ? <AdjustInventoryDialog /> : null}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

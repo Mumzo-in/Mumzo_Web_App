@@ -3,6 +3,7 @@ import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
 import { type FormEvent, useState } from "react";
 
+import { authClient } from "@/modules/auth";
 import {
   ADDRESS_LABELS,
   type Address,
@@ -11,6 +12,15 @@ import {
 } from "../data/address-data";
 
 type AddressDraft = Omit<Address, "id">;
+
+/** Account phone is stored E.164 (`+91XXXXXXXXXX`, see `sign-in-form.tsx`'s
+ * `toE164`) — display it in the same "XXXXX XXXXX" shape the rest of the
+ * address book uses instead of the raw dialing format. */
+function formatAccountPhone(phoneNumber: string) {
+  const digits = phoneNumber.replace(/^\+91/, "");
+  if (digits.length !== 10) return digits;
+  return `${digits.slice(0, 5)} ${digits.slice(5)}`;
+}
 
 interface AddressFormProps {
   initial?: Address;
@@ -26,6 +36,13 @@ export default function AddressForm({
   onSubmit,
   onCancel,
 }: AddressFormProps) {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const accountPhone =
+    user && "phoneNumber" in user && typeof user.phoneNumber === "string"
+      ? formatAccountPhone(user.phoneNumber)
+      : undefined;
+
   const [form, setForm] = useState(() => ({
     ...emptyAddress(),
     ...initial,
@@ -95,7 +112,19 @@ export default function AddressForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="phone">Phone</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="phone">Phone</Label>
+            {accountPhone && accountPhone !== form.phone && (
+              <button
+                type="button"
+                onClick={() => set("phone", accountPhone)}
+                data-testid="web-use-account-phone"
+                className="cursor-pointer font-semibold text-primary text-xs hover:text-primary/80"
+              >
+                Use my number
+              </button>
+            )}
+          </div>
           <Input
             id="phone"
             value={form.phone}

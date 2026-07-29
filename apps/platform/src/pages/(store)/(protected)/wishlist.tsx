@@ -1,3 +1,4 @@
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
@@ -15,11 +16,14 @@ export const Route = createFileRoute("/(store)/(protected)/wishlist")({
 });
 
 function WishlistPage() {
-  const { ids } = useWishlist();
+  const { ids, isLoading: wishlistLoading } = useWishlist();
   // A wishlisted id is a real product uuid (`ProductCard` toggles
   // `product.id`, and products are live now) — pull a generous live page and
   // filter, rather than adding a per-id endpoint just for this page.
-  const { data: page } = useQuery(productsQueryOptions({ limit: 100 }));
+  const { data: page, isLoading: productsLoading } = useQuery(
+    productsQueryOptions({ limit: 100 }),
+  );
+  const isLoading = wishlistLoading || productsLoading;
   const wished = (page?.data ?? [])
     .map(toProduct)
     .filter((p) => ids.includes(p.id));
@@ -34,13 +38,22 @@ function WishlistPage() {
         <h1 className="font-editorial text-3xl text-ink leading-none tracking-tight sm:text-4xl">
           Your wishlist
         </h1>
-        <p className="mt-2 text-foreground/60 text-sm">
-          {wished.length} {wished.length === 1 ? "item" : "items"} saved for
-          later
-        </p>
+        {!isLoading && (
+          <p className="mt-2 text-foreground/60 text-sm">
+            {wished.length} {wished.length === 1 ? "item" : "items"} saved for
+            later
+          </p>
+        )}
       </div>
 
-      {wished.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton count, never reordered
+            <Skeleton key={i} className="aspect-3/4 rounded-2xl" />
+          ))}
+        </div>
+      ) : wished.length === 0 ? (
         <div className="rounded-3xl border border-border/60 bg-white py-20 text-center">
           <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
             <Heart size={28} className="text-primary" />

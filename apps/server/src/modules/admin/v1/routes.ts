@@ -6,12 +6,14 @@ import brandsRoutes from "./brands/brands.module";
 import bundlesRoutes from "./bundles/bundles.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
+import dashboardRoutes from "./dashboard";
 import hubsRoutes from "./hubs/hubs.module";
 import inventoryRoutes from "./inventory/inventory.module";
 import productsRoutes from "./products/products.module";
 import rolesRoutes from "./roles";
 import staffRoutes from "./staff";
 import uploadsRoutes from "./uploads/uploads.module";
+import usersRoutes from "./users/users.module";
 import vendorsRoutes from "./vendors/vendors.module";
 
 /**
@@ -22,6 +24,7 @@ import vendorsRoutes from "./vendors/vendors.module";
  */
 export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/auth", router: authRoutes },
+  { path: "/dashboard", router: dashboardRoutes },
   { path: "/roles", router: rolesRoutes },
   { path: "/staff", router: staffRoutes },
   { path: "/brands", router: brandsRoutes },
@@ -33,4 +36,5 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/hubs", router: hubsRoutes },
   { path: "/inventory", router: inventoryRoutes },
   { path: "/uploads", router: uploadsRoutes },
+  { path: "/users", router: usersRoutes },
 ];

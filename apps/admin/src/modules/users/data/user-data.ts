@@ -12,7 +12,7 @@ export type AdminUser = {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  phone: string | null;
   status: UserStatus;
   orderCount: number;
   lifetimeValue: number;
@@ -29,99 +29,51 @@ export const USER_STATUS_META: Record<
   banned: { label: "Banned", tint: "bg-destructive/10 text-destructive" },
 };
 
-export const users: AdminUser[] = [
-  {
-    id: "usr_001",
-    name: "Ananya Reddy",
-    email: "ananya.reddy@example.com",
-    phone: "+91 98490 11223",
-    status: "active",
-    orderCount: 24,
-    lifetimeValue: 28940,
-    babies: [{ name: "Kiara", dob: "2025-11-02" }],
-    joinedAt: "2025-08-14T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T05:42:00.000Z",
+/**
+ * Named sort presets for the users table, synced to the `sort` URL param.
+ * `mostValued` is listed but disabled in the UI — no `order` table exists
+ * yet, so `orderCount`/`lifetimeValue` are always 0 and sorting by them
+ * would be meaningless. It activates once real order data lands.
+ */
+export const USER_SORT_PRESETS = {
+  recent: { label: "Recent", sortBy: "joinedAt", sortDir: "desc" },
+  oldest: { label: "Oldest", sortBy: "joinedAt", sortDir: "asc" },
+  nameAsc: { label: "Name (A–Z)", sortBy: "name", sortDir: "asc" },
+  nameDesc: { label: "Name (Z–A)", sortBy: "name", sortDir: "desc" },
+  mostValued: {
+    label: "Most valued",
+    sortBy: "lifetimeValue",
+    sortDir: "desc",
   },
-  {
-    id: "usr_002",
-    name: "Priya Sharma",
-    email: "priya.sharma@example.com",
-    phone: "+91 90000 44556",
-    status: "active",
-    orderCount: 9,
-    lifetimeValue: 7420,
-    babies: [{ name: "Aarav", dob: "2026-02-18" }],
-    joinedAt: "2026-01-05T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T05:38:00.000Z",
-  },
-  {
-    id: "usr_003",
-    name: "Fatima Begum",
-    email: "fatima.begum@example.com",
-    phone: "+91 99590 77881",
-    status: "active",
-    orderCount: 41,
-    lifetimeValue: 52310,
-    babies: [
-      { name: "Zara", dob: "2024-05-30" },
-      { name: "Imran", dob: "2026-04-11" },
-    ],
-    joinedAt: "2025-03-22T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T05:30:00.000Z",
-  },
-  {
-    id: "usr_004",
-    name: "Sneha Iyer",
-    email: "sneha.iyer@example.com",
-    phone: "+91 88860 33447",
-    status: "active",
-    orderCount: 6,
-    lifetimeValue: 3180,
-    babies: [],
-    joinedAt: "2026-05-19T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T04:55:00.000Z",
-  },
-  {
-    id: "usr_005",
-    name: "Meera Nair",
-    email: "meera.nair@example.com",
-    phone: "+91 97010 22665",
-    status: "banned",
-    orderCount: 2,
-    lifetimeValue: 1898,
-    babies: [{ name: "Vihaan", dob: "2026-01-09" }],
-    joinedAt: "2026-06-01T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T04:40:00.000Z",
-  },
-  {
-    id: "usr_006",
-    name: "Divya Rao",
-    email: "divya.rao@example.com",
-    phone: "+91 91210 88994",
-    status: "active",
-    orderCount: 17,
-    lifetimeValue: 16240,
-    babies: [{ name: "Anika", dob: "2025-07-25" }],
-    joinedAt: "2025-09-30T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T04:12:00.000Z",
-  },
-  {
-    id: "usr_007",
-    name: "Ritu Verma",
-    email: "ritu.verma@example.com",
-    phone: "+91 93930 55112",
-    status: "active",
-    orderCount: 33,
-    lifetimeValue: 39880,
-    babies: [{ name: "Advik", dob: "2024-12-14" }],
-    joinedAt: "2025-02-11T00:00:00.000Z",
-    lastOrderAt: "2026-07-16T03:50:00.000Z",
-  },
-];
+} as const satisfies Record<
+  string,
+  { label: string; sortBy: string; sortDir: "asc" | "desc" }
+>;
 
-export function findUser(id: string): AdminUser | undefined {
-  return users.find((user) => user.id === id);
-}
+/**
+ * The literal tuple, not `Object.keys()` — `z.enum()` needs a statically
+ * known non-empty tuple to infer a literal union; `Object.keys()` only ever
+ * types as `string[]`, which would widen `search.sort` back to `string`.
+ */
+export const USER_SORT_PRESET_KEYS = [
+  "recent",
+  "oldest",
+  "nameAsc",
+  "nameDesc",
+  "mostValued",
+] as const;
+
+export type UserSortPreset = (typeof USER_SORT_PRESET_KEYS)[number];
+
+export const DEFAULT_USER_SORT: UserSortPreset = "recent";
+
+/** Presets the server can actually honor today — excludes `mostValued`. */
+export const ACTIVE_USER_SORT_PRESETS: readonly UserSortPreset[] = [
+  "recent",
+  "oldest",
+  "nameAsc",
+  "nameDesc",
+];
 
 /** Baby age in months — the storefront's key recommendation signal. */
 export function ageInMonths(dob: string, now = new Date()): number {
@@ -131,4 +83,13 @@ export function ageInMonths(dob: string, now = new Date()): number {
     (now.getFullYear() - born.getFullYear()) * 12 +
       (now.getMonth() - born.getMonth()),
   );
+}
+
+/**
+ * The temp email Better Auth derives from a phone number (`getTempEmail` in
+ * `packages/auth/src/platform.ts`) — not a real address, so it's hidden
+ * rather than shown as if the customer supplied it.
+ */
+export function isPlaceholderEmail(email: string): boolean {
+  return email.endsWith("@phone.mumzo.local");
 }

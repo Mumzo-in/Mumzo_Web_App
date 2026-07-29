@@ -384,11 +384,15 @@ function DashboardPage() {
                         <span className="font-semibold text-foreground text-xs">
                           {mom.name}
                         </span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                          <span>
-                            Baby: {mom.babyName} ({mom.babyAge})
-                          </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {mom.phoneNumber ?? "No phone on file"}
                         </span>
+                        {mom.babyName && (
+                          <span className="text-[10px] text-muted-foreground">
+                            Baby: {mom.babyName}
+                            {mom.babyAge ? ` (${mom.babyAge})` : ""}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">

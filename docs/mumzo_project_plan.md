@@ -12,7 +12,7 @@
 | Area | Done | Partial | Not Started |
 |------|------|---------|-------------|
 | **Catalog** (Products, Categories, Brands, Vendors, Bundles, Inventory) | ✅ Full CRUD — BE + Admin + Platform | — | — |
-| **Auth** | 🔶 Backend works, UI forms not wired | — | OTP, Google OAuth |
+| **Auth** | 🔶 Phone OTP login fully built (login=signup); real SMS send pending MSG91/DLT | — | Google OAuth |
 | **Home & Discovery** | ✅ Full page — categories, deals, bestsellers, brands, collections | — | Personalization |
 | **Search & Filters** | ✅ Full filter panel, sort, URL-driven state | — | Full-text/Typesense |
 | **Product Detail** | ✅ Full page — gallery, sizes, price, highlights, related | — | Reviews section |
@@ -32,37 +32,33 @@
 
 > **Priority:** P0 · **Blocks:** Everything
 
-#### 1.1 Email/Password Auth
+#### 1.1 Phone OTP Login (login = signup, single unified flow)
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Sign-in form (email + password) | 🔶 | BE works (Better Auth), PF form not built |
-| Sign-up form (name, email, password) | 🔶 | BE works, PF form not built |
-| Forgot password page | 🔶 | BE works, PF page route exists, form not wired |
-| Reset password page | 🔶 | BE works, PF page route exists, form not wired |
-| Email verification page | 🔶 | BE works, PF page route exists, not wired |
-| Post-login redirect (return to cart/previous page) | ⬜ | |
+| Phone number entry + OTP request | ✅ | Better Auth `phoneNumber` plugin, `/auth/login` |
+| OTP verify + auto-account-creation (`signUpOnVerification`) | ✅ | No separate sign-up step — first-time verify creates the account |
+| Dev/test OTP bypass (`OTP_BYPASS=111111`) | ✅ | Used until real SMS is wired |
+| Real SMS delivery via MSG91 | ⬜ | Requires DLT template/sender-ID registration (3–5 days lead time) — code path exists, provider not wired |
+| Post-login redirect (return to cart/checkout/previous page) | ✅ | `?redirect=` param on `/auth/login`, set by the protected-route guard, consumed in `SignInForm` with a same-origin-only guard |
 | Session persistence + auto-refresh | ✅ | Better Auth handles this |
 | Protected route guard | ✅ | `(protected)/_layout.tsx` with `beforeLoad` |
 
-#### 1.2 Phone OTP Login
-| Sub-feature | Status | Notes |
-|-------------|--------|-------|
-| OTP send + verify (MSG91 integration) | ⬜ | Better Auth plugin not added |
-| OTP input page (`/auth/otp`) | ⬜ | |
-| DLT registration (India regulatory) | ⬜ | Takes 3–7 days |
+> **No email/password auth exists or is planned for customers.** `emailAndPassword` is explicitly
+> disabled on the platform Better Auth instance — phone OTP is the only customer login method.
+> (Admin/staff panel is separate: email+password, self-signup disabled — internal accounts only.)
 
-#### 1.3 Google OAuth
+#### 1.2 Google OAuth
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
 | Google Cloud credentials setup | ⬜ | |
 | Google sign-in button on login page | ⬜ | |
 | Better Auth social plugin | ⬜ | |
 
-#### 1.4 Guest Browsing & Serviceability
+#### 1.3 Guest Browsing & Serviceability
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
 | Guest browse (no auth needed for catalog) | ✅ | Public routes work |
-| Location/pincode picker component | 🔶 | Module exists, UI not wired |
+| Location/pincode picker component | ✅ | Saved-addresses list (when any exist) → use-current-location (geolocation) or manual entry with OpenStreetMap Nominatim autocomplete (server-proxied, no API key) → optional save-as-address step; responsive Dialog (desktop) / bottom-sheet Drawer (mobile); wired into header on both breakpoints |
 | Serviceability check API | ⬜ | |
 | Gate checkout if unserviceable | ⬜ | |
 
@@ -75,11 +71,18 @@
 #### 2.1 Addresses
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Address DB schema | ⬜ | |
-| Address CRUD (create, edit, delete, set default) | ⬜ | |
-| Address list page (`/addresses`) | 🔶 | Route exists, no content |
-| Add/edit address form (with pincode validation) | ⬜ | |
-| Map autocomplete (Google Places) | ⬜ | |
+| Address DB schema | ✅ | `address` table — userId FK+index, label/name/phone/line1/line2/landmark/pincode/city, nullable lat/lng, isDefault, timestamps |
+| Address CRUD (create, edit, delete, set default) | ✅ | `GET/POST /api/v1/addresses`, `PATCH/DELETE /api/v1/addresses/:id`, `POST /api/v1/addresses/:id/default` — all `requireAuth` + ownership-checked |
+| Address list page (`/addresses`) | ✅ | Real data, loading skeleton, empty state (`Empty` component) |
+| Add/edit address form (with pincode validation) | ✅ | Zod 6-digit pincode validation server-side; "Use my number" prefills phone from the account session |
+| Map/address autocomplete | ✅ | OpenStreetMap Nominatim, proxied server-side (no API key) — wired into both the location picker's save-address step and reachable from `/addresses` |
+
+**Known gaps / not done:**
+- Editing an existing address from `/addresses` doesn't go through the location picker/autocomplete — it's the plain `AddressForm` fields only (autocomplete prefill is currently a save-flow-only convenience, not wired into the edit dialog).
+- `AddressForm`'s Home/Work one-per-user rule and pincode format are enforced by the UI/Zod, but there's no server-side dedupe check beyond that (e.g. two "Other" addresses with identical fields aren't blocked — acceptable for now, not a real bug).
+- No delivery-area/serviceability tie-in yet — a saved address's pincode isn't checked against real serviceability (still the mock `serviceAreas` list); `checkout/address.tsx`'s hard gate uses the separate `useServiceability()` state, not the selected address itself.
+- No address reordering/pagination — fine at low counts, would need attention if a user accumulates many addresses.
+- No account deletion / GDPR cascade beyond the DB's `onDelete: cascade` FK (addresses vanish if the user account is deleted, but there's no explicit "delete my data" flow yet — tracked under 2.2 Profile below).
 
 #### 2.2 Profile
 | Sub-feature | Status | Notes |
@@ -431,12 +434,14 @@
 #### 14.1 Dashboard & Analytics
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Dashboard overview (GMV, orders today, AOV, new users) | 🔶 | Admin page + metric card component exist, no real data |
+| Dashboard overview (GMV, orders today, AOV) | 🔶 | Admin page + metric card component exist, no real data |
+| New users metric + recent signups list | ✅ | Real data — `GET /admin/dashboard/user-counts`, `GET /admin/dashboard/recent-users` (`apps/server/src/modules/admin/v1/dashboard`), wired into the admin dashboard page |
 | Revenue chart (daily/weekly/monthly) | ⬜ | |
 | Order funnel analytics (cart → checkout → paid → delivered) | 🔶 | Analytics page exists |
 | Top products report | ⬜ | |
-| User signups/retention | ⬜ | |
-| Real-time ops board (live orders, SLA) | 🔶 | Ops page exists |
+| User signups/retention | 🔶 | `/platform/users/analytics` — metric cards, growth chart, retention curve real-shaped but mock data (no order table yet for real retention); Recent Users table is real (`GET /admin/users`) |
+| Real-time ops board (live orders, SLA) | 🔶 | `/overview/ops` — kanban board (Placed/Packed/Out for delivery/Delivered columns), drag-and-drop status transitions (`@dnd-kit`), SLA countdown badges, cancelled-count badge, day filter + search, "New order" manual-entry dialog (global dialog store). Runs on `modules/orders` mock data + polling (20s) — no `order` table yet, so nothing persists past a refresh |
+| Customer directory (list, search, filter, detail) | ✅ | `/platform/users/list` + `/platform/users/$userId` — real server-paginated `GET /admin/users`/`GET /admin/users/:id` (`apps/server/src/modules/admin/v1/users`); `orderCount`/`lifetimeValue` stay 0 until an `order` table exists |
 
 #### 14.2 GST & Invoicing
 | Sub-feature | Status | Notes |
@@ -568,7 +573,7 @@ graph TD
 
 | Sprint | Focus | Modules |
 |--------|-------|---------|
-| **S1** | Auth forms + Addresses + Cart backend | M1, M2, M3 |
+| **S1** | Post-login redirect + Addresses + Cart backend | M1, M2, M3 |
 | **S2** | Cart UI + shell (footer, bottom nav, mobile bar) | M3, shared |
 | **S3** | Orders + Payments backend (Razorpay) | M4, M5 |
 | **S4** | Checkout flow + Payment UI | M6, M5 |
@@ -577,7 +582,7 @@ graph TD
 | **S7** | Reviews + Wishlist | M7, M9 |
 | **S8** | Referrals + Full-text search | M8, M10 |
 | **S9** | Notifications + Finance dashboard | M11, M14 |
-| **S10** | Support + OTP login + polish | M15, M1 |
+| **S10** | Support + Google OAuth + polish | M15, M1 |
 | **S11** | Subscriptions + Vendor ops | M16, M12 |
 | **S12** | Analytics, PWA, Sentry, launch prep | Shared |
 
@@ -588,12 +593,11 @@ graph TD
 | Item | Blocks | Lead Time |
 |------|--------|-----------|
 | Razorpay test keys | M5 (Sprint 3) | 3–7 days KYC |
-| MSG91 + DLT registration | M1 OTP (Sprint 10) | 3–7 days |
-| Resend email + domain DNS | M1 Auth (Sprint 1) | 24–48h |
+| MSG91 + DLT registration | M1 real SMS send (login flow already works via bypass) | 3–7 days |
+| Resend email + domain DNS | Transactional email (order confirmations etc.) | 24–48h |
 | Cloudflare R2 bucket | Image uploads | Same day |
 | Google OAuth credentials | M1 Google (Sprint 10) | Same day |
 | Firebase project (FCM) | M11 (Sprint 9) | Same day |
-| Google Maps API key | M2 Addresses (Sprint 1) | Same day |
 | Legal pages (Privacy, T&C, Returns) | Razorpay activation | Need legal drafts |
 | GST Registration | M14 invoicing | Variable |
 

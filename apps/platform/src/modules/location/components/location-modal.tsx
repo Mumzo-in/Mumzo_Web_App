@@ -1,4 +1,3 @@
-import { Button } from "@mumzo/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -6,142 +5,146 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@mumzo/ui/components/dialog";
-import { CalendarClock, MapPin, TriangleAlert, Zap } from "lucide-react";
-import { useState } from "react";
-import { useModalStore } from "@/core/hooks/use-modal-store";
-import { checkServiceability, serviceAreas } from "../data/serviceability-data";
-import { useServiceability } from "../store/serviceability-provider";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@mumzo/ui/components/drawer";
+import { AnimatePresence, motion } from "motion/react";
+import { useIsMobile } from "@/core/hooks/use-mobile";
+import { useLocationFlow } from "../hooks/use-location-flow";
+import { AskStep } from "./steps/ask-step";
+import { ListStep } from "./steps/list-step";
+import { ManualStep } from "./steps/manual-step";
+import { SaveAddressStep } from "./steps/save-address-step";
+
+const STEP_TRANSITION = { duration: 0.2, ease: "easeOut" as const };
 
 export default function LocationModal() {
-  const { activeModal, closeModal } = useModalStore();
-  const { query, setLocation } = useServiceability();
-  const [inputValue, setInputValue] = useState("");
+  const isMobile = useIsMobile();
+  const {
+    isOpen,
+    step,
+    setStep,
+    resolved,
+    resolvingLocation,
+    addresses,
+    geolocation,
+    closeModal,
+    handleSkip,
+    handleSelectAddress,
+    handleLocationResolved,
+    handleOpenChange,
+    handleSaveAddress,
+  } = useLocationFlow();
 
-  const isOpen = activeModal === "location";
-  // Live preview of what the typed value resolves to.
-  const preview = inputValue.trim() ? checkServiceability(inputValue) : null;
+  const body = (
+    <AnimatePresence mode="wait" initial={false}>
+      {step === "list" && (
+        <motion.div
+          key="list"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+        >
+          <ListStep
+            addresses={addresses}
+            onSelect={handleSelectAddress}
+            onUseCurrentLocation={() => setStep("ask")}
+          />
+        </motion.div>
+      )}
+      {step === "ask" && (
+        <motion.div
+          key="ask"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+        >
+          <AskStep
+            geolocationStatus={geolocation.status}
+            resolvingLocation={resolvingLocation}
+            showBack={addresses.length > 0}
+            onBack={() => setStep("list")}
+            onUseCurrentLocation={geolocation.request}
+            onEnterManually={() => setStep("manual")}
+            onSkip={handleSkip}
+          />
+        </motion.div>
+      )}
+      {step === "manual" && (
+        <motion.div
+          key="manual"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+        >
+          <ManualStep
+            onBack={() => setStep("ask")}
+            onResolved={handleLocationResolved}
+          />
+        </motion.div>
+      )}
+      {step === "save" && resolved && (
+        <motion.div
+          key="save"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+        >
+          <SaveAddressStep
+            resolved={resolved}
+            existing={addresses}
+            onBack={() => setStep("ask")}
+            onSave={handleSaveAddress}
+            onSkip={closeModal}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
-  const apply = (value: string) => {
-    setLocation(value);
-    setInputValue("");
-    closeModal();
-  };
-
-  const handleApply = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim()) apply(inputValue.trim());
-  };
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+        {/* Keyed by step: the drawer measures its height once on mount and
+         * doesn't shrink-then-regrow correctly for content that changes
+         * height via conditional children, so each step gets a fresh popup
+         * to remeasure against instead of fighting the cached height. */}
+        <DrawerContent
+          key={step}
+          className="rounded-t-3xl border-border/60 bg-background"
+        >
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Where should we deliver?</DrawerTitle>
+            <DrawerDescription>
+              Enable location or enter your address to check delivery
+              availability.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-6 pt-3">{body}</div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="rounded-3xl border border-border/60 bg-background p-6 sm:max-w-md">
-        <DialogHeader className="mb-4">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blush">
-            <MapPin size={22} className="text-pinkDeep" />
-          </div>
-          <DialogTitle className="text-center font-editorial text-2xl text-ink leading-tight">
-            Where should we deliver?
-          </DialogTitle>
-          <DialogDescription className="mt-1 text-center text-foreground/60">
-            Enter your pincode or area to check delivery availability.
+        <DialogHeader className="sr-only">
+          <DialogTitle>Where should we deliver?</DialogTitle>
+          <DialogDescription>
+            Enable location or enter your address to check delivery
+            availability.
           </DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handleApply} className="flex flex-col gap-4">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Enter Pincode or Area (e.g. 500034)"
-            data-testid="web-pincode-input"
-            className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-foreground text-sm outline-none transition-all placeholder:text-foreground/40 focus:border-pinkDeep"
-          />
-
-          {preview && (
-            <div
-              data-testid="web-pincode-result"
-              className={`flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
-                preview.status === "unserviceable"
-                  ? "bg-destructive/10 text-destructive"
-                  : "bg-sage/50 text-ink"
-              }`}
-            >
-              {preview.status === "express" && (
-                <>
-                  <Zap size={14} className="mt-px shrink-0 text-primary" />
-                  <span>
-                    <span className="font-semibold">{preview.area?.area}</span>{" "}
-                    — express delivery in ~{preview.area?.etaMins} minutes.
-                  </span>
-                </>
-              )}
-              {preview.status === "scheduled" && (
-                <>
-                  <CalendarClock
-                    size={14}
-                    className="mt-px shrink-0 text-primary"
-                  />
-                  <span>
-                    <span className="font-semibold">{preview.area?.area}</span>{" "}
-                    — scheduled delivery only, no 10-minute express here yet.
-                  </span>
-                </>
-              )}
-              {preview.status === "unserviceable" && (
-                <>
-                  <TriangleAlert size={14} className="mt-px shrink-0" />
-                  <span>
-                    We don't deliver to this location yet. Try one of the areas
-                    below.
-                  </span>
-                </>
-              )}
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className="mumzo-btn h-12 w-full justify-center py-3 text-sm"
-          >
-            Apply Location
-          </Button>
-        </form>
-
-        <div className="mt-6 border-border/50 border-t pt-5">
-          <p className="mb-3 font-semibold text-[10px] text-foreground/50 uppercase tracking-widest">
-            Areas we deliver to
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {serviceAreas.map((area) => (
-              <button
-                key={area.pincode}
-                type="button"
-                onClick={() => apply(area.area)}
-                data-testid={`web-area-${area.pincode}`}
-                className={`flex flex-col rounded-xl border px-4 py-2.5 text-left transition-all ${
-                  query === area.area
-                    ? "border-rose bg-blush text-pinkDeep"
-                    : "border-border/60 bg-white text-foreground/80 hover:border-pinkDeep hover:text-pinkDeep"
-                }`}
-              >
-                <span className="font-semibold text-xs">{area.area}</span>
-                <span className="mt-0.5 flex items-center gap-1 text-[10px] opacity-70">
-                  {area.express ? (
-                    <>
-                      <Zap size={9} />~{area.etaMins} min
-                    </>
-                  ) : (
-                    <>
-                      <CalendarClock size={9} />
-                      Scheduled
-                    </>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        {body}
       </DialogContent>
     </Dialog>
   );

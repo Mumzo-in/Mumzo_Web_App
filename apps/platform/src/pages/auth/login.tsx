@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { SignInForm } from "@/modules/auth";
 
+const loginSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth/login")({
+  validateSearch: (search: Record<string, unknown>) =>
+    loginSearchSchema.parse(search),
   component: LoginPage,
 });
 

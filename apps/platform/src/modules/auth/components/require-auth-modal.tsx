@@ -8,6 +8,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { LogIn } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
+import type { RequireAuthModalData } from "../hooks/use-require-auth";
 import SignInForm from "./forms/sign-in-form";
 
 /**
@@ -15,14 +16,23 @@ import SignInForm from "./forms/sign-in-form";
  * gated action (e.g. "Add to cart"). Renders the same `SignInForm` used on
  * the standalone `/auth/login` page, but closes itself on success instead of
  * navigating — the visitor stays on whatever page they were already on.
+ *
+ * `modalData` is either a plain string prompt (older/simpler call sites like
+ * `openModal("login")` with no payload) or a `RequireAuthModalData` object
+ * carrying the prompt plus the gated action to resume once sign-in
+ * succeeds — without that, whatever the visitor was doing (e.g. saving an
+ * address) would silently vanish the moment the modal took over.
  */
 export default function RequireAuthModal() {
   const { activeModal, modalData, closeModal } = useModalStore();
   const queryClient = useQueryClient();
 
   const isOpen = activeModal === "login";
-  const prompt =
-    typeof modalData === "string" ? modalData : "Sign in to continue.";
+  const data: RequireAuthModalData =
+    typeof modalData === "string"
+      ? { prompt: modalData }
+      : ((modalData as RequireAuthModalData | null) ?? {});
+  const prompt = data.prompt ?? "Sign in to continue.";
 
   return (
     <Dialog onOpenChange={(open) => !open && closeModal()} open={isOpen}>
@@ -46,6 +56,7 @@ export default function RequireAuthModal() {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["auth-session"] });
             closeModal();
+            data.onSuccess?.();
           }}
         />
       </DialogContent>

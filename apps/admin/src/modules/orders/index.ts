@@ -1,4 +1,4 @@
-export { getOrder, listOrders } from "./api/orders-api";
+export { getOrder, listOrders, updateOrderStatus } from "./api/orders-api";
 export { default as OrderTable } from "./components/order-table";
 export {
   type AdminOrder,

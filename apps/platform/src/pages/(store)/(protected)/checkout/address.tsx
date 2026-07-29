@@ -85,8 +85,8 @@ function CheckoutAddressPage() {
               <div className="rounded-3xl border border-border/60 bg-secondary/40 p-5">
                 <AddressForm
                   existing={addresses}
-                  onSubmit={(draft) => {
-                    const created = addAddress(draft);
+                  onSubmit={async (draft) => {
+                    const created = await addAddress(draft);
                     setAddressId(created.id);
                     setAdding(false);
                     toast.success("Address added");

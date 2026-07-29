@@ -131,7 +131,7 @@ export function StaffTable() {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

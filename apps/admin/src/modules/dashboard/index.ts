@@ -5,4 +5,6 @@ export {
   type DashboardSummary,
   dashboardSummary,
   type MetricTrend,
+  type RecentUser,
+  type UserCounts,
 } from "./data/dashboard-data";

@@ -82,7 +82,7 @@ export function BrandTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

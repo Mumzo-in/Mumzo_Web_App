@@ -72,7 +72,7 @@ export function DataTable<T>({
 
   return (
     <div className="flex flex-col gap-4" data-testid={testId}>
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

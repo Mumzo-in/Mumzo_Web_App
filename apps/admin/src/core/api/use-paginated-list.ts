@@ -28,6 +28,13 @@ export type PaginatedListOptions<T> = {
   /** Extra query params (filters, search). Changing these resets to page 1. */
   filters?: ListParams;
   initialLimit?: number;
+  /**
+   * Controlled page state — pass both to drive pagination from outside (e.g.
+   * a URL search param) instead of the hook's own `useState`. Omit either to
+   * keep the default internal state.
+   */
+  page?: number;
+  onPageChange?: (page: number) => void;
 };
 
 export function usePaginatedList<T>({
@@ -36,10 +43,17 @@ export function usePaginatedList<T>({
   columns,
   filters,
   initialLimit = 20,
+  page: controlledPage,
+  onPageChange,
 }: PaginatedListOptions<T>) {
-  const [page, setPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(1);
   const [limit, setLimit] = useState(initialLimit);
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const isControlled =
+    controlledPage !== undefined && onPageChange !== undefined;
+  const page = isControlled ? controlledPage : internalPage;
+  const setPage = isControlled ? onPageChange : setInternalPage;
 
   const sort = sorting[0];
   // Serialized so the memo/query key depends on the value, not the array identity.
@@ -51,8 +65,11 @@ export function usePaginatedList<T>({
       ...parsed,
       page,
       limit,
-      sortBy: sort?.id,
-      sortDir: sort ? (sort.desc ? "desc" : "asc") : undefined,
+      // A column-header click (manual `sorting` state) wins over a caller-
+      // supplied sort preset in `filters` — clicking a header is the more
+      // specific, more recent user action.
+      sortBy: sort?.id ?? parsed.sortBy,
+      sortDir: sort ? (sort.desc ? "desc" : "asc") : parsed.sortDir,
     };
   }, [filterKey, page, limit, sort]);
 

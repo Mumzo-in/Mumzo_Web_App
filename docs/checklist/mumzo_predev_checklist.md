@@ -154,13 +154,12 @@ PORT=3000
 
 ---
 
-### 🗺️ Maps / Address Autocomplete (optional but good UX)
+### 🗺️ Maps / Address Autocomplete
 
-| Item | Details |
-|------|---------|
-| Google Maps API key | For delivery address autocomplete (Pincode → City/State autofill) |
-| Enable APIs | Places API + Geocoding API |
-| Restrict key | Lock to your domain in Google Cloud Console |
+Address/location autocomplete uses OpenStreetMap's free Nominatim API, proxied
+server-side (`apps/server/src/modules/platform/v1/location`) — no API key or
+account setup needed. Nominatim's usage policy just requires a descriptive
+`User-Agent`, which the server already sends.
 
 ---
 
@@ -222,7 +221,7 @@ PORT=3000
 ☐ Resend (email)
 ☐ Cloudflare (domain + CDN + R2 storage)
 ☐ Firebase (FCM push)
-☐ Google Cloud (OAuth + Maps)
+☐ Google Cloud (OAuth)
 ☐ Railway / Render (hosting)
 ☐ Neon / Supabase (Postgres)
 ☐ GitHub (already have)

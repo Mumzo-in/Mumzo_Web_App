@@ -29,7 +29,8 @@
 | Module | Status | Notes |
 |---|---|---|
 | Catalog (Products/Categories/Brands/Vendors/Hubs/Inventory) | ✅ | Full CRUD, BE+Admin+Platform |
-| Auth | 🔶 | Better Auth works; PF sign-in/up/reset forms not wired |
+| Auth | 🔶 | Phone OTP login (login=signup) fully built & working via `OTP_BYPASS`; real MSG91 SMS send pending DLT. Admin dashboard now shows real user counts + recent signups (`GET /admin/dashboard/user-counts`, `/recent-users`) |
+| Admin Customer Directory | ✅ | `/platform/users/list` + `/platform/users/$userId` fully real, server-paginated (`GET /admin/users`); `/platform/users/analytics` real Recent Users table, mock growth/retention charts pending an `order` table |
 | Home & Discovery | ✅ | Full page, categories/deals/bestsellers/brands |
 | Search & Filters | ✅ | Filter panel, sort, URL state (basic `ILIKE`, not full-text) |
 | Product Detail | ✅ | Gallery/sizes/price/highlights/related; reviews section missing |
@@ -43,7 +44,7 @@
 | Referrals | 🔶 | Spec finalized, mock UI, no backend |
 | Delivery & Dispatch | 🔶 | Admin dispatch/rider pages exist, no schema/API |
 | Notifications | 🔶 | Route placeholders only |
-| Addresses | ⬜ | Route exists, no schema/CRUD — small lift |
+| Addresses | ✅ | Schema+CRUD+list+form live; location picker (geolocation/OSM search) built in |
 
 ---
 
@@ -57,7 +58,7 @@
 | MSG91 signup + DLT registration | **3–5 days** | Live OTP SMS |
 | Resend account + domain DNS | 24–48h | Transactional email |
 | Cloudflare R2 bucket | Same day | Image uploads |
-| Google OAuth client ID + Maps API key | Same day | Google login, address autocomplete |
+| Google OAuth client ID | Same day | Google login |
 | Firebase project + FCM key | Same day | Push notifications |
 | `.env` filled with test/sandbox values | Same day | All of dev |
 
@@ -67,26 +68,25 @@ Full detail: [`checklist/mumzo_predev_checklist.md`](./checklist/mumzo_predev_ch
 
 ## 3. Phase 1 — Money Path: Jul 29 – Aug 1 (4 days)
 
-> **Goal: guest → signup → cart → checkout → pay (test mode/COD) → order visible in admin,
-> fully working by Aug 1 EOD.**
+> **Goal: guest → login via phone OTP → cart → checkout → pay (test mode/COD) → order visible in
+> admin, fully working by Aug 1 EOD.**
 
-### Day 1 — Jul 29 (Wed): Auth forms + Addresses (small) + Cart backend starts
+### Day 1 — Jul 29 (Wed): Auth polish + Addresses (small) + Cart backend starts
 
-**Auth (PF) — wire existing Better Auth backend to real forms**
-- [ ] Sign-in form: email + password fields, submit → `authClient.signIn.email`, error toast on bad creds
-- [ ] Sign-up form: name + email + password, submit → `authClient.signUp.email`, redirect to home/verify
-- [ ] Forgot-password form → `authClient.forgetPassword`, confirmation state
-- [ ] Reset-password page: read token from URL, new-password form → `authClient.resetPassword`
-- [ ] Email verification page: call verify endpoint on mount, success/error state
-- [ ] Post-login redirect: preserve `?redirect=` param through login, send back to cart/PDP after auth
+**Auth (PF) — phone OTP login (login = signup, one flow) already works end-to-end via Better
+Auth `phoneNumber` plugin (`sendOTP`/verify, `signUpOnVerification`). No sign-up form, no
+email/password, no forgot/reset-password, no email verification page — none of that exists in
+this app's auth model. Only remaining gap:**
+- [x] Post-login redirect: preserve `?redirect=` param through the OTP flow, send back to cart/PDP/checkout step after verification
 
 **Addresses (BE + PF) — small, do same day**
-- [ ] `address` table in `packages/db/src/schema`: userId, label, line1, line2, city, state, pincode, isDefault, lat/lng (nullable)
-- [ ] Migration via drizzle-kit
-- [ ] Admin/platform API: `GET/POST /api/v1/addresses`, `PATCH/DELETE /api/v1/addresses/:id`, set-default endpoint
-- [ ] Zod schema for pincode (6-digit) + required fields
-- [ ] PF: address list page wired (`/addresses`)
-- [ ] PF: add/edit address form (`Field`/`FieldGroup`, no map autocomplete — skip for now, plain text fields)
+- [x] `address` table in `packages/db/src/schema`: userId, label, line1, line2, city, pincode, isDefault, lat/lng (nullable)
+- [x] Migration via drizzle-kit
+- [x] Platform API: `GET/POST /api/v1/addresses`, `PATCH/DELETE /api/v1/addresses/:id`, `POST /api/v1/addresses/:id/default`
+- [x] Zod schema for pincode (6-digit) + required fields
+- [x] PF: address list page wired (`/addresses`) — loading/empty states, real CRUD
+- [x] PF: add/edit address form — went beyond plain text fields: location-picker flow (use current location or OpenStreetMap-backed address search, server-proxied, no API key) prefills the form; "Use my number" fills phone from the account session
+- **Not done / deferred:** editing an existing address doesn't reuse the autocomplete flow (plain fields only); no server-side check for duplicate "Other" addresses; saved address pincode isn't cross-checked against real serviceability (checkout's gate still uses the separate mock `serviceAreas` state)
 
 **Cart backend (BE) — start**
 - [ ] `cart` + `cart_item` tables (userId nullable for guest, sessionId for guest cart)
@@ -157,7 +157,7 @@ Full detail: [`checklist/mumzo_predev_checklist.md`](./checklist/mumzo_predev_ch
 - [ ] Payments list (`/finance/payments`) → real `GET /admin/payments`
 - [ ] Payment detail → real API, show Razorpay payment id + status
 
-**Checkpoint Aug 1 EOD:** sign up → add to cart → checkout → pay (Razorpay test or COD) → order confirms → visible + status-transitionable in admin. If anything above slips, it takes priority over all Phase 2 scope on Aug 4.
+**Checkpoint Aug 1 EOD:** login via phone OTP → add to cart → checkout → pay (Razorpay test or COD) → order confirms → visible + status-transitionable in admin. If anything above slips, it takes priority over all Phase 2 scope on Aug 4.
 
 ---
 
@@ -263,7 +263,7 @@ Full detail: [`checklist/mumzo_predev_checklist.md`](./checklist/mumzo_predev_ch
 
 ## 5. Explicit Descope / Fast-Follow (does not fit by Aug 15)
 
-- **OTP login (MSG91) + Google OAuth** — gated on vendor lead time anyway; fast-follow after Aug 15
+- **Live SMS delivery for OTP (real MSG91 send)** — login flow itself is fully built (phone + OTP, login = signup); only the actual SMS provider wiring is pending DLT registration. Dev/test runs on `OTP_BYPASS` (fixed code `111111`) until MSG91 is approved. Google OAuth — not started, fast-follow after Aug 15
 - **Full-text search** (Typesense/tsvector), autocomplete, typo tolerance, trending/recent searches
 - **Subscriptions** ("Subscribe & Forget") — entire module
 - **3PL integration** (Shiprocket/Delhivery), COD reconciliation reporting
@@ -294,7 +294,7 @@ Full detail: [`checklist/mumzo_predev_checklist.md`](./checklist/mumzo_predev_ch
 |---|---|---|---|
 | **Phase 1 is very tight (4 days for the entire money path)** | N/A | Any slip Jul 29–31 eats the Aug 1 checkout buffer directly — if checkout isn't glued by Aug 1 EOD, Aug 4 should finish it before starting Referrals | You |
 | **Razorpay live KYC** | 3–7 days | Submit Day 0; dev proceeds on test keys unaffected; live cutover whenever approved | Founders/Finance |
-| **MSG91 DLT registration** | 3–5 days | Submit Day 0; OTP login descoped from Aug 15, ships fast-follow | Founders |
+| **MSG91 DLT registration** | 3–5 days | Submit Day 0; OTP login flow itself is already built and testable via `OTP_BYPASS` — this only gates *real SMS delivery*, not dev/testing progress | Founders |
 | **GST registration** | Variable, can be weeks | Real invoicing likely slips past Aug 22 — stub receipt in the interim | Finance |
 | **Legal pages (Privacy/T&C/Return)** | Blocks Razorpay KYC submission itself | Draft Day 0, even as a Google Doc turned into a static page same day | Founders/Legal |
 | **Resend DNS propagation** | 24–48h | Kick off Day 0, non-blocking for dev | Founders |

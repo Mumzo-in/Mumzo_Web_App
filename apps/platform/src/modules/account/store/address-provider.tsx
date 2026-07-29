@@ -1,81 +1,89 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
 } from "react";
 
-import { type Address, seedAddresses } from "../data/address-data";
+import { authClient } from "@/modules/auth";
+import {
+  createAddressApi,
+  deleteAddressApi,
+  setDefaultAddressApi,
+  updateAddressApi,
+} from "../api/addresses-api";
+import type { Address } from "../data/address-data";
+import { addressesQueryOptions } from "../queries/addresses";
 
 type AddressDraft = Omit<Address, "id">;
 
 interface AddressContextValue {
   addresses: Address[];
   defaultAddress: Address | null;
-  addAddress: (draft: AddressDraft) => Address;
-  updateAddress: (id: string, draft: AddressDraft) => void;
-  removeAddress: (id: string) => void;
-  setDefault: (id: string) => void;
+  isLoading: boolean;
+  addAddress: (draft: AddressDraft) => Promise<Address>;
+  updateAddress: (id: string, draft: AddressDraft) => Promise<void>;
+  removeAddress: (id: string) => Promise<void>;
+  setDefault: (id: string) => Promise<void>;
 }
 
 const AddressContext = createContext<AddressContextValue | null>(null);
 
-const STORAGE_KEY = "mumzo_addresses_v1";
-
-function readStored(): Address[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Address[]) : seedAddresses;
-  } catch {
-    return seedAddresses;
-  }
-}
-
+/**
+ * Backed by `GET/POST/PATCH/DELETE /api/v1/addresses` — requires a signed-in
+ * session (`requireAuth` server-side). Callers that let a signed-out visitor
+ * reach these actions (the location picker's save-address step, the
+ * `/addresses` page) must gate them behind `useRequireAuth().run(...)` first;
+ * this provider does not check auth itself; an unauthenticated call simply
+ * fails with a 401 `ApiError`.
+ */
 export function AddressProvider({ children }: { children: ReactNode }) {
-  const [addresses, setAddresses] = useState<Address[]>(readStored);
+  const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
+  const { data: addresses = [], isLoading } = useQuery({
+    ...addressesQueryOptions,
+    enabled: Boolean(session),
+  });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
-  }, [addresses]);
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["addresses"] }),
+    [queryClient],
+  );
 
-  const addAddress = useCallback((draft: AddressDraft) => {
-    const address: Address = { ...draft, id: `addr_${Date.now()}` };
-    setAddresses((prev) => {
-      const list = address.isDefault
-        ? prev.map((a) => ({ ...a, isDefault: false }))
-        : prev;
-      const next = [...list, address];
-      if (next.length === 1) next[0].isDefault = true;
-      return next;
-    });
-    return address;
-  }, []);
+  const addAddress = useCallback(
+    async (draft: AddressDraft) => {
+      const created = await createAddressApi(draft);
+      await invalidate();
+      return created;
+    },
+    [invalidate],
+  );
 
-  const updateAddress = useCallback((id: string, draft: AddressDraft) => {
-    setAddresses((prev) => {
-      const list = draft.isDefault
-        ? prev.map((a) => ({ ...a, isDefault: false }))
-        : prev;
-      return list.map((a) => (a.id === id ? { ...draft, id } : a));
-    });
-  }, []);
+  const updateAddress = useCallback(
+    async (id: string, draft: AddressDraft) => {
+      await updateAddressApi(id, draft);
+      await invalidate();
+    },
+    [invalidate],
+  );
 
-  const removeAddress = useCallback((id: string) => {
-    setAddresses((prev) => {
-      const next = prev.filter((a) => a.id !== id);
-      if (next.length > 0 && !next.some((a) => a.isDefault)) {
-        next[0].isDefault = true;
-      }
-      return next;
-    });
-  }, []);
+  const removeAddress = useCallback(
+    async (id: string) => {
+      await deleteAddressApi(id);
+      await invalidate();
+    },
+    [invalidate],
+  );
 
-  const setDefault = useCallback((id: string) => {
-    setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
-  }, []);
+  const setDefault = useCallback(
+    async (id: string) => {
+      await setDefaultAddressApi(id);
+      await invalidate();
+    },
+    [invalidate],
+  );
 
   const defaultAddress = useMemo(
     () => addresses.find((a) => a.isDefault) ?? addresses[0] ?? null,
@@ -86,6 +94,7 @@ export function AddressProvider({ children }: { children: ReactNode }) {
     () => ({
       addresses,
       defaultAddress,
+      isLoading,
       addAddress,
       updateAddress,
       removeAddress,
@@ -94,6 +103,7 @@ export function AddressProvider({ children }: { children: ReactNode }) {
     [
       addresses,
       defaultAddress,
+      isLoading,
       addAddress,
       updateAddress,
       removeAddress,

@@ -18,9 +18,14 @@ import {
 } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import { ageInMonths, getUser, USER_STATUS_META } from "@/modules/users";
+import {
+  ageInMonths,
+  getUser,
+  isPlaceholderEmail,
+  USER_STATUS_META,
+} from "@/modules/users";
 
-export const Route = createFileRoute("/(admin)/customers/users/$userId")({
+export const Route = createFileRoute("/(admin)/platform/users/$userId")({
   component: UserDetailPage,
 });
 
@@ -50,7 +55,7 @@ function UserDetailPage() {
     <>
       <PageHeader
         title={data.name}
-        description={data.email}
+        description={isPlaceholderEmail(data.email) ? undefined : data.email}
         actions={
           <Button variant="outline" disabled data-testid="admin-user-ban">
             {data.status === "banned" ? "Unban" : "Ban"}
@@ -68,15 +73,17 @@ function UserDetailPage() {
               <StatusChip label={status.label} tint={status.tint} />
             </Row>
             <Row label="Phone">
-              <span className="numeric text-sm">{data.phone}</span>
+              <span className="numeric text-foreground text-sm">
+                {data.phone ?? "—"}
+              </span>
             </Row>
             <Row label="Joined">
-              <span className="numeric text-sm">
+              <span className="numeric text-foreground text-sm">
                 {formatDate(data.joinedAt)}
               </span>
             </Row>
             <Row label="Last order">
-              <span className="numeric text-sm">
+              <span className="numeric text-foreground text-sm">
                 {data.lastOrderAt ? formatDateTime(data.lastOrderAt) : "Never"}
               </span>
             </Row>
@@ -89,7 +96,7 @@ function UserDetailPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Row label="Orders">
-              <span className="numeric text-sm">
+              <span className="numeric text-foreground text-sm">
                 {formatNumber(data.orderCount)}
               </span>
             </Row>

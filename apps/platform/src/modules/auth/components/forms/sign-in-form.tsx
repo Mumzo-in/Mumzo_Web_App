@@ -2,7 +2,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +15,16 @@ function toE164(phone: string) {
   return `+91${phone}`;
 }
 
+/** Only ever follow a same-origin relative path — an absolute URL in
+ * `?redirect=` would otherwise let a crafted login link send the user
+ * off-site after they authenticate. */
+function safeRedirectTarget(redirect: string | undefined) {
+  if (!redirect?.startsWith("/") || redirect.startsWith("//")) {
+    return "/";
+  }
+  return redirect;
+}
+
 export default function SignInForm({
   onSuccess,
 }: {
@@ -24,6 +34,10 @@ export default function SignInForm({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const redirectParam = useSearch({
+    strict: false,
+    select: (s: { redirect?: string }) => s.redirect,
+  });
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -102,7 +116,7 @@ export default function SignInForm({
     if (onSuccess) {
       onSuccess();
     } else {
-      navigate({ to: "/" });
+      navigate({ href: safeRedirectTarget(redirectParam) });
     }
   };
 

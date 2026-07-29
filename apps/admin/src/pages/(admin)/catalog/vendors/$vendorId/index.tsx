@@ -211,7 +211,7 @@ function VendorDetailPage() {
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border">
+            <div className="overflow-x-auto border">
               <Table>
                 <TableHeader>
                   <TableRow>

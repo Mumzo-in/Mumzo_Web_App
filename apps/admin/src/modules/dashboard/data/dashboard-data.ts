@@ -42,12 +42,13 @@ export type RecentOrder = {
   slaBreach: boolean;
 };
 
-export type RecentMom = {
+/** Real data — `GET /dashboard/recent-users`. Mirrors the server's response schema. */
+export type RecentUser = {
   id: string;
   name: string;
-  email: string;
-  babyName: string;
-  babyAge: string;
+  phoneNumber: string | null;
+  babyName: string | null;
+  babyAge: string | null;
   joinedAt: string;
   orderCount: number;
 };
@@ -61,7 +62,15 @@ export type DashboardSummary = {
   salesData: SalesChartPoint[];
   categoryData: CategorySalesPoint[];
   recentOrders: RecentOrder[];
-  recentMoms: RecentMom[];
+  /** Always real — `GET /dashboard/recent-users`; no mock fallback. */
+  recentMoms: RecentUser[];
+};
+
+/** Real data — `GET /dashboard/user-counts`. Mirrors the server's response schema. */
+export type UserCounts = {
+  totalUsers: number;
+  newUsers: number;
+  newUsersChangePct: number;
 };
 
 export const dashboardSummary: DashboardSummary = {
@@ -90,14 +99,8 @@ export const dashboardSummary: DashboardSummary = {
       trend: "down",
       hint: "vs yesterday",
     },
-    {
-      id: "new-users",
-      label: "New customers",
-      value: "94",
-      changePct: 15.6,
-      trend: "up",
-      hint: "vs yesterday",
-    },
+    // "new-users" is intentionally absent from mock data — it's always
+    // supplied by the real `GET /dashboard/user-counts` endpoint.
   ],
   lowStockCount: 2,
   pendingRefunds: 3,
@@ -181,51 +184,6 @@ export const dashboardSummary: DashboardSummary = {
       slaBreach: false,
     },
   ],
-  recentMoms: [
-    {
-      id: "MOM-1024",
-      name: "Sneha Sharma",
-      email: "sneha.sharma@example.com",
-      babyName: "Rohan",
-      babyAge: "4 months",
-      joinedAt: "Today, 10:45 AM",
-      orderCount: 1,
-    },
-    {
-      id: "MOM-1023",
-      name: "Lakshmi Prasanna",
-      email: "lakshmi.p@example.com",
-      babyName: "Niharika",
-      babyAge: "12 months",
-      joinedAt: "Today, 09:12 AM",
-      orderCount: 2,
-    },
-    {
-      id: "MOM-1022",
-      name: "Kavitha Murthy",
-      email: "kavitha.m@example.com",
-      babyName: "Vikram",
-      babyAge: "2 months",
-      joinedAt: "Yesterday, 06:34 PM",
-      orderCount: 3,
-    },
-    {
-      id: "MOM-1021",
-      name: "Ayesha Fatima",
-      email: "ayesha.f@example.com",
-      babyName: "Imran",
-      babyAge: "9 months",
-      joinedAt: "Yesterday, 04:15 PM",
-      orderCount: 1,
-    },
-    {
-      id: "MOM-1020",
-      name: "Ritu Kapoor",
-      email: "ritu.kapoor@example.com",
-      babyName: "Dia",
-      babyAge: "7 months",
-      joinedAt: "2 days ago",
-      orderCount: 4,
-    },
-  ],
+  // Always overwritten by the real `GET /dashboard/recent-users` response.
+  recentMoms: [],
 };

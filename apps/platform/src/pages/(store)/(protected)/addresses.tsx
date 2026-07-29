@@ -3,8 +3,17 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mumzo/ui/components/dialog";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@mumzo/ui/components/empty";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { MapPin, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -21,8 +30,14 @@ export const Route = createFileRoute("/(store)/(protected)/addresses")({
 });
 
 function AddressesPage() {
-  const { addresses, addAddress, updateAddress, removeAddress, setDefault } =
-    useAddresses();
+  const {
+    addresses,
+    isLoading,
+    addAddress,
+    updateAddress,
+    removeAddress,
+    setDefault,
+  } = useAddresses();
   const [editing, setEditing] = useState<Address | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -66,23 +81,53 @@ function AddressesPage() {
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {addresses.map((address) => (
-          <AddressCard
-            key={address.id}
-            address={address}
-            onEdit={() => openEdit(address)}
-            onDelete={() => {
-              removeAddress(address.id);
-              toast.success("Address removed");
-            }}
-            onSetDefault={() => {
-              setDefault(address.id);
-              toast.success("Default address updated");
-            }}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-40 rounded-3xl" />
+          <Skeleton className="h-40 rounded-3xl" />
+        </div>
+      ) : addresses.length === 0 ? (
+        <Empty className="rounded-3xl border border-border/60 border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <MapPin />
+            </EmptyMedia>
+            <EmptyTitle>No saved addresses yet</EmptyTitle>
+            <EmptyDescription>
+              Add a delivery address to check out faster next time.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <button
+              type="button"
+              onClick={openAdd}
+              data-testid="web-add-address-empty"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
+            >
+              <Plus size={15} />
+              Add address
+            </button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {addresses.map((address) => (
+            <AddressCard
+              key={address.id}
+              address={address}
+              onEdit={() => openEdit(address)}
+              onDelete={async () => {
+                await removeAddress(address.id);
+                toast.success("Address removed");
+              }}
+              onSetDefault={async () => {
+                await setDefault(address.id);
+                toast.success("Default address updated");
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -92,12 +137,12 @@ function AddressesPage() {
           <AddressForm
             initial={editing ?? undefined}
             existing={addresses}
-            onSubmit={(draft) => {
+            onSubmit={async (draft) => {
               if (editing) {
-                updateAddress(editing.id, draft);
+                await updateAddress(editing.id, draft);
                 toast.success("Address updated");
               } else {
-                addAddress(draft);
+                await addAddress(draft);
                 toast.success("Address added");
               }
               setOpen(false);

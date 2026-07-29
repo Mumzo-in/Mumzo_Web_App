@@ -40,7 +40,11 @@ export const queryKeys = {
     detail: (slug: string) => ["categories", "detail", slug] as const,
   },
   orders: domainKeys("orders"),
-  users: domainKeys("users"),
+  users: {
+    ...domainKeys("users"),
+    analytics: (range?: { from: string; to: string }) =>
+      ["users", "analytics", range ?? {}] as const,
+  },
   payments: {
     ...domainKeys("payments"),
     failed: () => ["payments", "failed"] as const,

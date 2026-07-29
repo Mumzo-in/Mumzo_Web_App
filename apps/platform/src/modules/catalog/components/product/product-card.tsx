@@ -24,8 +24,10 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   };
 
   const handleWish = () => {
+    // No optimistic toast here — `toggle` may just open the sign-in modal
+    // (nothing actually saved yet) or resolve asynchronously; the provider
+    // itself is the only place that knows which actually happened.
     toggle(product.id);
-    toast.success(wished ? "Removed from wishlist" : "Saved to wishlist");
   };
 
   return (

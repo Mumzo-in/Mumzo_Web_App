@@ -8,15 +8,18 @@ import {
   successSchema,
 } from "@/core";
 
+import addressesRoutes from "./addresses/addresses.module";
 import authRoutes from "./auth";
 import brandsRoutes from "./brands/brands.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
+import locationRoutes from "./location/location.module";
 import ogRoutes from "./og/og.module";
 import productsRoutes, {
   productsByCategory as categoryProductsRoutes,
 } from "./products/products.module";
 import profileRoutes from "./profile/profile.module";
+import wishlistRoutes from "./wishlist/wishlist.module";
 
 /**
  * Platform API v1 — the customer surface. Mounted at `/api/v1`.
@@ -61,13 +64,16 @@ const app = createRouter();
 // `/auth/*` harmlessly.
 app.use(optionalAuth);
 
+app.route("/addresses", addressesRoutes);
 app.route("/auth", authRoutes);
 app.route("/categories", categoriesRoutes);
 app.route("/categories", categoryProductsRoutes);
 app.route("/brands", brandsRoutes);
 app.route("/products", productsRoutes);
 app.route("/coupons", couponsRoutes);
+app.route("/location", locationRoutes);
 app.route("/profile", profileRoutes);
+app.route("/wishlist", wishlistRoutes);
 app.route("/og", ogRoutes);
 
 const v1 = app.openapi(pingRoute, (c) =>

@@ -3,7 +3,7 @@ import { RichTextView } from "@mumzo/ui/components/rich-text-view";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
@@ -19,6 +19,7 @@ import {
   RecommendationCard,
   toProduct,
 } from "@/modules/catalog";
+import { useWishlist } from "@/modules/wishlist";
 
 export const Route = createFileRoute("/(store)/product/$productId/")({
   component: ProductDetailPage,
@@ -34,6 +35,7 @@ function ProductDetailPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { has, toggle } = useWishlist();
 
   const {
     data: rawProduct,
@@ -55,7 +57,6 @@ function ProductDetailPage() {
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
-  const [saved, setSaved] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only initialize size on product load
   useEffect(() => {
@@ -144,15 +145,17 @@ function ProductDetailPage() {
     navigate({ to: "/cart" });
   };
 
-  const _handleShare = () => {
+  const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Link copied to clipboard!");
   };
 
-  const _handleWishlist = () => {
-    setSaved(!saved);
-    toast.success(saved ? "Removed from wishlist" : "Added to wishlist");
+  const handleWishlist = () => {
+    // No optimistic toast — `toggle` may just open the sign-in modal, or
+    // resolve asynchronously; `WishlistProvider` itself owns the toast.
+    toggle(product.id);
   };
+  const wished = has(product.id);
 
   return (
     <div
@@ -213,13 +216,42 @@ function ProductDetailPage() {
 
         {/* Right column: info & selectors */}
         <div className="flex flex-col pt-5 md:px-0 md:pt-0">
-          <Link
-            to="/brand/$brand"
-            params={{ brand: product.brandId }}
-            className="font-semibold text-[11px] text-primary uppercase tracking-widest transition-opacity hover:opacity-70 md:text-xs"
-          >
-            {product.brand}
-          </Link>
+          <div className="flex items-start justify-between gap-4">
+            <Link
+              to="/brand/$brand"
+              params={{ brand: product.brandId }}
+              className="font-semibold text-[11px] text-primary uppercase tracking-widest transition-opacity hover:opacity-70 md:text-xs"
+            >
+              {product.brand}
+            </Link>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={handleWishlist}
+                data-testid="web-product-wishlist"
+                aria-label={
+                  wished ? "Remove from wishlist" : "Save to wishlist"
+                }
+                aria-pressed={wished}
+                className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border/60 text-foreground/60 transition-colors hover:text-primary"
+              >
+                <Heart
+                  size={15}
+                  className={wished ? "fill-primary text-primary" : undefined}
+                />
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                data-testid="web-product-share"
+                aria-label="Copy product link"
+                className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border/60 text-foreground/60 transition-colors hover:text-primary"
+              >
+                <Share2 size={15} />
+              </button>
+            </div>
+          </div>
 
           {/* Title & Review Rating row on mobile, standard display on desktop */}
           <div className="mt-1 flex items-start justify-between gap-4">

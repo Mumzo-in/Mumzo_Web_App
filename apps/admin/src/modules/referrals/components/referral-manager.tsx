@@ -106,7 +106,7 @@ export function ReferralManager() {
           {configQuery.isLoading || !config ? (
             <Skeleton className="h-40 rounded-2xl" />
           ) : (
-            <div className="overflow-x-auto rounded-2xl border">
+            <div className="overflow-x-auto border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -173,7 +173,7 @@ export function ReferralManager() {
           {configQuery.isLoading || !config ? (
             <Skeleton className="h-32 rounded-2xl" />
           ) : (
-            <div className="overflow-x-auto rounded-2xl border">
+            <div className="overflow-x-auto border">
               <Table>
                 <TableHeader>
                   <TableRow>
