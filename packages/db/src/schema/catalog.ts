@@ -109,8 +109,21 @@ export const product = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => category.id, { onDelete: "restrict" }),
+    /** Paise, not rupees — integer money end-to-end, no float rounding. */
     price: integer("price").notNull(),
     mrp: integer("mrp").notNull(),
+
+    /** GST slab as a whole percent (0/5/12/18/28) — fallback used when a
+     * line item has no productSize/productColor row of its own. */
+    gstRate: integer("gst_rate").default(5).notNull(),
+    /** HSN/SAC code for the tax invoice line — nullable since a draft
+     * product may not have one yet; enforced at order-placement time, not
+     * schema time. */
+    hsn: text("hsn"),
+    /** Fallback weight for a variant-less product — rider load/dispatch math. */
+    weightGrams: integer("weight_grams").default(0).notNull(),
+    /** Fallback barcode for a variant-less product — hub pick/pack scanning. */
+    barcode: text("barcode").unique(),
 
     qty: text("qty").notNull(),
     weight: text("weight"),
@@ -191,9 +204,18 @@ export const productSize = pgTable(
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
+    /** Paise. */
     price: integer("price").notNull(),
     stock: integer("stock").default(0).notNull(),
     position: integer("position").default(0).notNull(),
+    /** GST slab as a whole percent — overrides `product.gstRate` for this variant. */
+    gstRate: integer("gst_rate").default(5).notNull(),
+    /** HSN/SAC code — overrides `product.hsn` for this variant. */
+    hsn: text("hsn"),
+    /** Per-variant weight — rider load/dispatch math. */
+    weightGrams: integer("weight_grams").default(0).notNull(),
+    /** Per-variant barcode — hub pick/pack scanning. */
+    barcode: text("barcode").unique(),
   },
   (table) => [
     unique("product_size_productId_label_key").on(table.productId, table.label),
@@ -218,9 +240,18 @@ export const productColor = pgTable(
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
+    /** Paise. */
     price: integer("price").notNull(),
     stock: integer("stock").default(0).notNull(),
     position: integer("position").default(0).notNull(),
+    /** GST slab as a whole percent — overrides `product.gstRate` for this variant. */
+    gstRate: integer("gst_rate").default(5).notNull(),
+    /** HSN/SAC code — overrides `product.hsn` for this variant. */
+    hsn: text("hsn"),
+    /** Per-variant weight — rider load/dispatch math. */
+    weightGrams: integer("weight_grams").default(0).notNull(),
+    /** Per-variant barcode — hub pick/pack scanning. */
+    barcode: text("barcode").unique(),
   },
   (table) => [
     unique("product_color_productId_label_key").on(
@@ -274,7 +305,7 @@ export const inventory = pgTable(
 
 /**
  * A named, priced grouping of 2+ products sold as a combo (e.g. "Newborn
- * Starter Kit"). `price` is the combo price — same whole-rupee convention as
+ * Starter Kit"). `price` is the combo price — same paise convention as
  * `product.price`/`product.mrp`. `status` mirrors `ProductStatus` (the same
  * draft/active/inactive/archived lifecycle applies to a bundle listing).
  */
@@ -285,6 +316,7 @@ export const bundle = pgTable(
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
     description: text("description"),
+    /** Paise. */
     price: integer("price").notNull(),
     images: text("images").array().default([]).notNull(),
     /** BundleStatus: "draft" | "active" | "inactive" | "archived". */

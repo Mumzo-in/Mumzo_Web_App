@@ -28,10 +28,11 @@ export const coupon = pgTable(
 
     /** CouponType: "flat" | "pct". */
     type: text("type").notNull(),
-    /** Rupees off when `flat`; percent (1-100) when `pct`. */
+    /** Paise off when `flat`; percent (1-100, not paise) when `pct`. */
     value: integer("value").notNull(),
-    /** Max discount amount for a `pct` coupon; null = uncapped. Ignored for `flat`. */
+    /** Max discount amount (paise) for a `pct` coupon; null = uncapped. Ignored for `flat`. */
     cap: integer("cap"),
+    /** Paise. */
     minAmt: integer("min_amt").default(0).notNull(),
 
     /** Every scope column is nullable — null means unrestricted on that axis. */
