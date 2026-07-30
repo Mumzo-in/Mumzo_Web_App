@@ -1,4 +1,5 @@
 import { notFound } from "@/core/errors";
+import { toPaise, toWholeRupees } from "@/lib/money";
 import {
   colorsByProductId,
   sizesByProductId,
@@ -6,21 +7,27 @@ import {
 import type { PublicSort } from "./products.repo";
 import * as productsRepo from "./products.repo";
 
-type Size = { label: string; price: number; stock: number };
-type Color = { label: string; price: number; stock: number };
+type Size = { id: string; label: string; price: number; stock: number };
+type Color = { id: string; label: string; price: number; stock: number };
 
 /** Total stock across variants, or 0 for an unsized product — DB is the source. */
 function rollUpStock(sizes: Size[]): number {
   return sizes.reduce((sum, size) => sum + size.stock, 0);
 }
 
+function toRupeeVariant<T extends { price: number }>(variant: T): T {
+  return { ...variant, price: toWholeRupees(variant.price) };
+}
+
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findPublicById>>;
 
 function serialize(
   row: NonNullable<ProductRow>,
-  sizes: Size[],
-  colors: Color[],
+  sizesInPaise: Size[],
+  colorsInPaise: Color[],
 ) {
+  const sizes = sizesInPaise.map(toRupeeVariant);
+  const colors = colorsInPaise.map(toRupeeVariant);
   return {
     id: row.id,
     slug: row.slug,
@@ -29,8 +36,8 @@ function serialize(
     brand: row.brandName,
     brandSlug: row.brandSlug,
     categorySlug: row.categorySlug,
-    price: row.price,
-    mrp: row.mrp,
+    price: toWholeRupees(row.price),
+    mrp: toWholeRupees(row.mrp),
     qty: row.qty,
     weight: row.weight,
     description: row.description,
@@ -79,8 +86,11 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
     search: filters.search,
     categorySlug: filters.categorySlug,
     brandSlugs: filters.brands,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
+    // Client sends whole rupees; the DB stores paise (see lib/money.ts).
+    minPrice:
+      filters.minPrice === undefined ? undefined : toPaise(filters.minPrice),
+    maxPrice:
+      filters.maxPrice === undefined ? undefined : toPaise(filters.maxPrice),
     sort: filters.sort,
   });
 

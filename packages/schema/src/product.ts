@@ -47,8 +47,12 @@ export const PRODUCT_STATUSES = [
 
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
-/** A purchasable variant. Price and stock are per-size, not per-product. */
+/** A purchasable variant. Price and stock are per-size, not per-product.
+ * `id` identifies the underlying `productSize` row — present when read from
+ * the API (needed to add this exact variant to the cart), absent on a
+ * freshly-added row in the admin form before it's saved. */
 export type ProductSize = {
+  id?: string;
   label: string;
   price: number;
   stock: number;
@@ -57,6 +61,7 @@ export type ProductSize = {
 /** A color/style variant — same shape as `ProductSize`, but a separate axis
  * (stroller colors, car-seat colors are not sizes). */
 export type ProductColor = {
+  id?: string;
   label: string;
   price: number;
   stock: number;

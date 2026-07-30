@@ -1,169 +1,249 @@
+import type { Product } from "@mumzo/schema";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
+  useRef,
 } from "react";
 
-import type { Offer, Product } from "@/core/data";
+import {
+  addCartItem,
+  applyCartCoupon,
+  clearCartApi,
+  type PublicCart,
+  removeCartCoupon,
+  removeCartItem,
+  updateCartItem,
+} from "../api/cart-api";
+import { cartQueryOptions } from "../queries/cart";
 
-export interface CartItem {
-  key: string;
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  mrp: number;
-  img: string;
-  qty: number;
-  size: string | null;
-  categorySlug: string;
-}
+export type { CartLine as CartItem, CartTotals } from "../api/cart-api";
 
-export interface CartTotals {
-  subtotal: number;
-  mrpTotal: number;
-  savings: number;
-  discount: number;
-  delivery: number;
-  gst: number;
-  total: number;
-  count: number;
-}
+/** Matches the free-delivery threshold in `shared/pricing.ts` (server), in
+ * whole rupees — the wire boundary already converts, so this is just the
+ * display-side mirror for the empty-cart banner before any cart exists. */
+export const FREE_DELIVERY_OVER = 499;
+
+/** How long a burst of qty clicks waits before the debounced request for
+ * that line actually fires — long enough to coalesce a fast 1→5 click run
+ * into one request, short enough to still feel live. */
+const QTY_DEBOUNCE_MS = 500;
 
 interface CartContextValue {
-  items: CartItem[];
-  addItem: (product: Product, size?: string | null, qty?: number) => void;
-  removeItem: (key: string) => void;
-  updateQty: (key: string, qty: number) => void;
+  items: PublicCart["items"];
+  /** `variantLabel` is resolved to the matching productSize/productColor id
+   * by looking it up on `product.sizes`/`product.colors` — mirrors the old
+   * mock signature so PDP/ProductCard call sites don't need to change. */
+  addItem: (
+    product: Product,
+    variantLabel?: string | null,
+    qty?: number,
+  ) => void;
+  removeItem: (cartItemId: string) => void;
+  /** Updates the qty shown immediately; the network write for a given
+   * `cartItemId` is debounced so a fast run of clicks sends one request
+   * with the final value, not one request per click. */
+  updateQty: (cartItemId: string, qty: number) => void;
   clear: () => void;
-  coupon: Offer | null;
-  setCoupon: (coupon: Offer | null) => void;
-  totals: CartTotals;
+  couponCode: string | null;
+  applyCoupon: (code: string) => Promise<void>;
+  removeCoupon: () => void;
+  totals: PublicCart["totals"];
+  isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const STORAGE_KEY = "mumzo_cart_v1";
-export const FREE_DELIVERY_OVER = 499;
-const DELIVERY_FEE = 25;
-const GST_RATE = 0.05;
-
-function readStoredItems(): CartItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
-  } catch {
-    return [];
-  }
-}
+const EMPTY_TOTALS: PublicCart["totals"] = {
+  subtotal: 0,
+  gstAmount: 0,
+  deliveryFee: 0,
+  discount: 0,
+  total: 0,
+  freeDeliveryThreshold: FREE_DELIVERY_OVER,
+};
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(readStoredItems);
-  const [coupon, setCoupon] = useState<Offer | null>(null);
+  const queryClient = useQueryClient();
+  const { data: cart, isLoading } = useQuery(cartQueryOptions);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+  // Pending debounce timers per cart-item-id, so each line's clicks debounce
+  // independently — updating one item's qty never delays another's.
+  const qtyTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
-  const addItem = (product: Product, size: string | null = null, qty = 1) => {
-    setItems((prev) => {
-      const key = size ? `${product.id}::${size}` : product.id;
-      const idx = prev.findIndex((i) => i.key === key);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], qty: next[idx].qty + qty };
-        return next;
-      }
-      return [
-        ...prev,
-        {
-          key,
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          price: product.price,
-          mrp: product.mrp,
-          img: product.images[0] ?? "",
-          qty,
-          size,
-          categorySlug: product.categorySlug,
-        },
-      ];
-    });
-  };
+  const setCart = useCallback(
+    (next: PublicCart) => {
+      queryClient.setQueryData(cartQueryOptions.queryKey, next);
+    },
+    [queryClient],
+  );
 
-  const removeItem = (key: string) =>
-    setItems((prev) => prev.filter((i) => i.key !== key));
+  /** Applies a local patch to the cached cart immediately (optimistic),
+   * returns the previous cart so a failed request can roll back to it. */
+  const patchCartOptimistically = useCallback(
+    (patch: (current: PublicCart) => PublicCart) => {
+      const previous = queryClient.getQueryData(cartQueryOptions.queryKey);
+      if (!previous) return null;
+      queryClient.setQueryData(cartQueryOptions.queryKey, patch(previous));
+      return previous;
+    },
+    [queryClient],
+  );
 
-  const updateQty = (key: string, qty: number) => {
-    if (qty <= 0) {
-      removeItem(key);
-      return;
-    }
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty } : i)));
-  };
+  const addItem = useCallback(
+    (product: Product, variantLabel: string | null = null, qty = 1) => {
+      const size = variantLabel
+        ? product.sizes.find((s) => s.label === variantLabel)
+        : undefined;
+      const color =
+        !size && variantLabel
+          ? product.colors.find((c) => c.label === variantLabel)
+          : undefined;
 
-  const clear = () => {
-    setItems([]);
-    setCoupon(null);
-  };
-
-  const totals = useMemo<CartTotals>(() => {
-    const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-    const mrpTotal = items.reduce((s, i) => s + i.mrp * i.qty, 0);
-    const savings = mrpTotal - subtotal;
-
-    const eligibleAmt = coupon?.category
-      ? items
-          .filter((i) => i.categorySlug === coupon.category)
-          .reduce((s, i) => s + i.price * i.qty, 0)
-      : subtotal;
-
-    let discount = 0;
-    if (items.length > 0 && eligibleAmt >= (coupon?.minAmt ?? 0)) {
-      if (coupon?.discount) {
-        discount = coupon.discount;
-      }
-      if (coupon?.pct) {
-        discount = Math.min(
-          Math.floor(subtotal * (coupon.pct / 100)),
-          coupon.cap ?? Number.POSITIVE_INFINITY,
+      // Optimistic line: bump qty on a matching existing line, or append a
+      // temporary one — either way the user sees it before the round trip.
+      const previous = patchCartOptimistically((current) => {
+        const matchIndex = current.items.findIndex(
+          (i) =>
+            i.productId === product.id &&
+            (i.productSizeId ?? null) === (size?.id ?? null) &&
+            (i.productColorId ?? null) === (color?.id ?? null),
         );
+        if (matchIndex >= 0) {
+          const items = [...current.items];
+          const existing = items[matchIndex];
+          if (!existing) return current;
+          items[matchIndex] = { ...existing, qty: existing.qty + qty };
+          return { ...current, items };
+        }
+        const variant = size ?? color;
+        return {
+          ...current,
+          items: [
+            ...current.items,
+            {
+              id: `optimistic-${product.id}-${size?.id ?? color?.id ?? "base"}`,
+              productId: product.id,
+              productSizeId: size?.id ?? null,
+              productColorId: color?.id ?? null,
+              name: product.name,
+              brand: product.brand,
+              img: product.images[0] ?? null,
+              variantLabel: variant?.label ?? null,
+              price: variant?.price ?? product.price,
+              mrp: product.mrp,
+              qty,
+              stock: variant?.stock ?? product.stock,
+              isOutOfStock: false,
+            },
+          ],
+        };
+      });
+
+      addCartItem({
+        productId: product.id,
+        productSizeId: size?.id ?? null,
+        productColorId: color?.id ?? null,
+        qty,
+      })
+        .then(setCart)
+        .catch(() => {
+          if (previous) setCart(previous);
+        });
+    },
+    [setCart, patchCartOptimistically],
+  );
+
+  const removeItem = useCallback(
+    (cartItemId: string) => {
+      const previous = patchCartOptimistically((current) => ({
+        ...current,
+        items: current.items.filter((i) => i.id !== cartItemId),
+      }));
+
+      removeCartItem(cartItemId)
+        .then(setCart)
+        .catch(() => {
+          if (previous) setCart(previous);
+        });
+    },
+    [setCart, patchCartOptimistically],
+  );
+
+  const updateQty = useCallback(
+    (cartItemId: string, qty: number) => {
+      if (qty <= 0) {
+        const timer = qtyTimers.current.get(cartItemId);
+        if (timer) {
+          clearTimeout(timer);
+          qtyTimers.current.delete(cartItemId);
+        }
+        removeItem(cartItemId);
+        return;
       }
-    }
 
-    const delivery = subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
-    const gst = Math.round((subtotal - discount) * GST_RATE);
-    const total = Math.max(0, subtotal - discount + delivery + gst);
-    const count = items.reduce((s, i) => s + i.qty, 0);
+      // Reflect the click immediately regardless of the debounce below.
+      patchCartOptimistically((current) => ({
+        ...current,
+        items: current.items.map((i) =>
+          i.id === cartItemId ? { ...i, qty } : i,
+        ),
+      }));
 
-    return {
-      subtotal,
-      mrpTotal,
-      savings,
-      discount,
-      delivery,
-      gst,
-      total,
-      count,
-    };
-  }, [items, coupon]);
+      const existingTimer = qtyTimers.current.get(cartItemId);
+      if (existingTimer) clearTimeout(existingTimer);
+
+      const timer = setTimeout(() => {
+        qtyTimers.current.delete(cartItemId);
+        updateCartItem(cartItemId, qty).then(setCart);
+      }, QTY_DEBOUNCE_MS);
+      qtyTimers.current.set(cartItemId, timer);
+    },
+    [removeItem, setCart, patchCartOptimistically],
+  );
+
+  const clear = useCallback(() => {
+    void clearCartApi().then(setCart);
+  }, [setCart]);
+
+  const applyCoupon = useCallback(
+    async (code: string) => {
+      const next = await applyCartCoupon(code);
+      setCart(next);
+    },
+    [setCart],
+  );
+
+  const removeCoupon = useCallback(() => {
+    void removeCartCoupon().then(setCart);
+  }, [setCart]);
 
   const value = useMemo<CartContextValue>(
     () => ({
-      items,
+      items: cart?.items ?? [],
       addItem,
       removeItem,
       updateQty,
       clear,
-      coupon,
-      setCoupon,
-      totals,
+      couponCode: cart?.couponCode ?? null,
+      applyCoupon,
+      removeCoupon,
+      totals: cart?.totals ?? EMPTY_TOTALS,
+      isLoading,
     }),
-    [items, coupon, totals, updateQty, clear, removeItem, addItem],
+    [
+      cart,
+      addItem,
+      removeItem,
+      updateQty,
+      clear,
+      applyCoupon,
+      removeCoupon,
+      isLoading,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -1,21 +1,17 @@
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { rupee } from "@/modules/cart";
-import { findOrder } from "@/modules/orders";
+import { orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/return",
 )({
   component: OrderReturnPage,
-  loader: ({ params }) => {
-    const order = findOrder(params.orderId);
-    if (!order) throw notFound();
-    return order;
-  },
 });
 
 const REASONS = [
@@ -28,7 +24,12 @@ const REASONS = [
 ];
 
 function OrderReturnPage() {
-  const order = Route.useLoaderData();
+  const { orderId } = Route.useParams();
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery(orderQueryOptions(orderId));
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
@@ -52,8 +53,28 @@ function OrderReturnPage() {
       return;
     }
     toast.success("Return request submitted");
-    navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
+    navigate({ to: "/orders/$orderId", params: { orderId } });
   };
+
+  if (isLoading) {
+    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="p-12 text-center">
+        <h2 className="mb-4 font-editorial text-2xl">Order not found.</h2>
+        <Link
+          to="/orders"
+          className="font-semibold text-primary hover:underline"
+        >
+          Back to orders
+        </Link>
+      </div>
+    );
+  }
+
+  const shortId = order.id.slice(0, 8).toUpperCase();
 
   return (
     <div className="mx-auto max-w-[720px] pt-8 pb-16">
@@ -62,7 +83,7 @@ function OrderReturnPage() {
           { label: "Home", to: "/" },
           { label: "Orders", to: "/orders" },
           {
-            label: `#${order.id}`,
+            label: `#${shortId}`,
             to: "/orders/$orderId",
             params: { orderId: order.id },
           },
@@ -100,11 +121,6 @@ function OrderReturnPage() {
                   >
                     {isOn && <Check size={12} />}
                   </span>
-                  <img
-                    src={item.img}
-                    alt={item.name}
-                    className="size-12 shrink-0 rounded-xl border border-border/60 object-cover"
-                  />
                   <span className="flex-1">
                     <span className="block font-semibold text-ink text-sm">
                       {item.name}

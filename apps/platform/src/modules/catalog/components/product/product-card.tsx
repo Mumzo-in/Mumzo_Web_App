@@ -15,7 +15,9 @@ interface ProductCardProps {
 export default function ProductCard({ product, className }: ProductCardProps) {
   const { addItem, items, updateQty } = useCart();
   const { has, toggle } = useWishlist();
-  const inCart = items.find((i) => i.key === product.id);
+  const inCart = items.find(
+    (i) => i.productId === product.id && !i.productSizeId && !i.productColorId,
+  );
   const wished = has(product.id);
 
   const handleAdd = () => {
@@ -110,7 +112,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             <div className="inline-flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground">
               <button
                 type="button"
-                onClick={() => updateQty(inCart.key, inCart.qty - 1)}
+                onClick={() => updateQty(inCart.id, inCart.qty - 1)}
                 data-testid={`web-qty-minus-${product.id}`}
                 aria-label="Decrease quantity"
                 className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
@@ -125,7 +127,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               </span>
               <button
                 type="button"
-                onClick={() => updateQty(inCart.key, inCart.qty + 1)}
+                onClick={() => updateQty(inCart.id, inCart.qty + 1)}
                 data-testid={`web-qty-plus-${product.id}`}
                 aria-label="Increase quantity"
                 className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"

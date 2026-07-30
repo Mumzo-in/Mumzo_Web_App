@@ -54,7 +54,7 @@ export const NAV_SECTIONS: NavSection[] = [
         items: [
           { label: "Dashboard", to: "/" },
           { label: "Live Ops Board", to: "/overview/ops" },
-          { label: "Analytics", to: "/overview/analytics", comingSoon: true },
+          { label: "Analytics", to: "/overview/analytics" },
         ],
       },
     ],
@@ -86,6 +86,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: "Dark Store",
         items: [
           { label: "Inventory", to: "/catalog/inventory" },
+          { label: "Service Areas", to: "/operations/service-areas" },
           {
             label: "Riders & Dispatch",
             to: "/operations/dispatch",

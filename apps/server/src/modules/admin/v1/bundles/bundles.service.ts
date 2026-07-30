@@ -1,4 +1,5 @@
 import { badRequest, conflict, notFound } from "@/core/errors";
+import { toPaise, toWholeRupees } from "@/lib/money";
 import * as bundlesRepo from "./bundles.repo";
 
 type BundleRow = Awaited<ReturnType<typeof bundlesRepo.findById>>;
@@ -13,15 +14,19 @@ type ItemRow = {
 
 function serialize(
   row: NonNullable<BundleRow>,
-  items: ItemRow[],
+  itemsInPaise: ItemRow[],
   itemCount?: number,
 ) {
+  const items = itemsInPaise.map((item) => ({
+    ...item,
+    productPrice: toWholeRupees(item.productPrice),
+  }));
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     description: row.description,
-    price: row.price,
+    price: toWholeRupees(row.price),
     images: row.images,
     status: row.status as "draft" | "active" | "inactive" | "archived",
     items,
@@ -113,7 +118,7 @@ export async function createBundle(input: BundleInput) {
 
   const { items, ...rest } = input;
 
-  return bundlesRepo.insert(rest, items);
+  return bundlesRepo.insert({ ...rest, price: toPaise(rest.price) }, items);
 }
 
 export async function updateBundle(id: string, input: BundleInput) {
@@ -128,7 +133,7 @@ export async function updateBundle(id: string, input: BundleInput) {
 
   const { items, ...rest } = input;
 
-  await bundlesRepo.update(id, rest, items);
+  await bundlesRepo.update(id, { ...rest, price: toPaise(rest.price) }, items);
 }
 
 export async function deleteBundle(id: string) {

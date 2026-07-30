@@ -8,6 +8,7 @@ import { z } from "@hono/zod-openapi";
  * real DB slug — same resolution the admin schema does.
  */
 export const publicProductSizeSchema = z.object({
+  id: z.string(),
   label: z.string(),
   price: z.number().int(),
   stock: z.number().int(),
@@ -15,6 +16,7 @@ export const publicProductSizeSchema = z.object({
 
 /** Same shape as `publicProductSizeSchema` — color/style, a separate axis. */
 export const publicProductColorSchema = z.object({
+  id: z.string(),
   label: z.string(),
   price: z.number().int(),
   stock: z.number().int(),

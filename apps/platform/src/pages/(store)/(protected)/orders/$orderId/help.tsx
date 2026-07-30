@@ -1,29 +1,24 @@
 import { Button } from "@mumzo/ui/components/button";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { findOrder } from "@/modules/orders";
 import { HELP_TOPICS, useTickets } from "@/modules/support";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/help",
 )({
   component: OrderHelpPage,
-  loader: ({ params }) => {
-    const order = findOrder(params.orderId);
-    if (!order) throw notFound();
-    return order;
-  },
 });
 
 function OrderHelpPage() {
-  const order = Route.useLoaderData();
+  const { orderId } = Route.useParams();
   const navigate = useNavigate();
   const { createTicket } = useTickets();
   const [topic, setTopic] = useState("");
   const [details, setDetails] = useState("");
+  const shortId = orderId.slice(0, 8).toUpperCase();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +28,8 @@ function OrderHelpPage() {
     }
     const ticket = createTicket(
       topic,
-      order.id,
-      details.trim() || `Issue with order #${order.id}: ${topic}`,
+      orderId,
+      details.trim() || `Issue with order #${shortId}: ${topic}`,
     );
     toast.success("Ticket raised");
     navigate({ to: "/support/$ticketId", params: { ticketId: ticket.id } });
@@ -47,9 +42,9 @@ function OrderHelpPage() {
           { label: "Home", to: "/" },
           { label: "Orders", to: "/orders" },
           {
-            label: `#${order.id}`,
+            label: `#${shortId}`,
             to: "/orders/$orderId",
-            params: { orderId: order.id },
+            params: { orderId },
           },
           { label: "Help" },
         ]}

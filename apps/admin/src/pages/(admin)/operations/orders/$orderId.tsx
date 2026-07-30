@@ -20,7 +20,7 @@ import {
   isSlaBreached,
   ORDER_FLOW,
   ORDER_STATUS_META,
-  PAYMENT_MODE_LABELS,
+  PAYMENT_METHOD_LABELS,
 } from "@/modules/orders";
 
 export const Route = createFileRoute("/(admin)/operations/orders/$orderId")({
@@ -49,13 +49,15 @@ function OrderDetailPage() {
 
   const status = ORDER_STATUS_META[data.status];
   const breached = isSlaBreached(data);
-  const currentStep = ORDER_FLOW.indexOf(data.status);
+  const flowStatus =
+    data.status === "pending_payment" ? "confirmed" : data.status;
+  const currentStep = ORDER_FLOW.indexOf(flowStatus);
 
   return (
     <>
       <PageHeader
-        title={data.reference}
-        description={`${data.customerName} · ${data.hub}`}
+        title={`#${data.id.slice(0, 8).toUpperCase()}`}
+        description={`${data.customerName} · ${data.hubName}`}
         actions={
           <Button variant="outline" disabled data-testid="admin-order-refund">
             Refund
@@ -74,7 +76,9 @@ function OrderDetailPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {data.status === "cancelled" ? (
+            {data.status === "cancelled" ||
+            data.status === "return_requested" ||
+            data.status === "returned" ? (
               <StatusChip label={status.label} tint={status.tint} />
             ) : (
               <ol className="flex flex-col gap-3">
@@ -131,11 +135,12 @@ function OrderDetailPage() {
             </Row>
             <Row label="Payment">
               <span className="text-sm">
-                {PAYMENT_MODE_LABELS[data.paymentMode]}
+                {PAYMENT_METHOD_LABELS[data.paymentMethod] ??
+                  data.paymentMethod}
               </span>
             </Row>
             <Row label="Items">
-              <span className="numeric text-sm">{data.itemCount}</span>
+              <span className="numeric text-sm">{data.items.length}</span>
             </Row>
             <Row label="Placed">
               <span className="numeric text-sm">

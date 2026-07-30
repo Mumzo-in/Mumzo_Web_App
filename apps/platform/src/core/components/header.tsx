@@ -13,7 +13,8 @@ import MumzoLogo from "./mumzo-logo";
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { totals } = useCart();
+  const { items } = useCart();
+  const cartCount = items.reduce((sum, item) => sum + item.qty, 0);
   const { openModal } = useModalStore();
   const { query: currentLoc } = useServiceability();
   const { data: categories = [] } = useQuery(categoriesQueryOptions);
@@ -79,12 +80,12 @@ export default function Header() {
         >
           <ShoppingBag size={16} />
           <span className="hidden sm:inline">Cart</span>
-          {totals.count > 0 && (
+          {cartCount > 0 && (
             <span
               data-testid="web-cart-count"
               className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-white px-1.5 font-bold text-[11px] text-primary"
             >
-              {totals.count}
+              {cartCount}
             </span>
           )}
         </Button>

@@ -1,22 +1,22 @@
 import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { DateRangePicker } from "@/core/components/date-range/date-range-picker";
-import { openDialog } from "@/core/store/dialog-store";
-import { NEW_ORDER_DIALOG_ID } from "./new-order-dialog";
+import type { DateRange } from "@/core/components/date-range/date-range-presets";
 
 type OpsBoardToolbarProps = {
   search: string;
   onSearchChange: (search: string) => void;
-  date: string;
-  onDateChange: (date: string) => void;
+  range: DateRange;
+  onRangeChange: (range: DateRange) => void;
 };
 
 export function OpsBoardToolbar({
   search,
   onSearchChange,
-  date,
-  onDateChange,
+  range,
+  onRangeChange,
 }: OpsBoardToolbarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -30,13 +30,13 @@ export function OpsBoardToolbar({
 
       <div className="flex items-center gap-3">
         <DateRangePicker
-          value={{ from: date, to: date }}
-          onChange={(range) => onDateChange(range.from)}
+          value={range}
+          onChange={onRangeChange}
           testId="ops-board-date"
         />
         <Button
           data-testid="ops-board-new-order"
-          onClick={() => openDialog(NEW_ORDER_DIALOG_ID)}
+          onClick={() => toast.info("Manual order creation is coming soon.")}
         >
           <Plus data-icon="inline-start" />
           New order

@@ -1,0 +1,1 @@
+ALTER TABLE "order_item" ADD COLUMN "variant_label_snapshot" text;

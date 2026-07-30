@@ -1,6 +1,6 @@
 import { cn } from "@mumzo/ui/lib/utils";
 
-import { FREE_DELIVERY_OVER, rupee, useCart } from "../../store/cart-provider";
+import { rupee, useCart } from "../../store/cart-provider";
 
 function Row({
   label,
@@ -26,15 +26,22 @@ interface CartSummaryProps {
   ctaLabel?: string;
   /** Extra fee for a scheduled (non-express) delivery slot, if any. */
   slotFee?: number;
+  /** Disables the place-order button — e.g. while a placement request is
+   * in flight, so a double-click can't fire it twice. */
+  disabled?: boolean;
 }
 
 export default function CartSummary({
   onPlaceOrder,
   ctaLabel,
   slotFee = 0,
+  disabled = false,
 }: CartSummaryProps) {
-  const { totals, coupon } = useCart();
+  const { items, totals, couponCode } = useCart();
   const total = totals.total + slotFee;
+
+  const mrpTotal = items.reduce((sum, item) => sum + item.mrp * item.qty, 0);
+  const savings = Math.max(0, mrpTotal - totals.subtotal);
 
   return (
     <aside className="h-fit lg:sticky lg:top-24">
@@ -43,30 +50,32 @@ export default function CartSummary({
           Bill details
         </p>
         <div className="flex flex-col gap-2.5 text-sm">
-          <Row label="Item total (MRP)" value={rupee(totals.mrpTotal)} />
-          {totals.savings > 0 && (
+          <Row label="Item total (MRP)" value={rupee(mrpTotal)} />
+          {savings > 0 && (
             <Row
               label="Product discount"
-              value={`− ${rupee(totals.savings)}`}
+              value={`− ${rupee(savings)}`}
               highlight
             />
           )}
           {totals.discount > 0 && (
             <Row
-              label={`Coupon (${coupon?.code})`}
+              label={`Coupon (${couponCode})`}
               value={`− ${rupee(totals.discount)}`}
               highlight
             />
           )}
           <Row
             label="Delivery fee"
-            value={totals.delivery === 0 ? "FREE" : rupee(totals.delivery)}
-            highlight={totals.delivery === 0}
+            value={
+              totals.deliveryFee === 0 ? "FREE" : rupee(totals.deliveryFee)
+            }
+            highlight={totals.deliveryFee === 0}
           />
           {slotFee > 0 && (
             <Row label="Scheduled delivery fee" value={rupee(slotFee)} />
           )}
-          <Row label="GST & taxes (5%)" value={rupee(totals.gst)} />
+          <Row label="GST & taxes" value={rupee(totals.gstAmount)} />
           <div className="mt-3 flex items-center justify-between border-border/50 border-t pt-3">
             <span className="font-semibold">To pay</span>
             <span
@@ -77,16 +86,17 @@ export default function CartSummary({
             </span>
           </div>
         </div>
-        {totals.savings + totals.discount > 0 && (
+        {savings + totals.discount > 0 && (
           <div className="mt-4 rounded-xl bg-blush px-4 py-2.5 text-center font-medium text-pinkDeep text-xs">
-            You save {rupee(totals.savings + totals.discount)} on this order 🎉
+            You save {rupee(savings + totals.discount)} on this order 🎉
           </div>
         )}
         <button
           type="button"
           onClick={onPlaceOrder}
+          disabled={disabled}
           data-testid="web-place-order"
-          className="mt-6 w-full rounded-full bg-pinkDeep py-4 font-semibold text-sm text-white transition-all hover:bg-[#A93F63] active:scale-[0.99]"
+          className="mt-6 w-full rounded-full bg-pinkDeep py-4 font-semibold text-sm text-white transition-all hover:bg-[#A93F63] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {ctaLabel ?? `Place order → ${rupee(total)}`}
         </button>
@@ -96,14 +106,14 @@ export default function CartSummary({
         </p>
       </div>
 
-      {totals.subtotal < FREE_DELIVERY_OVER && (
+      {totals.subtotal < totals.freeDeliveryThreshold && (
         <div className="mt-4 rounded-2xl border border-border/50 bg-pinkSoft p-4 text-foreground/70 text-xs">
           <p className="mb-1 font-semibold text-foreground">
-            Free delivery over {rupee(FREE_DELIVERY_OVER)}
+            Free delivery over {rupee(totals.freeDeliveryThreshold)}
           </p>
           <p>
-            Add {rupee(FREE_DELIVERY_OVER - totals.subtotal)} more to unlock
-            free delivery.
+            Add {rupee(totals.freeDeliveryThreshold - totals.subtotal)} more to
+            unlock free delivery.
           </p>
         </div>
       )}

@@ -1,3 +1,4 @@
+export type { PublicCart } from "./api/cart-api";
 export { default as CartLineItem } from "./components/cart/cart-line-item";
 export { default as CartSummary } from "./components/cart/cart-summary";
 export { default as CouponBox } from "./components/coupon/coupon-box";

@@ -1,23 +1,43 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Bike, Navigation, Phone } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Bike, Navigation } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { findOrder, OrderStatusTimeline } from "@/modules/orders";
+import { OrderStatusTimeline, orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/tracking",
 )({
   component: OrderTrackingPage,
-  loader: ({ params }) => {
-    const order = findOrder(params.orderId);
-    if (!order) throw notFound();
-    return order;
-  },
 });
 
 function OrderTrackingPage() {
-  const order = Route.useLoaderData();
-  const eta = order.rider?.etaMins ?? 12;
+  const { orderId } = Route.useParams();
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery(orderQueryOptions(orderId));
+
+  if (isLoading) {
+    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="p-12 text-center">
+        <h2 className="mb-4 font-editorial text-2xl">Order not found.</h2>
+        <Link
+          to="/orders"
+          className="font-semibold text-primary hover:underline"
+        >
+          Back to orders
+        </Link>
+      </div>
+    );
+  }
+
+  const shortId = order.id.slice(0, 8).toUpperCase();
 
   return (
     <div className="mx-auto pt-8 pb-16">
@@ -26,7 +46,7 @@ function OrderTrackingPage() {
           { label: "Home", to: "/" },
           { label: "Orders", to: "/orders" },
           {
-            label: `#${order.id}`,
+            label: `#${shortId}`,
             to: "/orders/$orderId",
             params: { orderId: order.id },
           },
@@ -37,7 +57,7 @@ function OrderTrackingPage() {
       <div className="mb-6">
         <p className="kicker text-primary">Arriving soon</p>
         <h1 className="mt-2 font-editorial text-3xl text-ink leading-none tracking-tight sm:text-4xl">
-          Your order is {eta} min away
+          Your order is on its way
         </h1>
       </div>
 
@@ -56,34 +76,11 @@ function OrderTrackingPage() {
                 <Bike size={28} />
               </span>
               <p className="font-semibold text-ink text-sm">
-                Rider is on the way
+                Rider assignment coming soon
               </p>
               <p className="text-foreground/60 text-xs">Live map coming soon</p>
             </div>
           </div>
-
-          {order.rider && (
-            <div className="flex items-center gap-4 rounded-3xl border border-border/60 bg-white p-5">
-              <span className="flex size-12 items-center justify-center rounded-full bg-accent/40 font-semibold text-ink">
-                {order.rider.name.charAt(0)}
-              </span>
-              <div className="flex-1">
-                <p className="font-semibold text-ink text-sm">
-                  {order.rider.name}
-                </p>
-                <p className="text-foreground/60 text-xs">
-                  {order.rider.vehicle}
-                </p>
-              </div>
-              <a
-                href={`tel:${order.rider.phone.replace(/\s/g, "")}`}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 px-4 py-2 font-semibold text-primary text-sm transition-colors hover:bg-primary/5"
-              >
-                <Phone size={14} />
-                Call
-              </a>
-            </div>
-          )}
         </div>
 
         <aside className="flex h-fit flex-col gap-4 rounded-3xl border border-border/60 bg-white p-6 lg:sticky lg:top-24">

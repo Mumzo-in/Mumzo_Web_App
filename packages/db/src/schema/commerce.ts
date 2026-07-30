@@ -165,6 +165,9 @@ export const orderItem = pgTable(
       onDelete: "restrict",
     }),
     nameSnapshot: text("name_snapshot").notNull(),
+    /** Null for a variant-less product — same "at most one populated" rule
+     * as productSizeId/productColorId above. */
+    variantLabelSnapshot: text("variant_label_snapshot"),
     /** Paise, per unit. */
     priceSnapshot: integer("price_snapshot").notNull(),
     /** GST slab as of purchase time — invoices must reflect the rate that

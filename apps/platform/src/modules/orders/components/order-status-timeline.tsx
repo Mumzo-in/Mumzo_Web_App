@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 
-import { ORDER_FLOW, type OrderStatus, STATUS_META } from "../data/order-data";
+import type { OrderStatus } from "../api/orders-api";
+import { ORDER_FLOW, STATUS_META } from "../data/order-data";
 
 export default function OrderStatusTimeline({
   status,
@@ -15,7 +16,18 @@ export default function OrderStatusTimeline({
     );
   }
 
-  const currentIdx = ORDER_FLOW.indexOf(status);
+  if (status === "return_requested" || status === "returned") {
+    return (
+      <div className="rounded-2xl bg-amber-100 px-4 py-3 font-semibold text-amber-800 text-sm">
+        {STATUS_META[status].label}
+      </div>
+    );
+  }
+
+  // `pending_payment` reads as the same step as `confirmed` on the timeline
+  // (see STATUS_META) — treat it identically for the current-index lookup.
+  const effectiveStatus = status === "pending_payment" ? "confirmed" : status;
+  const currentIdx = ORDER_FLOW.indexOf(effectiveStatus);
 
   return (
     <ol className="flex flex-col">

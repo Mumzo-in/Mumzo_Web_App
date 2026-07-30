@@ -1,15 +1,15 @@
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@mumzo/ui/lib/utils";
-import type { AdminOrder } from "@/modules/orders";
+import type { AdminOrderSummary } from "@/modules/orders";
 import type { BoardColumnStatus } from "../data/ops-board-data";
 import OpsBoardCard from "./ops-board-card";
 
 type OpsBoardColumnProps = {
   status: BoardColumnStatus;
   label: string;
-  orders: AdminOrder[];
-  onCancel: (order: AdminOrder) => void;
-  onViewDetail: (order: AdminOrder) => void;
+  orders: AdminOrderSummary[];
+  onCancel: (order: AdminOrderSummary) => void;
+  onViewDetail: (order: AdminOrderSummary) => void;
 };
 
 export function OpsBoardColumn({

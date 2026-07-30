@@ -1,6 +1,26 @@
 import { ERROR_CODES } from "@/core/constants";
 import { badRequest, conflict, notFound } from "@/core/errors";
+import { toPaise, toWholeRupees } from "@/lib/money";
 import * as couponsRepo from "./coupons.repo";
+
+/** `value`/`cap`/`minAmt` are money only when `type === "flat"`/always for
+ * `cap`/`minAmt` — `value` on a `pct` coupon is a plain 1-100 percent, never
+ * money, and must never cross the paise boundary. */
+function toRupeeCoupon<
+  T extends {
+    type: CouponType;
+    value: number;
+    cap: number | null;
+    minAmt: number;
+  },
+>(row: T): T {
+  return {
+    ...row,
+    value: row.type === "flat" ? toWholeRupees(row.value) : row.value,
+    cap: row.cap === null ? null : toWholeRupees(row.cap),
+    minAmt: toWholeRupees(row.minAmt),
+  };
+}
 
 type CouponType = "flat" | "pct";
 type ProductScope = "all" | "specific";
@@ -33,7 +53,7 @@ type CouponWriteInput = {
 function serialize(
   row: NonNullable<Awaited<ReturnType<typeof couponsRepo.findById>>>,
 ) {
-  return {
+  return toRupeeCoupon({
     id: row.id,
     code: row.code,
     description: row.description,
@@ -59,7 +79,7 @@ function serialize(
     isActive: row.isActive,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  });
 }
 
 export async function listCoupons(filters: {
@@ -71,33 +91,35 @@ export async function listCoupons(filters: {
   const { rows, total } = await couponsRepo.findPage(filters);
 
   return {
-    data: rows.map((row) => ({
-      id: row.id,
-      code: row.code,
-      description: row.description,
-      type: row.type as CouponType,
-      value: row.value,
-      cap: row.cap,
-      minAmt: row.minAmt,
-      categorySlug: row.categorySlug,
-      brandId: row.brandId,
-      productScope: row.productScope as ProductScope,
-      productIds: [] as string[],
-      visibility: row.visibility as Visibility,
-      assignedUserIds: [] as string[],
-      segment: row.segment,
-      firstOrderOnly: row.firstOrderOnly,
-      maxUses: row.maxUses,
-      maxUsesPerUser: row.maxUsesPerUser,
-      usedCount: row.usedCount,
-      isStackable: row.isStackable,
-      priority: row.priority,
-      expiresAt: row.expiresAt.toISOString(),
-      startsAt: row.startsAt?.toISOString() ?? null,
-      isActive: row.isActive,
-      createdAt: row.createdAt.toISOString(),
-      updatedAt: row.updatedAt.toISOString(),
-    })),
+    data: rows.map((row) =>
+      toRupeeCoupon({
+        id: row.id,
+        code: row.code,
+        description: row.description,
+        type: row.type as CouponType,
+        value: row.value,
+        cap: row.cap,
+        minAmt: row.minAmt,
+        categorySlug: row.categorySlug,
+        brandId: row.brandId,
+        productScope: row.productScope as ProductScope,
+        productIds: [] as string[],
+        visibility: row.visibility as Visibility,
+        assignedUserIds: [] as string[],
+        segment: row.segment,
+        firstOrderOnly: row.firstOrderOnly,
+        maxUses: row.maxUses,
+        maxUsesPerUser: row.maxUsesPerUser,
+        usedCount: row.usedCount,
+        isStackable: row.isStackable,
+        priority: row.priority,
+        expiresAt: row.expiresAt.toISOString(),
+        startsAt: row.startsAt?.toISOString() ?? null,
+        isActive: row.isActive,
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+      }),
+    ),
     meta: {
       page: filters.page,
       limit: filters.limit,
@@ -184,6 +206,8 @@ export async function createCoupon(input: CouponWriteInput) {
     throw conflict(`A coupon with code "${input.code}" already exists.`);
   }
 
+  // Validated against the rupee value as submitted (a `pct` coupon's
+  // "can't exceed 100" check would be meaningless against paise).
   assertConsistent(input);
   await assertScopeExists(input);
 
@@ -192,7 +216,9 @@ export async function createCoupon(input: CouponWriteInput) {
   return couponsRepo.insert(
     {
       ...rest,
-      cap: rest.cap ?? null,
+      value: rest.type === "flat" ? toPaise(rest.value) : rest.value,
+      cap: rest.cap == null ? null : toPaise(rest.cap),
+      minAmt: toPaise(rest.minAmt),
       categorySlug: rest.categorySlug ?? null,
       brandId: rest.brandId ?? null,
       description: rest.description ?? null,
@@ -237,10 +263,25 @@ export async function updateCoupon(
 
   const { productIds, assignedUserIds, startsAt, expiresAt, ...rest } = input;
 
+  // `merged.type` is the coupon's *final* type post-update — a value the
+  // caller sent under a `pct` coupon must never be paise-converted, and a
+  // `flat` coupon's value/cap/minAmt always are, whether just-submitted or
+  // pre-existing. Note: switching `type` from pct→flat (or back) in the same
+  // request *without* also sending `value` leaves the stored number
+  // unconverted under its new type's meaning — the admin form always
+  // submits `value` alongside a type change today, so this doesn't arise in
+  // practice, but it's not enforced here.
   await couponsRepo.update(
     id,
     {
       ...rest,
+      ...(rest.value !== undefined
+        ? { value: merged.type === "flat" ? toPaise(rest.value) : rest.value }
+        : {}),
+      ...(rest.cap !== undefined
+        ? { cap: rest.cap === null ? null : toPaise(rest.cap) }
+        : {}),
+      ...(rest.minAmt !== undefined ? { minAmt: toPaise(rest.minAmt) } : {}),
       ...(startsAt !== undefined
         ? { startsAt: startsAt ? new Date(startsAt) : null }
         : {}),

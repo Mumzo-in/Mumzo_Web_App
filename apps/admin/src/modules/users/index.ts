@@ -1,5 +1,5 @@
 export { getUserAnalytics } from "./api/user-analytics-api";
-export { getUser, listUsers } from "./api/users-api";
+export { getUser, getUsersGrowth, listUsers } from "./api/users-api";
 export { default as UserTable } from "./components/user-table";
 export type {
   GrowthPoint,

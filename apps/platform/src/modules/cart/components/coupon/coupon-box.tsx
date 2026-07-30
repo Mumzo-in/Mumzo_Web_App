@@ -7,10 +7,10 @@ import {
 import { cn } from "@mumzo/ui/lib/utils";
 import { Tag } from "lucide-react";
 import { useState } from "react";
+import { ApiError } from "@/core/api/client";
+import { offers } from "@/core/data";
 
-import { type Offer, offers } from "@/core/data";
-
-import { rupee, useCart } from "../../store/cart-provider";
+import { useCart } from "../../store/cart-provider";
 import CouponCard from "./coupon-card";
 
 interface CouponMessage {
@@ -19,57 +19,28 @@ interface CouponMessage {
 }
 
 export default function CouponBox() {
-  const { coupon, setCoupon, totals, items } = useCart();
-  const [code, setCode] = useState(coupon?.code ?? "");
+  const { couponCode, applyCoupon } = useCart();
+  const [code, setCode] = useState(couponCode ?? "");
   const [msg, setMsg] = useState<CouponMessage | null>(null);
+  const [applying, setApplying] = useState(false);
 
-  const applyOffer = (offer: Offer) => {
-    setCode(offer.code);
-
-    if (items.length === 0) {
-      setCoupon(null);
-      setMsg({ ok: false, text: "Add items to your cart to use a coupon." });
-      return;
-    }
-
-    const eligibleAmt = offer.category
-      ? items
-          .filter((i) => i.categorySlug === offer.category)
-          .reduce((s, i) => s + i.price * i.qty, 0)
-      : totals.subtotal;
-
-    if (offer.category && eligibleAmt === 0) {
-      setCoupon(null);
+  const apply = async (codeToApply = code) => {
+    if (!codeToApply.trim()) return;
+    setApplying(true);
+    setMsg(null);
+    try {
+      await applyCoupon(codeToApply.trim());
       setMsg({
-        ok: false,
-        text: `${offer.code} only applies to ${offer.category.replace("-", " ")} items.`,
+        ok: true,
+        text: `Coupon "${codeToApply.toUpperCase()}" applied!`,
       });
-      return;
+    } catch (error) {
+      const text =
+        error instanceof ApiError ? error.message : "Couldn't apply this code.";
+      setMsg({ ok: false, text });
+    } finally {
+      setApplying(false);
     }
-
-    if (offer.minAmt && eligibleAmt < offer.minAmt) {
-      setCoupon(null);
-      setMsg({
-        ok: false,
-        text: `Add ${rupee(offer.minAmt - eligibleAmt)} more to use ${offer.code}.`,
-      });
-      return;
-    }
-
-    setCoupon(offer);
-    setMsg({ ok: true, text: `Yay! ${offer.desc}` });
-  };
-
-  const apply = () => {
-    const found = offers.find(
-      (o) => o.code.toLowerCase() === code.trim().toLowerCase(),
-    );
-    if (!found) {
-      setCoupon(null);
-      setMsg({ ok: false, text: "Invalid code, mama." });
-      return;
-    }
-    applyOffer(found);
   };
 
   return (
@@ -89,9 +60,10 @@ export default function CouponBox() {
         />
         <button
           type="button"
-          onClick={apply}
+          onClick={() => apply()}
+          disabled={applying}
           data-testid="web-apply-coupon"
-          className="rounded-full bg-pinkDeep px-6 py-3 font-semibold text-sm text-white transition-colors hover:bg-[#A93F63]"
+          className="rounded-full bg-pinkDeep px-6 py-3 font-semibold text-sm text-white transition-colors hover:bg-[#A93F63] disabled:opacity-60"
         >
           Apply
         </button>
@@ -108,7 +80,10 @@ export default function CouponBox() {
         </p>
       )}
 
-      {/* Offers collapsed by default via the accordion. */}
+      {/* Offers collapsed by default via the accordion. Still browsed from
+          the mock marketing list (offers aren't served by an API yet) —
+          selecting one applies it through the real coupon endpoint, which
+          validates eligibility server-side. */}
       <Accordion className="mt-4 border-border/50 border-t">
         <AccordionItem value="offers">
           <AccordionTrigger
@@ -123,8 +98,11 @@ export default function CouponBox() {
                 <CouponCard
                   key={o.code}
                   offer={o}
-                  selected={coupon?.code === o.code}
-                  onSelect={() => applyOffer(o)}
+                  selected={couponCode === o.code}
+                  onSelect={() => {
+                    setCode(o.code);
+                    void apply(o.code);
+                  }}
                 />
               ))}
             </div>

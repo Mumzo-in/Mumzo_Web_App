@@ -24,6 +24,7 @@ import { Route as adminPlatformExperimentsRouteImport } from './pages/(admin)/pl
 import { Route as adminOverviewOpsRouteImport } from './pages/(admin)/overview/ops'
 import { Route as adminOverviewBiRouteImport } from './pages/(admin)/overview/bi'
 import { Route as adminOverviewAnalyticsRouteImport } from './pages/(admin)/overview/analytics'
+import { Route as adminOperationsServiceAreasRouteImport } from './pages/(admin)/operations/service-areas'
 import { Route as adminOperationsReturnsRouteImport } from './pages/(admin)/operations/returns'
 import { Route as adminOperationsDispatchRouteImport } from './pages/(admin)/operations/dispatch'
 import { Route as adminLegalConfigRouteImport } from './pages/(admin)/legal/config'
@@ -160,6 +161,12 @@ const adminOverviewAnalyticsRoute = adminOverviewAnalyticsRouteImport.update({
   path: '/overview/analytics',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminOperationsServiceAreasRoute =
+  adminOperationsServiceAreasRouteImport.update({
+    id: '/operations/service-areas',
+    path: '/operations/service-areas',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminOperationsReturnsRoute = adminOperationsReturnsRouteImport.update({
   id: '/operations/returns',
   path: '/operations/returns',
@@ -514,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/legal/config': typeof adminLegalConfigRoute
   '/operations/dispatch': typeof adminOperationsDispatchRoute
   '/operations/returns': typeof adminOperationsReturnsRoute
+  '/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/overview/bi': typeof adminOverviewBiRoute
   '/overview/ops': typeof adminOverviewOpsRoute
@@ -589,6 +597,7 @@ export interface FileRoutesByTo {
   '/legal/config': typeof adminLegalConfigRoute
   '/operations/dispatch': typeof adminOperationsDispatchRoute
   '/operations/returns': typeof adminOperationsReturnsRoute
+  '/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/overview/bi': typeof adminOverviewBiRoute
   '/overview/ops': typeof adminOverviewOpsRoute
@@ -666,6 +675,7 @@ export interface FileRoutesById {
   '/(admin)/legal/config': typeof adminLegalConfigRoute
   '/(admin)/operations/dispatch': typeof adminOperationsDispatchRoute
   '/(admin)/operations/returns': typeof adminOperationsReturnsRoute
+  '/(admin)/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/(admin)/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/(admin)/overview/bi': typeof adminOverviewBiRoute
   '/(admin)/overview/ops': typeof adminOverviewOpsRoute
@@ -743,6 +753,7 @@ export interface FileRouteTypes {
     | '/legal/config'
     | '/operations/dispatch'
     | '/operations/returns'
+    | '/operations/service-areas'
     | '/overview/analytics'
     | '/overview/bi'
     | '/overview/ops'
@@ -818,6 +829,7 @@ export interface FileRouteTypes {
     | '/legal/config'
     | '/operations/dispatch'
     | '/operations/returns'
+    | '/operations/service-areas'
     | '/overview/analytics'
     | '/overview/bi'
     | '/overview/ops'
@@ -894,6 +906,7 @@ export interface FileRouteTypes {
     | '/(admin)/legal/config'
     | '/(admin)/operations/dispatch'
     | '/(admin)/operations/returns'
+    | '/(admin)/operations/service-areas'
     | '/(admin)/overview/analytics'
     | '/(admin)/overview/bi'
     | '/(admin)/overview/ops'
@@ -1061,6 +1074,13 @@ declare module '@tanstack/react-router' {
       path: '/overview/analytics'
       fullPath: '/overview/analytics'
       preLoaderRoute: typeof adminOverviewAnalyticsRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/operations/service-areas': {
+      id: '/(admin)/operations/service-areas'
+      path: '/operations/service-areas'
+      fullPath: '/operations/service-areas'
+      preLoaderRoute: typeof adminOperationsServiceAreasRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/operations/returns': {
@@ -1497,6 +1517,7 @@ interface adminLayoutRouteChildren {
   adminLegalConfigRoute: typeof adminLegalConfigRoute
   adminOperationsDispatchRoute: typeof adminOperationsDispatchRoute
   adminOperationsReturnsRoute: typeof adminOperationsReturnsRoute
+  adminOperationsServiceAreasRoute: typeof adminOperationsServiceAreasRoute
   adminOverviewAnalyticsRoute: typeof adminOverviewAnalyticsRoute
   adminOverviewBiRoute: typeof adminOverviewBiRoute
   adminOverviewOpsRoute: typeof adminOverviewOpsRoute
@@ -1571,6 +1592,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminLegalConfigRoute: adminLegalConfigRoute,
   adminOperationsDispatchRoute: adminOperationsDispatchRoute,
   adminOperationsReturnsRoute: adminOperationsReturnsRoute,
+  adminOperationsServiceAreasRoute: adminOperationsServiceAreasRoute,
   adminOverviewAnalyticsRoute: adminOverviewAnalyticsRoute,
   adminOverviewBiRoute: adminOverviewBiRoute,
   adminOverviewOpsRoute: adminOverviewOpsRoute,

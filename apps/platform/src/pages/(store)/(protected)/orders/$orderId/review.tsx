@@ -1,21 +1,17 @@
 import { Button } from "@mumzo/ui/components/button";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Camera, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { findOrder } from "@/modules/orders";
+import { orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/review",
 )({
   component: OrderReviewPage,
-  loader: ({ params }) => {
-    const order = findOrder(params.orderId);
-    if (!order) throw notFound();
-    return order;
-  },
 });
 
 function StarPicker({
@@ -54,7 +50,12 @@ function StarPicker({
 }
 
 function OrderReviewPage() {
-  const order = Route.useLoaderData();
+  const { orderId } = Route.useParams();
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery(orderQueryOptions(orderId));
   const navigate = useNavigate();
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [title, setTitle] = useState("");
@@ -67,8 +68,28 @@ function OrderReviewPage() {
       return;
     }
     toast.success("Thanks for your review!");
-    navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
+    navigate({ to: "/orders/$orderId", params: { orderId } });
   };
+
+  if (isLoading) {
+    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="p-12 text-center">
+        <h2 className="mb-4 font-editorial text-2xl">Order not found.</h2>
+        <Link
+          to="/orders"
+          className="font-semibold text-primary hover:underline"
+        >
+          Back to orders
+        </Link>
+      </div>
+    );
+  }
+
+  const shortId = order.id.slice(0, 8).toUpperCase();
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
@@ -77,7 +98,7 @@ function OrderReviewPage() {
           { label: "Home", to: "/" },
           { label: "Orders", to: "/orders" },
           {
-            label: `#${order.id}`,
+            label: `#${shortId}`,
             to: "/orders/$orderId",
             params: { orderId: order.id },
           },
@@ -95,14 +116,13 @@ function OrderReviewPage() {
             key={item.id}
             className="flex items-center gap-4 rounded-3xl border border-border/60 bg-white p-4"
           >
-            <img
-              src={item.img}
-              alt={item.name}
-              className="size-14 shrink-0 rounded-xl border border-border/60 object-cover"
-            />
             <div className="flex-1">
               <p className="font-semibold text-ink text-sm">{item.name}</p>
-              <p className="text-foreground/55 text-xs">{item.brand}</p>
+              {item.variantLabel && (
+                <p className="text-foreground/55 text-xs">
+                  {item.variantLabel}
+                </p>
+              )}
             </div>
             <StarPicker
               value={ratings[item.id] ?? 0}

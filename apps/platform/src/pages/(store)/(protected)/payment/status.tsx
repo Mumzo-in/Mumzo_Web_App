@@ -78,14 +78,23 @@ function PaymentStatusPage() {
         )}
 
         <div className="flex w-full flex-col gap-3 pt-2">
-          {status === "success" && (
-            <Link
-              to="/orders"
-              className="w-full rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
-            >
-              Track your order
-            </Link>
-          )}
+          {status === "success" &&
+            (orderId ? (
+              <Link
+                to="/orders/$orderId"
+                params={{ orderId }}
+                className="w-full rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
+              >
+                Track your order
+              </Link>
+            ) : (
+              <Link
+                to="/orders"
+                className="w-full rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
+              >
+                Track your order
+              </Link>
+            ))}
           {status === "failed" && (
             <button
               type="button"

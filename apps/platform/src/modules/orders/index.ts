@@ -1,12 +1,17 @@
+export type {
+  OrderDetail,
+  OrderItem,
+  OrderStatus,
+  OrderStatusLogEntry,
+  OrderSummary,
+} from "./api/orders-api";
+export {
+  cancelOrder,
+  fetchOrder,
+  fetchOrders,
+  placeOrder,
+} from "./api/orders-api";
 export { default as OrderCard } from "./components/order-card";
 export { default as OrderStatusTimeline } from "./components/order-status-timeline";
-export {
-  findOrder,
-  formatOrderDate,
-  ORDER_FLOW,
-  type Order,
-  type OrderItem,
-  type OrderStatus,
-  orders,
-  STATUS_META,
-} from "./data/order-data";
+export { formatOrderDate, ORDER_FLOW, STATUS_META } from "./data/order-data";
+export { orderQueryOptions, ordersQueryOptions } from "./queries/orders";

@@ -1,46 +1,28 @@
-import type { Paginated } from "@/core/api/client";
-import { mockDelay, mockDetail, mockList } from "@/core/api/mock";
+import { apiList, apiRequest, type Paginated } from "@/core/api/client";
 import type { ListParams } from "@/core/api/query-keys";
-import {
-  type AdminOrder,
-  findOrder,
-  type OrderStatus,
-  orders,
+import type {
+  AdminOrderDetail,
+  AdminOrderSummary,
+  OrderStatus,
 } from "../data/order-data";
 
-/**
- * Orders API — api-plan §15d.
- * Swaps to `apiList("/orders", params)` / `apiRequest("/orders/" + id)`.
- */
-export function listOrders(params: ListParams): Promise<Paginated<AdminOrder>> {
-  return mockList({
-    rows: orders,
-    params,
-    searchFields: ["reference", "customerName", "hub"],
-    filter: (row) => !params.status || row.status === params.status,
-  });
+/** Orders API — api-plan §15d, backed by apps/server/.../admin/v1/orders. */
+export function listOrders(
+  params: ListParams,
+): Promise<Paginated<AdminOrderSummary>> {
+  return apiList<AdminOrderSummary>("/orders", params);
 }
 
-export function getOrder(id: string): Promise<AdminOrder> {
-  return mockDetail(findOrder(id));
+export function getOrder(id: string): Promise<AdminOrderDetail> {
+  return apiRequest<AdminOrderDetail>(`/orders/${id}`);
 }
 
-/**
- * Mutates the mock `orders` array in place — swaps to
- * `apiRequest("/orders/" + id + "/status", { method: "PATCH", body: { status } })`
- * once a real endpoint exists. Any-direction transition is allowed here
- * deliberately (ops needs to correct mis-drags); `ORDER_FLOW` is display
- * ordering, not an enforced state machine.
- */
-export async function updateOrderStatus(
+export function updateOrderStatus(
   id: string,
   status: OrderStatus,
-): Promise<AdminOrder> {
-  await mockDelay();
-  const order = findOrder(id);
-  if (!order) {
-    throw new Error("Order not found.");
-  }
-  order.status = status;
-  return order;
+): Promise<AdminOrderDetail> {
+  return apiRequest<AdminOrderDetail>(`/orders/${id}/status`, {
+    method: "PATCH",
+    body: { status },
+  });
 }

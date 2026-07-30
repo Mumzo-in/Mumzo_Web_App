@@ -276,6 +276,31 @@ export const hub = pgTable("hub", {
 });
 
 /**
+ * Which pincodes a hub delivers to. Deliberately simple — one row per
+ * pincode, an on/off toggle. No polygons/ETA/surge rules; that's the fuller
+ * geofencing spec (`docs/platform/geofencing-location-spec.md`), a separate
+ * future feature.
+ */
+export const serviceArea = pgTable(
+  "service_area",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    pincode: text("pincode").notNull(),
+    hubId: uuid("hub_id")
+      .notNull()
+      .references(() => hub.id, { onDelete: "cascade" }),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [unique().on(table.pincode)],
+);
+
+/**
  * Per-hub stock, at the product level (not per-size) — matches the "minimal
  * hubs + inventory" scope: a stock grid and an adjust modal, not per-size
  * per-hub granularity.
@@ -428,6 +453,11 @@ export const productColorRelations = relations(productColor, ({ one }) => ({
 
 export const hubRelations = relations(hub, ({ many }) => ({
   inventory: many(inventory),
+  serviceAreas: many(serviceArea),
+}));
+
+export const serviceAreaRelations = relations(serviceArea, ({ one }) => ({
+  hub: one(hub, { fields: [serviceArea.hubId], references: [hub.id] }),
 }));
 
 export const inventoryRelations = relations(inventory, ({ one }) => ({

@@ -16,38 +16,41 @@ import { formatDateTime, formatMoney } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
 import { listOrders } from "../api/orders-api";
 import {
-  type AdminOrder,
+  type AdminOrderSummary,
   isSlaBreached,
   ORDER_STATUS_META,
-  PAYMENT_MODE_LABELS,
+  PAYMENT_METHOD_LABELS,
 } from "../data/order-data";
 
 const STATUS_FILTERS = [
   { value: "all", label: "All statuses" },
-  { value: "placed", label: "Placed" },
+  { value: "confirmed", label: "Order placed" },
   { value: "packed", label: "Packed" },
+  { value: "shipped", label: "Shipped" },
   { value: "out_for_delivery", label: "Out for delivery" },
   { value: "delivered", label: "Delivered" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "return_requested", label: "Return requested" },
+  { value: "returned", label: "Returned" },
 ] as const;
 
 export function OrderTable() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
 
-  const columns = useMemo<ColumnDef<AdminOrder, unknown>[]>(
+  const columns = useMemo<ColumnDef<AdminOrderSummary, unknown>[]>(
     () => [
       {
-        accessorKey: "reference",
+        accessorKey: "id",
         header: "Order",
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="numeric font-medium">
-              {row.original.reference}
+              #{row.original.id.slice(0, 8).toUpperCase()}
             </span>
             <span className="text-muted-foreground text-xs">
               {row.original.itemCount} item
-              {row.original.itemCount === 1 ? "" : "s"} · {row.original.hub}
+              {row.original.itemCount === 1 ? "" : "s"} · {row.original.hubName}
             </span>
           </div>
         ),
@@ -75,12 +78,13 @@ export function OrderTable() {
         },
       },
       {
-        accessorKey: "paymentMode",
+        accessorKey: "paymentMethod",
         header: "Payment",
         enableSorting: false,
         cell: ({ row }) => (
           <span className="text-sm">
-            {PAYMENT_MODE_LABELS[row.original.paymentMode]}
+            {PAYMENT_METHOD_LABELS[row.original.paymentMethod] ??
+              row.original.paymentMethod}
           </span>
         ),
       },

@@ -113,11 +113,15 @@ export async function findById(id: string) {
 
 export async function sizesByProductId(productIds: string[]) {
   if (productIds.length === 0) {
-    return new Map<string, { label: string; price: number; stock: number }[]>();
+    return new Map<
+      string,
+      { id: string; label: string; price: number; stock: number }[]
+    >();
   }
 
   const rows = await db
     .select({
+      id: productSize.id,
       productId: productSize.productId,
       label: productSize.label,
       price: productSize.price,
@@ -129,12 +133,17 @@ export async function sizesByProductId(productIds: string[]) {
 
   const byProduct = new Map<
     string,
-    { label: string; price: number; stock: number }[]
+    { id: string; label: string; price: number; stock: number }[]
   >();
 
   for (const row of rows) {
     const list = byProduct.get(row.productId) ?? [];
-    list.push({ label: row.label, price: row.price, stock: row.stock });
+    list.push({
+      id: row.id,
+      label: row.label,
+      price: row.price,
+      stock: row.stock,
+    });
     byProduct.set(row.productId, list);
   }
 
@@ -143,11 +152,15 @@ export async function sizesByProductId(productIds: string[]) {
 
 export async function colorsByProductId(productIds: string[]) {
   if (productIds.length === 0) {
-    return new Map<string, { label: string; price: number; stock: number }[]>();
+    return new Map<
+      string,
+      { id: string; label: string; price: number; stock: number }[]
+    >();
   }
 
   const rows = await db
     .select({
+      id: productColor.id,
       productId: productColor.productId,
       label: productColor.label,
       price: productColor.price,
@@ -159,12 +172,17 @@ export async function colorsByProductId(productIds: string[]) {
 
   const byProduct = new Map<
     string,
-    { label: string; price: number; stock: number }[]
+    { id: string; label: string; price: number; stock: number }[]
   >();
 
   for (const row of rows) {
     const list = byProduct.get(row.productId) ?? [];
-    list.push({ label: row.label, price: row.price, stock: row.stock });
+    list.push({
+      id: row.id,
+      label: row.label,
+      price: row.price,
+      stock: row.stock,
+    });
     byProduct.set(row.productId, list);
   }
 

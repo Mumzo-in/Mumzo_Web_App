@@ -1,4 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Download,
   LifeBuoy,
@@ -11,22 +12,16 @@ import {
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { findProduct } from "@/core/data";
-import { rupee, useCart } from "@/modules/cart";
+import { rupee } from "@/modules/cart";
 import {
-  findOrder,
   formatOrderDate,
   OrderStatusTimeline,
+  orderQueryOptions,
   STATUS_META,
 } from "@/modules/orders";
 
 export const Route = createFileRoute("/(store)/(protected)/orders/$orderId/")({
   component: OrderDetailPage,
-  loader: ({ params }) => {
-    const order = findOrder(params.orderId);
-    if (!order) throw notFound();
-    return order;
-  },
 });
 
 function BillRow({ label, value }: { label: string; value: string }) {
@@ -39,31 +34,49 @@ function BillRow({ label, value }: { label: string; value: string }) {
 }
 
 function OrderDetailPage() {
-  const order = Route.useLoaderData();
-  const { addItem } = useCart();
-  const meta = STATUS_META[order.status];
+  const { orderId } = Route.useParams();
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery(orderQueryOptions(orderId));
 
   const reorder = () => {
-    // `order` itself comes from the mock `findOrder` — a fully mock order
-    // history, not a real one — so resolving its line items back to a
-    // product for "reorder" stays on the mock catalog too, consistent with
-    // `@/modules/orders/data/order-data.ts`. Revisit once orders are real.
-    let added = 0;
-    for (const item of order.items) {
-      const product = findProduct(item.id);
-      if (product) {
-        addItem(product, item.size, item.qty);
-        added += 1;
-      }
-    }
-    toast.success(
-      added > 0 ? "Items added back to your cart" : "Items no longer available",
+    // Order lines only carry productId/name/price — reordering by product
+    // id straight through the cart API (no size/color re-selection) rather
+    // than resolving back to a full Product, since that requires a
+    // separate product lookup this page doesn't otherwise need.
+    toast.info(
+      "Reorder isn't available yet — add items from the product page.",
     );
   };
 
+  if (isLoading) {
+    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="p-12 text-center">
+        <h2 className="mb-4 font-editorial text-2xl">Order not found.</h2>
+        <Link
+          to="/orders"
+          className="font-semibold text-primary hover:underline"
+        >
+          Back to orders
+        </Link>
+      </div>
+    );
+  }
+
+  const meta = STATUS_META[order.status];
+  const shortId = order.id.slice(0, 8).toUpperCase();
+
   const isActive =
-    order.status === "placed" ||
+    order.status === "pending_payment" ||
+    order.status === "confirmed" ||
     order.status === "packed" ||
+    order.status === "shipped" ||
     order.status === "out_for_delivery";
 
   return (
@@ -72,14 +85,14 @@ function OrderDetailPage() {
         items={[
           { label: "Home", to: "/" },
           { label: "Orders", to: "/orders" },
-          { label: `#${order.id}` },
+          { label: `#${shortId}` },
         ]}
       />
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-editorial text-3xl text-ink leading-none tracking-tight sm:text-4xl">
-            Order #{order.id}
+            Order #{shortId}
           </h1>
           <p className="mt-2 text-foreground/60 text-sm">
             Placed on {formatOrderDate(order.placedAt)}
@@ -119,18 +132,13 @@ function OrderDetailPage() {
                   key={item.id}
                   className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
                 >
-                  <img
-                    src={item.img}
-                    alt={item.name}
-                    className="size-14 shrink-0 rounded-xl border border-border/60 object-cover"
-                  />
                   <div className="flex-1">
                     <p className="font-semibold text-ink text-sm">
                       {item.name}
                     </p>
                     <p className="text-foreground/60 text-xs">
-                      {item.brand}
-                      {item.size ? ` · ${item.size}` : ""} · Qty {item.qty}
+                      {item.variantLabel ? `${item.variantLabel} · ` : ""}
+                      Qty {item.qty}
                     </p>
                   </div>
                   <p className="font-semibold text-ink text-sm">
@@ -147,13 +155,15 @@ function OrderDetailPage() {
               Delivery address
             </h2>
             <p className="font-semibold text-ink text-sm">
-              {order.address.label} · {order.address.name}
+              {order.addressLabel} · {order.addressName}
             </p>
             <p className="mt-1 text-foreground/70 text-sm leading-relaxed">
-              {order.address.line}
+              {order.addressLine1}, {order.addressLine2}
+              {order.addressLandmark ? `, ${order.addressLandmark}` : ""},{" "}
+              {order.addressCity} — {order.addressPincode}
             </p>
             <p className="mt-1 text-foreground/60 text-sm">
-              Phone: {order.address.phone}
+              Phone: {order.addressPhone}
             </p>
           </section>
         </div>
@@ -173,9 +183,11 @@ function OrderDetailPage() {
               )}
               <BillRow
                 label="Delivery fee"
-                value={order.delivery === 0 ? "FREE" : rupee(order.delivery)}
+                value={
+                  order.deliveryFee === 0 ? "FREE" : rupee(order.deliveryFee)
+                }
               />
-              <BillRow label="GST & taxes" value={rupee(order.gst)} />
+              <BillRow label="GST & taxes" value={rupee(order.gstAmount)} />
               <div className="mt-2 flex items-center justify-between border-border/50 border-t pt-3">
                 <span className="font-semibold">Total paid</span>
                 <span className="font-editorial font-semibold text-2xl">
@@ -183,7 +195,7 @@ function OrderDetailPage() {
                 </span>
               </div>
               <p className="text-foreground/55 text-xs">
-                Paid via {order.paymentLabel} · {order.slotLabel}
+                Paid via Cash on delivery
               </p>
             </div>
           </div>

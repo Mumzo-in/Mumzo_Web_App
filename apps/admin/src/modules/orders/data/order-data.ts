@@ -1,36 +1,87 @@
-/** Admin order views — api-plan §15d. */
+/** Admin order views — api-plan §15d. Mirrors the real order lifecycle in
+ * packages/db/src/schema/commerce.ts / docs/order-checkout-flow.md, the same
+ * 9-status set the customer-facing app already renders. */
 
 export type OrderStatus =
-  | "placed"
+  | "pending_payment"
+  | "confirmed"
   | "packed"
+  | "shipped"
   | "out_for_delivery"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "return_requested"
+  | "returned";
 
-export type PaymentMode = "upi" | "card" | "cod" | "wallet";
-
-export type AdminOrder = {
+export type AdminOrderSummary = {
   id: string;
-  /** Short code operators actually say out loud. */
-  reference: string;
-  customerName: string;
-  customerId: string;
   status: OrderStatus;
-  paymentMode: PaymentMode;
-  total: number;
+  customerName: string;
+  hubName: string;
   itemCount: number;
-  hub: string;
+  total: number;
+  paymentMethod: string;
   placedAt: string;
-  /** Promised delivery time; drives the SLA chip. */
-  slaDueAt: string;
+};
+
+export type AdminOrderItem = {
+  id: string;
+  productId: string;
+  name: string;
+  variantLabel: string | null;
+  price: number;
+  qty: number;
+};
+
+export type AdminOrderStatusLogEntry = {
+  id: string;
+  fromStatus: OrderStatus | null;
+  toStatus: OrderStatus;
+  actor: string;
+  note: string | null;
+  createdAt: string;
+};
+
+export type AdminOrderDetail = {
+  id: string;
+  status: OrderStatus;
+  customerId: string;
+  customerName: string;
+  hubName: string;
+  addressLabel: string;
+  addressName: string;
+  addressPhone: string;
+  addressLine1: string;
+  addressLine2: string;
+  addressLandmark: string | null;
+  addressPincode: string;
+  addressCity: string;
+  subtotal: number;
+  gstAmount: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  items: AdminOrderItem[];
+  statusLog: AdminOrderStatusLogEntry[];
+  placedAt: string;
 };
 
 export const ORDER_STATUS_META: Record<
   OrderStatus,
   { label: string; tint: string }
 > = {
-  placed: { label: "Placed", tint: "bg-accent text-accent-foreground" },
+  pending_payment: {
+    label: "Order placed",
+    tint: "bg-accent text-accent-foreground",
+  },
+  confirmed: {
+    label: "Order placed",
+    tint: "bg-accent text-accent-foreground",
+  },
   packed: { label: "Packed", tint: "bg-cream text-ink" },
+  shipped: { label: "Shipped", tint: "bg-cream text-ink" },
   out_for_delivery: {
     label: "Out for delivery",
     tint: "bg-primary/10 text-primary",
@@ -40,128 +91,37 @@ export const ORDER_STATUS_META: Record<
     label: "Cancelled",
     tint: "bg-destructive/10 text-destructive",
   },
+  return_requested: {
+    label: "Return requested",
+    tint: "bg-destructive/10 text-destructive",
+  },
+  returned: { label: "Returned", tint: "bg-destructive/10 text-destructive" },
 };
 
-/** Forward-only status flow (api-plan §15d `PATCH /orders/:id/status`). */
+/** Display ordering for the happy-path fulfilment timeline — terminal/side
+ * states (cancelled/return_requested/returned) are rendered separately. */
 export const ORDER_FLOW: OrderStatus[] = [
-  "placed",
+  "confirmed",
   "packed",
+  "shipped",
   "out_for_delivery",
   "delivered",
 ];
 
-export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   upi: "UPI",
   card: "Card",
+  netbanking: "Netbanking",
   cod: "Cash on delivery",
   wallet: "Wallet",
 };
 
-export const orders: AdminOrder[] = [
-  {
-    id: "ord_10241",
-    reference: "MZ-10241",
-    customerName: "Ananya Reddy",
-    customerId: "usr_001",
-    status: "out_for_delivery",
-    paymentMode: "upi",
-    total: 1248,
-    itemCount: 3,
-    hub: "Jubilee Hills",
-    placedAt: "2026-07-16T05:42:00.000Z",
-    slaDueAt: "2026-07-16T05:52:00.000Z",
-  },
-  {
-    id: "ord_10240",
-    reference: "MZ-10240",
-    customerName: "Priya Sharma",
-    customerId: "usr_002",
-    status: "placed",
-    paymentMode: "cod",
-    total: 649,
-    itemCount: 1,
-    hub: "Gachibowli",
-    placedAt: "2026-07-16T05:38:00.000Z",
-    slaDueAt: "2026-07-16T05:48:00.000Z",
-  },
-  {
-    id: "ord_10239",
-    reference: "MZ-10239",
-    customerName: "Fatima Begum",
-    customerId: "usr_003",
-    status: "packed",
-    paymentMode: "card",
-    total: 2196,
-    itemCount: 5,
-    hub: "Jubilee Hills",
-    placedAt: "2026-07-16T05:30:00.000Z",
-    slaDueAt: "2026-07-16T05:40:00.000Z",
-  },
-  {
-    id: "ord_10238",
-    reference: "MZ-10238",
-    customerName: "Sneha Iyer",
-    customerId: "usr_004",
-    status: "delivered",
-    paymentMode: "upi",
-    total: 399,
-    itemCount: 2,
-    hub: "Kondapur",
-    placedAt: "2026-07-16T04:55:00.000Z",
-    slaDueAt: "2026-07-16T05:05:00.000Z",
-  },
-  {
-    id: "ord_10237",
-    reference: "MZ-10237",
-    customerName: "Meera Nair",
-    customerId: "usr_005",
-    status: "cancelled",
-    paymentMode: "upi",
-    total: 1049,
-    itemCount: 1,
-    hub: "Gachibowli",
-    placedAt: "2026-07-16T04:40:00.000Z",
-    slaDueAt: "2026-07-16T04:50:00.000Z",
-  },
-  {
-    id: "ord_10236",
-    reference: "MZ-10236",
-    customerName: "Divya Rao",
-    customerId: "usr_006",
-    status: "delivered",
-    paymentMode: "wallet",
-    total: 878,
-    itemCount: 4,
-    hub: "Kondapur",
-    placedAt: "2026-07-16T04:12:00.000Z",
-    slaDueAt: "2026-07-16T04:22:00.000Z",
-  },
-  {
-    id: "ord_10235",
-    reference: "MZ-10235",
-    customerName: "Ritu Verma",
-    customerId: "usr_007",
-    status: "delivered",
-    paymentMode: "cod",
-    total: 1599,
-    itemCount: 2,
-    hub: "Jubilee Hills",
-    placedAt: "2026-07-16T03:50:00.000Z",
-    slaDueAt: "2026-07-16T04:00:00.000Z",
-  },
-];
-
-export function findOrder(id: string): AdminOrder | undefined {
-  return orders.find((order) => order.id === id);
-}
-
 /**
- * True when an in-flight order has passed its promised time. Delivered and
- * cancelled orders are terminal and never count as breaching.
+ * True when an in-flight order has passed its promised time. Real orders
+ * don't carry a per-order SLA timestamp yet (no dispatch/ETA tracking table),
+ * so this always reports false until that lands — kept as a stub so
+ * `OrderTable`/detail page call sites don't need to change again later.
  */
-export function isSlaBreached(order: AdminOrder, now = new Date()): boolean {
-  if (order.status === "delivered" || order.status === "cancelled") {
-    return false;
-  }
-  return new Date(order.slaDueAt).getTime() < now.getTime();
+export function isSlaBreached(_order: AdminOrderSummary | AdminOrderDetail) {
+  return false;
 }

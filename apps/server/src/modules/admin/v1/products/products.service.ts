@@ -1,10 +1,23 @@
 import { buildKey, KEY_PREFIXES, toPublicUrl } from "@mumzo/storage";
 import { conflict, notFound } from "@/core/errors";
+import { toPaise, toWholeRupees } from "@/lib/money";
 import { finalizeSession } from "@/modules/admin/v1/uploads/uploads.service";
 import * as productsRepo from "./products.repo";
 
-type Size = { label: string; price: number; stock: number };
-type Color = { label: string; price: number; stock: number };
+/** Read-side shape — every row loaded from the DB has an id. */
+type Size = { id: string; label: string; price: number; stock: number };
+type Color = { id: string; label: string; price: number; stock: number };
+
+/** Write-side shape — the form always fully replaces sizes/colors on save,
+ * so any `id` it sends (from a row it displayed) is stale by the time the
+ * repo re-inserts; the repo never reads it. */
+type SizeInput = { id?: string; label: string; price: number; stock: number };
+type ColorInput = {
+  id?: string;
+  label: string;
+  price: number;
+  stock: number;
+};
 
 type VendorRelationship = "own" | "retainer" | "distributor";
 
@@ -23,11 +36,17 @@ function rollUpStock(sizes: Size[]): number {
 
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findById>>;
 
+function toRupeeVariant<T extends { price: number }>(variant: T): T {
+  return { ...variant, price: toWholeRupees(variant.price) };
+}
+
 function serialize(
   row: NonNullable<ProductRow>,
-  sizes: Size[],
-  colors: Color[],
+  sizesInPaise: Size[],
+  colorsInPaise: Color[],
 ) {
+  const sizes = sizesInPaise.map(toRupeeVariant);
+  const colors = colorsInPaise.map(toRupeeVariant);
   return {
     id: row.id,
     slug: row.slug,
@@ -40,14 +59,17 @@ function serialize(
           vendorId: row.vendorId,
           vendorName: row.vendorName ?? "",
           relationship: row.vendorRelationship as VendorRelationship,
-          costPrice: row.vendorCostPrice,
+          costPrice:
+            row.vendorCostPrice === null
+              ? null
+              : toWholeRupees(row.vendorCostPrice),
           leadTimeDays: row.vendorLeadTimeDays,
           notes: row.vendorNotes,
         }
       : null,
     categorySlug: row.categorySlug,
-    price: row.price,
-    mrp: row.mrp,
+    price: toWholeRupees(row.price),
+    mrp: toWholeRupees(row.mrp),
     qty: row.qty,
     weight: row.weight,
     description: row.description,
@@ -136,8 +158,8 @@ type ProductInput = {
   images: string[];
   /** Draft image-upload session to finalize before persisting `images`. */
   uploadSessionId?: string | null;
-  sizes: Size[];
-  colors: Color[];
+  sizes: SizeInput[];
+  colors: ColorInput[];
   ages: string[];
   type: string;
   tags: string[];
@@ -167,6 +189,31 @@ async function assertVendorExists(vendor: VendorInput) {
   if (!exists) {
     throw notFound("Vendor");
   }
+}
+
+/** The admin form submits/edits money in whole rupees; the DB stores paise
+ * (see `lib/money.ts`). This is the one place a `ProductInput` crosses that
+ * boundary before reaching the repo. */
+function toPaiseInput(input: ProductInput): ProductInput {
+  return {
+    ...input,
+    price: toPaise(input.price),
+    mrp: toPaise(input.mrp),
+    vendor: input.vendor
+      ? {
+          ...input.vendor,
+          costPrice:
+            input.vendor.costPrice === null
+              ? null
+              : toPaise(input.vendor.costPrice),
+        }
+      : null,
+    sizes: input.sizes.map((size) => ({ ...size, price: toPaise(size.price) })),
+    colors: input.colors.map((color) => ({
+      ...color,
+      price: toPaise(color.price),
+    })),
+  };
 }
 
 /**
@@ -212,23 +259,24 @@ async function finalizeImages(
   });
 }
 
-export async function createProduct(input: ProductInput, userId: string) {
+export async function createProduct(rawInput: ProductInput, userId: string) {
   const [bySlug, bySku] = await Promise.all([
-    productsRepo.findIdBySlug(input.slug),
-    productsRepo.findIdBySku(input.sku),
+    productsRepo.findIdBySlug(rawInput.slug),
+    productsRepo.findIdBySku(rawInput.sku),
   ]);
 
   if (bySlug) {
-    throw conflict(`The slug "${input.slug}" is already in use.`);
+    throw conflict(`The slug "${rawInput.slug}" is already in use.`);
   }
   if (bySku) {
-    throw conflict(`The SKU "${input.sku}" is already in use.`);
+    throw conflict(`The SKU "${rawInput.sku}" is already in use.`);
   }
 
-  await assertBrandExists(input.brandId);
-  await assertVendorExists(input.vendor);
-  const categoryId = await resolveCategoryId(input.categorySlug);
+  await assertBrandExists(rawInput.brandId);
+  await assertVendorExists(rawInput.vendor);
+  const categoryId = await resolveCategoryId(rawInput.categorySlug);
 
+  const input = toPaiseInput(rawInput);
   const {
     sizes,
     colors,
@@ -277,27 +325,28 @@ async function requireProductId(id: string) {
 
 export async function updateProduct(
   id: string,
-  input: ProductInput,
+  rawInput: ProductInput,
   userId: string,
 ) {
   await requireProductId(id);
 
   const [bySlug, bySku] = await Promise.all([
-    productsRepo.findIdBySlug(input.slug),
-    productsRepo.findIdBySku(input.sku),
+    productsRepo.findIdBySlug(rawInput.slug),
+    productsRepo.findIdBySku(rawInput.sku),
   ]);
 
   if (bySlug && bySlug.id !== id) {
-    throw conflict(`The slug "${input.slug}" is already in use.`);
+    throw conflict(`The slug "${rawInput.slug}" is already in use.`);
   }
   if (bySku && bySku.id !== id) {
-    throw conflict(`The SKU "${input.sku}" is already in use.`);
+    throw conflict(`The SKU "${rawInput.sku}" is already in use.`);
   }
 
-  await assertBrandExists(input.brandId);
-  await assertVendorExists(input.vendor);
-  const categoryId = await resolveCategoryId(input.categorySlug);
+  await assertBrandExists(rawInput.brandId);
+  await assertVendorExists(rawInput.vendor);
+  const categoryId = await resolveCategoryId(rawInput.categorySlug);
 
+  const input = toPaiseInput(rawInput);
   const {
     sizes,
     colors,

@@ -7,7 +7,11 @@ import { z } from "@hono/zod-openapi";
  * are resolved strings here, not the `brandId`/`categoryId` the DB stores.
  */
 
+/** `id` is present on read (identifies the `productSize` row for the cart to
+ * reference) and absent on write — the form always fully replaces a
+ * product's sizes/colors on save, so there's never an existing id to send. */
 export const productSizeSchema = z.object({
+  id: z.string().optional(),
   label: z.string().min(1),
   price: z.number().int().positive(),
   stock: z.number().int().min(0),
@@ -15,6 +19,7 @@ export const productSizeSchema = z.object({
 
 /** Same shape as `productSizeSchema` — color/style, a separate axis. */
 export const productColorSchema = z.object({
+  id: z.string().optional(),
   label: z.string().min(1),
   price: z.number().int().positive(),
   stock: z.number().int().min(0),

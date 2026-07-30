@@ -1,9 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Package } from "lucide-react";
 import { useState } from "react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { OrderCard, type OrderStatus, orders } from "@/modules/orders";
+import {
+  OrderCard,
+  type OrderStatus,
+  ordersQueryOptions,
+} from "@/modules/orders";
 
 export const Route = createFileRoute("/(store)/(protected)/orders/")({
   component: OrdersPage,
@@ -18,12 +23,20 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-const ACTIVE_STATUSES: OrderStatus[] = ["placed", "packed", "out_for_delivery"];
+const ACTIVE_STATUSES: OrderStatus[] = [
+  "pending_payment",
+  "confirmed",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+];
 
 function OrdersPage() {
   const [tab, setTab] = useState<TabKey>("all");
+  const { data, isLoading } = useQuery(ordersQueryOptions({ limit: 50 }));
+  const allOrders = data?.data ?? [];
 
-  const filtered = orders.filter((o) => {
+  const filtered = allOrders.filter((o) => {
     if (tab === "all") return true;
     if (tab === "active") return ACTIVE_STATUSES.includes(o.status);
     if (tab === "delivered") return o.status === "delivered";
@@ -55,7 +68,7 @@ function OrdersPage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? null : filtered.length === 0 ? (
         <div className="rounded-3xl border border-border/60 bg-white py-20 text-center">
           <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
             <Package size={28} className="text-primary" />

@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CalendarClock, MapPin, Pencil, Zap } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-
+import { ApiError } from "@/core/api/client";
 import { useAddresses } from "@/modules/account";
 import { CartSummary, rupee, useCart } from "@/modules/cart";
 import {
@@ -10,6 +11,7 @@ import {
   paymentMethods,
   useCheckout,
 } from "@/modules/checkout";
+import { placeOrder as placeOrderApi } from "@/modules/orders";
 
 export const Route = createFileRoute("/(store)/(protected)/checkout/review")({
   component: CheckoutReviewPage,
@@ -24,11 +26,13 @@ function CheckoutReviewPage() {
   const SlotIcon = mode === "express" ? Zap : CalendarClock;
   const slotFee =
     mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
+  const [placing, setPlacing] = useState(false);
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
   const payment = paymentMethods.find((p) => p.id === paymentMethod) ?? null;
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
+    if (placing) return; // PRG-style guard — disabled after first click.
     if (items.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -37,8 +41,35 @@ function CheckoutReviewPage() {
       toast.error("Please complete address and payment first");
       return;
     }
-    clear();
-    navigate({ to: "/payment/status", search: { status: "success" } });
+    if (payment.id !== "cod") {
+      toast.error(
+        "Online payment is coming soon — pay with Cash on delivery for now.",
+      );
+      return;
+    }
+
+    setPlacing(true);
+    try {
+      const order = await placeOrderApi({
+        addressId: address.id,
+        // One key per checkout attempt — a double-click or retried request
+        // reuses it and the server returns the same order instead of a
+        // duplicate (docs/order-checkout-flow.md §10).
+        idempotencyKey: crypto.randomUUID(),
+      });
+      clear();
+      navigate({
+        to: "/payment/status",
+        search: { status: "success", orderId: order.id },
+      });
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Couldn't place your order.";
+      toast.error(message);
+      setPlacing(false);
+    }
   };
 
   return (
@@ -92,11 +123,11 @@ function CheckoutReviewPage() {
             <div className="flex flex-col divide-y divide-border/60">
               {items.map((item) => (
                 <div
-                  key={item.key}
+                  key={item.id}
                   className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
                 >
                   <img
-                    src={item.img}
+                    src={item.img ?? ""}
                     alt={item.name}
                     className="size-14 shrink-0 rounded-xl border border-border/60 object-cover"
                   />
@@ -106,7 +137,8 @@ function CheckoutReviewPage() {
                     </p>
                     <p className="text-foreground/60 text-xs">
                       {item.brand}
-                      {item.size ? ` · ${item.size}` : ""} · Qty {item.qty}
+                      {item.variantLabel ? ` · ${item.variantLabel}` : ""} · Qty{" "}
+                      {item.qty}
                     </p>
                   </div>
                   <p className="font-semibold text-ink text-sm">
@@ -119,9 +151,10 @@ function CheckoutReviewPage() {
         </div>
 
         <CartSummary
-          onPlaceOrder={placeOrder}
-          ctaLabel="Place order"
+          onPlaceOrder={() => void placeOrder()}
+          ctaLabel={placing ? "Placing order…" : "Place order"}
           slotFee={slotFee}
+          disabled={placing}
         />
       </div>
     </div>

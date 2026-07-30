@@ -11,10 +11,12 @@ import {
 import addressesRoutes from "./addresses/addresses.module";
 import authRoutes from "./auth";
 import brandsRoutes from "./brands/brands.module";
+import cartRoutes from "./cart/cart.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
 import locationRoutes from "./location/location.module";
 import ogRoutes from "./og/og.module";
+import ordersRoutes from "./orders/orders.module";
 import productsRoutes, {
   productsByCategory as categoryProductsRoutes,
 } from "./products/products.module";
@@ -66,12 +68,14 @@ app.use(optionalAuth);
 
 app.route("/addresses", addressesRoutes);
 app.route("/auth", authRoutes);
+app.route("/cart", cartRoutes);
 app.route("/categories", categoriesRoutes);
 app.route("/categories", categoryProductsRoutes);
 app.route("/brands", brandsRoutes);
 app.route("/products", productsRoutes);
 app.route("/coupons", couponsRoutes);
 app.route("/location", locationRoutes);
+app.route("/orders", ordersRoutes);
 app.route("/profile", profileRoutes);
 app.route("/wishlist", wishlistRoutes);
 app.route("/og", ogRoutes);

@@ -28,11 +28,16 @@ export const queryKeys = {
     overview: () => ["dashboard", "overview"] as const,
     analytics: (metric: string) => ["dashboard", "analytics", metric] as const,
   },
+  overviewAnalytics: {
+    range: (range: { from: string; to: string }) =>
+      ["overview-analytics", range] as const,
+  },
   products: domainKeys("products"),
   brands: domainKeys("brands"),
   vendors: domainKeys("vendors"),
   bundles: domainKeys("bundles"),
   hubs: domainKeys("hubs"),
+  serviceAreas: domainKeys("service-areas"),
   inventory: domainKeys("inventory"),
   /** Categories are keyed by slug, not id (api-plan §15c). */
   categories: {

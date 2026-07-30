@@ -12,8 +12,9 @@ export const Route = createFileRoute("/(store)/cart")({
 
 function CartPage() {
   const navigate = useNavigate();
-  const { items, totals, clear } = useCart();
+  const { items, clear } = useCart();
   const { serviceable } = useServiceability();
+  const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
 
   const placeOrder = () => {
     if (items.length === 0) return;
@@ -42,7 +43,7 @@ function CartPage() {
             Your cart
           </h1>
           <p className="mt-2 text-foreground/60 text-sm">
-            {totals.count} {totals.count === 1 ? "item" : "items"}
+            {itemCount} {itemCount === 1 ? "item" : "items"}
           </p>
         </div>
         {items.length > 0 && (
@@ -80,7 +81,7 @@ function CartPage() {
 
             <div className="divide-y divide-border/60 rounded-3xl border border-border/60 bg-white">
               {items.map((item) => (
-                <CartLineItem key={item.key} item={item} />
+                <CartLineItem key={item.id} item={item} />
               ))}
             </div>
 

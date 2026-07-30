@@ -17,11 +17,11 @@ export default function CartLineItem({ item }: CartLineItemProps) {
     >
       <Link
         to="/product/$productId"
-        params={{ productId: item.id }}
+        params={{ productId: item.productId }}
         className="shrink-0"
       >
         <img
-          src={item.img}
+          src={item.img ?? ""}
           alt={item.name}
           className="size-20 rounded-2xl bg-blush/40 object-cover sm:size-24"
         />
@@ -32,13 +32,20 @@ export default function CartLineItem({ item }: CartLineItemProps) {
         </p>
         <Link
           to="/product/$productId"
-          params={{ productId: item.id }}
+          params={{ productId: item.productId }}
           className="mt-0.5 line-clamp-2 font-medium text-foreground text-sm leading-snug hover:underline"
         >
           {item.name}
         </Link>
-        {item.size && (
-          <p className="mt-0.5 text-foreground/60 text-xs">Size: {item.size}</p>
+        {item.variantLabel && (
+          <p className="mt-0.5 text-foreground/60 text-xs">
+            Size: {item.variantLabel}
+          </p>
+        )}
+        {item.isOutOfStock && (
+          <p className="mt-0.5 font-medium text-destructive text-xs">
+            Out of stock — remove to continue
+          </p>
         )}
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -56,7 +63,7 @@ export default function CartLineItem({ item }: CartLineItemProps) {
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => removeItem(item.key)}
+              onClick={() => removeItem(item.id)}
               aria-label="Remove item"
               className="rounded-full p-2 text-foreground/50 transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
@@ -65,8 +72,8 @@ export default function CartLineItem({ item }: CartLineItemProps) {
             <div className="inline-flex items-center overflow-hidden rounded-full border border-rose/40 bg-blush">
               <button
                 type="button"
-                onClick={() => updateQty(item.key, item.qty - 1)}
-                data-testid={`web-qty-minus-${item.id}`}
+                onClick={() => updateQty(item.id, item.qty - 1)}
+                data-testid={`web-qty-minus-${item.productId}`}
                 aria-label="Decrease quantity"
                 className="px-2.5 py-1.5 text-pinkDeep transition-colors hover:bg-rose/20"
               >
@@ -77,8 +84,8 @@ export default function CartLineItem({ item }: CartLineItemProps) {
               </span>
               <button
                 type="button"
-                onClick={() => updateQty(item.key, item.qty + 1)}
-                data-testid={`web-qty-plus-${item.id}`}
+                onClick={() => updateQty(item.id, item.qty + 1)}
+                data-testid={`web-qty-plus-${item.productId}`}
                 aria-label="Increase quantity"
                 className="px-2.5 py-1.5 text-pinkDeep transition-colors hover:bg-rose/20"
               >

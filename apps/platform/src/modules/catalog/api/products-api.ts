@@ -5,6 +5,7 @@ import { apiList, apiRequest, type Paginated } from "@/core/api/client";
  * see `apps/server/src/modules/platform/v1/products/products.schema.ts`.
  */
 export type PublicProductSize = {
+  id: string;
   label: string;
   price: number;
   stock: number;
@@ -12,6 +13,7 @@ export type PublicProductSize = {
 
 /** Same shape as `PublicProductSize` — color/style, a separate axis. */
 export type PublicProductColor = {
+  id: string;
   label: string;
   price: number;
   stock: number;
