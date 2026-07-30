@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@mumzo/ui/components/table";
-import { cn } from "@mumzo/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, type LinkProps } from "@tanstack/react-router";
 import {
@@ -35,7 +34,10 @@ import {
   YAxis,
 } from "recharts";
 import { queryKeys } from "@/core/api/query-keys";
+import { formatMoney } from "@/core/components/format";
+import StatusChip from "@/core/components/status-chip";
 import { getDashboard, MetricCard } from "@/modules/dashboard";
+import { ORDER_STATUS_META } from "@/modules/orders";
 
 export const Route = createFileRoute("/(admin)/")({
   component: DashboardPage,
@@ -279,69 +281,45 @@ function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px] pl-6">Order ID</TableHead>
-                    <TableHead>Customer / Baby</TableHead>
+                    <TableHead className="w-[100px] pl-6">Order</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Items Summary
+                      Items
                     </TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="pr-6 text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.recentOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="pl-6 font-medium font-mono text-xs">
-                        {order.id}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
+                  {data.recentOrders.map((order) => {
+                    const meta = ORDER_STATUS_META[
+                      order.status as keyof typeof ORDER_STATUS_META
+                    ] ?? { label: order.status, tint: "bg-secondary" };
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="pl-6 font-medium font-mono text-xs">
+                          #{order.id.slice(0, 8).toUpperCase()}
+                        </TableCell>
+                        <TableCell>
                           <span className="font-semibold text-foreground text-xs">
                             {order.customerName}
                           </span>
-                          {order.babyName && (
-                            <span className="text-[10px] text-muted-foreground">
-                              Baby: {order.babyName} ({order.babyAge})
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden max-w-[240px] truncate text-muted-foreground text-xs md:table-cell">
-                        {order.itemsSummary}
-                      </TableCell>
-                      <TableCell className="numeric text-right font-medium text-xs">
-                        {order.total}
-                      </TableCell>
-                      <TableCell className="pr-6 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Badge
-                            className={cn(
-                              "rounded-full border px-2 py-0.5 font-medium text-[10px] capitalize",
-                              order.status === "delivered" &&
-                                "border-status-success/20 bg-status-success/10 text-status-success",
-                              order.status === "pending" &&
-                                "border-status-warning/20 bg-status-warning/10 text-status-warning",
-                              order.status === "confirmed" &&
-                                "border-status-info/20 bg-status-info/10 text-status-info",
-                              order.status === "packed" &&
-                                "border-border bg-secondary text-secondary-foreground",
-                              order.status === "shipped" &&
-                                "border-status-info/20 bg-status-info/10 text-status-info",
-                              order.status === "cancelled" &&
-                                "border-status-danger/20 bg-status-danger/10 text-status-danger",
-                            )}
-                          >
-                            {order.status}
-                          </Badge>
-                          {order.slaBreach && (
-                            <Badge className="rounded-full border-transparent bg-status-danger px-1.5 py-0 text-[9px] text-white">
-                              LATE
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="hidden text-muted-foreground text-xs md:table-cell">
+                          {order.itemCount} item
+                          {order.itemCount === 1 ? "" : "s"}
+                        </TableCell>
+                        <TableCell className="numeric text-right font-medium text-xs">
+                          {formatMoney(order.total)}
+                        </TableCell>
+                        <TableCell className="pr-6 text-center">
+                          <div className="flex items-center justify-center">
+                            <StatusChip label={meta.label} tint={meta.tint} />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}

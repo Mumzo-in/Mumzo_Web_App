@@ -1,6 +1,14 @@
 import { createRouter } from "@/core";
-import { autocompleteRoute, reverseRoute } from "./location.routes";
-import { reverseGeocode, searchPlaces } from "./location.service";
+import {
+  autocompleteRoute,
+  reverseRoute,
+  serviceabilityRoute,
+} from "./location.routes";
+import {
+  checkServiceability,
+  reverseGeocode,
+  searchPlaces,
+} from "./location.service";
 
 /**
  * Geocoding proxy — keeps the OpenStreetMap Nominatim usage-policy User-Agent
@@ -19,6 +27,11 @@ const location = app
   .openapi(reverseRoute, async (c) => {
     const { lat, lng } = c.req.valid("query");
     const result = await reverseGeocode(lat, lng);
+    return c.json({ success: true as const, data: result }, 200);
+  })
+  .openapi(serviceabilityRoute, async (c) => {
+    const { pincode } = c.req.valid("query");
+    const result = await checkServiceability(pincode);
     return c.json({ success: true as const, data: result }, 200);
   });
 

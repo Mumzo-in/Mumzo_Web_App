@@ -1,6 +1,13 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../index";
-import { brand, category, categoryBrand, hub, vendor } from "../schema/catalog";
+import {
+  brand,
+  category,
+  categoryBrand,
+  hub,
+  serviceArea,
+  vendor,
+} from "../schema/catalog";
 import { seedCoupons } from "./marketing";
 import {
   backfillMisclassifiedColorSizes,
@@ -23,7 +30,8 @@ type BrandSeed = { name: string; slug: string };
 
 type HubSeed = { name: string; address: string };
 
-/** Launch dark stores — Mumzo starts serviceability in Hyderabad. */
+/** Launch dark stores — Mumzo starts serviceability in Hyderabad, plus an
+ * early Guwahati pilot hub. */
 const HUB_SEEDS: HubSeed[] = [
   {
     name: "Banjara Hills Hub",
@@ -36,6 +44,10 @@ const HUB_SEEDS: HubSeed[] = [
   {
     name: "Kukatpally Hub",
     address: "KPHB Colony, Kukatpally, Hyderabad, Telangana 500072",
+  },
+  {
+    name: "Guwahati Hub",
+    address: "Fancy Bazar, Guwahati, Assam 781001",
   },
 ];
 
@@ -445,6 +457,63 @@ export async function seedHubs() {
   };
 }
 
+type ServiceAreaSeed = { name: string; pincode: string; hubName: string };
+
+/**
+ * Transcribed from the platform's former mock data
+ * (`apps/platform/src/modules/location/data/serviceability-data.ts`), mapped
+ * onto the real hubs by nearest coverage — the mock data modeled 8 Hyderabad
+ * zones against hub-less lat/lng centroids; this assigns each to whichever
+ * real hub actually serves that part of the city. Guwahati is an early pilot
+ * pincode served by its own hub.
+ */
+const SERVICE_AREA_SEEDS: ServiceAreaSeed[] = [
+  { name: "Banjara Hills", pincode: "500034", hubName: "Banjara Hills Hub" },
+  { name: "Jubilee Hills", pincode: "500033", hubName: "Banjara Hills Hub" },
+  { name: "Begumpet", pincode: "500016", hubName: "Banjara Hills Hub" },
+  { name: "Secunderabad", pincode: "500003", hubName: "Banjara Hills Hub" },
+  { name: "Madhapur", pincode: "500081", hubName: "Gachibowli Hub" },
+  { name: "Gachibowli", pincode: "500032", hubName: "Gachibowli Hub" },
+  { name: "Kondapur", pincode: "500084", hubName: "Kukatpally Hub" },
+  { name: "Kukatpally", pincode: "500072", hubName: "Kukatpally Hub" },
+  { name: "Guwahati", pincode: "781001", hubName: "Guwahati Hub" },
+];
+
+export async function seedServiceAreas() {
+  const pincodes = SERVICE_AREA_SEEDS.map((seed) => seed.pincode);
+
+  const [existing, hubs] = await Promise.all([
+    db
+      .select({ pincode: serviceArea.pincode })
+      .from(serviceArea)
+      .where(inArray(serviceArea.pincode, pincodes)),
+    db.select({ id: hub.id, name: hub.name }).from(hub),
+  ]);
+
+  const present = new Set(existing.map((row) => row.pincode));
+  const hubIdByName = new Map(hubs.map((row) => [row.name, row.id]));
+
+  const missing = SERVICE_AREA_SEEDS.filter(
+    (seed) => !present.has(seed.pincode) && hubIdByName.has(seed.hubName),
+  );
+
+  if (missing.length > 0) {
+    await db.insert(serviceArea).values(
+      missing.map((seed) => ({
+        name: seed.name,
+        pincode: seed.pincode,
+        // biome-ignore lint/style/noNonNullAssertion: filtered by hubIdByName.has() above
+        hubId: hubIdByName.get(seed.hubName)!,
+      })),
+    );
+  }
+
+  return {
+    created: missing.length,
+    skipped: SERVICE_AREA_SEEDS.length - missing.length,
+  };
+}
+
 export async function seedCategories() {
   const slugs = CATEGORY_SEEDS.map((seed) => seed.slug);
 
@@ -580,6 +649,7 @@ export async function seedCatalog() {
   const brands = await seedBrands();
   const vendors = await seedVendors();
   const hubs = await seedHubs();
+  const serviceAreas = await seedServiceAreas();
   const categories = await seedCategories();
   const categoryImages = await backfillCategoryImages();
   const categoryBrands = await backfillCategoryBrands();
@@ -591,6 +661,7 @@ export async function seedCatalog() {
     brands,
     vendors,
     hubs,
+    serviceAreas,
     categories,
     categoryImages,
     categoryBrands,

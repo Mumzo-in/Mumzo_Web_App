@@ -4,4 +4,5 @@ export * from "./catalog";
 export * from "./commerce";
 export * from "./marketing";
 export * from "./media";
+export * from "./notifications";
 export * from "./staff";

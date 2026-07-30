@@ -7,6 +7,8 @@ import {
   orderStatusLog,
   payment,
 } from "@mumzo/db/schema/commerce";
+import { notify } from "@mumzo/notifications";
+import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
 import { badRequest, notFound } from "@/core/errors";
@@ -197,7 +199,7 @@ export async function updateOrderStatus(
   actor: string,
 ) {
   const [row] = await db
-    .select({ id: order.id, status: order.status })
+    .select({ id: order.id, status: order.status, userId: order.userId })
     .from(order)
     .where(eq(order.id, orderId))
     .limit(1);
@@ -225,6 +227,37 @@ export async function updateOrderStatus(
       note: input.note ?? null,
     });
   });
+
+  // Best-effort — neither call must fail the status update that already
+  // committed. notify.send() only enqueues (fast Redis round-trip, not a
+  // wait on delivery); realtime.publish() is a fire-and-forget in-memory fan-out.
+  if (row.userId) {
+    notify
+      .send({
+        userId: row.userId,
+        templateId: "order.status_updated",
+        data: { orderId, status: input.status },
+      })
+      .catch((error) => {
+        console.error(
+          `Failed to enqueue notification for order ${orderId}:`,
+          error,
+        );
+      });
+  }
+
+  realtime
+    .publish(ROOMS.adminOrders, "order.status_updated", {
+      orderId,
+      fromStatus: row.status,
+      toStatus: input.status,
+    })
+    .catch((error) => {
+      console.error(
+        `Failed to publish order.status_updated for ${orderId}:`,
+        error,
+      );
+    });
 
   return getOrder(orderId);
 }

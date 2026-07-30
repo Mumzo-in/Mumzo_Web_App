@@ -37,3 +37,18 @@ export function reverseGeocode(
     query: { lat, lng },
   });
 }
+
+export interface ServiceabilityApiResult {
+  serviceable: boolean;
+  areaName: string | null;
+  hubName: string | null;
+}
+
+/** Real pincode → hub lookup, backed by the admin-managed service areas. */
+export function checkPincodeServiceability(
+  pincode: string,
+): Promise<ServiceabilityApiResult> {
+  return apiRequest<ServiceabilityApiResult>("/location/serviceability", {
+    query: { pincode },
+  });
+}

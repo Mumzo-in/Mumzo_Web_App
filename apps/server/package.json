@@ -14,6 +14,8 @@
     "@mumzo/auth": "workspace:*",
     "@mumzo/db": "workspace:*",
     "@mumzo/env": "workspace:*",
+    "@mumzo/notifications": "workspace:*",
+    "@mumzo/realtime": "workspace:*",
     "@mumzo/storage": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "@scalar/hono-api-reference": "^0.11.11",

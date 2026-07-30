@@ -94,6 +94,27 @@ export const env = createEnv({
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
+    /**
+     * BullMQ's connection to Redis. Local Docker has no auth; a managed
+     * provider (Upstash/Elasticache) would carry credentials in the URL.
+     */
+    REDIS_URL: z.url().startsWith("redis").default("redis://localhost:6379"),
+    /** Firebase service account — project id from the Firebase console. */
+    FCM_PROJECT_ID: z.string().min(1).optional(),
+    /** Firebase service account client email (`...@<project>.iam.gserviceaccount.com`). */
+    FCM_CLIENT_EMAIL: z.string().min(1).optional(),
+    /**
+     * Firebase service account private key. Stored with literal `\n`
+     * sequences in `.env` (multi-line PEM doesn't survive dotenv), so the
+     * FCM adapter must `.replace(/\\n/g, "\n")` before handing it to
+     * `firebase-admin`.
+     */
+    FCM_PRIVATE_KEY: z.string().min(1).optional(),
+    /** Web Push (VAPID) key pair — generate with `npx web-push generate-vapid-keys`. */
+    VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+    VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+    /** `mailto:` contact required by the Web Push protocol's VAPID claims. */
+    VAPID_SUBJECT: z.string().startsWith("mailto:").optional(),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

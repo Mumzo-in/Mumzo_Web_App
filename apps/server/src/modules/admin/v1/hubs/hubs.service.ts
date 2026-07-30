@@ -17,13 +17,19 @@ export async function createHub(input: {
   name: string;
   address: string;
   isActive: boolean;
+  isDefault?: boolean;
 }) {
   return hubsRepo.insert(input);
 }
 
 export async function updateHub(
   id: string,
-  input: Partial<{ name: string; address: string; isActive: boolean }>,
+  input: Partial<{
+    name: string;
+    address: string;
+    isActive: boolean;
+    isDefault: boolean;
+  }>,
 ) {
   await requireHub(id);
   await hubsRepo.update(id, input);

@@ -1,5 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { checkDbConnection } from "@mumzo/db";
+import { checkDbConnection, pool } from "@mumzo/db";
+import { startNotificationWorker } from "@mumzo/notifications";
+import { websocket } from "@mumzo/realtime/bun";
 
 import {
   commonErrorResponses,
@@ -11,6 +13,21 @@ import {
 import router from "./router";
 
 const app = createApp();
+
+// In-process notification worker — same Bun process as the API, per the
+// architecture doc (docs/infra/notifications-architecture.md). Closed
+// alongside the DB pool on shutdown so an in-flight send isn't abandoned.
+const notificationWorker = startNotificationWorker();
+
+async function shutdown(signal: string) {
+  console.log(`[server] ${signal} received, shutting down...`);
+  await notificationWorker.close();
+  await pool.end();
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 // Liveness. Plain text at "/" because the Docker healthcheck greps it.
 app.get("/", (c) => c.text("OK"));
@@ -57,4 +74,8 @@ mountOpenAPI(app);
 
 export type AppType = typeof router;
 
-export default app;
+// Bun's implicit-serve form only starts a WebSocket-capable server when the
+// default export carries a `websocket` handler alongside `fetch` — a plain
+// Hono instance (which only exposes `fetch`) isn't enough. See
+// docs/infra/realtime-architecture.md for the upgrade flow this enables.
+export default { fetch: app.fetch, websocket };

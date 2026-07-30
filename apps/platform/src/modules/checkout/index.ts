@@ -20,4 +20,8 @@ export {
   type TimeWindow,
   timeWindows,
 } from "./data/slot-data";
-export { CheckoutProvider, useCheckout } from "./store/checkout-provider";
+export {
+  CheckoutProvider,
+  clearCheckoutDraft,
+  useCheckout,
+} from "./store/checkout-provider";

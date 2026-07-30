@@ -1,3 +1,7 @@
+import { db } from "@mumzo/db";
+import { hub, serviceArea } from "@mumzo/db/schema/catalog";
+import { and, eq } from "drizzle-orm";
+
 import { badRequest } from "@/core/errors";
 
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
@@ -93,4 +97,30 @@ export async function reverseGeocode(
     lat,
     lng,
   };
+}
+
+export interface ServiceabilityResult {
+  serviceable: boolean;
+  areaName: string | null;
+  hubName: string | null;
+}
+
+/** Real pincode → hub lookup, backed by the admin-managed `service_area` table. */
+export async function checkServiceability(
+  pincode: string,
+): Promise<ServiceabilityResult> {
+  const [row] = await db
+    .select({ areaName: serviceArea.name, hubName: hub.name })
+    .from(serviceArea)
+    .innerJoin(hub, eq(hub.id, serviceArea.hubId))
+    .where(
+      and(eq(serviceArea.pincode, pincode), eq(serviceArea.isActive, true)),
+    )
+    .limit(1);
+
+  if (!row) {
+    return { serviceable: false, areaName: null, hubName: null };
+  }
+
+  return { serviceable: true, areaName: row.areaName, hubName: row.hubName };
 }

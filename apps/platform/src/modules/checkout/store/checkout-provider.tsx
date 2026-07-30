@@ -3,6 +3,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -37,13 +38,64 @@ interface CheckoutContextValue {
 
 const CheckoutContext = createContext<CheckoutContextValue | null>(null);
 
+/** Persists across a refresh mid-checkout — cleared once the order is placed
+ * or the tab closes, since it's only meant to survive an accidental reload,
+ * not linger as a stale draft for a future visit. */
+const STORAGE_KEY = "mumzo_checkout_draft";
+
+type CheckoutDraft = {
+  addressId: string | null;
+  mode: DeliveryMode;
+  slotDate: string | null;
+  slotWindowId: string | null;
+  paymentMethod: PaymentMethodId | null;
+};
+
+function readDraft(): CheckoutDraft | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as CheckoutDraft) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: CheckoutDraft) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+}
+
+/** Call once an order is successfully placed so the draft doesn't leak into
+ * the next checkout. */
+export function clearCheckoutDraft() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.sessionStorage.removeItem(STORAGE_KEY);
+}
+
 export function CheckoutProvider({ children }: { children: ReactNode }) {
-  const [addressId, setAddressId] = useState<string | null>(null);
-  const [mode, setModeState] = useState<DeliveryMode>("express");
-  const [slotDate, setSlotDate] = useState<string | null>(null);
-  const [slotWindowId, setSlotWindowId] = useState<string | null>(null);
+  const initialDraft = readDraft();
+
+  const [addressId, setAddressId] = useState<string | null>(
+    initialDraft?.addressId ?? null,
+  );
+  const [mode, setModeState] = useState<DeliveryMode>(
+    initialDraft?.mode ?? "express",
+  );
+  const [slotDate, setSlotDate] = useState<string | null>(
+    initialDraft?.slotDate ?? null,
+  );
+  const [slotWindowId, setSlotWindowId] = useState<string | null>(
+    initialDraft?.slotWindowId ?? null,
+  );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(
-    null,
+    initialDraft?.paymentMethod ?? null,
   );
 
   // Switching back to express clears any booked window so stale state can't
@@ -55,6 +107,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       setSlotWindowId(null);
     }
   }, []);
+
+  useEffect(() => {
+    writeDraft({ addressId, mode, slotDate, slotWindowId, paymentMethod });
+  }, [addressId, mode, slotDate, slotWindowId, paymentMethod]);
 
   const slotReady =
     mode === "express" || (Boolean(slotDate) && Boolean(slotWindowId));

@@ -65,6 +65,9 @@ export async function runSeed(
     `Hubs:        ${catalog.hubs.created} created, ${catalog.hubs.skipped} already present.`,
   );
   console.info(
+    `Service areas: ${catalog.serviceAreas.created} created, ${catalog.serviceAreas.skipped} already present.`,
+  );
+  console.info(
     `Categories:  ${catalog.categories.created} created, ${catalog.categories.skipped} already present.`,
   );
   console.info(

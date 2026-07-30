@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -9,6 +9,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -263,17 +264,30 @@ export const productColor = pgTable(
 );
 
 /** Dark-store locations. Just enough for inventory to have somewhere to live. */
-export const hub = pgTable("hub", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  address: text("address").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const hub = pgTable(
+  "hub",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    address: text("address").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    /** The hub order placement/stock checks use until real pincode-based
+     * routing exists (docs/order-checkout-flow.md's single-hub-launch note).
+     * At most one row may be true — enforced by the partial unique index
+     * below, not application code, so it can never drift. */
+    isDefault: boolean("is_default").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("hub_single_default_idx")
+      .on(table.isDefault)
+      .where(sql`${table.isDefault} = true`),
+  ],
+);
 
 /**
  * Which pincodes a hub delivers to. Deliberately simple — one row per
@@ -301,19 +315,30 @@ export const serviceArea = pgTable(
 );
 
 /**
- * Per-hub stock, at the product level (not per-size) — matches the "minimal
- * hubs + inventory" scope: a stock grid and an adjust modal, not per-size
- * per-hub granularity.
+ * Per-hub stock, per-variant when the product has one. `productSizeId`/
+ * `productColorId` are both null for a product with no variants, exactly one
+ * is set for a product that sells by size or color (never both — same rule
+ * as `cartItem`/`orderItem`). Postgres treats NULLs as distinct in a unique
+ * index, so `(hubId, productId, productSizeId, productColorId)` naturally
+ * allows one row per hub for a variant-less product and one row per
+ * hub × variant otherwise.
  */
 export const inventory = pgTable(
   "inventory",
   {
+    id: uuid("id").defaultRandom().primaryKey(),
     hubId: uuid("hub_id")
       .notNull()
       .references(() => hub.id, { onDelete: "cascade" }),
     productId: uuid("product_id")
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
+    productSizeId: uuid("product_size_id").references(() => productSize.id, {
+      onDelete: "cascade",
+    }),
+    productColorId: uuid("product_color_id").references(() => productColor.id, {
+      onDelete: "cascade",
+    }),
     stock: integer("stock").default(0).notNull(),
     /** Mirrors `LOW_STOCK_THRESHOLD` in `@mumzo/schema`. */
     reorderPoint: integer("reorder_point").default(12).notNull(),
@@ -323,7 +348,12 @@ export const inventory = pgTable(
       .notNull(),
   },
   (table) => [
-    primaryKey({ columns: [table.hubId, table.productId] }),
+    unique("inventory_hub_product_variant_key").on(
+      table.hubId,
+      table.productId,
+      table.productSizeId,
+      table.productColorId,
+    ),
     index("inventory_productId_idx").on(table.productId),
   ],
 );
@@ -465,6 +495,14 @@ export const inventoryRelations = relations(inventory, ({ one }) => ({
   product: one(product, {
     fields: [inventory.productId],
     references: [product.id],
+  }),
+  productSize: one(productSize, {
+    fields: [inventory.productSizeId],
+    references: [productSize.id],
+  }),
+  productColor: one(productColor, {
+    fields: [inventory.productColorId],
+    references: [productColor.id],
   }),
 }));
 

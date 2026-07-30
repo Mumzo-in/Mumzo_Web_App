@@ -22,6 +22,9 @@ services:
       # Overrides the .env value: inside the compose network the host is the
       # service name `postgres`, not localhost.
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-mumzo}
+      # Same rationale — inside the compose network the host is the service
+      # name `redis`, not localhost.
+      REDIS_URL: redis://redis:6379
     healthcheck:
       test:
         [
@@ -36,5 +39,7 @@ services:
       start_period: 10s
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped

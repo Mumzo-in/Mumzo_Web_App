@@ -5,6 +5,8 @@ import {
   adjustInventorySchema,
   inventoryRowSchema,
   listInventoryQuerySchema,
+  productIdParamSchema,
+  productVariantsSchema,
 } from "./inventory.schema";
 
 const TAG = "Admin | Catalog";
@@ -21,6 +23,19 @@ export const listRoute = createRoute({
       successSchema(z.array(inventoryRowSchema)),
       "Inventory rows",
     ),
+    ...authErrorResponses,
+  },
+});
+
+export const productVariantsRoute = createRoute({
+  method: "get",
+  path: "/products/{productId}/variants",
+  tags: [TAG],
+  summary: "A product's sizes/colors, for the stock dialog's variant picker",
+  security: [{ cookieAuth: [] }],
+  request: { params: productIdParamSchema },
+  responses: {
+    200: jsonContent(successSchema(productVariantsSchema), "Variants"),
     ...authErrorResponses,
   },
 });

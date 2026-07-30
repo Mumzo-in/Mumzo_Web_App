@@ -1,10 +1,40 @@
-import type {
-  productColor as productColorTable,
-  productSize as productSizeTable,
-  product as productTable,
+import { db } from "@mumzo/db";
+import {
+  hub,
+  type productColor as productColorTable,
+  type productSize as productSizeTable,
+  type product as productTable,
 } from "@mumzo/db/schema/catalog";
+import { and, eq } from "drizzle-orm";
 
+import { badRequest } from "@/core/errors";
 import { percentOf } from "@/lib/money";
+
+/** Single-hub launch — no pincode/serviceability routing yet, so cart/order
+ * stock checks and order placement all resolve to one hub: the one flagged
+ * `isDefault` (set from the admin Hubs panel), falling back to "any active
+ * hub" only if no default has been chosen yet. Revisit once multi-hub
+ * serviceability exists. */
+export async function requireActiveHub() {
+  const [defaultRow] = await db
+    .select({ id: hub.id })
+    .from(hub)
+    .where(and(eq(hub.isActive, true), eq(hub.isDefault, true)))
+    .limit(1);
+  if (defaultRow) {
+    return defaultRow;
+  }
+
+  const [row] = await db
+    .select({ id: hub.id })
+    .from(hub)
+    .where(eq(hub.isActive, true))
+    .limit(1);
+  if (!row) {
+    throw badRequest("No hub is currently serviceable.");
+  }
+  return row;
+}
 
 /** Quick-commerce v1: single flat fee below a free-delivery threshold, both
  * in paise. Revisit if hub-distance-based delivery pricing ever ships. */

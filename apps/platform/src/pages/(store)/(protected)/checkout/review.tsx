@@ -7,6 +7,7 @@ import { useAddresses } from "@/modules/account";
 import { CartSummary, rupee, useCart } from "@/modules/cart";
 import {
   CheckoutSteps,
+  clearCheckoutDraft,
   findWindow,
   paymentMethods,
   useCheckout,
@@ -58,6 +59,7 @@ function CheckoutReviewPage() {
         idempotencyKey: crypto.randomUUID(),
       });
       clear();
+      clearCheckoutDraft();
       navigate({
         to: "/payment/status",
         search: { status: "success", orderId: order.id },

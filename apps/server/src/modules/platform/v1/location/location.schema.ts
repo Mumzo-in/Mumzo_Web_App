@@ -48,3 +48,21 @@ export const placeDetailsSchema = z
     lng: z.number(),
   })
   .openapi("PlaceDetails");
+
+export const serviceabilityQuerySchema = z.object({
+  pincode: z
+    .string()
+    .regex(/^\d{6}$/, "Pincode must be 6 digits.")
+    .openapi({
+      param: { name: "pincode", in: "query" },
+      example: "500034",
+    }),
+});
+
+export const serviceabilityResultSchema = z
+  .object({
+    serviceable: z.boolean(),
+    areaName: z.string().nullable(),
+    hubName: z.string().nullable(),
+  })
+  .openapi("ServiceabilityResult");

@@ -17,19 +17,41 @@ export async function insert(input: {
   name: string;
   address: string;
   isActive: boolean;
+  isDefault?: boolean;
 }) {
-  const [row] = await db.insert(hub).values(input).returning({ id: hub.id });
-  if (!row) {
-    throw new Error("Insert into hub returned no row.");
-  }
-  return row.id;
+  return db.transaction(async (tx) => {
+    if (input.isDefault) {
+      await tx
+        .update(hub)
+        .set({ isDefault: false })
+        .where(eq(hub.isDefault, true));
+    }
+    const [row] = await tx.insert(hub).values(input).returning({ id: hub.id });
+    if (!row) {
+      throw new Error("Insert into hub returned no row.");
+    }
+    return row.id;
+  });
 }
 
 export async function update(
   id: string,
-  input: Partial<{ name: string; address: string; isActive: boolean }>,
+  input: Partial<{
+    name: string;
+    address: string;
+    isActive: boolean;
+    isDefault: boolean;
+  }>,
 ) {
-  await db.update(hub).set(input).where(eq(hub.id, id));
+  await db.transaction(async (tx) => {
+    if (input.isDefault) {
+      await tx
+        .update(hub)
+        .set({ isDefault: false })
+        .where(eq(hub.isDefault, true));
+    }
+    await tx.update(hub).set(input).where(eq(hub.id, id));
+  });
 }
 
 export async function remove(id: string) {

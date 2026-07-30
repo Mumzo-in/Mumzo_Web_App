@@ -56,7 +56,7 @@ export function useLocationFlow() {
   }, [geolocation.status, geolocation.coords]);
 
   const handleLocationResolved = (next: ResolvedLocation) => {
-    setLocation(next.area);
+    void setLocation(next.pincode, next.area);
     setResolved(next);
     setStep("save");
   };
@@ -88,7 +88,7 @@ export function useLocationFlow() {
   };
 
   const handleSelectAddress = (address: Address) => {
-    setLocation(address.pincode);
+    void setLocation(address.pincode, address.city);
     closeModal();
   };
 

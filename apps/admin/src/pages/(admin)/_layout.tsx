@@ -2,6 +2,10 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { resolveRole } from "@/core/auth/roles";
 import AdminLayout from "@/core/layout/admin-layout";
 import { sessionQueryOptions, UserMenu } from "@/modules/auth";
+import {
+  NotificationBell,
+  NotificationProvider,
+} from "@/modules/notifications";
 
 /**
  * The role gate. Every admin route nests under this pathless group, so this
@@ -42,8 +46,13 @@ export const Route = createFileRoute("/(admin)")({
 
 function AdminGroupLayout() {
   return (
-    <AdminLayout sidebarFooter={<UserMenu side="right" align="end" />}>
-      <Outlet />
-    </AdminLayout>
+    <NotificationProvider>
+      <AdminLayout
+        headerActions={<NotificationBell />}
+        sidebarFooter={<UserMenu side="right" align="end" />}
+      >
+        <Outlet />
+      </AdminLayout>
+    </NotificationProvider>
   );
 }

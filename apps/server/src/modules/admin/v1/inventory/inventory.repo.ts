@@ -1,16 +1,24 @@
 import { db } from "@mumzo/db";
-import { hub, inventory, product } from "@mumzo/db/schema/catalog";
-import { and, eq, ilike, lte, or, type SQL } from "drizzle-orm";
+import {
+  hub,
+  inventory,
+  product,
+  productColor,
+  productSize,
+} from "@mumzo/db/schema/catalog";
+import { and, eq, ilike, isNull, lte, or, type SQL } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
 export async function findAll(filters: {
   hubId?: string;
+  productId?: string;
   search?: string;
   lowStockOnly?: boolean;
 }) {
   const conditions: SQL[] = [
     filters.hubId ? eq(inventory.hubId, filters.hubId) : undefined,
+    filters.productId ? eq(inventory.productId, filters.productId) : undefined,
     filters.search
       ? or(
           ilike(product.name, `%${filters.search}%`),
@@ -24,11 +32,16 @@ export async function findAll(filters: {
 
   return db
     .select({
+      id: inventory.id,
       hubId: inventory.hubId,
       hubName: hub.name,
       productId: inventory.productId,
       productName: product.name,
       sku: product.sku,
+      productSizeId: inventory.productSizeId,
+      sizeLabel: productSize.label,
+      productColorId: inventory.productColorId,
+      colorLabel: productColor.label,
       stock: inventory.stock,
       reorderPoint: inventory.reorderPoint,
       updatedAt: inventory.updatedAt,
@@ -36,36 +49,87 @@ export async function findAll(filters: {
     .from(inventory)
     .innerJoin(hub, eq(hub.id, inventory.hubId))
     .innerJoin(product, eq(product.id, inventory.productId))
+    .leftJoin(productSize, eq(productSize.id, inventory.productSizeId))
+    .leftJoin(productColor, eq(productColor.id, inventory.productColorId))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(product.name);
+}
+
+/** A product's variants (or `[null]` for a product with none) — used to seed
+ * an inventory row per variant when a hub carries the product for the first
+ * time. */
+export async function productVariants(productId: string) {
+  const [sizes, colors] = await Promise.all([
+    db
+      .select({ id: productSize.id, label: productSize.label })
+      .from(productSize)
+      .where(eq(productSize.productId, productId)),
+    db
+      .select({ id: productColor.id, label: productColor.label })
+      .from(productColor)
+      .where(eq(productColor.productId, productId)),
+  ]);
+  return { sizes, colors };
+}
+
+function variantCondition(
+  productSizeId: string | null,
+  productColorId: string | null,
+) {
+  return productSizeId
+    ? eq(inventory.productSizeId, productSizeId)
+    : productColorId
+      ? eq(inventory.productColorId, productColorId)
+      : and(isNull(inventory.productSizeId), isNull(inventory.productColorId));
 }
 
 export async function upsert(input: {
   hubId: string;
   productId: string;
+  productSizeId?: string | null;
+  productColorId?: string | null;
   stock: number;
   reorderPoint?: number;
 }) {
-  await db
-    .insert(inventory)
-    .values({
-      hubId: input.hubId,
-      productId: input.productId,
-      stock: input.stock,
-      ...(input.reorderPoint !== undefined
-        ? { reorderPoint: input.reorderPoint }
-        : {}),
-    })
-    .onConflictDoUpdate({
-      target: [inventory.hubId, inventory.productId],
-      set: {
+  const productSizeId = input.productSizeId ?? null;
+  const productColorId = input.productColorId ?? null;
+
+  const [existing] = await db
+    .select({ id: inventory.id })
+    .from(inventory)
+    .where(
+      and(
+        eq(inventory.hubId, input.hubId),
+        eq(inventory.productId, input.productId),
+        variantCondition(productSizeId, productColorId),
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    await db
+      .update(inventory)
+      .set({
         stock: input.stock,
         ...(input.reorderPoint !== undefined
           ? { reorderPoint: input.reorderPoint }
           : {}),
         updatedAt: new Date(),
-      },
-    });
+      })
+      .where(eq(inventory.id, existing.id));
+    return;
+  }
+
+  await db.insert(inventory).values({
+    hubId: input.hubId,
+    productId: input.productId,
+    productSizeId,
+    productColorId,
+    stock: input.stock,
+    ...(input.reorderPoint !== undefined
+      ? { reorderPoint: input.reorderPoint }
+      : {}),
+  });
 }
 
 export async function hubExists(hubId: string) {
@@ -84,4 +148,38 @@ export async function productExists(productId: string) {
     .where(eq(product.id, productId))
     .limit(1);
   return Boolean(row);
+}
+
+export async function variantBelongsToProduct(
+  productId: string,
+  productSizeId: string | null,
+  productColorId: string | null,
+) {
+  if (productSizeId) {
+    const [row] = await db
+      .select({ id: productSize.id })
+      .from(productSize)
+      .where(
+        and(
+          eq(productSize.id, productSizeId),
+          eq(productSize.productId, productId),
+        ),
+      )
+      .limit(1);
+    return Boolean(row);
+  }
+  if (productColorId) {
+    const [row] = await db
+      .select({ id: productColor.id })
+      .from(productColor)
+      .where(
+        and(
+          eq(productColor.id, productColorId),
+          eq(productColor.productId, productId),
+        ),
+      )
+      .limit(1);
+    return Boolean(row);
+  }
+  return true;
 }

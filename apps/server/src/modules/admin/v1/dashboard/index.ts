@@ -7,8 +7,19 @@ import {
   requirePermission,
   successSchema,
 } from "@/core";
-import { recentUserSchema, userCountsSchema } from "./schema";
-import { recentUsers, userCounts } from "./service";
+import {
+  analyticsRangeQuerySchema,
+  orderAnalyticsSchema,
+  orderDashboardSchema,
+  recentUserSchema,
+  userCountsSchema,
+} from "./schema";
+import {
+  orderAnalytics,
+  orderDashboard,
+  recentUsers,
+  userCounts,
+} from "./service";
 
 const TAG = "Admin | Dashboard";
 
@@ -39,6 +50,31 @@ const recentUsersRoute = createRoute({
   },
 });
 
+const orderDashboardRoute = createRoute({
+  method: "get",
+  path: "/orders",
+  tags: [TAG],
+  summary: "GMV, order count, AOV, revenue trend, and recent orders",
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: jsonContent(successSchema(orderDashboardSchema), "Order dashboard"),
+    ...authErrorResponses,
+  },
+});
+
+const orderAnalyticsRoute = createRoute({
+  method: "get",
+  path: "/analytics",
+  tags: [TAG],
+  summary: "Range-filtered revenue/order/hub/payment breakdown",
+  security: [{ cookieAuth: [] }],
+  request: { query: analyticsRangeQuerySchema },
+  responses: {
+    200: jsonContent(successSchema(orderAnalyticsSchema), "Order analytics"),
+    ...authErrorResponses,
+  },
+});
+
 const app = createRouter();
 
 app.use("/*", requirePermission("report", "read"));
@@ -49,6 +85,16 @@ const dashboard = app
   )
   .openapi(recentUsersRoute, async (c) =>
     c.json({ success: true as const, data: await recentUsers() }, 200),
-  );
+  )
+  .openapi(orderDashboardRoute, async (c) =>
+    c.json({ success: true as const, data: await orderDashboard() }, 200),
+  )
+  .openapi(orderAnalyticsRoute, async (c) => {
+    const { from, to } = c.req.valid("query");
+    return c.json(
+      { success: true as const, data: await orderAnalytics(from, to) },
+      200,
+    );
+  });
 
 export default dashboard;

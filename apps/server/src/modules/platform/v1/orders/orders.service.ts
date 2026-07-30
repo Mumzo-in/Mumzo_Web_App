@@ -2,7 +2,7 @@ import { db } from "@mumzo/db";
 import { address } from "@mumzo/db/schema/account";
 import {
   brand,
-  hub,
+  inventory,
   product,
   productColor,
   productSize,
@@ -16,12 +16,18 @@ import {
   payment,
 } from "@mumzo/db/schema/commerce";
 import { coupon } from "@mumzo/db/schema/marketing";
+import { notify } from "@mumzo/notifications";
+import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import { validateCoupon } from "@/modules/admin/v1/coupons/coupons.service";
-import { computeCartTotals, resolveLine } from "@/shared/pricing";
+import {
+  computeCartTotals,
+  requireActiveHub,
+  resolveLine,
+} from "@/shared/pricing";
 
 async function requireCartRow(userId: string) {
   const [row] = await db
@@ -40,8 +46,14 @@ async function requireCartRow(userId: string) {
  * parent product (see `shared/pricing.ts`). Kept local rather than shared
  * because the cart's version also computes `isOutOfStock`/display fields
  * the order path doesn't need; the snapshot fields below are what matter
- * for placing an order. */
-async function loadCartLinesForOrder(cartId: string) {
+ * for placing an order.
+ *
+ * Stock is the active hub's `inventory.stock`, matched on the same variant
+ * as the cart line (or the variant-less row when there's no size/color) —
+ * the same number the admin Inventory panel edits. Not `productSize`/
+ * `productColor.stock`, which is only ever set once at product creation and
+ * never updated after. */
+async function loadCartLinesForOrder(cartId: string, hubId: string) {
   const rows = await db
     .select({
       item: cartItem,
@@ -49,17 +61,26 @@ async function loadCartLinesForOrder(cartId: string) {
       brandName: brand.name,
       size: productSize,
       color: productColor,
+      stock: inventory.stock,
     })
     .from(cartItem)
     .innerJoin(product, eq(cartItem.productId, product.id))
     .innerJoin(brand, eq(product.brandId, brand.id))
     .leftJoin(productSize, eq(cartItem.productSizeId, productSize.id))
     .leftJoin(productColor, eq(cartItem.productColorId, productColor.id))
+    .leftJoin(
+      inventory,
+      and(
+        eq(inventory.productId, product.id),
+        eq(inventory.hubId, hubId),
+        sql`${inventory.productSizeId} is not distinct from ${cartItem.productSizeId}`,
+        sql`${inventory.productColorId} is not distinct from ${cartItem.productColorId}`,
+      ),
+    )
     .where(eq(cartItem.cartId, cartId));
 
-  return rows.map(({ item, product: p, size, color }) => {
+  return rows.map(({ item, product: p, size, color, stock }) => {
     const resolved = resolveLine(p, size, color);
-    const stock = size?.stock ?? color?.stock ?? 0;
     return {
       cartItemId: item.id,
       productId: p.id,
@@ -68,7 +89,7 @@ async function loadCartLinesForOrder(cartId: string) {
       variantLabel: size?.label ?? color?.label ?? null,
       nameSnapshot: p.name,
       qty: item.qty,
-      stock,
+      stock: stock ?? 0,
       ...resolved,
     };
   });
@@ -82,21 +103,6 @@ async function requireOwnedAddress(userId: string, addressId: string) {
     .limit(1);
   if (!row) {
     throw notFound("Address");
-  }
-  return row;
-}
-
-/** Single-hub launch (Hyderabad) — no pincode/serviceability routing yet,
- * so order placement just uses whichever hub is active. Revisit once
- * multi-hub serviceability exists. */
-async function requireActiveHub() {
-  const [row] = await db
-    .select({ id: hub.id })
-    .from(hub)
-    .where(eq(hub.isActive, true))
-    .limit(1);
-  if (!row) {
-    throw badRequest("No hub is currently serviceable.");
   }
   return row;
 }
@@ -133,7 +139,8 @@ export async function placeOrder(
   }
 
   const cartRow = await requireCartRow(userId);
-  const lines = await loadCartLinesForOrder(cartRow.id);
+  const hubRow = await requireActiveHub();
+  const lines = await loadCartLinesForOrder(cartRow.id, hubRow.id);
   if (lines.length === 0) {
     throw badRequest("Your cart is empty.");
   }
@@ -146,7 +153,6 @@ export async function placeOrder(
   }
 
   const addressRow = await requireOwnedAddress(userId, input.addressId);
-  const hubRow = await requireActiveHub();
 
   let couponId: string | null = null;
   let discount = 0;
@@ -259,6 +265,34 @@ export async function placeOrder(
 
     return orderRow.id;
   });
+
+  // Best-effort — neither call must fail an order that already committed.
+  // realtime.publish() is the live in-app feed for staff with the dashboard
+  // open; notify.sendToAllStaff() is the OS-level push for when it isn't
+  // focused. See docs/infra/realtime-architecture.md for how they relate.
+  realtime
+    .publish(ROOMS.adminOrders, "order.created", {
+      orderId,
+      hubId: hubRow.id,
+      total: totals.total,
+      addressName: addressRow.name,
+    })
+    .catch((error) => {
+      console.error(`Failed to publish order.created for ${orderId}:`, error);
+    });
+
+  notify
+    .sendToAllStaff("order.created", {
+      orderId,
+      total: totals.total,
+      addressName: addressRow.name,
+    })
+    .catch((error) => {
+      console.error(
+        `Failed to enqueue staff notification for order ${orderId}:`,
+        error,
+      );
+    });
 
   return getOrder(userId, orderId);
 }

@@ -8,6 +8,7 @@ This is a **design doc** — nothing here is implemented yet.
 - **Package** → `packages/notifications` (`@mumzo/notifications`)
 - **Worker** → in-process with `apps/server`, same Bun process as the API
 - **Channels v1** → `fcm`, `web-push` (real adapters) · `email`, `sms` (interface stub only)
+- **Audiences** → `customer` (`user_device`) and `staff` (`staff_device`) — see [realtime-architecture.md](./realtime-architecture.md) for how staff push relates to the WebSocket live feed
 
 ---
 

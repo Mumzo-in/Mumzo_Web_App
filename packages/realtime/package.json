@@ -1,0 +1,21 @@
+{
+  "name": "@mumzo/realtime",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "dependencies": {
+    "hono": "^4.12.27",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mumzo/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

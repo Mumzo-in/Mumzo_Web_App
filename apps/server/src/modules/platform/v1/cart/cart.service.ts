@@ -1,12 +1,13 @@
 import { db } from "@mumzo/db";
 import {
   brand,
+  inventory,
   product,
   productColor,
   productSize,
 } from "@mumzo/db/schema/catalog";
 import { cart, cartItem } from "@mumzo/db/schema/commerce";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
@@ -14,7 +15,11 @@ import {
   type ValidateCouponInput,
   validateCoupon,
 } from "@/modules/admin/v1/coupons/coupons.service";
-import { computeCartTotals, resolveLine } from "@/shared/pricing";
+import {
+  computeCartTotals,
+  requireActiveHub,
+  resolveLine,
+} from "@/shared/pricing";
 
 /** Exactly one of these identifies whose cart it is — never both, never
  * neither. See `cart.identity.ts` for how a request resolves to this. */
@@ -50,8 +55,16 @@ async function getOrCreateCartRow(owner: CartOwner) {
 
 /** One row per line, joined to whatever the item actually references —
  * the product always, plus its size/color row when present. Nothing here
- * assumes a variant exists (see docs/order-checkout-flow.md §4). */
+ * assumes a variant exists (see docs/order-checkout-flow.md §4).
+ *
+ * Stock is the active hub's `inventory.stock`, matched on the same variant
+ * as the cart line (or the variant-less row when there's no size/color) —
+ * the same number the admin Inventory panel edits. Not `productSize`/
+ * `productColor.stock`, which is only ever set once at product creation and
+ * never updated after. */
 async function loadLines(cartId: string) {
+  const hubRow = await requireActiveHub();
+
   const rows = await db
     .select({
       item: cartItem,
@@ -59,17 +72,27 @@ async function loadLines(cartId: string) {
       brandName: brand.name,
       size: productSize,
       color: productColor,
+      stock: inventory.stock,
     })
     .from(cartItem)
     .innerJoin(product, eq(cartItem.productId, product.id))
     .innerJoin(brand, eq(product.brandId, brand.id))
     .leftJoin(productSize, eq(cartItem.productSizeId, productSize.id))
     .leftJoin(productColor, eq(cartItem.productColorId, productColor.id))
+    .leftJoin(
+      inventory,
+      and(
+        eq(inventory.productId, product.id),
+        eq(inventory.hubId, hubRow.id),
+        sql`${inventory.productSizeId} is not distinct from ${cartItem.productSizeId}`,
+        sql`${inventory.productColorId} is not distinct from ${cartItem.productColorId}`,
+      ),
+    )
     .where(eq(cartItem.cartId, cartId));
 
-  return rows.map(({ item, product: p, brandName, size, color }) => {
+  return rows.map(({ item, product: p, brandName, size, color, stock }) => {
     const resolved = resolveLine(p, size, color);
-    const stock = size?.stock ?? color?.stock ?? 0;
+    const resolvedStock = stock ?? 0;
     return {
       id: item.id,
       productId: p.id,
@@ -82,8 +105,8 @@ async function loadLines(cartId: string) {
       price: resolved.price,
       mrp: p.mrp,
       qty: item.qty,
-      stock,
-      isOutOfStock: item.qty > stock,
+      stock: resolvedStock,
+      isOutOfStock: item.qty > resolvedStock,
       gstRate: resolved.gstRate,
     };
   });

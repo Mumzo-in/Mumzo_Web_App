@@ -6,6 +6,9 @@ export const hubSchema = z
     name: z.string(),
     address: z.string(),
     isActive: z.boolean(),
+    /** The hub order placement/stock checks resolve to until real
+     * pincode-based routing exists — at most one hub carries this. */
+    isDefault: z.boolean(),
   })
   .openapi("Hub");
 
@@ -13,6 +16,7 @@ export const createHubSchema = z.object({
   name: z.string().min(1).max(120),
   address: z.string().min(1).max(300),
   isActive: z.boolean().default(true),
+  isDefault: z.boolean().optional(),
 });
 
 export const updateHubSchema = createHubSchema.partial();

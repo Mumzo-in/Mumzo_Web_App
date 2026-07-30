@@ -21,13 +21,17 @@ import {
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Images, PackageOpen, Pencil, Power, Trash2 } from "lucide-react";
+import { Images, Pencil, Power, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import { formatMoney, formatNumber } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
+import {
+  AdjustInventoryDialog,
+  inventoryQueryOptions,
+} from "@/modules/operations/inventory";
 import {
   deleteProduct,
   getProduct,
@@ -51,6 +55,9 @@ function ProductDetailPage() {
     queryKey: queryKeys.products.detail(productId),
     queryFn: () => getProduct(productId),
   });
+  const inventory = useQuery(inventoryQueryOptions({ productId }));
+  const inventoryRows = inventory.data ?? [];
+  const totalStock = inventoryRows.reduce((sum, row) => sum + row.stock, 0);
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteProduct(productId),
@@ -142,18 +149,10 @@ function ProductDetailPage() {
               <Images data-icon="inline-start" />
               Images
             </Button>
-            <Button
-              data-testid="admin-product-stock"
-              render={
-                <Link
-                  to="/catalog/products/$productId/stock"
-                  params={{ productId: data.id }}
-                />
-              }
-            >
-              <PackageOpen data-icon="inline-start" />
-              Update stock
-            </Button>
+            <AdjustInventoryDialog
+              defaultProductId={data.id}
+              defaultProductLabel={`${data.name} · ${data.sku}`}
+            />
             <Button
               variant="outline"
               data-testid="admin-product-toggle-active"
@@ -243,7 +242,11 @@ function ProductDetailPage() {
           <CardContent className="flex flex-col items-start gap-3">
             <StatusChip label={status.label} tint={status.tint} />
             <span className="numeric text-sm">
-              {formatNumber(data.stock)} in stock
+              {inventory.isLoading
+                ? "Loading…"
+                : `${formatNumber(totalStock)} in stock across ${
+                    inventoryRows.length
+                  } hub${inventoryRows.length === 1 ? "" : "s"}`}
             </span>
           </CardContent>
         </Card>
@@ -266,30 +269,41 @@ function ProductDetailPage() {
         </Card>
       </div>
 
-      <Card className="shadow-warm">
-        <CardHeader>
-          <CardTitle>Variants</CardTitle>
-          <CardDescription>Pack sizes and their own stock.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          {data.sizes.map((size) => (
-            <div
-              key={size.label}
-              className="flex items-center justify-between rounded-xl border px-4 py-3"
-            >
-              <span className="text-sm">{size.label}</span>
-              <div className="flex items-center gap-6">
-                <span className="numeric text-sm">
-                  {formatMoney(size.price)}
-                </span>
-                <span className="numeric text-muted-foreground text-sm">
-                  {formatNumber(size.stock)} in stock
-                </span>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {data.sizes.length > 0 ? (
+        <Card className="shadow-warm">
+          <CardHeader>
+            <CardTitle>Variants</CardTitle>
+            <CardDescription>
+              Pack sizes and their stock across hubs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {data.sizes.map((size) => {
+              const sizeStock = inventoryRows
+                .filter((row) => row.productSizeId === size.id)
+                .reduce((sum, row) => sum + row.stock, 0);
+              return (
+                <div
+                  key={size.label}
+                  className="flex items-center justify-between rounded-xl border px-4 py-3"
+                >
+                  <span className="text-sm">{size.label}</span>
+                  <div className="flex items-center gap-6">
+                    <span className="numeric text-sm">
+                      {formatMoney(size.price)}
+                    </span>
+                    <span className="numeric text-muted-foreground text-sm">
+                      {inventory.isLoading
+                        ? "…"
+                        : `${formatNumber(sizeStock)} in stock`}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      ) : null}
     </>
   );
 }

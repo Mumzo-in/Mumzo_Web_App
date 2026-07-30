@@ -80,7 +80,6 @@ import { Route as adminCatalogProductsProductIdIndexRouteImport } from './pages/
 import { Route as adminCatalogBundlesBundleIdIndexRouteImport } from './pages/(admin)/catalog/bundles/$bundleId/index'
 import { Route as adminFinanceCouponsCouponIdEditRouteImport } from './pages/(admin)/finance/coupons/$couponId/edit'
 import { Route as adminCatalogVendorsVendorIdEditRouteImport } from './pages/(admin)/catalog/vendors/$vendorId/edit'
-import { Route as adminCatalogProductsProductIdStockRouteImport } from './pages/(admin)/catalog/products/$productId/stock'
 import { Route as adminCatalogProductsProductIdImagesRouteImport } from './pages/(admin)/catalog/products/$productId/images'
 import { Route as adminCatalogProductsProductIdEditRouteImport } from './pages/(admin)/catalog/products/$productId/edit'
 import { Route as adminCatalogBundlesBundleIdEditRouteImport } from './pages/(admin)/catalog/bundles/$bundleId/edit'
@@ -476,12 +475,6 @@ const adminCatalogVendorsVendorIdEditRoute =
     path: '/catalog/vendors/$vendorId/edit',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminCatalogProductsProductIdStockRoute =
-  adminCatalogProductsProductIdStockRouteImport.update({
-    id: '/catalog/products/$productId/stock',
-    path: '/catalog/products/$productId/stock',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminCatalogProductsProductIdImagesRoute =
   adminCatalogProductsProductIdImagesRouteImport.update({
     id: '/catalog/products/$productId/images',
@@ -569,7 +562,6 @@ export interface FileRoutesByFullPath {
   '/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
   '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/catalog/bundles/$bundleId/': typeof adminCatalogBundlesBundleIdIndexRoute
@@ -645,7 +637,6 @@ export interface FileRoutesByTo {
   '/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
   '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/catalog/bundles/$bundleId': typeof adminCatalogBundlesBundleIdIndexRoute
@@ -723,7 +714,6 @@ export interface FileRoutesById {
   '/(admin)/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
   '/(admin)/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
   '/(admin)/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/(admin)/catalog/products/$productId/stock': typeof adminCatalogProductsProductIdStockRoute
   '/(admin)/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/(admin)/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
   '/(admin)/catalog/bundles/$bundleId/': typeof adminCatalogBundlesBundleIdIndexRoute
@@ -801,7 +791,6 @@ export interface FileRouteTypes {
     | '/catalog/bundles/$bundleId/edit'
     | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
-    | '/catalog/products/$productId/stock'
     | '/catalog/vendors/$vendorId/edit'
     | '/finance/coupons/$couponId/edit'
     | '/catalog/bundles/$bundleId/'
@@ -877,7 +866,6 @@ export interface FileRouteTypes {
     | '/catalog/bundles/$bundleId/edit'
     | '/catalog/products/$productId/edit'
     | '/catalog/products/$productId/images'
-    | '/catalog/products/$productId/stock'
     | '/catalog/vendors/$vendorId/edit'
     | '/finance/coupons/$couponId/edit'
     | '/catalog/bundles/$bundleId'
@@ -954,7 +942,6 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/bundles/$bundleId/edit'
     | '/(admin)/catalog/products/$productId/edit'
     | '/(admin)/catalog/products/$productId/images'
-    | '/(admin)/catalog/products/$productId/stock'
     | '/(admin)/catalog/vendors/$vendorId/edit'
     | '/(admin)/finance/coupons/$couponId/edit'
     | '/(admin)/catalog/bundles/$bundleId/'
@@ -1468,13 +1455,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCatalogVendorsVendorIdEditRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/catalog/products/$productId/stock': {
-      id: '/(admin)/catalog/products/$productId/stock'
-      path: '/catalog/products/$productId/stock'
-      fullPath: '/catalog/products/$productId/stock'
-      preLoaderRoute: typeof adminCatalogProductsProductIdStockRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/catalog/products/$productId/images': {
       id: '/(admin)/catalog/products/$productId/images'
       path: '/catalog/products/$productId/images'
@@ -1565,7 +1545,6 @@ interface adminLayoutRouteChildren {
   adminCatalogBundlesBundleIdEditRoute: typeof adminCatalogBundlesBundleIdEditRoute
   adminCatalogProductsProductIdEditRoute: typeof adminCatalogProductsProductIdEditRoute
   adminCatalogProductsProductIdImagesRoute: typeof adminCatalogProductsProductIdImagesRoute
-  adminCatalogProductsProductIdStockRoute: typeof adminCatalogProductsProductIdStockRoute
   adminCatalogVendorsVendorIdEditRoute: typeof adminCatalogVendorsVendorIdEditRoute
   adminFinanceCouponsCouponIdEditRoute: typeof adminFinanceCouponsCouponIdEditRoute
   adminCatalogBundlesBundleIdIndexRoute: typeof adminCatalogBundlesBundleIdIndexRoute
@@ -1643,8 +1622,6 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
     adminCatalogProductsProductIdEditRoute,
   adminCatalogProductsProductIdImagesRoute:
     adminCatalogProductsProductIdImagesRoute,
-  adminCatalogProductsProductIdStockRoute:
-    adminCatalogProductsProductIdStockRoute,
   adminCatalogVendorsVendorIdEditRoute: adminCatalogVendorsVendorIdEditRoute,
   adminFinanceCouponsCouponIdEditRoute: adminFinanceCouponsCouponIdEditRoute,
   adminCatalogBundlesBundleIdIndexRoute: adminCatalogBundlesBundleIdIndexRoute,

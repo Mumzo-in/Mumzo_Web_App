@@ -6,6 +6,8 @@ import {
   placeDetailsSchema,
   placeSuggestionSchema,
   reverseQuerySchema,
+  serviceabilityQuerySchema,
+  serviceabilityResultSchema,
 } from "./location.schema";
 
 const TAG = "Platform | Location";
@@ -33,6 +35,21 @@ export const reverseRoute = createRoute({
   request: { query: reverseQuerySchema },
   responses: {
     200: jsonContent(successSchema(placeDetailsSchema), "Resolved address"),
+    ...commonErrorResponses,
+  },
+});
+
+export const serviceabilityRoute = createRoute({
+  method: "get",
+  path: "/serviceability",
+  tags: [TAG],
+  summary: "Check whether a pincode is a serviceable area",
+  request: { query: serviceabilityQuerySchema },
+  responses: {
+    200: jsonContent(
+      successSchema(serviceabilityResultSchema),
+      "Serviceability result",
+    ),
     ...commonErrorResponses,
   },
 });

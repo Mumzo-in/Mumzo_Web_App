@@ -108,6 +108,7 @@ export function InventoryTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Product</TableHead>
+              <TableHead>Variant</TableHead>
               <TableHead>Hub</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Reorder point</TableHead>
@@ -122,6 +123,9 @@ export function InventoryTable() {
                 <TableRow key={`ske-${i.toString()}`}>
                   <TableCell>
                     <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-20" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-28" />
@@ -141,7 +145,7 @@ export function InventoryTable() {
               ))
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canAdjust ? 5 : 4}>
+                <TableCell colSpan={canAdjust ? 6 : 5}>
                   <Empty>
                     <EmptyHeader>
                       <EmptyTitle>No stock recorded</EmptyTitle>
@@ -154,7 +158,7 @@ export function InventoryTable() {
               </TableRow>
             ) : (
               rows.map((row) => (
-                <TableRow key={`${row.hubId}-${row.productId}`}>
+                <TableRow key={row.id}>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">{row.productName}</span>
@@ -162,6 +166,9 @@ export function InventoryTable() {
                         {row.sku}
                       </span>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {row.variantLabel ?? "—"}
                   </TableCell>
                   <TableCell>{row.hubName}</TableCell>
                   <TableCell>
