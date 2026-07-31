@@ -2,7 +2,12 @@ import { Button } from "@mumzo/ui/components/button";
 import { Empty, EmptyMedia, EmptyTitle } from "@mumzo/ui/components/empty";
 import { ScrollArea } from "@mumzo/ui/components/scroll-area";
 import { Separator } from "@mumzo/ui/components/separator";
-import { BellOff } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@mumzo/ui/components/tooltip";
+import { BellOff, Trash2 } from "lucide-react";
 import { useNotifications } from "../context/notification-provider";
 import { NotificationCard } from "./notification-card";
 
@@ -11,18 +16,31 @@ export function NotificationPanel() {
 
   return (
     <div
-      className="flex w-96 flex-col gap-2 p-2"
+      className="flex w-104 flex-col gap-2 p-2"
       data-testid="notification-panel"
     >
       <div className="flex items-center justify-between px-1 pt-1">
         <p className="font-medium text-foreground text-sm">Notifications</p>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={markAllRead}>
             Mark all read
           </Button>
-          <Button variant="ghost" size="sm" onClick={clear}>
-            Clear
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={clear}
+                  aria-label="Clear all notifications"
+                  data-testid="notification-clear"
+                />
+              }
+            >
+              <Trash2 data-icon className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Clear all</TooltipContent>
+          </Tooltip>
         </div>
       </div>
       <Separator />

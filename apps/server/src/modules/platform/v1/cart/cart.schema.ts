@@ -4,6 +4,13 @@ export const cartItemIdParamSchema = z.object({
   id: z.uuid().openapi({ param: { name: "id", in: "path" } }),
 });
 
+export const getCartQuerySchema = z.object({
+  pincode: z
+    .string()
+    .optional()
+    .openapi({ param: { name: "pincode", in: "query" } }),
+});
+
 export const addCartItemSchema = z
   .object({
     productId: z.uuid(),

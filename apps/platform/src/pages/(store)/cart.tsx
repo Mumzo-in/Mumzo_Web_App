@@ -3,6 +3,7 @@ import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
+import { useRequireAuth } from "@/modules/auth";
 import { CartLineItem, CartSummary, CouponBox, useCart } from "@/modules/cart";
 import { NotServiceable, useServiceability } from "@/modules/location";
 
@@ -14,7 +15,16 @@ function CartPage() {
   const navigate = useNavigate();
   const { items, clear } = useCart();
   const { serviceable } = useServiceability();
+  const { run } = useRequireAuth();
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
+  const hasOutOfStock = items.some((item) => item.isOutOfStock);
+
+  const goToCheckout = () => {
+    navigate({
+      to: "/checkout/address",
+      params: { orderId: "", productId: "" },
+    });
+  };
 
   const placeOrder = () => {
     if (items.length === 0) return;
@@ -22,10 +32,11 @@ function CartPage() {
       toast.error("We don't deliver to your location yet");
       return;
     }
-    navigate({
-      to: "/checkout/address",
-      params: { orderId: "", productId: "" },
-    });
+    if (hasOutOfStock) {
+      toast.error("Remove out-of-stock items to continue");
+      return;
+    }
+    run(goToCheckout, "Sign in to complete your order.");
   };
 
   return (
@@ -87,7 +98,10 @@ function CartPage() {
 
             <CouponBox />
           </div>
-          <CartSummary onPlaceOrder={placeOrder} />
+          <CartSummary
+            onPlaceOrder={placeOrder}
+            disabled={hasOutOfStock || !serviceable}
+          />
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 
 import { type AdminRealtimeEvent, isAdminRealtimeEvent } from "./events";
 
+const LOG_PREFIX = "[admin-ws]";
+
 /** ws(s)://<host>/api/v1/admin/ws — same host resolution as the REST client
  * (`core/api/client.ts`), swapped to the ws(s) scheme. */
 function getWsUrl(): string {
@@ -39,30 +41,44 @@ export function useAdminRealtime(onEvent: (event: AdminRealtimeEvent) => void) {
     function connect() {
       if (stopped) return;
 
-      socket = new WebSocket(getWsUrl());
+      const url = getWsUrl();
+      console.info(`${LOG_PREFIX} connecting…`, url);
+      socket = new WebSocket(url);
 
       socket.onopen = () => {
+        console.info(`${LOG_PREFIX} connected`, url);
         reconnectDelay = RECONNECT_BASE_DELAY_MS;
       };
 
       socket.onmessage = (event) => {
+        console.debug(`${LOG_PREFIX} message`, event.data);
         try {
           const parsed = JSON.parse(event.data);
           if (isAdminRealtimeEvent(parsed)) {
             onEventRef.current(parsed);
+          } else {
+            console.warn(`${LOG_PREFIX} unrecognized event shape`, parsed);
           }
-        } catch {
-          // Malformed frame — ignore rather than crash the connection.
+        } catch (error) {
+          console.warn(`${LOG_PREFIX} failed to parse message`, error);
         }
       };
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
+        console.warn(
+          `${LOG_PREFIX} closed`,
+          { code: event.code, reason: event.reason, wasClean: event.wasClean },
+          stopped
+            ? "(unmount, not reconnecting)"
+            : `reconnecting in ${reconnectDelay}ms`,
+        );
         if (stopped) return;
         reconnectTimer = setTimeout(connect, reconnectDelay);
         reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_DELAY_MS);
       };
 
-      socket.onerror = () => {
+      socket.onerror = (event) => {
+        console.error(`${LOG_PREFIX} error`, event);
         socket?.close();
       };
     }

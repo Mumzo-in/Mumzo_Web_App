@@ -20,8 +20,10 @@ app.get(
   upgradeWebSocket((c) => {
     const staffUser = c.get("user");
     if (!staffUser) {
+      console.warn("[admin-ws] upgrade rejected — no authenticated staff user");
       throw unauthorized();
     }
+    console.info(`[admin-ws] upgrade accepted for staff ${staffUser.id}`);
 
     let connection: ReturnType<typeof hub.onOpen> | undefined;
 
@@ -32,8 +34,12 @@ app.get(
           { kind: "staff", staffUserId: staffUser.id },
           [ROOMS.adminOrders],
         );
+        console.info(
+          `[admin-ws] connection opened for staff ${staffUser.id}, joined rooms: ${ROOMS.adminOrders}`,
+        );
       },
       onClose() {
+        console.info(`[admin-ws] connection closed for staff ${staffUser.id}`);
         if (connection) {
           hub.onClose(connection);
         }

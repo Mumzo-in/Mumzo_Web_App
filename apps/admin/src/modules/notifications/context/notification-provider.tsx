@@ -14,7 +14,6 @@ import { playSound } from "@/core/sound";
 import type { OrderNotification } from "../data/types";
 
 const MAX_NOTIFICATIONS = 50;
-const SOUND_SRC = "/sounds/new-order.mp3";
 
 type NotificationContextValue = {
   notifications: OrderNotification[];
@@ -41,6 +40,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
 
   useAdminRealtime((event) => {
+    console.info("[notifications] received event", event.type, event);
     queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
 
     if (event.type !== "order.created") {
@@ -60,7 +60,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) =>
       [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
     );
-    playSound(SOUND_SRC);
+    console.info("[notifications] playing newOrder sound");
+    playSound("newOrder");
     toast(`New order — ₹${event.data.total} from ${event.data.addressName}`);
   });
 

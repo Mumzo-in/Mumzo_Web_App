@@ -17,7 +17,7 @@ import {
 } from "@/modules/admin/v1/coupons/coupons.service";
 import {
   computeCartTotals,
-  requireActiveHub,
+  resolveHubForPincode,
   resolveLine,
 } from "@/shared/pricing";
 
@@ -62,8 +62,8 @@ async function getOrCreateCartRow(owner: CartOwner) {
  * the same number the admin Inventory panel edits. Not `productSize`/
  * `productColor.stock`, which is only ever set once at product creation and
  * never updated after. */
-async function loadLines(cartId: string) {
-  const hubRow = await requireActiveHub();
+async function loadLines(cartId: string, pincode?: string | null) {
+  const hubRow = await resolveHubForPincode(pincode);
 
   const rows = await db
     .select({
@@ -179,9 +179,9 @@ async function resolveAppliedDiscount(
   }
 }
 
-export async function getCart(owner: CartOwner) {
+export async function getCart(owner: CartOwner, pincode?: string | null) {
   const cartRow = await getOrCreateCartRow(owner);
-  const lines = await loadLines(cartRow.id);
+  const lines = await loadLines(cartRow.id, pincode);
   const { code, discount } = await resolveAppliedDiscount(
     cartRow,
     lines,

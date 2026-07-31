@@ -181,7 +181,7 @@ export function AdjustInventoryDialog({
             form.handleSubmit();
           }}
         >
-          <FieldGroup className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <FieldGroup className="grid grid-cols-2 gap-4">
             <form.Field name="hubId">
               {(field) => {
                 const invalid = field.state.meta.errors.length > 0;
@@ -269,7 +269,9 @@ export function AdjustInventoryDialog({
                 );
               }}
             </form.Field>
+          </FieldGroup>
 
+          <FieldGroup className="grid grid-cols-3 gap-4">
             <form.Subscribe selector={(state) => state.values.productId}>
               {(selectedProductId) => (
                 <form.Field name="variantKey">
@@ -310,12 +312,11 @@ export function AdjustInventoryDialog({
 
             <form.Field name="reorderPoint">
               {(field) => (
-                <Field className="col-span-2 sm:col-span-4">
+                <Field>
                   <FieldLabel htmlFor={field.name}>
                     Low-stock threshold
                   </FieldLabel>
                   <Input
-                    className="max-w-40"
                     id={field.name}
                     inputMode="numeric"
                     onBlur={field.handleBlur}

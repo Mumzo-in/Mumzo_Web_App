@@ -24,7 +24,8 @@ const app = createRouter();
 const cart = app
   .openapi(getCartRoute, async (c) => {
     const owner = resolveCartOwner(c);
-    const data = await cartService.getCart(owner);
+    const { pincode } = c.req.valid("query");
+    const data = await cartService.getCart(owner, pincode);
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(addItemRoute, async (c) => {

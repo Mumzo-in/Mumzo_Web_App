@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 
+import { useServiceability } from "@/modules/location";
 import {
   addCartItem,
   applyCartCoupon,
@@ -18,7 +19,7 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../api/cart-api";
-import { cartQueryOptions } from "../queries/cart";
+import { cartQueryKey, cartQueryOptions } from "../queries/cart";
 
 export type { CartLine as CartItem, CartTotals } from "../api/cart-api";
 
@@ -68,7 +69,9 @@ const EMPTY_TOTALS: PublicCart["totals"] = {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { data: cart, isLoading } = useQuery(cartQueryOptions);
+  const { pincode } = useServiceability();
+  const queryKey = cartQueryKey(pincode);
+  const { data: cart, isLoading } = useQuery(cartQueryOptions(pincode));
 
   // Pending debounce timers per cart-item-id, so each line's clicks debounce
   // independently — updating one item's qty never delays another's.
@@ -76,21 +79,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setCart = useCallback(
     (next: PublicCart) => {
-      queryClient.setQueryData(cartQueryOptions.queryKey, next);
+      queryClient.setQueryData(queryKey, next);
     },
-    [queryClient],
+    [queryClient, queryKey],
   );
 
   /** Applies a local patch to the cached cart immediately (optimistic),
    * returns the previous cart so a failed request can roll back to it. */
   const patchCartOptimistically = useCallback(
     (patch: (current: PublicCart) => PublicCart) => {
-      const previous = queryClient.getQueryData(cartQueryOptions.queryKey);
+      const previous = queryClient.getQueryData(queryKey);
       if (!previous) return null;
-      queryClient.setQueryData(cartQueryOptions.queryKey, patch(previous));
+      queryClient.setQueryData(queryKey, patch(previous));
       return previous;
     },
-    [queryClient],
+    [queryClient, queryKey],
   );
 
   const addItem = useCallback(

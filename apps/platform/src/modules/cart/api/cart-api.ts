@@ -39,8 +39,9 @@ export interface AddCartItemInput {
   qty?: number;
 }
 
-export function fetchCart(): Promise<PublicCart> {
-  return apiRequest<PublicCart>("/cart");
+export function fetchCart(pincode?: string | null): Promise<PublicCart> {
+  const query = pincode ? `?pincode=${encodeURIComponent(pincode)}` : "";
+  return apiRequest<PublicCart>(`/cart${query}`);
 }
 
 export function addCartItem(input: AddCartItemInput): Promise<PublicCart> {

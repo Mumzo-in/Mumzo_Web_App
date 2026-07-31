@@ -25,7 +25,7 @@ import { toWholeRupees } from "@/lib/money";
 import { validateCoupon } from "@/modules/admin/v1/coupons/coupons.service";
 import {
   computeCartTotals,
-  requireActiveHub,
+  resolveHubForPincode,
   resolveLine,
 } from "@/shared/pricing";
 
@@ -139,7 +139,8 @@ export async function placeOrder(
   }
 
   const cartRow = await requireCartRow(userId);
-  const hubRow = await requireActiveHub();
+  const addressRow = await requireOwnedAddress(userId, input.addressId);
+  const hubRow = await resolveHubForPincode(addressRow.pincode);
   const lines = await loadCartLinesForOrder(cartRow.id, hubRow.id);
   if (lines.length === 0) {
     throw badRequest("Your cart is empty.");
@@ -151,8 +152,6 @@ export async function placeOrder(
       `Out of stock: ${outOfStock.map((l) => l.nameSnapshot).join(", ")}.`,
     );
   }
-
-  const addressRow = await requireOwnedAddress(userId, input.addressId);
 
   let couponId: string | null = null;
   let discount = 0;

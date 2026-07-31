@@ -6,6 +6,8 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { cartQueryKey, mergeCartApi } from "@/modules/cart";
+import { useServiceability } from "@/modules/location";
 import { authClient } from "../../api/auth-client";
 import { savePendingReferralCode } from "../../api/pending-referral";
 
@@ -34,6 +36,7 @@ export default function SignInForm({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { pincode } = useServiceability();
   const redirectParam = useSearch({
     strict: false,
     select: (s: { redirect?: string }) => s.redirect,
@@ -112,6 +115,17 @@ export default function SignInForm({
       query: { disableCookieCache: true },
     });
     queryClient.setQueryData(["auth-session"], data);
+
+    // Folds any guest-cart lines into the now-signed-in user's cart — without
+    // this, items added before sign-in become invisible/unreachable (the
+    // cart the UI queries flips from the guest session to the user's own).
+    try {
+      const mergedCart = await mergeCartApi();
+      queryClient.setQueryData(cartQueryKey(pincode), mergedCart);
+    } catch {
+      // Best-effort — a failed merge shouldn't block sign-in; the next cart
+      // fetch just resolves to the user's own (possibly empty) cart.
+    }
 
     if (onSuccess) {
       onSuccess();

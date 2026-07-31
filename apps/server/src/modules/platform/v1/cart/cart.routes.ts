@@ -6,6 +6,7 @@ import {
   applyCouponSchema,
   cartItemIdParamSchema,
   cartSchema,
+  getCartQuerySchema,
   updateCartItemSchema,
 } from "./cart.schema";
 
@@ -16,6 +17,7 @@ export const getCartRoute = createRoute({
   path: "/",
   tags: [TAG],
   summary: "Get the current cart (guest or signed-in) with live totals",
+  request: { query: getCartQuerySchema },
   responses: {
     200: jsonContent(successSchema(cartSchema), "The cart"),
     ...commonErrorResponses,
