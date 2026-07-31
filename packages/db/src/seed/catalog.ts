@@ -5,6 +5,10 @@ import {
   category,
   categoryBrand,
   hub,
+  inventory,
+  product,
+  productColor,
+  productSize,
   serviceArea,
   vendor,
 } from "../schema/catalog";
@@ -448,7 +452,12 @@ export async function seedHubs() {
   const missing = HUB_SEEDS.filter((seed) => !present.has(seed.name));
 
   if (missing.length > 0) {
-    await db.insert(hub).values(missing.map((seed) => ({ ...seed })));
+    await db.insert(hub).values(
+      missing.map((seed) => ({
+        ...seed,
+        isDefault: seed.name === "Gachibowli Hub",
+      })),
+    );
   }
 
   return {
@@ -512,6 +521,100 @@ export async function seedServiceAreas() {
     created: missing.length,
     skipped: SERVICE_AREA_SEEDS.length - missing.length,
   };
+}
+
+/** Random-but-varied so testing exercises every state: some variants show
+ * "out of stock", some "low stock", some healthy — never a flat number that
+ * hides bugs in threshold/zero-stock UI. */
+function randomStock(): number {
+  const buckets = [0, 0, 8, 15, 22, 40, 60, 100, 120];
+  const bucket = buckets[Math.floor(Math.random() * buckets.length)] ?? 0;
+  return bucket;
+}
+
+/**
+ * One `inventory` row per (hub × product variant), so every seeded product
+ * actually has real stock at every hub — without this, cart/order stock
+ * checks (which read only `inventory`, never `productSize.stock`) see every
+ * product as permanently out of stock. Idempotent: skips any
+ * (hub, product, variant) combo that already has a row.
+ */
+export async function seedInventory() {
+  const [hubs, products, sizes, colors, existing] = await Promise.all([
+    db.select({ id: hub.id }).from(hub).where(eq(hub.isActive, true)),
+    db.select({ id: product.id }).from(product),
+    db
+      .select({ id: productSize.id, productId: productSize.productId })
+      .from(productSize),
+    db
+      .select({ id: productColor.id, productId: productColor.productId })
+      .from(productColor),
+    db
+      .select({
+        hubId: inventory.hubId,
+        productId: inventory.productId,
+        productSizeId: inventory.productSizeId,
+        productColorId: inventory.productColorId,
+      })
+      .from(inventory),
+  ]);
+
+  const sizesByProduct = new Map<string, string[]>();
+  for (const s of sizes) {
+    const list = sizesByProduct.get(s.productId) ?? [];
+    list.push(s.id);
+    sizesByProduct.set(s.productId, list);
+  }
+  const colorsByProduct = new Map<string, string[]>();
+  for (const c of colors) {
+    const list = colorsByProduct.get(c.productId) ?? [];
+    list.push(c.id);
+    colorsByProduct.set(c.productId, list);
+  }
+
+  const existingKey = (row: {
+    hubId: string;
+    productId: string;
+    productSizeId: string | null;
+    productColorId: string | null;
+  }) =>
+    `${row.hubId}:${row.productId}:${row.productSizeId}:${row.productColorId}`;
+  const present = new Set(existing.map(existingKey));
+
+  const rows: (typeof inventory.$inferInsert)[] = [];
+  for (const p of products) {
+    const productSizeIds = sizesByProduct.get(p.id) ?? [];
+    const productColorIds = colorsByProduct.get(p.id) ?? [];
+    const variants: { sizeId: string | null; colorId: string | null }[] =
+      productSizeIds.length > 0
+        ? productSizeIds.map((id) => ({ sizeId: id, colorId: null }))
+        : productColorIds.length > 0
+          ? productColorIds.map((id) => ({ sizeId: null, colorId: id }))
+          : [{ sizeId: null, colorId: null }];
+
+    for (const h of hubs) {
+      for (const variant of variants) {
+        const key = `${h.id}:${p.id}:${variant.sizeId}:${variant.colorId}`;
+        if (present.has(key)) continue;
+        rows.push({
+          hubId: h.id,
+          productId: p.id,
+          productSizeId: variant.sizeId,
+          productColorId: variant.colorId,
+          stock: randomStock(),
+        });
+      }
+    }
+  }
+
+  if (rows.length > 0) {
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      await db.insert(inventory).values(rows.slice(i, i + BATCH_SIZE));
+    }
+  }
+
+  return { created: rows.length };
 }
 
 export async function seedCategories() {
@@ -656,6 +759,7 @@ export async function seedCatalog() {
   const products = await seedProducts();
   const productImages = await backfillProductPlaceholderImages();
   const misclassifiedColors = await backfillMisclassifiedColorSizes();
+  const inventoryRows = await seedInventory();
   const coupons = await seedCoupons();
   return {
     brands,
@@ -668,6 +772,7 @@ export async function seedCatalog() {
     products,
     productImages,
     misclassifiedColors,
+    inventoryRows,
     coupons,
   };
 }

@@ -19,8 +19,10 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     (i) => i.productId === product.id && !i.productSizeId && !i.productColorId,
   );
   const wished = has(product.id);
+  const isOutOfStock = product.stock <= 0;
 
   const handleAdd = () => {
+    if (isOutOfStock) return;
     addItem(product);
     toast.success(`${product.name} added to cart!`);
   };
@@ -70,15 +72,21 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             {discountPct(product)}% OFF
           </span>
         )}
-        {product.isBestseller && (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full border border-primary/20 bg-white/95 px-2 py-1 font-semibold text-[10px] text-primary">
-            <Star
-              size={10}
-              className="fill-current text-primary"
-              strokeWidth={0}
-            />{" "}
-            Bestseller
+        {isOutOfStock ? (
+          <span className="absolute top-3 right-3 rounded-full bg-destructive px-2.5 py-1 font-semibold text-[10px] text-white">
+            Out of stock
           </span>
+        ) : (
+          product.isBestseller && (
+            <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full border border-primary/20 bg-white/95 px-2 py-1 font-semibold text-[10px] text-primary">
+              <Star
+                size={10}
+                className="fill-current text-primary"
+                strokeWidth={0}
+              />{" "}
+              Bestseller
+            </span>
+          )
         )}
       </div>
       <div className="flex flex-1 flex-col p-3 md:p-4">
