@@ -35,15 +35,15 @@
 | Search & Filters | ✅ | Filter panel, sort, URL state (basic `ILIKE`, not full-text) |
 | Product Detail | ✅ | Gallery/sizes/price/highlights/related; reviews section missing |
 | Coupons | ✅ | Admin CRUD + validate API; customer listing page not wired |
-| Cart | ⬜ | Route exists, zero functionality |
-| Orders | ⬜ | Routes exist (PF+AD), mock data only |
-| Payments | ⬜ | Routes exist (PF+AD), no gateway integration |
-| Checkout | ⬜ | Routes exist, no glue logic |
+| Cart | ✅ | Backend + UI fully working; real per-hub stock, guest merge on login |
+| Orders | ✅ | Backend + PF UI + Admin all real; COD only, status lifecycle + log working |
+| Payments | 🔶 | COD fully working; Razorpay (online) not integrated |
+| Checkout | 🔶 | Address→Payment→Review flow fully works for COD; no online-payment step yet |
 | Reviews | 🔶 | Route/placeholder pages only |
 | Wishlist | 🔶 | Route + local-state toggle only |
 | Referrals | 🔶 | Spec finalized, mock UI, no backend |
 | Delivery & Dispatch | 🔶 | Admin dispatch/rider pages exist, no schema/API |
-| Notifications | 🔶 | Route placeholders only |
+| Notifications | 🔶 | Admin realtime (WS + sound + toast + bell) on new orders working; customer-facing notifications not started |
 | Addresses | ✅ | Schema+CRUD+list+form live; location picker (geolocation/OSM search) built in |
 
 ---
@@ -89,71 +89,71 @@ this app's auth model. Only remaining gap:**
 - **Not done / deferred:** editing an existing address doesn't reuse the autocomplete flow (plain fields only); no server-side check for duplicate "Other" addresses; saved address pincode isn't cross-checked against real serviceability (checkout's gate still uses the separate mock `serviceAreas` state)
 
 **Cart backend (BE) — start**
-- [ ] `cart` + `cart_item` tables (userId nullable for guest, sessionId for guest cart)
-- [ ] Migration
-- [ ] `POST /api/v1/cart/items` — add item, validate stock from product size variant
-- [ ] `PATCH /api/v1/cart/items/:id` — update qty
-- [ ] `DELETE /api/v1/cart/items/:id` — remove item
+- [x] `cart` + `cart_item` tables (userId nullable for guest, sessionId for guest cart)
+- [x] Migration
+- [x] `POST /api/v1/cart/items` — add item, validate stock (now against real per-hub `inventory`, resolved to the customer's serviceable hub)
+- [x] `PATCH /api/v1/cart/items/:id` — update qty
+- [x] `DELETE /api/v1/cart/items/:id` — remove item
 
 ### Day 2 — Jul 30 (Thu): Cart backend finish + Cart UI
 
 **Cart backend (BE) — finish**
-- [ ] `GET /api/v1/cart` — return items + computed totals (subtotal, GST 5%, delivery fee, discount, grand total)
-- [ ] Coupon apply/remove on cart (reuse existing `POST /coupons/validate`, store applied coupon on cart)
-- [ ] Guest cart via cookie/sessionId → merge into user cart on login (server-side merge on sign-in)
-- [ ] `DELETE /api/v1/cart` — clear cart (used after order placement)
+- [x] `GET /api/v1/cart` — return items + computed totals (subtotal, GST 5%, delivery fee, discount, grand total)
+- [x] Coupon apply/remove on cart (reuse existing `POST /coupons/validate`, store applied coupon on cart)
+- [x] Guest cart via cookie/sessionId → merge into user cart on login (server-side merge on sign-in, wired into `sign-in-form.tsx` post-OTP-verify)
+- [x] `DELETE /api/v1/cart` — clear cart (used after order placement)
 
 **Cart UI (PF)**
-- [ ] Cart page layout: item list + sticky summary sidebar (desktop), stacked (mobile)
-- [ ] Cart item card: image, name, size, qty stepper, remove button
-- [ ] Price summary card: subtotal, GST line, delivery fee, discount line, total
-- [ ] Coupon input + apply/remove, error state for invalid/expired coupon
-- [ ] Empty cart state (use `Empty` component, not custom div)
-- [ ] "Proceed to checkout" CTA — disabled + message under min-order threshold
-- [ ] Header cart badge — item count, updates on add/remove
-- [ ] Wire PDP "Add to cart" button to real API (currently toast-only) — keep the toast, add real mutation
-- [ ] Out-of-stock handling on cart item (flag, block checkout if any OOS item present)
+- [x] Cart page layout: item list + sticky summary sidebar (desktop), stacked (mobile)
+- [x] Cart item card: image, name, size, qty stepper, remove button
+- [x] Price summary card: subtotal, GST line, delivery fee, discount line, total
+- [x] Coupon input + apply/remove, error state for invalid/expired coupon
+- [x] Empty cart state (use `Empty` component, not custom div)
+- [x] "Proceed to checkout" CTA — disabled + message under min-order threshold (also blocks on out-of-stock/non-serviceable)
+- [x] Header cart badge — item count, updates on add/remove
+- [x] Wire PDP "Add to cart" button to real API (currently toast-only) — keep the toast, add real mutation
+- [x] Out-of-stock handling on cart item (flag, block checkout if any OOS item present) — plus ribbon + disabled Add button on `ProductCard`
 
 ### Day 3 — Jul 31 (Fri): Orders backend + Payments backend
 
 **Orders backend (BE)**
-- [ ] `order` + `order_item` tables: snapshot product name/price/size at time of order (don't FK-only, denormalize price)
-- [ ] Status enum: `pending_payment → confirmed → packed → shipped → out_for_delivery → delivered`, plus `cancelled`, `return_requested`, `returned`
-- [ ] `order_status_log` table: orderId, fromStatus, toStatus, timestamp, actor
-- [ ] `POST /api/v1/orders` — place order: validate cart not empty, validate stock again, snapshot items, create order row (status `pending_payment`), do NOT clear cart yet (clear after payment confirms)
-- [ ] `GET /api/v1/orders` — list current user's orders, paginated
-- [ ] `GET /api/v1/orders/:id` — detail with items + status timeline
-- [ ] `POST /api/v1/orders/:id/cancel` — only allowed pre-`packed`, reason required
+- [x] `order` + `order_item` tables: snapshot product name/price/size at time of order (don't FK-only, denormalize price)
+- [x] Status enum: `pending_payment → confirmed → packed → shipped → out_for_delivery → delivered`, plus `cancelled`, `return_requested`, `returned`
+- [x] `order_status_log` table: orderId, fromStatus, toStatus, timestamp, actor
+- [x] `POST /api/v1/orders` — place order: validate cart not empty, validate stock again (hub resolved from the delivery address's pincode), snapshot items, create order row
+- [x] `GET /api/v1/orders` — list current user's orders, paginated
+- [x] `GET /api/v1/orders/:id` — detail with items + status timeline
+- [x] `POST /api/v1/orders/:id/cancel` — only allowed pre-`packed`, reason required
 
 **Payments backend (BE)**
-- [ ] `payment` + `refund` tables: orderId, provider (razorpay/cod), providerOrderId, providerPaymentId, status, amount
+- [x] `payment` + `refund` tables: orderId, provider (razorpay/cod), providerOrderId, providerPaymentId, status, amount
 - [ ] Install Razorpay SDK, wire test `RAZORPAY_KEY_ID`/`SECRET` via `@mumzo/env`
 - [ ] `POST /api/v1/payments/razorpay/order` — create Razorpay order for a given Mumzo order, return `order_id` for checkout.js
 - [ ] `POST /api/v1/payments/razorpay/verify` — verify signature (`crypto.createHmac`), mark payment + order as `confirmed`, clear cart
 - [ ] `POST /api/v1/payments/webhook` — handle async Razorpay events (`payment.captured`, `payment.failed`), idempotent (check `providerPaymentId` before writing)
-- [ ] COD flow: `POST /api/v1/orders/:id/cod` — mark order `confirmed` directly, no Razorpay call, clear cart
+- [x] COD flow: order placement is COD-only for now — marks order `confirmed` directly, clears cart, no Razorpay call
 - [ ] Payment retry: `POST /api/v1/payments/razorpay/order` re-callable for a `pending_payment` order
 
 ### Day 4 — Aug 1 (Sat): Checkout flow (glue) + Orders/Payments UI + Admin wiring
 
 **Checkout flow (PF) — assembles everything above**
-- [ ] Step indicator component: Address → Payment → Review
-- [ ] Address step (`/checkout/address`): select saved address, "add new" inline form (reuse address form from Day 1)
-- [ ] Payment step (`/checkout/payment`): method selector — UPI/Card/Netbanking/Wallet (all via Razorpay) vs COD
-- [ ] Review step (`/checkout/review`): line items, address, payment method, persistent order-summary sidebar across all 3 steps
-- [ ] Place order → if COD: call cod endpoint → redirect confirmation. If online: create order → create Razorpay order → open checkout.js popup → on success call verify → redirect confirmation
+- [x] Step indicator component: Address → Payment → Review
+- [x] Address step (`/checkout/address`): select saved address, "add new" inline form (reuse address form from Day 1); draft persists across refresh via sessionStorage
+- [ ] Payment step (`/checkout/payment`): method selector — UPI/Card/Netbanking/Wallet (all via Razorpay) vs COD — currently COD-only, no Razorpay methods
+- [x] Review step (`/checkout/review`): line items, address, payment method, persistent order-summary sidebar across all 3 steps
+- [x] Place order → COD path: call cod flow → redirect confirmation. (Online/Razorpay path not built — no gateway yet)
 - [ ] Payment status page (`/payment/status`): success (order id, ETA), failure (retry button → re-open checkout.js), processing (poll or webhook-driven)
-- [ ] Delivery slot: simple "Express 10-min" default selection (skip scheduled-slot complexity for now)
+- [x] Delivery slot: simple "Express 10-min" default selection (skip scheduled-slot complexity for now)
 
 **Orders UI (PF) — wire off mock**
-- [ ] Order history (`/orders`) → real `GET /orders`
-- [ ] Order detail (`/orders/$orderId`) → real `GET /orders/:id`, render status timeline from log
-- [ ] Cancel flow → real cancel endpoint, reason dropdown + confirm dialog
+- [x] Order history (`/orders`) → real `GET /orders`
+- [x] Order detail (`/orders/$orderId`) → real `GET /orders/:id`, render status timeline from log
+- [x] Cancel flow → real cancel endpoint, reason dropdown + confirm dialog
 
 **Admin wiring (AD)**
-- [ ] Orders list (`/operations/orders`) → real `GET /admin/orders`, filters by status/date
-- [ ] Order detail (`/operations/orders/$orderId`) → real API
-- [ ] Status transition control → `PATCH /admin/orders/:id/status`, validate legal transitions server-side
+- [x] Orders list (`/operations/orders`) → real `GET /admin/orders`, filters by status/date
+- [x] Order detail (`/operations/orders/$orderId`) → real API
+- [x] Status transition control → `PATCH /admin/orders/:id/status`, validate legal transitions server-side
 - [ ] Payments list (`/finance/payments`) → real `GET /admin/payments`
 - [ ] Payment detail → real API, show Razorpay payment id + status
 
@@ -234,9 +234,15 @@ this app's auth model. Only remaining gap:**
 ### Aug 11: Notifications — basic (M11)
 
 **Backend (BE)**
-- [ ] `notification` table: userId, type, title, body, read, createdAt
-- [ ] Trigger notification creation on order status change (order placed, packed, out for delivery, delivered, cancelled)
-- [ ] `GET /api/v1/notifications`, `PATCH /api/v1/notifications/:id/read`
+- [ ] `notification` table: userId, type, title, body, read, createdAt (customer-facing — not built; `notification_log` exists for staff push only)
+- [x] Trigger notification creation on order status change — done for **admin/staff**: `order.created`/`order.status_updated` fire `@mumzo/notifications` (staff push) + `@mumzo/realtime` (WS) events
+- [ ] `GET /api/v1/notifications`, `PATCH /api/v1/notifications/:id/read` (customer-facing)
+
+**Admin (AD) — realtime new-order alerts, done ahead of schedule**
+- [x] Admin WS module (`admin/v1/ws`) — `requireStaffAuth`-gated upgrade, joins `admin:orders` room, connect/open/close logging
+- [x] `useAdminRealtime` client hook — auto-reconnect w/ backoff, full lifecycle console logging
+- [x] `NotificationProvider` + bell icon with unread badge + popover tray, mounted globally in `(admin)/_layout.tsx`
+- [x] New-order sound (`happy_bells_sound.wav`) + toast on `order.created`
 
 **Platform (PF)**
 - [ ] Notification center (`/notifications`) wired to real list

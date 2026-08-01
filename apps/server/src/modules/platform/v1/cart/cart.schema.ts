@@ -9,6 +9,14 @@ export const getCartQuerySchema = z.object({
     .string()
     .optional()
     .openapi({ param: { name: "pincode", in: "query" } }),
+  lat: z.coerce
+    .number()
+    .optional()
+    .openapi({ param: { name: "lat", in: "query" } }),
+  lng: z.coerce
+    .number()
+    .optional()
+    .openapi({ param: { name: "lng", in: "query" } }),
 });
 
 export const addCartItemSchema = z

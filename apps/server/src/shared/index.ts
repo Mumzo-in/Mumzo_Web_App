@@ -13,4 +13,6 @@
  * here rather than in a surface module.
  */
 
+export * from "./hub-resolution";
+export * from "./inventory";
 export * from "./pricing";

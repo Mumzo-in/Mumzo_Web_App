@@ -16,6 +16,8 @@ async function requireHub(id: string) {
 export async function createHub(input: {
   name: string;
   address: string;
+  lat?: number | null;
+  lng?: number | null;
   isActive: boolean;
   isDefault?: boolean;
 }) {
@@ -27,6 +29,8 @@ export async function updateHub(
   input: Partial<{
     name: string;
     address: string;
+    lat: number | null;
+    lng: number | null;
     isActive: boolean;
     isDefault: boolean;
   }>,

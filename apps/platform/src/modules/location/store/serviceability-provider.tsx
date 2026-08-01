@@ -25,6 +25,11 @@ interface ServiceabilityContextValue {
   query: string;
   /** The pincode actually checked against the server. */
   pincode: string;
+  /** Real coordinates when known (geolocation/OSM search/saved address) —
+   * feeds the radius-based hub fallback on the cart/order stock checks when
+   * the pincode itself isn't mapped to a `service_area` row. */
+  lat: number | null;
+  lng: number | null;
   hubName: string | null;
   status: ServiceabilityStatus;
   /** Convenience: can they order at all from this location? */
@@ -39,8 +44,13 @@ interface ServiceabilityContextValue {
   hasChosenLocation: boolean;
   /** Looks up `pincode` against the real service-area API and applies it as
    * the active location. `areaName` is what's displayed while the check is
-   * in flight / if the server has no name for it. */
-  setLocation: (pincode: string, areaName: string) => Promise<void>;
+   * in flight / if the server has no name for it. `coords`, when available,
+   * back the radius-based hub fallback. */
+  setLocation: (
+    pincode: string,
+    areaName: string,
+    coords?: { lat?: number | null; lng?: number | null },
+  ) => Promise<void>;
   /** Mark the ask flow as resolved without changing the active query — used
    * by the "Skip" action. */
   markChosen: () => void;
@@ -52,6 +62,8 @@ const ServiceabilityContext = createContext<ServiceabilityContextValue | null>(
 
 const QUERY_KEY = "mumzo_location_v1";
 const PINCODE_KEY = "mumzo_location_pincode_v1";
+const LAT_KEY = "mumzo_location_lat_v1";
+const LNG_KEY = "mumzo_location_lng_v1";
 const CHOSEN_KEY = "mumzo_location_chosen_v1";
 const DEFAULT_QUERY = "Banjara Hills";
 const DEFAULT_PINCODE = "500034";
@@ -61,6 +73,17 @@ function readStored(key: string, fallback: string): string {
     return localStorage.getItem(key) ?? fallback;
   } catch {
     return fallback;
+  }
+}
+
+function readStoredNumber(key: string): number | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  } catch {
+    return null;
   }
 }
 
@@ -79,6 +102,12 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   const [pincode, setPincode] = useState<string>(() =>
     readStored(PINCODE_KEY, DEFAULT_PINCODE),
   );
+  const [lat, setLat] = useState<number | null>(() =>
+    readStoredNumber(LAT_KEY),
+  );
+  const [lng, setLng] = useState<number | null>(() =>
+    readStoredNumber(LNG_KEY),
+  );
   const [hubName, setHubName] = useState<string | null>(null);
   const [status, setStatus] = useState<ServiceabilityStatus>("serviceable");
   const [checking, setChecking] = useState(false);
@@ -88,7 +117,9 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(QUERY_KEY, query);
     localStorage.setItem(PINCODE_KEY, pincode);
-  }, [query, pincode]);
+    if (lat != null) localStorage.setItem(LAT_KEY, String(lat));
+    if (lng != null) localStorage.setItem(LNG_KEY, String(lng));
+  }, [query, pincode, lat, lng]);
 
   useEffect(() => {
     if (hasChosenLocation) {
@@ -121,9 +152,15 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   }, [pincode]);
 
   const setLocation = useCallback(
-    async (nextPincode: string, areaName: string) => {
+    async (
+      nextPincode: string,
+      areaName: string,
+      coords?: { lat?: number | null; lng?: number | null },
+    ) => {
       setQuery(areaName);
       setPincode(nextPincode);
+      setLat(coords?.lat ?? null);
+      setLng(coords?.lng ?? null);
       setHasChosenLocation(true);
       await runCheck(nextPincode);
     },
@@ -140,6 +177,8 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
     () => ({
       query,
       pincode,
+      lat,
+      lng,
       hubName,
       status,
       serviceable,
@@ -153,6 +192,8 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
     [
       query,
       pincode,
+      lat,
+      lng,
       hubName,
       status,
       serviceable,

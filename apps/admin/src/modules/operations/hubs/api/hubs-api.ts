@@ -4,6 +4,8 @@ export type Hub = {
   id: string;
   name: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
   isActive: boolean;
 };
 
@@ -14,6 +16,8 @@ export function listHubs(): Promise<Hub[]> {
 export type HubInput = {
   name: string;
   address: string;
+  lat?: number | null;
+  lng?: number | null;
   isActive: boolean;
 };
 

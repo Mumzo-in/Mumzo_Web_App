@@ -10,6 +10,8 @@ export interface Address {
   landmark: string;
   pincode: string;
   city: string;
+  lat?: number | null;
+  lng?: number | null;
   isDefault: boolean;
 }
 

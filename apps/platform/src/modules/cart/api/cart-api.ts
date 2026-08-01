@@ -39,9 +39,19 @@ export interface AddCartItemInput {
   qty?: number;
 }
 
-export function fetchCart(pincode?: string | null): Promise<PublicCart> {
-  const query = pincode ? `?pincode=${encodeURIComponent(pincode)}` : "";
-  return apiRequest<PublicCart>(`/cart${query}`);
+export interface CartLocation {
+  pincode?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+
+export function fetchCart(location: CartLocation = {}): Promise<PublicCart> {
+  const params = new URLSearchParams();
+  if (location.pincode) params.set("pincode", location.pincode);
+  if (location.lat != null) params.set("lat", String(location.lat));
+  if (location.lng != null) params.set("lng", String(location.lng));
+  const query = params.toString();
+  return apiRequest<PublicCart>(`/cart${query ? `?${query}` : ""}`);
 }
 
 export function addCartItem(input: AddCartItemInput): Promise<PublicCart> {

@@ -28,6 +28,8 @@ import { createHub, type Hub, updateHub } from "../api/hubs-api";
 const schema = z.object({
   name: z.string().min(1, "Give the hub a name.").max(120),
   address: z.string().min(1, "Address is required.").max(300),
+  lat: z.number().min(-90).max(90).nullable(),
+  lng: z.number().min(-180).max(180).nullable(),
   isActive: z.boolean(),
 });
 
@@ -62,6 +64,8 @@ export function HubDialog({ hub }: { hub?: Hub }) {
     defaultValues: {
       name: hub?.name ?? "",
       address: hub?.address ?? "",
+      lat: hub?.lat ?? null,
+      lng: hub?.lng ?? null,
       isActive: hub?.isActive ?? true,
     },
     validators: { onSubmit: schema },
@@ -159,6 +163,70 @@ export function HubDialog({ hub }: { hub?: Hub }) {
                 );
               }}
             </form.Field>
+
+            <div className="grid grid-cols-2 gap-4">
+              <form.Field name="lat">
+                {(field) => {
+                  const invalid = field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={invalid || undefined}>
+                      <FieldLabel htmlFor={field.name}>Latitude</FieldLabel>
+                      <Input
+                        aria-invalid={invalid || undefined}
+                        data-testid="hub-lat"
+                        id={field.name}
+                        onBlur={field.handleBlur}
+                        onChange={(event) =>
+                          field.handleChange(
+                            event.target.value === ""
+                              ? null
+                              : Number(event.target.value),
+                          )
+                        }
+                        placeholder="17.4401"
+                        step="any"
+                        type="number"
+                        value={field.state.value ?? ""}
+                      />
+                      {invalid ? (
+                        <FieldError errors={field.state.meta.errors} />
+                      ) : null}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+
+              <form.Field name="lng">
+                {(field) => {
+                  const invalid = field.state.meta.errors.length > 0;
+                  return (
+                    <Field data-invalid={invalid || undefined}>
+                      <FieldLabel htmlFor={field.name}>Longitude</FieldLabel>
+                      <Input
+                        aria-invalid={invalid || undefined}
+                        data-testid="hub-lng"
+                        id={field.name}
+                        onBlur={field.handleBlur}
+                        onChange={(event) =>
+                          field.handleChange(
+                            event.target.value === ""
+                              ? null
+                              : Number(event.target.value),
+                          )
+                        }
+                        placeholder="78.3489"
+                        step="any"
+                        type="number"
+                        value={field.state.value ?? ""}
+                      />
+                      {invalid ? (
+                        <FieldError errors={field.state.meta.errors} />
+                      ) : null}
+                    </Field>
+                  );
+                }}
+              </form.Field>
+            </div>
 
             <form.Field name="isActive">
               {(field) => (

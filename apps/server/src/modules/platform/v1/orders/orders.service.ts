@@ -23,11 +23,8 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import { validateCoupon } from "@/modules/admin/v1/coupons/coupons.service";
-import {
-  computeCartTotals,
-  resolveHubForPincode,
-  resolveLine,
-} from "@/shared/pricing";
+import { resolveHubForLocation } from "@/shared/hub-resolution";
+import { computeCartTotals, resolveLine } from "@/shared/pricing";
 
 async function requireCartRow(userId: string) {
   const [row] = await db
@@ -140,8 +137,29 @@ export async function placeOrder(
 
   const cartRow = await requireCartRow(userId);
   const addressRow = await requireOwnedAddress(userId, input.addressId);
-  const hubRow = await resolveHubForPincode(addressRow.pincode);
+  console.log("[order-placement] delivery address:", {
+    id: addressRow.id,
+    pincode: addressRow.pincode,
+    lat: addressRow.lat,
+    lng: addressRow.lng,
+    city: addressRow.city,
+  });
+  const hubRow = await resolveHubForLocation({
+    pincode: addressRow.pincode,
+    lat: addressRow.lat,
+    lng: addressRow.lng,
+  });
+  console.log(`[order-placement] resolved hub id: ${hubRow.id}`);
   const lines = await loadCartLinesForOrder(cartRow.id, hubRow.id);
+  console.log(
+    "[order-placement] cart lines with stock at resolved hub:",
+    lines.map((l) => ({
+      name: l.nameSnapshot,
+      qty: l.qty,
+      stock: l.stock,
+      outOfStock: l.qty > l.stock,
+    })),
+  );
   if (lines.length === 0) {
     throw badRequest("Your cart is empty.");
   }

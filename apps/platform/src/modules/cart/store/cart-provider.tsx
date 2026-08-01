@@ -69,9 +69,10 @@ const EMPTY_TOTALS: PublicCart["totals"] = {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { pincode } = useServiceability();
-  const queryKey = cartQueryKey(pincode);
-  const { data: cart, isLoading } = useQuery(cartQueryOptions(pincode));
+  const { pincode, lat, lng } = useServiceability();
+  const location = { pincode, lat, lng };
+  const queryKey = cartQueryKey(location);
+  const { data: cart, isLoading } = useQuery(cartQueryOptions(location));
 
   // Pending debounce timers per cart-item-id, so each line's clicks debounce
   // independently — updating one item's qty never delays another's.
@@ -88,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    * returns the previous cart so a failed request can roll back to it. */
   const patchCartOptimistically = useCallback(
     (patch: (current: PublicCart) => PublicCart) => {
-      const previous = queryClient.getQueryData(queryKey);
+      const previous = queryClient.getQueryData<PublicCart>(queryKey);
       if (!previous) return null;
       queryClient.setQueryData(queryKey, patch(previous));
       return previous;

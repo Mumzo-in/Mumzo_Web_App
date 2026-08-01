@@ -36,7 +36,7 @@ export default function SignInForm({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { pincode } = useServiceability();
+  const { pincode, lat, lng } = useServiceability();
   const redirectParam = useSearch({
     strict: false,
     select: (s: { redirect?: string }) => s.redirect,
@@ -121,7 +121,7 @@ export default function SignInForm({
     // cart the UI queries flips from the guest session to the user's own).
     try {
       const mergedCart = await mergeCartApi();
-      queryClient.setQueryData(cartQueryKey(pincode), mergedCart);
+      queryClient.setQueryData(cartQueryKey({ pincode, lat, lng }), mergedCart);
     } catch {
       // Best-effort — a failed merge shouldn't block sign-in; the next cart
       // fetch just resolves to the user's own (possibly empty) cart.

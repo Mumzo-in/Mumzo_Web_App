@@ -32,26 +32,36 @@ import {
 
 type BrandSeed = { name: string; slug: string };
 
-type HubSeed = { name: string; address: string };
+type HubSeed = { name: string; address: string; lat: number; lng: number };
 
 /** Launch dark stores — Mumzo starts serviceability in Hyderabad, plus an
- * early Guwahati pilot hub. */
+ * early Guwahati pilot hub. Coordinates are real area centroids (matching
+ * the pincodes in SERVICE_AREA_SEEDS below) — used by the radius-based
+ * serviceability fallback and the admin dark-store map. */
 const HUB_SEEDS: HubSeed[] = [
   {
     name: "Banjara Hills Hub",
     address: "Road No. 12, Banjara Hills, Hyderabad, Telangana 500034",
+    lat: 17.4156,
+    lng: 78.4347,
   },
   {
     name: "Gachibowli Hub",
     address: "Financial District, Gachibowli, Hyderabad, Telangana 500032",
+    lat: 17.4401,
+    lng: 78.3489,
   },
   {
     name: "Kukatpally Hub",
     address: "KPHB Colony, Kukatpally, Hyderabad, Telangana 500072",
+    lat: 17.4849,
+    lng: 78.4108,
   },
   {
     name: "Guwahati Hub",
     address: "Fancy Bazar, Guwahati, Assam 781001",
+    lat: 26.1836,
+    lng: 91.7461,
   },
 ];
 
@@ -458,6 +468,15 @@ export async function seedHubs() {
         isDefault: seed.name === "Gachibowli Hub",
       })),
     );
+  }
+
+  // Backfill lat/lng on hubs created before these coordinates existed —
+  // never overwrites a value an admin may have since edited.
+  for (const seed of HUB_SEEDS) {
+    await db
+      .update(hub)
+      .set({ lat: seed.lat, lng: seed.lng })
+      .where(and(eq(hub.name, seed.name), isNull(hub.lat)));
   }
 
   return {

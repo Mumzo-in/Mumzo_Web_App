@@ -16,10 +16,10 @@ import {
   validateCoupon,
 } from "@/modules/admin/v1/coupons/coupons.service";
 import {
-  computeCartTotals,
-  resolveHubForPincode,
-  resolveLine,
-} from "@/shared/pricing";
+  type CustomerLocation,
+  resolveHubForLocation,
+} from "@/shared/hub-resolution";
+import { computeCartTotals, resolveLine } from "@/shared/pricing";
 
 /** Exactly one of these identifies whose cart it is — never both, never
  * neither. See `cart.identity.ts` for how a request resolves to this. */
@@ -62,8 +62,8 @@ async function getOrCreateCartRow(owner: CartOwner) {
  * the same number the admin Inventory panel edits. Not `productSize`/
  * `productColor.stock`, which is only ever set once at product creation and
  * never updated after. */
-async function loadLines(cartId: string, pincode?: string | null) {
-  const hubRow = await resolveHubForPincode(pincode);
+async function loadLines(cartId: string, location: CustomerLocation = {}) {
+  const hubRow = await resolveHubForLocation(location);
 
   const rows = await db
     .select({
@@ -179,9 +179,12 @@ async function resolveAppliedDiscount(
   }
 }
 
-export async function getCart(owner: CartOwner, pincode?: string | null) {
+export async function getCart(
+  owner: CartOwner,
+  location: CustomerLocation = {},
+) {
   const cartRow = await getOrCreateCartRow(owner);
-  const lines = await loadLines(cartRow.id, pincode);
+  const lines = await loadLines(cartRow.id, location);
   const { code, discount } = await resolveAppliedDiscount(
     cartRow,
     lines,

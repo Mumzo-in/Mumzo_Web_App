@@ -29,6 +29,8 @@ function fromServer(row: ServerAddress): Address {
     landmark: row.landmark ?? "",
     pincode: row.pincode,
     city: row.city,
+    lat: row.lat,
+    lng: row.lng,
     isDefault: row.isDefault,
   };
 }

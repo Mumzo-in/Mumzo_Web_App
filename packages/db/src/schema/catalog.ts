@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  doublePrecision,
   index,
   integer,
   numeric,
@@ -270,6 +271,12 @@ export const hub = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     address: text("address").notNull(),
+    /** Dark-store coordinates — used for the radius-based serviceability
+     * fallback (docs/order-checkout-flow.md's pincode-first, then
+     * nearest-hub-within-radius resolution) and the admin map view. Nullable
+     * so existing hubs don't need backfilling before this feature ships. */
+    lat: doublePrecision("lat"),
+    lng: doublePrecision("lng"),
     isActive: boolean("is_active").default(true).notNull(),
     /** The hub order placement/stock checks use until real pincode-based
      * routing exists (docs/order-checkout-flow.md's single-hub-launch note).

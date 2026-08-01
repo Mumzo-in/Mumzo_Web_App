@@ -14,6 +14,8 @@ export interface ResolvedLocation {
   pincode: string;
   city: string;
   line2: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 /**
@@ -56,7 +58,10 @@ export function useLocationFlow() {
   }, [geolocation.status, geolocation.coords]);
 
   const handleLocationResolved = (next: ResolvedLocation) => {
-    void setLocation(next.pincode, next.area);
+    void setLocation(next.pincode, next.area, {
+      lat: next.lat,
+      lng: next.lng,
+    });
     setResolved(next);
     setStep("save");
   };
@@ -79,6 +84,8 @@ export function useLocationFlow() {
       pincode: details?.pincode || nearest.pincode,
       city: details?.city || "Hyderabad",
       line2: details?.formattedAddress || nearest.area,
+      lat: coords.lat,
+      lng: coords.lng,
     });
   };
 
@@ -88,7 +95,10 @@ export function useLocationFlow() {
   };
 
   const handleSelectAddress = (address: Address) => {
-    void setLocation(address.pincode, address.city);
+    void setLocation(address.pincode, address.city, {
+      lat: address.lat,
+      lng: address.lng,
+    });
     closeModal();
   };
 

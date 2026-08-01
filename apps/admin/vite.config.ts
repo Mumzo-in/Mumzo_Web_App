@@ -26,6 +26,15 @@ export default defineConfig({
     },
     dedupe: ["react", "react-dom"],
   },
+  // maplibre-gl ships its own worker as a separate entry point that Vite's
+  // dep pre-bundler can't statically resolve — pre-bundling it produces a
+  // maplibre-gl-worker.mjs the optimizer then can't find at runtime
+  // (NS_ERROR_CORRUPTED_CONTENT / "file does not exist" in the deps cache).
+  // Excluding it forces Vite to serve the package's own pre-built worker
+  // untouched instead.
+  optimizeDeps: {
+    exclude: ["maplibre-gl"],
+  },
   plugins: [
     tailwindcss(),
     tanstackRouter({

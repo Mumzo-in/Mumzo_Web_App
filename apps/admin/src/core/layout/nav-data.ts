@@ -85,6 +85,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         label: "Dark Store",
         items: [
+          { label: "Hubs", to: "/catalog/hubs" },
           { label: "Inventory", to: "/catalog/inventory" },
           { label: "Service Areas", to: "/operations/service-areas" },
           {

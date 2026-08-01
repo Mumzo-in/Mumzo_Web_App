@@ -16,6 +16,8 @@ export async function findById(id: string) {
 export async function insert(input: {
   name: string;
   address: string;
+  lat?: number | null;
+  lng?: number | null;
   isActive: boolean;
   isDefault?: boolean;
 }) {
@@ -39,6 +41,8 @@ export async function update(
   input: Partial<{
     name: string;
     address: string;
+    lat: number | null;
+    lng: number | null;
     isActive: boolean;
     isDefault: boolean;
   }>,

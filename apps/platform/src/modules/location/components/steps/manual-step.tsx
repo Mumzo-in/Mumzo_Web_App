@@ -29,6 +29,8 @@ export function ManualStep({
       pincode: nearest?.pincode ?? "",
       city: "Hyderabad",
       line2: label,
+      lat: coords.lat,
+      lng: coords.lng,
     });
   };
 

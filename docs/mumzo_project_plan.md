@@ -17,10 +17,11 @@
 | **Search & Filters** | ✅ Full filter panel, sort, URL-driven state | — | Full-text/Typesense |
 | **Product Detail** | ✅ Full page — gallery, sizes, price, highlights, related | — | Reviews section |
 | **Coupons** | ✅ Admin CRUD + validate API | — | Customer coupon listing |
-| **Cart → Checkout → Orders → Payments** | ⬜ Routes exist, no functionality | — | Everything |
+| **Cart → Checkout → Orders → Payments** | 🔶 Cart/Orders/Checkout fully working; COD payment done | — | Razorpay gateway (online payments) |
 | **Reviews, Wishlist, Referrals** | 🔶 Route/placeholder pages exist | — | All backend + real UI |
 | **Delivery & Dispatch** | ⬜ | — | Everything |
-| **Notifications, Subscriptions, Support** | ⬜ Route placeholders only | — | Everything |
+| **Notifications** | 🔶 Realtime WS + admin new-order alerts (sound + toast + bell) working | — | Customer-facing notifications, FCM push |
+| **Subscriptions, Support** | ⬜ Route placeholders only | — | Everything |
 
 ---
 
@@ -102,26 +103,26 @@
 #### 3.1 Cart Backend
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Cart + cart item DB schema | ⬜ | |
-| Add to cart (with stock validation) | ⬜ | |
-| Update quantity / remove item | ⬜ | |
-| Apply / remove coupon | ⬜ | Coupon validate API exists ✅ |
-| Calculate totals (subtotal, GST 5%, delivery fee, discount) | ⬜ | |
-| Guest cart + merge on login | ⬜ | |
-| Clear cart | ⬜ | |
+| Cart + cart item DB schema | ✅ | `cart`/`cart_item` tables |
+| Add to cart (with stock validation) | ✅ | Validates against real per-hub `inventory`, resolved to the hub serving the customer's pincode |
+| Update quantity / remove item | ✅ | |
+| Apply / remove coupon | ✅ | Reuses `POST /coupons/validate`, re-validated on every cart read |
+| Calculate totals (subtotal, GST 5%, delivery fee, discount) | ✅ | |
+| Guest cart + merge on login | ✅ | `POST /cart/merge`, called from sign-in flow after OTP verify |
+| Clear cart | ✅ | |
 
 #### 3.2 Cart UI (Platform)
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Cart page layout (items + summary sidebar) | ⬜ | Route exists |
-| Cart item card (image, name, size, qty, remove) | ⬜ | |
-| Price summary (subtotal, GST, delivery, discount, total) | ⬜ | |
-| Coupon input + apply/remove | ⬜ | |
-| Empty cart state | ⬜ | |
-| "Proceed to checkout" CTA (min-order validation) | ⬜ | |
-| Cart badge/count in header | ⬜ | |
-| Wire PDP "Add to cart" to real API | ⬜ | Currently toast-only |
-| Out-of-stock handling (flag + alternatives) | ⬜ | |
+| Cart page layout (items + summary sidebar) | ✅ | |
+| Cart item card (image, name, size, qty, remove) | ✅ | |
+| Price summary (subtotal, GST, delivery, discount, total) | ✅ | |
+| Coupon input + apply/remove | ✅ | |
+| Empty cart state | ✅ | `Empty` component |
+| "Proceed to checkout" CTA (min-order validation) | ✅ | Also blocks on out-of-stock/non-serviceable location |
+| Cart badge/count in header | ✅ | |
+| Wire PDP "Add to cart" to real API | ✅ | Real mutation + toast |
+| Out-of-stock handling (flag + alternatives) | ✅ | Real per-hub stock flag; ribbon + disabled Add button on `ProductCard`; place-order blocked if any line is OOS |
 | Free-delivery progress nudge | ⬜ | |
 | Cross-sell "Frequently added" section | ⬜ | |
 
@@ -138,13 +139,13 @@
 #### 4.1 Orders Backend
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Order + order item DB schema | ⬜ | |
-| Order status lifecycle (`pending_payment → confirmed → packed → shipped → out_for_delivery → delivered → cancelled → return_requested → returned`) | ⬜ | |
-| Order status log (transitions with timestamps) | ⬜ | |
-| Place order (validate cart, snapshot items, create order, clear cart) | ⬜ | |
-| List user's orders (paginated, filterable) | ⬜ | |
-| Order detail (items, status, timeline, address) | ⬜ | |
-| Cancel order (within cancellation window) | ⬜ | |
+| Order + order item DB schema | ✅ | Denormalized name/price/variant snapshot at order time |
+| Order status lifecycle (`pending_payment → confirmed → packed → shipped → out_for_delivery → delivered → cancelled → return_requested → returned`) | ✅ | |
+| Order status log (transitions with timestamps) | ✅ | |
+| Place order (validate cart, snapshot items, create order, clear cart) | ✅ | Re-validates stock at the hub resolved from the delivery address's pincode |
+| List user's orders (paginated, filterable) | ✅ | |
+| Order detail (items, status, timeline, address) | ✅ | |
+| Cancel order (within cancellation window) | ✅ | |
 | Return/refund request | ⬜ | |
 | Reorder (re-add items to cart) | ⬜ | |
 | Invoice PDF (GST) | ⬜ | |
@@ -152,10 +153,10 @@
 #### 4.2 Orders UI (Platform)
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Order history page (`/orders`) | 🔶 | Route exists, mock data |
-| Order detail page (`/orders/$orderId`) | 🔶 | Route exists, mock data |
-| Order confirmation / success page | ⬜ | |
-| Cancel order flow (reason + confirmation) | 🔶 | Route exists |
+| Order history page (`/orders`) | ✅ | Real `GET /orders` |
+| Order detail page (`/orders/$orderId`) | ✅ | Real `GET /orders/:id` + status timeline |
+| Order confirmation / success page | ✅ | |
+| Cancel order flow (reason + confirmation) | ✅ | |
 | Order tracking page | 🔶 | Route exists |
 | Return/refund request page | 🔶 | Route exists |
 | Reorder button | ⬜ | |
@@ -164,14 +165,14 @@
 #### 4.3 Orders Admin
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| All orders list (filters, status, date, user) | 🔶 | Page + table component exist, not wired to real API |
-| Order detail (items, customer, payment, timeline) | 🔶 | Page exists |
-| Status transition controls (advance order lifecycle) | ⬜ | |
-| Admin cancel with reason | ⬜ | |
+| All orders list (filters, status, date, user) | ✅ | Real `GET /admin/orders` |
+| Order detail (items, customer, payment, timeline) | ✅ | Real API |
+| Status transition controls (advance order lifecycle) | ✅ | `PATCH /admin/orders/:id/status`, server-validated legal transitions; realtime WS push + sound notification to admin on new order |
+| Admin cancel with reason | ✅ | |
 | Assign delivery partner / rider | ⬜ | |
 | Return/refund processing | ⬜ | |
 | Orders CSV export | ⬜ | |
-| SLA-breach monitoring | ⬜ | |
+| SLA-breach monitoring | 🔶 | Ops board shows SLA countdown badges (mock-data board, separate from the real orders table) |
 
 ---
 
@@ -182,17 +183,17 @@
 #### 5.1 Payments Backend
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Payment + refund DB schema | ⬜ | |
+| Payment + refund DB schema | ✅ | |
 | Razorpay integration (create order, verify signature, capture) | ⬜ | |
 | Razorpay webhook handler (async status updates) | ⬜ | |
-| COD handling (no gateway, manual flow) | ⬜ | |
+| COD handling (no gateway, manual flow) | ✅ | Order placement is COD-only for now (online payment intentionally deferred until Razorpay exists) |
 | Refund initiation (via Razorpay) | ⬜ | |
-| Payment retry on failure | ⬜ | |
+| Payment retry on failure | ⬜ | N/A until an online gateway exists |
 
 #### 5.2 Payments UI (Platform)
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Payment method selector (UPI, Card, Netbanking, Wallet, COD) | ⬜ | |
+| Payment method selector (UPI, Card, Netbanking, Wallet, COD) | 🔶 | COD only — no online methods yet |
 | Razorpay checkout.js integration (popup flow) | ⬜ | |
 | Payment status page (`/payment/status`) — success / failure / processing | 🔶 | Route exists |
 | Payment retry on failure | ⬜ | |
@@ -215,14 +216,14 @@
 
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Checkout step indicator (Address → Payment → Review) | ⬜ | |
-| Address selection step (`/checkout/address`) | 🔶 | Route + layout exist |
-| Add new address inline during checkout | ⬜ | |
-| Payment method step (`/checkout/payment`) | 🔶 | Route exists |
-| Order review step (`/checkout/review`) | 🔶 | Route exists |
-| Order summary sidebar (persistent across steps) | ⬜ | |
-| Place order → payment → confirmation flow | ⬜ | |
-| Delivery slot selector (express 10-min + scheduled) | ⬜ | |
+| Checkout step indicator (Address → Payment → Review) | ✅ | |
+| Address selection step (`/checkout/address`) | ✅ | Select saved address or add new inline; draft persists across refresh (sessionStorage) |
+| Add new address inline during checkout | ✅ | |
+| Payment method step (`/checkout/payment`) | 🔶 | COD only — no Razorpay methods yet |
+| Order review step (`/checkout/review`) | ✅ | |
+| Order summary sidebar (persistent across steps) | ✅ | |
+| Place order → payment → confirmation flow | 🔶 | COD path fully works (place order → confirmation); online-payment path not built (no gateway) |
+| Delivery slot selector (express 10-min + scheduled) | 🔶 | Express-only, no scheduled option |
 | Delivery instructions | ⬜ | |
 
 ---
@@ -346,19 +347,28 @@
 #### 11.1 Notifications Backend
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
-| Notification DB schema | ⬜ | |
+| Notification DB schema | 🔶 | `notification_log` exists for staff push/log, not a customer-facing `notification` table yet |
 | Push token registration (FCM) | ⬜ | |
 | Firebase Cloud Messaging integration | ⬜ | |
-| Internal notification service (trigger on order events) | ⬜ | |
+| Internal notification service (trigger on order events) | ✅ | `@mumzo/notifications` (`notify.sendToAllStaff`) + `@mumzo/realtime` (WS pub/sub) fire on `order.created`/`order.status_updated`; admin WS route (`/admin/v1/ws`) authenticates staff and joins the `admin:orders` room |
 | Notification preferences (channel + category opt-in) | ⬜ | |
 
 #### 11.2 Notifications UI (Platform)
 | Sub-feature | Status | Notes |
 |-------------|--------|-------|
 | Notification center page (`/notifications`) | 🔶 | Route exists |
-| Notification bell icon with unread badge | ⬜ | |
+| Notification bell icon with unread badge | ⬜ | Built for Admin (see 11.3-style admin bell below), not yet on the customer Platform app |
 | Push permission prompt (contextual) | ⬜ | |
 | Notification preferences page | 🔶 | Route exists at `/profile/notifications` |
+
+#### 11.4 Notifications — Admin Realtime (new-order alerts)
+| Sub-feature | Status | Notes |
+|-------------|--------|-------|
+| Admin WS connection (`useAdminRealtime`) | ✅ | Auto-reconnect w/ backoff, full lifecycle logging (connect/open/message/close/error) |
+| Admin WS route + room auth (`requireStaffAuth`, `admin:orders` room) | ✅ | Server-side connect/upgrade/close logging added |
+| `NotificationProvider` (bell badge, popover tray, unread count) | ✅ | Mounted once in `(admin)/_layout.tsx` |
+| New-order sound (`happy_bells_sound.wav`) | ✅ | Plays via `playSound("newOrder")` on `order.created` |
+| New-order toast | ✅ | |
 
 #### 11.3 Notifications Admin (Broadcasts)
 | Sub-feature | Status | Notes |
