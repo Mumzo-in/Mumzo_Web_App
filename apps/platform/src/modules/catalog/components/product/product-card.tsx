@@ -20,9 +20,14 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   );
   const wished = has(product.id);
   const isOutOfStock = product.stock <= 0;
+  // A product with any real size/color options (including a single "Default"
+  // pseudo-variant) has no variant-less inventory row — quick-adding without
+  // picking one would always resolve to zero stock everywhere. Send those to
+  // the PDP to pick a variant instead of adding blind.
+  const hasVariants = product.sizes.length > 0 || product.colors.length > 0;
 
   const handleAdd = () => {
-    if (isOutOfStock) return;
+    if (isOutOfStock || hasVariants) return;
     addItem(product);
     toast.success(`${product.name} added to cart!`);
   };
@@ -143,14 +148,25 @@ export default function ProductCard({ product, className }: ProductCardProps) {
                 <Plus size={14} strokeWidth={3} />
               </button>
             </div>
+          ) : hasVariants && !isOutOfStock ? (
+            <Link
+              to="/product/$productId"
+              params={{ productId: product.id }}
+              data-testid={`web-add-${product.id}`}
+              className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
+            >
+              <Plus size={14} strokeWidth={3} /> Select
+            </Link>
           ) : (
             <button
               type="button"
               onClick={handleAdd}
+              disabled={isOutOfStock}
               data-testid={`web-add-${product.id}`}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
+              className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 md:px-4 md:py-2 md:text-xs"
             >
-              <Plus size={14} strokeWidth={3} /> Add
+              <Plus size={14} strokeWidth={3} />{" "}
+              {isOutOfStock ? "Out of stock" : "Add"}
             </button>
           )}
         </div>

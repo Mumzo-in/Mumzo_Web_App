@@ -1,3 +1,4 @@
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/(store)/cart")({
 
 function CartPage() {
   const navigate = useNavigate();
-  const { items, clear } = useCart();
+  const { items, clear, isLoading } = useCart();
   const { serviceable } = useServiceability();
   const { run } = useRequireAuth();
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
@@ -54,10 +55,12 @@ function CartPage() {
             Your cart
           </h1>
           <p className="mt-2 text-foreground/60 text-sm">
-            {itemCount} {itemCount === 1 ? "item" : "items"}
+            {isLoading
+              ? "Loading…"
+              : `${itemCount} ${itemCount === 1 ? "item" : "items"}`}
           </p>
         </div>
-        {items.length > 0 && (
+        {!isLoading && items.length > 0 && (
           <button
             type="button"
             onClick={clear}
@@ -69,7 +72,29 @@ function CartPage() {
         )}
       </div>
 
-      {items.length === 0 ? (
+      {isLoading ? (
+        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+          <div className="flex flex-col gap-4 divide-y divide-border/60 rounded-3xl border border-border/60 bg-white p-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={`cart-skeleton-${
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton count, never reordered
+                  i
+                }`}
+                className="flex gap-4 py-4 first:pt-0"
+              >
+                <Skeleton className="size-20 shrink-0 rounded-xl" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="mt-auto h-4 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-64 rounded-3xl" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-3xl border border-border/60 bg-white py-20 text-center">
           <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
             <ShoppingBag size={28} className="text-primary" />
