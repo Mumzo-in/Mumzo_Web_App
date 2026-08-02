@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 
 import { queryKeys } from "@/core/api/query-keys";
+import { showBrowserNotification } from "@/core/notifications";
 import { useAdminRealtime } from "@/core/realtime";
 import { playSound } from "@/core/sound";
 import type { OrderNotification } from "../data/types";
@@ -40,7 +41,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
 
   useAdminRealtime((event) => {
-    console.info("[notifications] received event", event.type, event);
     queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
 
     if (event.type !== "order.created") {
@@ -60,9 +60,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) =>
       [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
     );
-    console.info("[notifications] playing newOrder sound");
     playSound("newOrder");
     toast(`New order — ₹${event.data.total} from ${event.data.addressName}`);
+    showBrowserNotification(
+      "New order",
+      `₹${event.data.total} — ${event.data.addressName}`,
+    );
   });
 
   const markAllRead = useCallback(() => {

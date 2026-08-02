@@ -62,14 +62,17 @@ export type RecentUser = {
 
 export type DashboardSummary = {
   metrics: DashboardMetric[];
+  /** Real — `GET /dashboard/attention`. */
   lowStockCount: number;
+  /** Real — `GET /dashboard/attention`. */
   pendingRefunds: number;
-  openTickets: number;
-  slaBreaches: number;
+  /** Real — `GET /dashboard/orders`. */
   salesData: SalesChartPoint[];
+  /** Real — `GET /dashboard/category-sales`. */
   categoryData: CategorySalesPoint[];
+  /** Real — `GET /dashboard/orders`. */
   recentOrders: RecentOrder[];
-  /** Always real — `GET /dashboard/recent-users`; no mock fallback. */
+  /** Real — `GET /dashboard/recent-users`. */
   recentMoms: RecentUser[];
 };
 
@@ -78,28 +81,4 @@ export type UserCounts = {
   totalUsers: number;
   newUsers: number;
   newUsersChangePct: number;
-};
-
-export const dashboardSummary: DashboardSummary = {
-  // "gmv"/"orders"/"aov"/"new-users" are intentionally absent — always
-  // supplied by the real `GET /dashboard/orders` and `/dashboard/user-counts`
-  // endpoints.
-  metrics: [],
-  lowStockCount: 2,
-  pendingRefunds: 3,
-  openTickets: 7,
-  slaBreaches: 1,
-  // Always overwritten by the real `GET /dashboard/orders` response.
-  salesData: [],
-  categoryData: [
-    { name: "Diapers & Wipes", value: 185000 },
-    { name: "Baby Formula & Food", value: 142000 },
-    { name: "Bath & Skincare", value: 78000 },
-    { name: "Toys & Accessories", value: 45300 },
-    { name: "Maternity Care", value: 32000 },
-  ],
-  // Always overwritten by the real `GET /dashboard/orders` response.
-  recentOrders: [],
-  // Always overwritten by the real `GET /dashboard/recent-users` response.
-  recentMoms: [],
 };

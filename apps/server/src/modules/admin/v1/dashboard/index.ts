@@ -9,12 +9,16 @@ import {
 } from "@/core";
 import {
   analyticsRangeQuerySchema,
+  attentionCountsSchema,
+  categorySalesPointSchema,
   orderAnalyticsSchema,
   orderDashboardSchema,
   recentUserSchema,
   userCountsSchema,
 } from "./schema";
 import {
+  attentionCounts,
+  categorySales,
   orderAnalytics,
   orderDashboard,
   recentUsers,
@@ -75,6 +79,33 @@ const orderAnalyticsRoute = createRoute({
   },
 });
 
+const attentionCountsRoute = createRoute({
+  method: "get",
+  path: "/attention",
+  tags: [TAG],
+  summary: "Low-stock and pending-refund counts for the attention bar",
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: jsonContent(successSchema(attentionCountsSchema), "Attention counts"),
+    ...authErrorResponses,
+  },
+});
+
+const categorySalesRoute = createRoute({
+  method: "get",
+  path: "/category-sales",
+  tags: [TAG],
+  summary: "All-time GMV contribution by category",
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: jsonContent(
+      successSchema(z.array(categorySalesPointSchema)),
+      "Category sales",
+    ),
+    ...authErrorResponses,
+  },
+});
+
 const app = createRouter();
 
 app.use("/*", requirePermission("report", "read"));
@@ -95,6 +126,12 @@ const dashboard = app
       { success: true as const, data: await orderAnalytics(from, to) },
       200,
     );
-  });
+  })
+  .openapi(attentionCountsRoute, async (c) =>
+    c.json({ success: true as const, data: await attentionCounts() }, 200),
+  )
+  .openapi(categorySalesRoute, async (c) =>
+    c.json({ success: true as const, data: await categorySales() }, 200),
+  );
 
 export default dashboard;

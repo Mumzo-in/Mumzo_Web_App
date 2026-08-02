@@ -34,10 +34,18 @@ import { AdjustInventoryDialog } from "./adjust-inventory-dialog";
 
 const ALL_HUBS = "all";
 
-export function InventoryTable() {
+type InventoryTableProps = {
+  /** Pre-applies the "low stock only" filter — used when the page is
+   * reached via `?stock=low` (e.g. the dashboard's attention link). */
+  defaultLowStockOnly?: boolean;
+};
+
+export function InventoryTable({
+  defaultLowStockOnly = false,
+}: InventoryTableProps) {
   const [hubId, setHubId] = useState<string>(ALL_HUBS);
   const [search, setSearch] = useState("");
-  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [lowStockOnly, setLowStockOnly] = useState(defaultLowStockOnly);
   const canAdjust = usePermission("inventory", "adjust");
 
   const hubs = useQuery(hubsQueryOptions);

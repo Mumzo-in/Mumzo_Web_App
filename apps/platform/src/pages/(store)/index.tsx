@@ -5,13 +5,17 @@ import { useMemo } from "react";
 import SectionHeader from "@/core/components/section-header";
 import {
   BrandCard,
+  BrandGridSkeleton,
   brandsQueryOptions,
   CategoryCard,
+  CategoryGridSkeleton,
   CollectionCard,
   categoriesQueryOptions,
   collections,
   ProductCard,
+  ProductGridSkeleton,
   ProductRail,
+  ProductRailSkeleton,
   productsQueryOptions,
   toProduct,
 } from "@/modules/catalog";
@@ -45,11 +49,16 @@ function SeeAll({ cat, label = "See all" }: { cat?: string; label?: string }) {
 }
 
 function HomePage() {
-  const { data: categories = [] } = useQuery(categoriesQueryOptions);
-  const { data: brands = [] } = useQuery(brandsQueryOptions);
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery(
+    categoriesQueryOptions,
+  );
+  const { data: brands = [], isLoading: brandsLoading } =
+    useQuery(brandsQueryOptions);
   // One generous live page backs all three rails below — the catalog is
   // small enough today that a single fetch beats three separate ones.
-  const { data: productsPage } = useQuery(productsQueryOptions({ limit: 60 }));
+  const { data: productsPage, isLoading: productsLoading } = useQuery(
+    productsQueryOptions({ limit: 60 }),
+  );
   const products = useMemo(
     () => (productsPage?.data ?? []).map(toProduct),
     [productsPage],
@@ -97,15 +106,19 @@ function HomePage() {
           title="Shop by category"
           action={
             <span className="shrink-0 text-foreground/50 text-sm">
-              {categories.length} categories
+              {categoriesLoading ? "" : `${categories.length} categories`}
             </span>
           }
         />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {categories.map((c) => (
-            <CategoryCard key={c.slug} category={c} />
-          ))}
-        </div>
+        {categoriesLoading ? (
+          <CategoryGridSkeleton />
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {categories.map((c) => (
+              <CategoryCard key={c.slug} category={c} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Product section 1 — Top deals */}
@@ -115,7 +128,11 @@ function HomePage() {
           title="Top deals today"
           action={<SeeAll />}
         />
-        <ProductRail products={topDeals} />
+        {productsLoading ? (
+          <ProductRailSkeleton />
+        ) : (
+          <ProductRail products={topDeals} />
+        )}
       </section>
 
       {/* Offers */}
@@ -142,7 +159,11 @@ function HomePage() {
           title="Bestsellers this week"
           action={<SeeAll />}
         />
-        <ProductRail products={bestsellers} />
+        {productsLoading ? (
+          <ProductRailSkeleton />
+        ) : (
+          <ProductRail products={bestsellers} />
+        )}
       </section>
 
       {/* Collections */}
@@ -180,21 +201,29 @@ function HomePage() {
             </Link>
           }
         />
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          {brands.slice(0, 12).map((b) => (
-            <BrandCard key={b.slug} brand={b} />
-          ))}
-        </div>
+        {brandsLoading ? (
+          <BrandGridSkeleton />
+        ) : (
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+            {brands.slice(0, 12).map((b) => (
+              <BrandCard key={b.slug} brand={b} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Closing product grid — two rows + view more */}
       <section className="mt-12">
         <SectionHeader kicker="Just for you" title="More to explore" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {picks.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        {productsLoading ? (
+          <ProductGridSkeleton />
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {picks.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
         <div className="mt-8 flex justify-center">
           <Link
             to="/search"

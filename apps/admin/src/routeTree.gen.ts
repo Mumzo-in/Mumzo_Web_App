@@ -30,6 +30,7 @@ import { Route as adminOperationsDispatchRouteImport } from './pages/(admin)/ope
 import { Route as adminLegalConfigRouteImport } from './pages/(admin)/legal/config'
 import { Route as adminLegalBannersRouteImport } from './pages/(admin)/legal/banners'
 import { Route as adminFinanceTaxRouteImport } from './pages/(admin)/finance/tax'
+import { Route as adminFinanceRefundsRouteImport } from './pages/(admin)/finance/refunds'
 import { Route as adminFinanceReconciliationRouteImport } from './pages/(admin)/finance/reconciliation'
 import { Route as adminFinanceCampaignsRouteImport } from './pages/(admin)/finance/campaigns'
 import { Route as adminCustomersSegmentsRouteImport } from './pages/(admin)/customers/segments'
@@ -189,6 +190,11 @@ const adminLegalBannersRoute = adminLegalBannersRouteImport.update({
 const adminFinanceTaxRoute = adminFinanceTaxRouteImport.update({
   id: '/finance/tax',
   path: '/finance/tax',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
+const adminFinanceRefundsRoute = adminFinanceRefundsRouteImport.update({
+  id: '/finance/refunds',
+  path: '/finance/refunds',
   getParentRoute: () => adminLayoutRoute,
 } as any)
 const adminFinanceReconciliationRoute =
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/customers/segments': typeof adminCustomersSegmentsRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/finance/reconciliation': typeof adminFinanceReconciliationRoute
+  '/finance/refunds': typeof adminFinanceRefundsRoute
   '/finance/tax': typeof adminFinanceTaxRoute
   '/legal/banners': typeof adminLegalBannersRoute
   '/legal/config': typeof adminLegalConfigRoute
@@ -584,6 +591,7 @@ export interface FileRoutesByTo {
   '/customers/segments': typeof adminCustomersSegmentsRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/finance/reconciliation': typeof adminFinanceReconciliationRoute
+  '/finance/refunds': typeof adminFinanceRefundsRoute
   '/finance/tax': typeof adminFinanceTaxRoute
   '/legal/banners': typeof adminLegalBannersRoute
   '/legal/config': typeof adminLegalConfigRoute
@@ -661,6 +669,7 @@ export interface FileRoutesById {
   '/(admin)/customers/segments': typeof adminCustomersSegmentsRoute
   '/(admin)/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/(admin)/finance/reconciliation': typeof adminFinanceReconciliationRoute
+  '/(admin)/finance/refunds': typeof adminFinanceRefundsRoute
   '/(admin)/finance/tax': typeof adminFinanceTaxRoute
   '/(admin)/legal/banners': typeof adminLegalBannersRoute
   '/(admin)/legal/config': typeof adminLegalConfigRoute
@@ -738,6 +747,7 @@ export interface FileRouteTypes {
     | '/customers/segments'
     | '/finance/campaigns'
     | '/finance/reconciliation'
+    | '/finance/refunds'
     | '/finance/tax'
     | '/legal/banners'
     | '/legal/config'
@@ -813,6 +823,7 @@ export interface FileRouteTypes {
     | '/customers/segments'
     | '/finance/campaigns'
     | '/finance/reconciliation'
+    | '/finance/refunds'
     | '/finance/tax'
     | '/legal/banners'
     | '/legal/config'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/(admin)/customers/segments'
     | '/(admin)/finance/campaigns'
     | '/(admin)/finance/reconciliation'
+    | '/(admin)/finance/refunds'
     | '/(admin)/finance/tax'
     | '/(admin)/legal/banners'
     | '/(admin)/legal/config'
@@ -1103,6 +1115,13 @@ declare module '@tanstack/react-router' {
       path: '/finance/tax'
       fullPath: '/finance/tax'
       preLoaderRoute: typeof adminFinanceTaxRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/finance/refunds': {
+      id: '/(admin)/finance/refunds'
+      path: '/finance/refunds'
+      fullPath: '/finance/refunds'
+      preLoaderRoute: typeof adminFinanceRefundsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/finance/reconciliation': {
@@ -1492,6 +1511,7 @@ interface adminLayoutRouteChildren {
   adminCustomersSegmentsRoute: typeof adminCustomersSegmentsRoute
   adminFinanceCampaignsRoute: typeof adminFinanceCampaignsRoute
   adminFinanceReconciliationRoute: typeof adminFinanceReconciliationRoute
+  adminFinanceRefundsRoute: typeof adminFinanceRefundsRoute
   adminFinanceTaxRoute: typeof adminFinanceTaxRoute
   adminLegalBannersRoute: typeof adminLegalBannersRoute
   adminLegalConfigRoute: typeof adminLegalConfigRoute
@@ -1566,6 +1586,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCustomersSegmentsRoute: adminCustomersSegmentsRoute,
   adminFinanceCampaignsRoute: adminFinanceCampaignsRoute,
   adminFinanceReconciliationRoute: adminFinanceReconciliationRoute,
+  adminFinanceRefundsRoute: adminFinanceRefundsRoute,
   adminFinanceTaxRoute: adminFinanceTaxRoute,
   adminLegalBannersRoute: adminLegalBannersRoute,
   adminLegalConfigRoute: adminLegalConfigRoute,

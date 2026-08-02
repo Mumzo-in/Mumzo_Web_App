@@ -86,21 +86,17 @@ function DashboardPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3 px-6 pb-4">
           <AttentionLink
-            to="/catalog/products"
+            to="/catalog/inventory"
+            search={{ stock: "low" }}
             label="Low stock"
             count={data?.lowStockCount}
             loading={isLoading}
           />
           <AttentionLink
-            to="/finance/payments"
+            to="/finance/refunds"
+            search={{ status: "pending" }}
             label="Pending refunds"
             count={data?.pendingRefunds}
-            loading={isLoading}
-          />
-          <AttentionLink
-            to="/operations/orders"
-            label="SLA breaches"
-            count={data?.slaBreaches}
             loading={isLoading}
           />
         </CardContent>
@@ -399,12 +395,19 @@ function DashboardPage() {
 type AttentionLinkProps = {
   /** Any real route — derived from the router so it can't drift on a move. */
   to: LinkProps["to"];
+  search?: LinkProps["search"];
   label: string;
   count?: number;
   loading: boolean;
 };
 
-function AttentionLink({ to, label, count, loading }: AttentionLinkProps) {
+function AttentionLink({
+  to,
+  search,
+  label,
+  count,
+  loading,
+}: AttentionLinkProps) {
   if (loading) {
     return <Skeleton className="h-9 w-36 rounded-full" />;
   }
@@ -412,6 +415,7 @@ function AttentionLink({ to, label, count, loading }: AttentionLinkProps) {
   return (
     <Link
       to={to}
+      search={search}
       className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-accent"
       data-testid={`admin-attention-${label}`}
     >

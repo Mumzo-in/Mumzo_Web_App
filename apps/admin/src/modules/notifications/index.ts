@@ -1,4 +1,5 @@
 export { NotificationBell } from "./components/notification-bell";
+export { NotificationPermissionCard } from "./components/notification-permission-card";
 export {
   NotificationProvider,
   useNotifications,

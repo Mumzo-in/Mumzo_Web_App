@@ -1,12 +1,29 @@
 import { Check } from "lucide-react";
 
-import type { OrderStatus } from "../api/orders-api";
-import { ORDER_FLOW, STATUS_META } from "../data/order-data";
+import type { OrderStatus, OrderStatusLogEntry } from "../api/orders-api";
+import { formatOrderDate, ORDER_FLOW, STATUS_META } from "../data/order-data";
+
+/** Latest log entry landing on each `ORDER_FLOW` step, keyed by the
+ * collapsed status (pending_payment folds into confirmed, same as the
+ * timeline steps themselves). Later entries win if a status was re-logged. */
+function timestampsByStep(
+  statusLog: OrderStatusLogEntry[],
+): Partial<Record<OrderStatus, string>> {
+  const map: Partial<Record<OrderStatus, string>> = {};
+  for (const entry of statusLog) {
+    const step =
+      entry.toStatus === "pending_payment" ? "confirmed" : entry.toStatus;
+    map[step] = entry.createdAt;
+  }
+  return map;
+}
 
 export default function OrderStatusTimeline({
   status,
+  statusLog = [],
 }: {
   status: OrderStatus;
+  statusLog?: OrderStatusLogEntry[];
 }) {
   if (status === "cancelled") {
     return (
@@ -28,12 +45,14 @@ export default function OrderStatusTimeline({
   // (see STATUS_META) — treat it identically for the current-index lookup.
   const effectiveStatus = status === "pending_payment" ? "confirmed" : status;
   const currentIdx = ORDER_FLOW.indexOf(effectiveStatus);
+  const stepTimestamps = timestampsByStep(statusLog);
 
   return (
     <ol className="flex flex-col">
       {ORDER_FLOW.map((step, i) => {
         const done = i <= currentIdx;
         const isLast = i === ORDER_FLOW.length - 1;
+        const timestamp = stepTimestamps[step];
         return (
           <li key={step} className="flex gap-3">
             <div className="flex flex-col items-center">
@@ -52,13 +71,20 @@ export default function OrderStatusTimeline({
                 />
               )}
             </div>
-            <p
-              className={`pb-6 font-semibold text-sm ${
-                done ? "text-ink" : "text-foreground/40"
-              }`}
-            >
-              {STATUS_META[step].label}
-            </p>
+            <div className="pb-6">
+              <p
+                className={`font-semibold text-sm ${
+                  done ? "text-ink" : "text-foreground/40"
+                }`}
+              >
+                {STATUS_META[step].label}
+              </p>
+              {timestamp && (
+                <p className="mt-0.5 text-foreground/50 text-xs">
+                  {formatOrderDate(timestamp)}
+                </p>
+              )}
+            </div>
           </li>
         );
       })}

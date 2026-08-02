@@ -1,11 +1,24 @@
 import {
+  closestCorners,
   DndContext,
   type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@mumzo/ui/components/alert-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -19,13 +32,19 @@ import {
   updateOrderStatus,
 } from "@/modules/orders";
 import { BOARD_COLUMNS, type BoardColumnStatus } from "../data/ops-board-data";
+import OpsBoardCard from "./ops-board-card";
 import OpsBoardColumn from "./ops-board-column";
 import OpsBoardToolbar from "./ops-board-toolbar";
 import OpsCancelledBadge from "./ops-cancelled-badge";
+import OrderDetailDialog from "./order-detail-dialog";
 
 const TODAY_RANGE = resolveDateRangePreset("today");
 /** Board polls rather than pushing — no websocket infra exists yet. */
 const REFETCH_INTERVAL_MS = 20_000;
+/** Stable empty-array reference for columns with no orders — a fresh `[]`
+ * literal on every render defeats memoization downstream and was part of
+ * a render-loop with `@dnd-kit`'s internal re-measurement. */
+const EMPTY_ORDERS: AdminOrderSummary[] = [];
 
 function isWithinRange(iso: string, range: DateRange): boolean {
   const day = iso.slice(0, 10);
@@ -40,6 +59,15 @@ export function OpsBoard() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<DateRange>(TODAY_RANGE);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+  const [activeOrder, setActiveOrder] = useState<AdminOrderSummary | null>(
+    null,
+  );
+  /** Staged forward move awaiting an explicit "are you sure" confirmation. */
+  const [pendingMove, setPendingMove] = useState<{
+    order: AdminOrderSummary;
+    targetStatus: BoardColumnStatus;
+  } | null>(null);
 
   const { data } = useQuery({
     queryKey: queryKeys.orders.list(range),
@@ -119,18 +147,68 @@ export function OpsBoard() {
     }
   }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || !isValidStatus(String(over.id))) {
-      return;
+  /** Resolves an `over.id` (a column status, or another card being hovered)
+   * down to the column status it represents. */
+  function resolveOverStatus(
+    over: DragEndEvent["over"],
+  ): BoardColumnStatus | null {
+    if (!over) {
+      return null;
     }
+    if (isValidStatus(String(over.id))) {
+      return String(over.id) as BoardColumnStatus;
+    }
+    const hoveredOrder = over.data.current?.order as
+      | AdminOrderSummary
+      | undefined;
+    if (!hoveredOrder) {
+      return null;
+    }
+    return hoveredOrder.status === "pending_payment"
+      ? "confirmed"
+      : (hoveredOrder.status as BoardColumnStatus);
+  }
+
+  function handleDragStart(event: DragStartEvent) {
+    const order = event.active.data.current?.order as
+      | AdminOrderSummary
+      | undefined;
+    setActiveOrder(order ?? null);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setActiveOrder(null);
+    const { active, over } = event;
+    const targetStatus = resolveOverStatus(over);
 
     const order = active.data.current?.order as AdminOrderSummary | undefined;
-    if (!order || order.status === over.id) {
+    if (!order || !targetStatus || order.status === targetStatus) {
       return;
     }
 
-    void moveOrder(order.id, over.id as OrderStatus);
+    const originStatus =
+      order.status === "pending_payment" ? "confirmed" : order.status;
+    const originIndex = BOARD_COLUMNS.findIndex(
+      (column) => column.status === originStatus,
+    );
+    const targetIndex = BOARD_COLUMNS.findIndex(
+      (column) => column.status === targetStatus,
+    );
+
+    if (targetIndex < originIndex) {
+      toast.error("Orders can't be moved backward on the board.");
+      return;
+    }
+
+    setPendingMove({ order, targetStatus });
+  }
+
+  function handleConfirmMove() {
+    if (!pendingMove) {
+      return;
+    }
+    void moveOrder(pendingMove.order.id, pendingMove.targetStatus);
+    setPendingMove(null);
   }
 
   function handleCancel(order: AdminOrderSummary) {
@@ -138,11 +216,11 @@ export function OpsBoard() {
   }
 
   function handleViewDetail(order: AdminOrderSummary) {
-    window.location.assign(`/operations/orders/${order.id}`);
+    setDetailOrderId(order.id);
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <OpsBoardToolbar
         search={search}
         onSearchChange={setSearch}
@@ -152,20 +230,73 @@ export function OpsBoard() {
 
       <OpsCancelledBadge count={cancelledCount} />
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-2">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2">
           {BOARD_COLUMNS.map((column) => (
             <OpsBoardColumn
               key={column.status}
               status={column.status}
               label={column.label}
-              orders={ordersByStatus.get(column.status) ?? []}
+              orders={ordersByStatus.get(column.status) ?? EMPTY_ORDERS}
               onCancel={handleCancel}
               onViewDetail={handleViewDetail}
             />
           ))}
         </div>
+
+        <DragOverlay>
+          {activeOrder ? (
+            <OpsBoardCard
+              order={activeOrder}
+              onCancel={handleCancel}
+              onViewDetail={handleViewDetail}
+              overlay
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
+
+      <OrderDetailDialog
+        orderId={detailOrderId}
+        onOpenChange={(open) => {
+          if (!open) setDetailOrderId(null);
+        }}
+      />
+
+      <AlertDialog
+        open={pendingMove !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingMove(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Move order to "
+              {BOARD_COLUMNS.find(
+                (column) => column.status === pendingMove?.targetStatus,
+              )?.label ?? pendingMove?.targetStatus}
+              "?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingMove
+                ? `Order #${pendingMove.order.id.slice(0, 8).toUpperCase()} will move to this step. This can't be undone from here.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmMove}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

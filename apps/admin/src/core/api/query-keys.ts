@@ -54,6 +54,9 @@ export const queryKeys = {
     ...domainKeys("payments"),
     failed: () => ["payments", "failed"] as const,
   },
+  refunds: {
+    list: (status?: string) => ["refunds", "list", status ?? null] as const,
+  },
   coupons: {
     ...domainKeys("coupons"),
     usage: (id: string) => ["coupons", "usage", id] as const,

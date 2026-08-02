@@ -6,6 +6,7 @@ import { useState } from "react";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import {
   OrderCard,
+  OrderListSkeleton,
   type OrderStatus,
   ordersQueryOptions,
 } from "@/modules/orders";
@@ -68,7 +69,9 @@ function OrdersPage() {
         ))}
       </div>
 
-      {isLoading ? null : filtered.length === 0 ? (
+      {isLoading ? (
+        <OrderListSkeleton />
+      ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-border/60 bg-white py-20 text-center">
           <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
             <Package size={28} className="text-primary" />

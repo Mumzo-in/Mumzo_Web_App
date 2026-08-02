@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { orderQueryOptions } from "@/modules/orders";
+import { OrderFormSkeleton, orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/review",
@@ -72,7 +72,7 @@ function OrderReviewPage() {
   };
 
   if (isLoading) {
-    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+    return <OrderFormSkeleton />;
   }
 
   if (isError || !order) {

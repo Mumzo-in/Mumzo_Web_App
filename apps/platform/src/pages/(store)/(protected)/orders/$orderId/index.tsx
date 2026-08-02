@@ -15,6 +15,7 @@ import Breadcrumbs from "@/core/components/breadcrumbs";
 import { rupee } from "@/modules/cart";
 import {
   formatOrderDate,
+  OrderDetailSkeleton,
   OrderStatusTimeline,
   orderQueryOptions,
   STATUS_META,
@@ -52,7 +53,7 @@ function OrderDetailPage() {
   };
 
   if (isLoading) {
-    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+    return <OrderDetailSkeleton />;
   }
 
   if (isError || !order) {
@@ -111,7 +112,10 @@ function OrderDetailPage() {
             <h2 className="mb-4 font-editorial text-ink text-xl">
               Order status
             </h2>
-            <OrderStatusTimeline status={order.status} />
+            <OrderStatusTimeline
+              status={order.status}
+              statusLog={order.statusLog}
+            />
             {isActive && (
               <Link
                 to="/orders/$orderId/tracking"

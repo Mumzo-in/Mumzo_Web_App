@@ -91,3 +91,19 @@ export const orderAnalyticsSchema = z.object({
 });
 
 export type OrderAnalytics = z.infer<typeof orderAnalyticsSchema>;
+
+export const attentionCountsSchema = z.object({
+  /** Inventory rows at/below their `reorderPoint`. */
+  lowStockCount: z.number().int(),
+  /** `refund` rows still in `status = "pending"`. */
+  pendingRefunds: z.number().int(),
+});
+
+export type AttentionCounts = z.infer<typeof attentionCountsSchema>;
+
+export const categorySalesPointSchema = z.object({
+  name: z.string(),
+  value: z.number().int(),
+});
+
+export type CategorySalesPoint = z.infer<typeof categorySalesPointSchema>;

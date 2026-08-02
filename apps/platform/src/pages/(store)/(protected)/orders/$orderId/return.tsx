@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { rupee } from "@/modules/cart";
-import { orderQueryOptions } from "@/modules/orders";
+import { OrderFormSkeleton, orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/return",
@@ -57,7 +57,7 @@ function OrderReturnPage() {
   };
 
   if (isLoading) {
-    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+    return <OrderFormSkeleton />;
   }
 
   if (isError || !order) {

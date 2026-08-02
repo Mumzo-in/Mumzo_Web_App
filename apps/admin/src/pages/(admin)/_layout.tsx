@@ -4,6 +4,7 @@ import AdminLayout from "@/core/layout/admin-layout";
 import { sessionQueryOptions, UserMenu } from "@/modules/auth";
 import {
   NotificationBell,
+  NotificationPermissionCard,
   NotificationProvider,
 } from "@/modules/notifications";
 
@@ -51,6 +52,7 @@ function AdminGroupLayout() {
         headerActions={<NotificationBell />}
         sidebarFooter={<UserMenu side="right" align="end" />}
       >
+        <NotificationPermissionCard />
         <Outlet />
       </AdminLayout>
     </NotificationProvider>

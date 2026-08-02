@@ -1,13 +1,25 @@
 import { apiRequest } from "@/core/api/client";
-import { mockDetail } from "@/core/api/mock";
-import {
-  type DashboardMetric,
-  type DashboardSummary,
-  dashboardSummary,
-  type OrderDashboard,
-  type RecentUser,
-  type UserCounts,
+import type {
+  CategorySalesPoint,
+  DashboardMetric,
+  DashboardSummary,
+  OrderDashboard,
+  RecentUser,
+  UserCounts,
 } from "../data/dashboard-data";
+
+type AttentionCounts = {
+  lowStockCount: number;
+  pendingRefunds: number;
+};
+
+function getAttentionCounts(): Promise<AttentionCounts> {
+  return apiRequest<AttentionCounts>("/dashboard/attention");
+}
+
+function getCategorySales(): Promise<CategorySalesPoint[]> {
+  return apiRequest<CategorySalesPoint[]>("/dashboard/category-sales");
+}
 
 function getOrderDashboard(): Promise<OrderDashboard> {
   return apiRequest<OrderDashboard>("/dashboard/orders");
@@ -18,7 +30,7 @@ function toOrderMetrics(order: OrderDashboard): DashboardMetric[] {
   return [
     {
       id: "gmv",
-      label: "GMV (24h)",
+      label: "Total order value (today)",
       value: `₹${metrics.gmv.toLocaleString("en-IN")}`,
       changePct: metrics.gmvChangePct,
       trend:
@@ -27,7 +39,7 @@ function toOrderMetrics(order: OrderDashboard): DashboardMetric[] {
           : metrics.gmvChangePct < 0
             ? "down"
             : "flat",
-      hint: "vs prior 24h",
+      hint: "vs yesterday",
     },
     {
       id: "orders",
@@ -97,26 +109,24 @@ function formatJoinedAt(recentUser: RecentUser): RecentUser {
 }
 
 /**
- * Dashboard API — api-plan §15a.
- *
- * User counts, the "New Momzos" list, and all order-derived numbers (GMV,
- * order count, AOV, revenue trend, recent orders) are wired to real
- * endpoints. Only `lowStockCount`/`pendingRefunds`/`openTickets`/
- * `slaBreaches`/`categoryData` (no category-attribution data yet) still
- * resolve against mock data.
+ * Dashboard API — api-plan §15a. Every field is backed by a real endpoint —
+ * no mock data.
  */
 export async function getDashboard(): Promise<DashboardSummary> {
-  const [summary, userCounts, recentUsers, orders] = await Promise.all([
-    mockDetail(dashboardSummary),
-    getUserCounts(),
-    getRecentUsers(),
-    getOrderDashboard(),
-  ]);
+  const [userCounts, recentUsers, orders, attention, categoryData] =
+    await Promise.all([
+      getUserCounts(),
+      getRecentUsers(),
+      getOrderDashboard(),
+      getAttentionCounts(),
+      getCategorySales(),
+    ]);
 
   return {
-    ...summary,
+    ...attention,
     metrics: [...toOrderMetrics(orders), toNewUsersMetric(userCounts)],
     salesData: orders.revenueTrend,
+    categoryData,
     recentOrders: orders.recentOrders,
     recentMoms: recentUsers.map(formatJoinedAt),
   };

@@ -1,12 +1,25 @@
 import { db } from "@mumzo/db";
 import { baby } from "@mumzo/db/schema/account";
 import { user } from "@mumzo/db/schema/auth";
-import { hub } from "@mumzo/db/schema/catalog";
-import { order, orderItem, payment } from "@mumzo/db/schema/commerce";
-import { and, desc, eq, gte, inArray, lt, notInArray, sql } from "drizzle-orm";
+import { category, hub, inventory, product } from "@mumzo/db/schema/catalog";
+import { order, orderItem, payment, refund } from "@mumzo/db/schema/commerce";
+
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lt,
+  lte,
+  notInArray,
+  sql,
+} from "drizzle-orm";
 
 import { toWholeRupees } from "@/lib/money";
 import type {
+  AttentionCounts,
+  CategorySalesPoint,
   OrderAnalytics,
   OrderDashboard,
   RecentUser,
@@ -178,9 +191,14 @@ async function orderMetrics() {
   };
 }
 
-/** Daily GMV + order count for each of the trailing `TREND_DAYS` days. */
+/**
+ * Daily GMV + order count for each of the trailing `TREND_DAYS` days,
+ * inclusive of today. `from` is backdated one extra day so the day-bucket
+ * loop below (which starts at `from` and steps forward) lands its last
+ * bucket on today, not yesterday.
+ */
 async function revenueTrend(): Promise<RevenueTrendPoint[]> {
-  const from = new Date(Date.now() - TREND_DAYS * DAY_MS);
+  const from = new Date(Date.now() - (TREND_DAYS - 1) * DAY_MS);
 
   const rows = await db
     .select({
@@ -191,7 +209,7 @@ async function revenueTrend(): Promise<RevenueTrendPoint[]> {
     .from(order)
     .where(
       and(
-        gte(order.placedAt, from),
+        gte(order.placedAt, sql`date_trunc('day', ${from}::timestamp)`),
         notInArray(order.status, GMV_EXCLUDED_STATUSES),
       ),
     )
@@ -378,4 +396,44 @@ export async function orderAnalytics(
     hubRevenue,
     paymentMethod,
   };
+}
+
+/** Backs the dashboard's "Needs attention" bar — real counts, not mock. */
+export async function attentionCounts(): Promise<AttentionCounts> {
+  const [[lowStockRow], [pendingRefundRow]] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(inventory)
+      .where(lte(inventory.stock, inventory.reorderPoint)),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(refund)
+      .where(eq(refund.status, "pending")),
+  ]);
+
+  return {
+    lowStockCount: lowStockRow?.count ?? 0,
+    pendingRefunds: pendingRefundRow?.count ?? 0,
+  };
+}
+
+/** GMV contribution by category, over all-time orders (excludes cancelled/unpaid). */
+export async function categorySales(): Promise<CategorySalesPoint[]> {
+  const rows = await db
+    .select({
+      name: category.name,
+      value: sql<number>`coalesce(sum(${orderItem.priceSnapshot} * ${orderItem.qty}), 0)::int`,
+    })
+    .from(orderItem)
+    .innerJoin(order, eq(orderItem.orderId, order.id))
+    .innerJoin(product, eq(orderItem.productId, product.id))
+    .innerJoin(category, eq(product.categoryId, category.id))
+    .where(notInArray(order.status, GMV_EXCLUDED_STATUSES))
+    .groupBy(category.id, category.name)
+    .orderBy(desc(sql`sum(${orderItem.priceSnapshot} * ${orderItem.qty})`));
+
+  return rows.map((row) => ({
+    name: row.name,
+    value: toWholeRupees(row.value),
+  }));
 }

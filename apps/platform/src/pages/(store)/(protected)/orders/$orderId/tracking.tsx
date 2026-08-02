@@ -3,7 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bike, Navigation } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { OrderStatusTimeline, orderQueryOptions } from "@/modules/orders";
+import {
+  OrderStatusTimeline,
+  OrderTrackingSkeleton,
+  orderQueryOptions,
+} from "@/modules/orders";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/tracking",
@@ -20,7 +24,7 @@ function OrderTrackingPage() {
   } = useQuery(orderQueryOptions(orderId));
 
   if (isLoading) {
-    return <div className="mx-auto pt-8 pb-16">Loading…</div>;
+    return <OrderTrackingSkeleton />;
   }
 
   if (isError || !order) {
