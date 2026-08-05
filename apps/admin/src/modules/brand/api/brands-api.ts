@@ -1,4 +1,12 @@
-import { apiRequest } from "@/core/api/client";
+import {
+  mockCreate,
+  mockDelay,
+  mockDelete,
+  mockId,
+  mockUpdate,
+} from "@/core/api/mock";
+import { products } from "../../product/data/product-data";
+import { brands } from "../data/brand-data";
 
 export type Brand = {
   id: string;
@@ -9,8 +17,27 @@ export type Brand = {
   productCount: number;
 };
 
-export function listBrands(search?: string): Promise<Brand[]> {
-  return apiRequest<Brand[]>("/brands", { query: { search } });
+/**
+ * `productCount` is derived at read time from the product fixtures — brand
+ * fixtures never store it, so the two can't drift apart. Importing
+ * `product-data` here (rather than in `brand-data.ts`) avoids a circular
+ * dependency between the two data modules.
+ */
+function withProductCount(row: Omit<Brand, "productCount">): Brand {
+  return {
+    ...row,
+    productCount: products.filter((product) => product.brandId === row.id)
+      .length,
+  };
+}
+
+export async function listBrands(search?: string): Promise<Brand[]> {
+  await mockDelay();
+  const needle = search?.trim().toLowerCase();
+  const rows = needle
+    ? brands.filter((row) => row.name.toLowerCase().includes(needle))
+    : brands;
+  return rows.map(withProductCount);
 }
 
 export type BrandInput = {
@@ -23,19 +50,25 @@ export type BrandInput = {
 };
 
 export function createBrand(input: BrandInput): Promise<{ id: string }> {
-  return apiRequest<{ id: string }>("/brands", { method: "POST", body: input });
+  const id = mockId("brand");
+  return mockCreate(brands, {
+    id,
+    name: input.name,
+    slug: input.slug,
+    logoUrl: input.logoUrl ?? null,
+    isActive: input.isActive,
+  }).then(() => ({ id }));
 }
 
-export function updateBrand(
+export async function updateBrand(
   id: string,
   input: Partial<BrandInput>,
 ): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/brands/${id}`, {
-    method: "PATCH",
-    body: input,
-  });
+  const { uploadSessionId: _uploadSessionId, ...patch } = input;
+  await mockUpdate<Omit<Brand, "productCount">>(brands, id, patch);
+  return { ok: true };
 }
 
 export function deleteBrand(id: string): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/brands/${id}`, { method: "DELETE" });
+  return mockDelete(brands, id);
 }

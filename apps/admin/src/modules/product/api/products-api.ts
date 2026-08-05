@@ -1,15 +1,29 @@
 import type { Product } from "@mumzo/schema";
-import { apiList, apiRequest, type Paginated } from "@/core/api/client";
+import type { Paginated } from "@/core/api/client";
+import {
+  mockCreate,
+  mockDelete,
+  mockDetail,
+  mockId,
+  mockList,
+} from "@/core/api/mock";
 import type { ListParams } from "@/core/api/query-keys";
+import { brands } from "../../brand/data/brand-data";
+import { vendors } from "../../vendor/data/vendor-data";
+import { products } from "../data/product-data";
 
 /** Products API — real endpoints under `/api/v1/admin/products`. */
 
 export function listProducts(params: ListParams): Promise<Paginated<Product>> {
-  return apiList<Product>("/products", params);
+  return mockList({
+    rows: products,
+    params,
+    searchFields: ["name", "sku", "slug"],
+  });
 }
 
 export function getProduct(id: string): Promise<Product> {
-  return apiRequest<Product>(`/products/${id}`);
+  return mockDetail(products.find((product) => product.id === id));
 }
 
 /**
@@ -32,23 +46,62 @@ export type ProductInput = Omit<
   uploadSessionId?: string | null;
 };
 
-export function createProduct(input: ProductInput): Promise<Product> {
-  return apiRequest<{ id: string }>("/products", {
-    method: "POST",
-    body: input,
-  }).then(({ id }) => getProduct(id));
+/** Resolves the display names the server would fill in from foreign keys. */
+function resolveVendor(
+  vendor: ProductInput["vendor"],
+): Product["vendor"] | null {
+  if (!vendor) {
+    return null;
+  }
+  const vendorName =
+    vendors.find((row) => row.id === vendor.vendorId)?.name ?? "";
+  return { ...vendor, vendorName };
 }
 
-export function updateProduct(
+function resolveBrandName(brandId: string): string {
+  return brands.find((row) => row.id === brandId)?.name ?? "";
+}
+
+export async function createProduct(input: ProductInput): Promise<Product> {
+  const id = mockId("prd");
+  const { brandId, vendor, uploadSessionId: _uploadSessionId, ...rest } = input;
+  await mockCreate(products, {
+    ...rest,
+    id,
+    brandId,
+    brand: resolveBrandName(brandId),
+    vendor: resolveVendor(vendor),
+    stock:
+      rest.sizes.length > 0
+        ? rest.sizes.reduce((sum, size) => sum + size.stock, 0)
+        : rest.colors.length > 0
+          ? rest.colors.reduce((sum, color) => sum + color.stock, 0)
+          : 0,
+    rating: 0,
+    updatedAt: new Date().toISOString(),
+  });
+  return getProduct(id);
+}
+
+export async function updateProduct(
   id: string,
   input: ProductInput,
 ): Promise<Product> {
-  return apiRequest<{ ok: true }>(`/products/${id}`, {
-    method: "PUT",
-    body: input,
-  }).then(() => getProduct(id));
+  const { uploadSessionId: _uploadSessionId, vendor, brandId, ...rest } = input;
+  const current = products.find((product) => product.id === id);
+  await mockDetail(current);
+  const patch: Partial<Product> = {
+    ...rest,
+    brandId,
+    brand: resolveBrandName(brandId),
+    vendor: resolveVendor(vendor),
+    updatedAt: new Date().toISOString(),
+  };
+  const index = products.findIndex((product) => product.id === id);
+  products[index] = { ...products[index], ...patch };
+  return getProduct(id);
 }
 
 export function deleteProduct(id: string): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/products/${id}`, { method: "DELETE" });
+  return mockDelete(products, id);
 }

@@ -1,4 +1,12 @@
-import { apiRequest } from "@/core/api/client";
+import {
+  mockCreate,
+  mockDelete,
+  mockDetail,
+  mockId,
+  mockUpdate,
+} from "@/core/api/mock";
+import { hubs } from "../../hub/data/hub-data";
+import { serviceAreas } from "../data/service-area-data";
 
 export type ServiceArea = {
   id: string;
@@ -10,7 +18,7 @@ export type ServiceArea = {
 };
 
 export function listServiceAreas(): Promise<ServiceArea[]> {
-  return apiRequest<ServiceArea[]>("/service-areas");
+  return mockDetail(serviceAreas);
 }
 
 export type ServiceAreaInput = {
@@ -20,27 +28,35 @@ export type ServiceAreaInput = {
   isActive: boolean;
 };
 
-export function createServiceArea(
+export async function createServiceArea(
   input: ServiceAreaInput,
 ): Promise<{ id: string }> {
-  return apiRequest<{ id: string }>("/service-areas", {
-    method: "POST",
-    body: input,
+  const id = mockId("svc");
+  await mockCreate(serviceAreas, {
+    id,
+    name: input.name,
+    pincode: input.pincode,
+    hubId: input.hubId,
+    hubName: hubs.find((hub) => hub.id === input.hubId)?.name ?? "",
+    isActive: input.isActive,
   });
+  return { id };
 }
 
-export function updateServiceArea(
+export async function updateServiceArea(
   id: string,
   input: Partial<ServiceAreaInput>,
 ): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/service-areas/${id}`, {
-    method: "PATCH",
-    body: input,
+  const { hubId, ...rest } = input;
+  await mockUpdate(serviceAreas, id, {
+    ...rest,
+    ...(hubId
+      ? { hubId, hubName: hubs.find((hub) => hub.id === hubId)?.name ?? "" }
+      : {}),
   });
+  return { ok: true };
 }
 
 export function deleteServiceArea(id: string): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/service-areas/${id}`, {
-    method: "DELETE",
-  });
+  return mockDelete(serviceAreas, id);
 }

@@ -90,3 +90,57 @@ export async function mockList<T>({
     meta: { page, limit, total, hasNext: start + limit < total },
   };
 }
+
+/** Generates a fixture-only id — good enough for mock round-tripping, not a UUID. */
+export function mockId(prefix: string): string {
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Appends a new row to an in-memory fixture array and returns it — the mock
+ * stand-in for a `POST` that returns the created record.
+ */
+export async function mockCreate<T>(rows: T[], row: T): Promise<T> {
+  await delay();
+  rows.push(row);
+  return row;
+}
+
+/**
+ * Patches a row in place by id and returns the updated record — the mock
+ * stand-in for a `PATCH`/`PUT` that returns the updated record. Throws the
+ * same not-found shape as `mockDetail` when the id isn't in `rows`.
+ */
+export async function mockUpdate<T extends { id: string }>(
+  rows: T[],
+  id: string,
+  patch: Partial<T>,
+): Promise<T> {
+  await delay();
+  const index = rows.findIndex((row) => row.id === id);
+  if (index === -1) {
+    const { ApiError } = await import("./client");
+    throw new ApiError("NOT_FOUND", "That record doesn't exist.", 404);
+  }
+  const updated = { ...rows[index], ...patch };
+  rows[index] = updated;
+  return updated;
+}
+
+/**
+ * Removes a row in place by id — the mock stand-in for a `DELETE`. Throws the
+ * same not-found shape as `mockDetail` when the id isn't in `rows`.
+ */
+export async function mockDelete<T extends { id: string }>(
+  rows: T[],
+  id: string,
+): Promise<{ ok: true }> {
+  await delay();
+  const index = rows.findIndex((row) => row.id === id);
+  if (index === -1) {
+    const { ApiError } = await import("./client");
+    throw new ApiError("NOT_FOUND", "That record doesn't exist.", 404);
+  }
+  rows.splice(index, 1);
+  return { ok: true };
+}

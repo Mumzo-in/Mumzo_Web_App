@@ -1,4 +1,11 @@
-import { apiRequest } from "@/core/api/client";
+import {
+  mockCreate,
+  mockDelete,
+  mockDetail,
+  mockId,
+  mockUpdate,
+} from "@/core/api/mock";
+import { hubs } from "../data/hub-data";
 
 export type Hub = {
   id: string;
@@ -10,7 +17,7 @@ export type Hub = {
 };
 
 export function listHubs(): Promise<Hub[]> {
-  return apiRequest<Hub[]>("/hubs");
+  return mockDetail(hubs);
 }
 
 export type HubInput = {
@@ -21,20 +28,27 @@ export type HubInput = {
   isActive: boolean;
 };
 
-export function createHub(input: HubInput): Promise<{ id: string }> {
-  return apiRequest<{ id: string }>("/hubs", { method: "POST", body: input });
+export async function createHub(input: HubInput): Promise<{ id: string }> {
+  const id = mockId("hub");
+  await mockCreate(hubs, {
+    id,
+    name: input.name,
+    address: input.address,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    isActive: input.isActive,
+  });
+  return { id };
 }
 
-export function updateHub(
+export async function updateHub(
   id: string,
   input: Partial<HubInput>,
 ): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/hubs/${id}`, {
-    method: "PATCH",
-    body: input,
-  });
+  await mockUpdate<Hub>(hubs, id, input);
+  return { ok: true };
 }
 
 export function deleteHub(id: string): Promise<{ ok: true }> {
-  return apiRequest<{ ok: true }>(`/hubs/${id}`, { method: "DELETE" });
+  return mockDelete(hubs, id);
 }
