@@ -31,30 +31,31 @@ import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import StatusChip from "@/core/components/status-chip";
 import { usePermission } from "@/modules/roles";
-import { deleteHub } from "../api/hubs-api";
-import { hubsQueryOptions } from "../queries/hubs";
-import { HubDialog } from "./hub-dialog";
+import { deleteServiceArea } from "../api/service-areas-api";
+import { serviceAreasQueryOptions } from "../queries/service-areas";
+import { ServiceAreaDialog } from "./service-area-dialog";
 
-export function HubTable() {
+export function ServiceAreaTable() {
   const queryClient = useQueryClient();
-  const { data, isLoading, error } = useQuery(hubsQueryOptions);
-  const canWrite = usePermission("hub", "update");
-  const canDelete = usePermission("hub", "delete");
+  const { data, isLoading, error } = useQuery(serviceAreasQueryOptions);
+  const canWrite = usePermission("serviceArea", "update");
+  const canDelete = usePermission("serviceArea", "delete");
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteHub(id),
+    mutationFn: (id: string) => deleteServiceArea(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.hubs.all });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.serviceAreas.all,
+      });
       setPendingDelete(null);
-      toast.success("Hub deleted.");
+      toast.success("Service area removed.");
     },
     onError: (error: Error) => {
-      // The server refuses when the hub still has inventory on hand.
-      toast.error(error.message || "Could not delete the hub.");
+      toast.error(error.message || "Could not remove the service area.");
       setPendingDelete(null);
     },
   });
@@ -63,7 +64,7 @@ export function HubTable() {
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>Failed to load hubs</EmptyTitle>
+          <EmptyTitle>Failed to load service areas</EmptyTitle>
           <EmptyDescription>
             {error instanceof Error ? error.message : "Something went wrong."}
           </EmptyDescription>
@@ -72,17 +73,17 @@ export function HubTable() {
     );
   }
 
-  const hubs = data ?? [];
+  const serviceAreas = data ?? [];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto border bg-card">
+      <div className="overflow-x-auto rounded-3xl border border-border bg-card shadow-warm">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Area</TableHead>
+              <TableHead>Pincode</TableHead>
               <TableHead>Hub</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Coordinates</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -95,10 +96,10 @@ export function HubTable() {
                     <Skeleton className="h-4 w-32" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-4 w-20" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-32" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-16 rounded-full" />
@@ -108,49 +109,47 @@ export function HubTable() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : hubs.length === 0 ? (
+            ) : serviceAreas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5}>
                   <Empty>
                     <EmptyHeader>
-                      <EmptyTitle>No hubs yet</EmptyTitle>
+                      <EmptyTitle>No service areas yet</EmptyTitle>
                       <EmptyDescription>
-                        Add a dark store to start tracking its inventory.
+                        Map a pincode to a hub to start serving that area.
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </TableCell>
               </TableRow>
             ) : (
-              hubs.map((hub) => (
-                <TableRow key={hub.id}>
-                  <TableCell className="font-medium">{hub.name}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">
-                    {hub.address}
+              serviceAreas.map((area) => (
+                <TableRow key={area.id}>
+                  <TableCell className="font-medium">{area.name}</TableCell>
+                  <TableCell className="numeric text-xs">
+                    {area.pincode}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs">
-                    {hub.lat != null && hub.lng != null
-                      ? `${hub.lat.toFixed(4)}, ${hub.lng.toFixed(4)}`
-                      : "—"}
+                    {area.hubName}
                   </TableCell>
                   <TableCell>
                     <StatusChip
-                      label={hub.isActive ? "Active" : "Inactive"}
+                      label={area.isActive ? "Active" : "Inactive"}
                       tint={
-                        hub.isActive
+                        area.isActive
                           ? "bg-sage text-ink"
                           : "bg-secondary text-muted-foreground"
                       }
                     />
                   </TableCell>
                   <TableCell className="text-right">
-                    {canWrite ? <HubDialog hub={hub} /> : null}
+                    {canWrite ? <ServiceAreaDialog serviceArea={area} /> : null}
                     {canDelete ? (
                       <Button
                         className="ml-2 hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
                         disabled={deleteMutation.isPending}
                         onClick={() =>
-                          setPendingDelete({ id: hub.id, name: hub.name })
+                          setPendingDelete({ id: area.id, name: area.name })
                         }
                         size="sm"
                         variant="outline"
@@ -177,10 +176,9 @@ export function HubTable() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this hub?</AlertDialogTitle>
+            <AlertDialogTitle>Remove this service area?</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.name} will be removed. This fails if the hub still
-              has any inventory on hand.
+              {pendingDelete?.name} will no longer be a serviceable pincode.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -195,7 +193,7 @@ export function HubTable() {
                 }
               }}
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete hub"}
+              {deleteMutation.isPending ? "Removing…" : "Remove"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -204,4 +202,4 @@ export function HubTable() {
   );
 }
 
-export default HubTable;
+export default ServiceAreaTable;

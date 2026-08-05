@@ -12,7 +12,7 @@ import {
   type ProductFormHandle,
   type ProductInput,
   updateProduct,
-} from "@/modules/operations/products";
+} from "@/modules/product";
 
 export const Route = createFileRoute(
   "/(admin)/catalog/products/$productId/edit",

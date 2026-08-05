@@ -48,7 +48,7 @@ import {
   TextField,
 } from "@/core/components/form-fields";
 import { formatMoney } from "@/core/components/format";
-import { listProducts } from "@/modules/operations/products";
+import { listProducts } from "@/modules/product";
 import type { BundleInput } from "../api/bundles-api";
 
 type BundleItemDraft = {

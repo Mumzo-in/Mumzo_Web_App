@@ -4,6 +4,7 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@mumzo/ui/components/empty";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import {
   MapControls,
   MapGeoJSON,
@@ -44,13 +45,13 @@ export function HubMap() {
 
   if (isLoading) {
     return (
-      <div className="h-[520px] animate-pulse rounded-lg border bg-muted" />
+      <Skeleton className="h-[520px] rounded-3xl border border-border shadow-warm" />
     );
   }
 
   if (hubs.length === 0) {
     return (
-      <Empty className="h-[520px] rounded-lg border bg-card">
+      <Empty className="h-[520px] rounded-3xl border border-border bg-card shadow-warm">
         <EmptyHeader>
           <EmptyTitle>No dark stores plotted yet</EmptyTitle>
           <EmptyDescription>
@@ -62,7 +63,7 @@ export function HubMap() {
   }
 
   return (
-    <div className="h-[520px] overflow-hidden rounded-lg border">
+    <div className="h-[520px] overflow-hidden rounded-3xl border border-border shadow-warm">
       <MapView
         className="h-full w-full"
         viewport={{

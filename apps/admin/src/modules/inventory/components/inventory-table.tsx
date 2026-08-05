@@ -24,15 +24,53 @@ import {
   TableRow,
 } from "@mumzo/ui/components/table";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { AlertTriangle, Boxes, PackageX } from "lucide-react";
+import { useMemo, useState } from "react";
 import { formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
-import { hubsQueryOptions } from "@/modules/operations/hubs";
+import { hubsQueryOptions } from "@/modules/hub";
 import { usePermission } from "@/modules/roles";
+import type { InventoryRow } from "../api/inventory-api";
 import { inventoryQueryOptions } from "../queries/inventory";
 import { AdjustInventoryDialog } from "./adjust-inventory-dialog";
 
 const ALL_HUBS = "all";
+
+type InventoryStat = {
+  key: string;
+  label: string;
+  value: number;
+  icon: typeof Boxes;
+  tint: string;
+};
+
+function summarize(rows: InventoryRow[]): InventoryStat[] {
+  const outOfStock = rows.filter((row) => row.stock === 0).length;
+  const lowStock = rows.filter((row) => row.stock > 0 && row.isLowStock).length;
+  return [
+    {
+      key: "tracked",
+      label: "Tracked lines",
+      value: rows.length,
+      icon: Boxes,
+      tint: "bg-secondary text-foreground",
+    },
+    {
+      key: "low",
+      label: "Low stock",
+      value: lowStock,
+      icon: AlertTriangle,
+      tint: "bg-accent text-accent-foreground",
+    },
+    {
+      key: "out",
+      label: "Out of stock",
+      value: outOfStock,
+      icon: PackageX,
+      tint: "bg-destructive/10 text-destructive",
+    },
+  ];
+}
 
 type InventoryTableProps = {
   /** Pre-applies the "low stock only" filter — used when the page is
@@ -71,9 +109,40 @@ export function InventoryTable({
   }
 
   const rows = data ?? [];
+  const stats = useMemo(() => summarize(rows), [rows]);
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              className="flex items-center gap-3 rounded-3xl border border-border bg-card p-4 shadow-warm"
+              key={stat.key}
+            >
+              <div
+                className={`flex size-10 shrink-0 items-center justify-center rounded-full ${stat.tint}`}
+              >
+                <Icon aria-hidden="true" className="size-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="numeric font-editorial text-2xl tracking-tighter">
+                  {isLoading ? (
+                    <Skeleton className="h-7 w-10" />
+                  ) : (
+                    formatNumber(stat.value)
+                  )}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  {stat.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <Input
           className="max-w-xs"
@@ -100,7 +169,7 @@ export function InventoryTable({
             </SelectGroup>
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-2 rounded-full border px-3 py-1.5">
+        <div className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5">
           <Switch
             checked={lowStockOnly}
             data-testid="inventory-low-stock-only"
@@ -111,7 +180,7 @@ export function InventoryTable({
         {canAdjust ? <AdjustInventoryDialog /> : null}
       </div>
 
-      <div className="overflow-x-auto border bg-card">
+      <div className="overflow-x-auto rounded-3xl border border-border bg-card shadow-warm">
         <Table>
           <TableHeader>
             <TableRow>

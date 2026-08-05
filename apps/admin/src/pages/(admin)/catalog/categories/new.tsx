@@ -10,7 +10,7 @@ import {
   type CategoryFormHandle,
   type CategoryInput,
   createCategory,
-} from "@/modules/operations/categories";
+} from "@/modules/category";
 
 export const Route = createFileRoute("/(admin)/catalog/categories/new")({
   component: NewCategoryPage,

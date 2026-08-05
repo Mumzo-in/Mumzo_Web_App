@@ -11,7 +11,7 @@ import {
   type BundleFormHandle,
   type BundleInput,
   createBundle,
-} from "@/modules/operations/bundles";
+} from "@/modules/bundle";
 
 const searchSchema = z.object({
   /** Prefills one item — set by the product form's "create a bundle with

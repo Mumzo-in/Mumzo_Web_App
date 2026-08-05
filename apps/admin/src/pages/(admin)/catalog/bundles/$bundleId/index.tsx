@@ -35,11 +35,7 @@ import { queryKeys } from "@/core/api/query-keys";
 import { formatMoney } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import {
-  BUNDLE_STATUS_META,
-  deleteBundle,
-  getBundle,
-} from "@/modules/operations/bundles";
+import { BUNDLE_STATUS_META, deleteBundle, getBundle } from "@/modules/bundle";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/bundles/$bundleId/")({

@@ -8,6 +8,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@mumzo/ui/components/alert-dialog";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@mumzo/ui/components/avatar";
 import { Button } from "@mumzo/ui/components/button";
 import {
   Empty,
@@ -29,33 +34,33 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
+import { formatNumber } from "@/core/components/format";
 import StatusChip from "@/core/components/status-chip";
 import { usePermission } from "@/modules/roles";
-import { deleteServiceArea } from "../api/service-areas-api";
-import { serviceAreasQueryOptions } from "../queries/service-areas";
-import { ServiceAreaDialog } from "./service-area-dialog";
+import { deleteBrand } from "../api/brands-api";
+import { brandsQueryOptions } from "../queries/brands";
+import { BrandDialog } from "./brand-dialog";
 
-export function ServiceAreaTable() {
+export function BrandTable() {
   const queryClient = useQueryClient();
-  const { data, isLoading, error } = useQuery(serviceAreasQueryOptions);
-  const canWrite = usePermission("serviceArea", "update");
-  const canDelete = usePermission("serviceArea", "delete");
+  const { data, isLoading, error } = useQuery(brandsQueryOptions);
+  const canWrite = usePermission("brand", "update");
+  const canDelete = usePermission("brand", "delete");
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteServiceArea(id),
+    mutationFn: (id: string) => deleteBrand(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.serviceAreas.all,
-      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all });
       setPendingDelete(null);
-      toast.success("Service area removed.");
+      toast.success("Brand deleted.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Could not remove the service area.");
+      // The server refuses when products still reference the brand.
+      toast.error(error.message || "Could not delete the brand.");
       setPendingDelete(null);
     },
   });
@@ -64,7 +69,7 @@ export function ServiceAreaTable() {
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>Failed to load service areas</EmptyTitle>
+          <EmptyTitle>Failed to load brands</EmptyTitle>
           <EmptyDescription>
             {error instanceof Error ? error.message : "Something went wrong."}
           </EmptyDescription>
@@ -73,17 +78,17 @@ export function ServiceAreaTable() {
     );
   }
 
-  const serviceAreas = data ?? [];
+  const brands = data ?? [];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto border bg-card">
+      <div className="overflow-x-auto rounded-3xl border border-border bg-card shadow-warm">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Area</TableHead>
-              <TableHead>Pincode</TableHead>
-              <TableHead>Hub</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Products</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -93,13 +98,16 @@ export function ServiceAreaTable() {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`ske-${i.toString()}`}>
                   <TableCell>
-                    <Skeleton className="h-4 w-32" />
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="size-6 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-24" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-12" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-16 rounded-full" />
@@ -109,49 +117,68 @@ export function ServiceAreaTable() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : serviceAreas.length === 0 ? (
+            ) : brands.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5}>
                   <Empty>
                     <EmptyHeader>
-                      <EmptyTitle>No service areas yet</EmptyTitle>
+                      <EmptyTitle>No brands yet</EmptyTitle>
                       <EmptyDescription>
-                        Map a pincode to a hub to start serving that area.
+                        Create a brand to organize products under it.
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </TableCell>
               </TableRow>
             ) : (
-              serviceAreas.map((area) => (
-                <TableRow key={area.id}>
-                  <TableCell className="font-medium">{area.name}</TableCell>
-                  <TableCell className="numeric text-xs">
-                    {area.pincode}
+              brands.map((brand) => (
+                <TableRow key={brand.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar size="sm">
+                        {brand.logoUrl && (
+                          <AvatarImage alt="" src={brand.logoUrl} />
+                        )}
+                        <AvatarFallback>
+                          {brand.name.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {brand.name}
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs">
-                    {area.hubName}
+                    {brand.slug}
+                  </TableCell>
+                  <TableCell className="numeric">
+                    {formatNumber(brand.productCount)}
                   </TableCell>
                   <TableCell>
                     <StatusChip
-                      label={area.isActive ? "Active" : "Inactive"}
+                      label={brand.isActive ? "Active" : "Inactive"}
                       tint={
-                        area.isActive
+                        brand.isActive
                           ? "bg-sage text-ink"
                           : "bg-secondary text-muted-foreground"
                       }
                     />
                   </TableCell>
                   <TableCell className="text-right">
-                    {canWrite ? <ServiceAreaDialog serviceArea={area} /> : null}
+                    {canWrite ? <BrandDialog brand={brand} /> : null}
                     {canDelete ? (
                       <Button
                         className="ml-2 hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
-                        disabled={deleteMutation.isPending}
+                        disabled={
+                          deleteMutation.isPending || brand.productCount > 0
+                        }
                         onClick={() =>
-                          setPendingDelete({ id: area.id, name: area.name })
+                          setPendingDelete({ id: brand.id, name: brand.name })
                         }
                         size="sm"
+                        title={
+                          brand.productCount > 0
+                            ? "Reassign its products before deleting."
+                            : undefined
+                        }
                         variant="outline"
                       >
                         <Trash2 className="size-3.5" data-icon="inline-start" />
@@ -176,9 +203,10 @@ export function ServiceAreaTable() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this service area?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this brand?</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.name} will no longer be a serviceable pincode.
+              {pendingDelete?.name} will be removed from the directory. This
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -193,7 +221,7 @@ export function ServiceAreaTable() {
                 }
               }}
             >
-              {deleteMutation.isPending ? "Removing…" : "Remove"}
+              {deleteMutation.isPending ? "Deleting…" : "Delete brand"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -202,4 +230,4 @@ export function ServiceAreaTable() {
   );
 }
 
-export default ServiceAreaTable;
+export default BrandTable;

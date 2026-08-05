@@ -12,7 +12,7 @@ import {
   type CategoryInput,
   getCategory,
   updateCategory,
-} from "@/modules/operations/categories";
+} from "@/modules/category";
 
 export const Route = createFileRoute("/(admin)/catalog/categories/$slug")({
   component: EditCategoryPage,

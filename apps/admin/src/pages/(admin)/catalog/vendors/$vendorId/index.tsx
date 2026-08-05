@@ -1,3 +1,4 @@
+import { marginPct } from "@mumzo/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,19 +35,16 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import ComingSoon from "@/core/components/coming-soon";
 import { formatMoney } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import {
-  listProducts,
-  PRODUCT_STATUS_META,
-} from "@/modules/operations/products";
-import { deleteVendor, getVendor } from "@/modules/operations/vendors";
+import { listProducts, PRODUCT_STATUS_META } from "@/modules/product";
 import { usePermission } from "@/modules/roles";
+import { deleteVendor, getVendor } from "@/modules/vendor";
 
 export const Route = createFileRoute("/(admin)/catalog/vendors/$vendorId/")({
   component: VendorDetailPage,
@@ -73,6 +71,17 @@ function VendorDetailPage() {
     queryKey: [...queryKeys.products.lists(), "byVendor", vendorId],
     queryFn: () => listProducts({ vendorId, page: 1, limit: 50 }),
   });
+
+  const avgMargin = useMemo(() => {
+    const rows = products.data?.data ?? [];
+    const margins = rows
+      .map((product) => marginPct(product))
+      .filter((value): value is number => value !== null);
+    if (margins.length === 0) return null;
+    return Math.round(
+      margins.reduce((sum, value) => sum + value, 0) / margins.length,
+    );
+  }, [products.data]);
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteVendor(vendorId),
@@ -144,7 +153,7 @@ function VendorDetailPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-4">
         <Card className="shadow-warm">
           <CardHeader>
             <CardTitle>Status</CardTitle>
@@ -189,6 +198,18 @@ function VendorDetailPage() {
             </span>
           </CardContent>
         </Card>
+
+        <Card className="shadow-warm">
+          <CardHeader>
+            <CardTitle>Sourcing</CardTitle>
+            <CardDescription>Avg. margin over cost</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <span className="numeric font-editorial text-3xl tracking-tighter">
+              {avgMargin !== null ? `${avgMargin}%` : "—"}
+            </span>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="shadow-warm">
@@ -211,12 +232,15 @@ function VendorDetailPage() {
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="overflow-x-auto border">
+            <div className="overflow-x-auto rounded-2xl border border-border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
-                    <TableHead>Price</TableHead>
+                    <TableHead>Relationship</TableHead>
+                    <TableHead>Cost price</TableHead>
+                    <TableHead>Lead time</TableHead>
+                    <TableHead>Sell price</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -237,6 +261,19 @@ function VendorDetailPage() {
                         <span className="ml-2 text-muted-foreground text-xs">
                           {product.sku}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm capitalize">
+                        {product.vendor?.relationship ?? "—"}
+                      </TableCell>
+                      <TableCell className="numeric">
+                        {product.vendor?.costPrice != null
+                          ? formatMoney(product.vendor.costPrice)
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="numeric text-muted-foreground">
+                        {product.vendor?.leadTimeDays != null
+                          ? `${product.vendor.leadTimeDays}d`
+                          : "—"}
                       </TableCell>
                       <TableCell className="numeric">
                         {formatMoney(product.price)}

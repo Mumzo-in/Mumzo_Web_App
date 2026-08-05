@@ -2,7 +2,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import PageHeader from "@/core/components/page-header";
-import { BundleTable } from "@/modules/operations/bundles";
+import { BundleTable } from "@/modules/bundle";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/bundles/")({

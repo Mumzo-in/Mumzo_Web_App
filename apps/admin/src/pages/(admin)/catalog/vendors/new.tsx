@@ -10,7 +10,7 @@ import {
   VendorForm,
   type VendorFormHandle,
   type VendorInput,
-} from "@/modules/operations/vendors";
+} from "@/modules/vendor";
 
 export const Route = createFileRoute("/(admin)/catalog/vendors/new")({
   component: NewVendorPage,

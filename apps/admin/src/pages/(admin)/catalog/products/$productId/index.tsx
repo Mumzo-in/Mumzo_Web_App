@@ -29,18 +29,18 @@ import { queryKeys } from "@/core/api/query-keys";
 import { formatMoney, formatNumber } from "@/core/components/format";
 import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
-import { BUNDLE_STATUS_META, listBundles } from "@/modules/operations/bundles";
+import { BUNDLE_STATUS_META, listBundles } from "@/modules/bundle";
 import {
   AdjustInventoryDialog,
   inventoryQueryOptions,
-} from "@/modules/operations/inventory";
+} from "@/modules/inventory";
 import {
   deleteProduct,
   getProduct,
   PRODUCT_STATUS_META,
   ProductPreviewGallery,
   updateProduct,
-} from "@/modules/operations/products";
+} from "@/modules/product";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/products/$productId/")({

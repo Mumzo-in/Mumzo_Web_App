@@ -6,7 +6,7 @@ import {
 } from "@mumzo/ui/components/tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import PageHeader from "@/core/components/page-header";
-import { HubDialog, HubMap, HubTable } from "@/modules/operations/hubs";
+import { HubDialog, HubMap, HubTable } from "@/modules/hub";
 import { usePermission } from "@/modules/roles";
 
 export const Route = createFileRoute("/(admin)/catalog/hubs")({

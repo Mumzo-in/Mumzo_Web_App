@@ -2,7 +2,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import PageHeader from "@/core/components/page-header";
-import { ProductTable } from "@/modules/operations/products";
+import { ProductTable } from "@/modules/product";
 
 export const Route = createFileRoute("/(admin)/catalog/products/")({
   component: ProductsPage,

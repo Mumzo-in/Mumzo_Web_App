@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import PageHeader from "@/core/components/page-header";
-import { InventoryTable } from "@/modules/operations/inventory";
+import { InventoryTable } from "@/modules/inventory";
 
 const searchSchema = z.object({
   stock: z.enum(["low"]).optional(),

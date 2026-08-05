@@ -31,7 +31,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { queryKeys } from "@/core/api/query-keys";
-import { hubsQueryOptions } from "@/modules/operations/hubs";
+import { hubsQueryOptions } from "@/modules/hub";
 import {
   createServiceArea,
   type ServiceArea,

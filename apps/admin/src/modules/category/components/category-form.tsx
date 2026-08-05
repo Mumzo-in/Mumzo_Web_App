@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useImageSlotUpload } from "@/core/api/use-image-slot-upload";
 import { ControlField, TextField } from "@/core/components/form-fields";
-import { brandsQueryOptions } from "@/modules/operations/brands";
+import { brandsQueryOptions } from "@/modules/brand";
 import type { CategoryInput, CategoryWithCount } from "../api/categories-api";
 
 const schema = z.object({

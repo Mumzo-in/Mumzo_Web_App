@@ -63,10 +63,10 @@ import {
 } from "@/core/components/form-fields";
 import { formatMoney } from "@/core/components/format";
 import StringListEditor from "@/core/components/string-list-editor";
-import { brandsQueryOptions } from "@/modules/operations/brands";
-import { bundlesForProductQueryOptions } from "@/modules/operations/bundles";
-import { categoriesQueryOptions } from "@/modules/operations/categories";
-import { vendorsQueryOptions } from "@/modules/operations/vendors";
+import { brandsQueryOptions } from "@/modules/brand";
+import { bundlesForProductQueryOptions } from "@/modules/bundle";
+import { categoriesQueryOptions } from "@/modules/category";
+import { vendorsQueryOptions } from "@/modules/vendor";
 import type { ProductInput } from "../api/products-api";
 import { FormSidebarTab } from "./form-sidebar-tab";
 import ProductImageGallery from "./product-image-gallery";

@@ -12,7 +12,7 @@ import {
   type BundleInput,
   getBundle,
   updateBundle,
-} from "@/modules/operations/bundles";
+} from "@/modules/bundle";
 
 export const Route = createFileRoute("/(admin)/catalog/bundles/$bundleId/edit")(
   {

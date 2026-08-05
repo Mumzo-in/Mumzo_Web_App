@@ -27,8 +27,8 @@ import {
   TextField,
 } from "@/core/components/form-fields";
 import StringListEditor from "@/core/components/string-list-editor";
-import { brandsQueryOptions } from "@/modules/operations/brands";
-import { categoriesQueryOptions } from "@/modules/operations/categories";
+import { brandsQueryOptions } from "@/modules/brand";
+import { categoriesQueryOptions } from "@/modules/category";
 import type { Coupon, CouponInput } from "../api/coupons-api";
 import { PRODUCT_SCOPE_OPTIONS, VISIBILITY_OPTIONS } from "../data/coupon-data";
 
