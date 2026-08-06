@@ -1,0 +1,137 @@
+$ vite build && tsc --noEmit
+vite v8.1.4 building client environment for production...
+[2Ktransforming...✓ 2599 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/registerSW.js                                                 0.13 kB
+dist/manifest.webmanifest                                          0.60 kB
+dist/index.html                                                    4.40 kB │ gzip:   1.03 kB
+dist/assets/index-DWjbkYCT.css                                   223.23 kB │ gzip:  33.29 kB
+dist/assets/root-DLTE-HSj.js                                       0.03 kB │ gzip:   0.05 kB
+dist/assets/checkout-BnEan2ca.js                                   0.10 kB │ gzip:   0.11 kB
+dist/assets/not-found-i5RsCZif.js                                  0.11 kB │ gzip:   0.11 kB
+dist/assets/check-B6oHpsdH.js                                      0.12 kB │ gzip:   0.14 kB
+dist/assets/chevron-right-Bmvn_ZJh.js                              0.13 kB │ gzip:   0.14 kB
+dist/assets/navigation-Cj8fk-vC.js                                 0.14 kB │ gzip:   0.15 kB
+dist/assets/plus-B2QM95Ob.js                                       0.15 kB │ gzip:   0.15 kB
+dist/assets/clock-Ba8ABiJZ.js                                      0.16 kB │ gzip:   0.16 kB
+dist/assets/circle-check-ZtqfUbCs.js                               0.17 kB │ gzip:   0.16 kB
+dist/assets/credit-card-Crmw84Dj.js                                0.20 kB │ gzip:   0.18 kB
+dist/assets/download-BV_sl9jI.js                                   0.23 kB │ gzip:   0.19 kB
+dist/assets/copy-CylVzjy9.js                                       0.23 kB │ gzip:   0.21 kB
+dist/assets/message-circle-BJkQIYwv.js                             0.24 kB │ gzip:   0.21 kB
+dist/assets/heart-Di3T2qvK.js                                      0.25 kB │ gzip:   0.21 kB
+dist/assets/map-pin-B18z8Rvp.js                                    0.25 kB │ gzip:   0.22 kB
+dist/assets/leaf-DWU1wWRG.js                                       0.26 kB │ gzip:   0.22 kB
+dist/assets/shield-check-6eXsjEJt.js                               0.32 kB │ gzip:   0.25 kB
+dist/assets/phone-CaSjTkRb.js                                      0.32 kB │ gzip:   0.23 kB
+dist/assets/tag-BtQddFff.js                                        0.32 kB │ gzip:   0.24 kB
+dist/assets/trash-2-BsbyhMmK.js                                    0.32 kB │ gzip:   0.21 kB
+dist/assets/_layout-DrliYSyT.js                                    0.34 kB │ gzip:   0.27 kB
+dist/assets/shopping-bag-DQLi-qEW.js                               0.34 kB │ gzip:   0.24 kB
+dist/assets/useNavigate-CxxCURla.js                                0.34 kB │ gzip:   0.24 kB
+dist/assets/share-2-Bw75QLvH.js                                    0.35 kB │ gzip:   0.23 kB
+dist/assets/clsx-CjueKrWZ.js                                       0.36 kB │ gzip:   0.23 kB
+dist/assets/package-CRATvz4L.js                                    0.37 kB │ gzip:   0.25 kB
+dist/assets/life-buoy-BewTO9lJ.js                                  0.38 kB │ gzip:   0.23 kB
+dist/assets/baby-BoejB73x.js                                       0.39 kB │ gzip:   0.26 kB
+dist/assets/user-BDawD8Wb.js                                       0.43 kB │ gzip:   0.30 kB
+dist/assets/star-J97r9Cjl.js                                       0.47 kB │ gzip:   0.29 kB
+dist/assets/owner-D6CG4JFl.js                                      0.47 kB │ gzip:   0.30 kB
+dist/assets/sparkles-B6ibcLNI.js                                   0.49 kB │ gzip:   0.28 kB
+dist/assets/login-Dmo8ltSa.js                                      0.51 kB │ gzip:   0.35 kB
+dist/assets/matchContext-h8wplpNx.js                               0.54 kB │ gzip:   0.34 kB
+dist/assets/zap-CXN8kOXJ.js                                        0.58 kB │ gzip:   0.34 kB
+dist/assets/_layout-fjYbIfR0.js                                    0.60 kB │ gzip:   0.37 kB
+dist/assets/useStore-LxmX4icO.js                                   0.64 kB │ gzip:   0.37 kB
+dist/assets/useRouter-DwvgMOjG.js                                  0.79 kB │ gzip:   0.45 kB
+dist/assets/useMatch-D4DHic0r.js                                   0.99 kB │ gzip:   0.50 kB
+dist/assets/breadcrumbs-ClW2FnUn.js                                1.10 kB │ gzip:   0.55 kB
+dist/assets/preload-helper-Czpn1I53.js                             1.19 kB │ gzip:   0.67 kB
+dist/assets/createLucideIcon-DDDqnJsS.js                           1.37 kB │ gzip:   0.77 kB
+dist/assets/useControlled-DmiUHgTT.js                              1.39 kB │ gzip:   0.76 kB
+dist/assets/reviews-CpQl-pGt.js                                    1.63 kB │ gzip:   0.88 kB
+dist/assets/content-page-CIi5sUCk.js                               1.69 kB │ gzip:   0.60 kB
+dist/assets/shipping-dV9RRqUi.js                                   1.91 kB │ gzip:   0.83 kB
+dist/assets/returns-Bbb0eFV-.js                                    2.08 kB │ gzip:   0.93 kB
+dist/assets/offers-C2BK8b3C.js                                     2.18 kB │ gzip:   0.88 kB
+dist/assets/mumzo-logo-NtiYG2nL.js                                 2.30 kB │ gzip:   0.89 kB
+dist/assets/wishlist-CSkHi5KN.js                                   2.55 kB │ gzip:   0.97 kB
+dist/assets/with-selector-DuWMqlP-.js                              2.77 kB │ gzip:   1.02 kB
+dist/assets/brand-CZKEnmth.js                                      2.84 kB │ gzip:   1.05 kB
+dist/assets/useCompositeListItem-CQZHxYar.js                       2.85 kB │ gzip:   1.28 kB
+dist/assets/addresses-BpG2hu2C.js                                  2.92 kB │ gzip:   1.16 kB
+dist/assets/notifications-GlaXpS_S.js                              2.93 kB │ gzip:   1.06 kB
+dist/assets/terms-Gpd1nSBo.js                                      2.95 kB │ gzip:   1.17 kB
+dist/assets/orders-BMOl66me.js                                     3.02 kB │ gzip:   1.18 kB
+dist/assets/help-e1dC7fcF.js                                       3.08 kB │ gzip:   1.26 kB
+dist/assets/collection-d1xDTzO-.js                                 3.21 kB │ gzip:   1.12 kB
+dist/assets/_brand-92c9NMH3.js                                     3.25 kB │ gzip:   1.13 kB
+dist/assets/useOpenChangeComplete-X4Cqsp1I.js                      3.29 kB │ gzip:   1.40 kB
+dist/assets/status-D_jM7al8.js                                     3.38 kB │ gzip:   1.33 kB
+dist/assets/_layout-CdhFyT42.js                                    3.46 kB │ gzip:   1.26 kB
+dist/assets/support-WYSB3Z6t.js                                    3.54 kB │ gzip:   1.16 kB
+dist/assets/payment-CiYApuGk.js                                    3.56 kB │ gzip:   1.19 kB
+dist/assets/button-BlOi-6gX.js                                     3.61 kB │ gzip:   1.47 kB
+dist/assets/_ticketId-DI5chzLY.js                                  3.70 kB │ gzip:   1.46 kB
+dist/assets/_slug-Da-WDu2j.js                                      3.73 kB │ gzip:   1.16 kB
+dist/assets/cart-BRMPLRcp.js                                       3.79 kB │ gzip:   1.32 kB
+dist/assets/address-DMOHcYO9.js                                    4.02 kB │ gzip:   1.43 kB
+dist/assets/search-Ca9kkHE_.js                                     4.10 kB │ gzip:   1.48 kB
+dist/assets/about-BSTTada1.js                                      4.27 kB │ gzip:   1.67 kB
+dist/assets/offers-BUDELj7f.js                                     4.28 kB │ gzip:   1.44 kB
+dist/assets/lazyRouteComponent-Bv8CgggQ.js                         4.49 kB │ gzip:   1.58 kB
+dist/assets/review-D8XKFmbw.js                                     4.66 kB │ gzip:   1.74 kB
+dist/assets/help-DyOueuRJ.js                                       4.73 kB │ gzip:   1.57 kB
+dist/assets/edit-uQLg7fLu.js                                       4.78 kB │ gzip:   1.40 kB
+dist/assets/return-Bvw3p9yQ.js                                     4.80 kB │ gzip:   1.63 kB
+dist/assets/tracking-CWD0lD8i.js                                   5.14 kB │ gzip:   1.54 kB
+dist/assets/notifications-TwP_-7hF.js                              5.28 kB │ gzip:   1.92 kB
+dist/assets/review-Bi7nb5Eq.js                                     5.39 kB │ gzip:   1.61 kB
+dist/assets/contact-DLFNT7hy.js                                    5.48 kB │ gzip:   1.83 kB
+dist/assets/label-BaFzM7a_.js                                      5.57 kB │ gzip:   2.43 kB
+dist/assets/orders-D4Nnq9a9.js                                     6.01 kB │ gzip:   2.09 kB
+dist/assets/payment-methods-CXVguiTd.js                            6.10 kB │ gzip:   1.94 kB
+dist/assets/link-qanFWoG6.js                                       6.61 kB │ gzip:   2.69 kB
+dist/assets/reviews-Gf7o2658.js                                    7.04 kB │ gzip:   2.29 kB
+dist/assets/location-modal-jcDaXQH6.js                             8.33 kB │ gzip:   2.81 kB
+dist/assets/react-dom-C17QCCPT.js                                  9.23 kB │ gzip:   2.91 kB
+dist/assets/privacy-Bh1LVBl_.js                                    9.90 kB │ gzip:   3.00 kB
+dist/assets/privacy-Gxslj4vY.js                                   10.11 kB │ gzip:   2.89 kB
+dist/assets/_orderId-wVo6YZ4L.js                                  10.19 kB │ gzip:   2.40 kB
+dist/assets/_productId-hEvvthWU.js                                10.23 kB │ gzip:   2.74 kB
+dist/assets/profile-BhDDr5t-.js                                   10.25 kB │ gzip:   2.73 kB
+dist/assets/useButton-W8potb4_.js                                 10.47 kB │ gzip:   4.35 kB
+dist/assets/jsx-dev-runtime-Bijn4k4q.js                           10.52 kB │ gzip:   2.35 kB
+dist/assets/checkout-D7oICggu.js                                  11.57 kB │ gzip:   2.98 kB
+dist/assets/accordion-BUgLi7jN.js                                 12.26 kB │ gzip:   4.49 kB
+dist/assets/referrals-B9sRE3t1.js                                 13.02 kB │ gzip:   3.41 kB
+dist/assets/cart-DKeB3Dqp.js                                      13.43 kB │ gzip:   3.79 kB
+dist/assets/path-BeiQrhFG.js                                      17.03 kB │ gzip:   6.05 kB
+dist/assets/_layout-DXze9gKR.js                                   17.07 kB │ gzip:   3.91 kB
+dist/assets/react-CR4EeKYJ.js                                     20.80 kB │ gzip:   7.48 kB
+dist/assets/account-CJMs2Yhl.js                                   26.74 kB │ gzip:   7.26 kB
+dist/assets/utils-B9URw_CD.js                                     26.93 kB │ gzip:   8.59 kB
+dist/assets/catalog-DttMJLII.js                                   31.63 kB │ gzip:   7.79 kB
+dist/assets/baby-D5AvYbks.js                                      31.67 kB │ gzip:  10.99 kB
+dist/assets/(store)-DVuNE41j.js                                   31.94 kB │ gzip:  11.13 kB
+dist/assets/dist-CX8SQQ4B.js                                      32.56 kB │ gzip:   9.12 kB
+dist/assets/dialog-DMpqfE_f.js                                    52.51 kB │ gzip:  17.41 kB
+dist/assets/FloatingTanStackRouterDevtools-CnpwH7La-B2KvGB1t.js   63.72 kB │ gzip:  17.65 kB
+dist/assets/schemas-C2qzFog9.js                                  112.11 kB │ gzip:  30.27 kB
+dist/assets/data-CfhqOw72.js                                     180.77 kB │ gzip:  41.04 kB
+dist/assets/index-Dr0WGbVQ.js                                    548.10 kB │ gzip: 169.46 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.21s
+
+PWA v1.3.0
+mode      generateSW
+precache  130 entries (1842.08 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-7e5eb42b.js

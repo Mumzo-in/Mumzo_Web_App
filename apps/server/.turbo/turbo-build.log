@@ -1,0 +1,66 @@
+[0m[2m[35m$[0m [2m[1mtsdown[0m
+[34mℹ[39m [34mtsdown v0.22.5[39m powered by [38;2;255;126;23mrolldown v1.1.5[39m
+[34mℹ[39m config file: [4m/home/bikram/Desktop/Work/mumzo/mumzo_app/apps/server/tsdown.config.ts[24m 
+[34mℹ[39m entry: [34m./src/index.ts[39m
+[34mℹ[39m tsconfig: [34mtsconfig.json[39m
+
+[43m WARN [49m `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+[34mℹ[39m Build start
+[34mℹ[39m Cleaning 151 files
+[34mℹ[39m Hint: consider adding [34mdeps.onlyBundle[39m option to avoid unintended bundling of dependencies, or set [34mdeps.onlyBundle: false[39m to disable this hint.
+See more at [4mhttps://tsdown.dev/options/dependencies#deps-onlybundle[24m
+Detected dependencies in bundle:
+- [34m@t3-oss/env-core[39m
+- [34mpostgres-array[39m
+- [34mpg-types[39m
+- [34mpostgres-date[39m
+- [34mxtend[39m
+- [34mpostgres-interval[39m
+- [34mpostgres-bytea[39m
+- [34mpg-int8[39m
+- [34mpg[39m
+- [34mpg-connection-string[39m
+- [34mpg-protocol[39m
+- [34mpg-cloudflare[39m
+- [34msplit2[39m
+- [34mpgpass[39m
+- [34mpg-pool[39m
+- [34m@aws-sdk/checksums[39m
+- [34m@aws-sdk/core[39m
+- [34m@smithy/core[39m
+- [34m@smithy/types[39m
+- [34m@aws/lambda-invoke-store[39m
+- [34m@aws-sdk/middleware-sdk-s3[39m
+- [34m@smithy/signature-v4[39m
+- [34m@aws-sdk/signature-v4-multi-region[39m
+- [34m@aws-sdk/xml-builder[39m
+- [34m@aws-sdk/credential-provider-env[39m
+- [34m@smithy/credential-provider-imds[39m
+- [34m@smithy/node-http-handler[39m
+- [34m@aws-sdk/credential-provider-http[39m
+- [34m@aws-sdk/nested-clients[39m
+- [34m@aws-sdk/token-providers[39m
+- [34m@aws-sdk/credential-provider-sso[39m
+- [34m@aws-sdk/credential-provider-login[39m
+- [34m@aws-sdk/credential-provider-process[39m
+- [34m@aws-sdk/credential-provider-web-identity[39m
+- [34m@aws-sdk/credential-provider-ini[39m
+- [34m@aws-sdk/credential-provider-node[39m
+- [34m@aws-sdk/client-s3[39m
+- [34msharp[39m
+- [34mdetect-libc[39m
+- [34msemver[39m
+- [34m@img/colour[39m
+- [34mbowser[39m
+[34mℹ[39m [2mdist/[22m[1mindex.mjs[22m                      [2m 1.73 MB[22m
+[34mℹ[39m [2mdist/[22mes5-CX6NZu4r.mjs               [2m52.90 kB[22m [2m│ gzip: 8.45 kB[22m
+[34mℹ[39m [2mdist/[22mrolldown-runtime-CE-6LUnI.mjs  [2m 1.89 kB[22m [2m│ gzip: 0.85 kB[22m
+[34mℹ[39m [2mdist/[22m[32m[1mindex.d.mts[22m[39m                    [2m 2.63 kB[22m [2m│ gzip: 1.13 kB[22m
+[34mℹ[39m 4 files, total: 1.79 MB
+[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (67%)
+  - rolldown-plugin-dts:generate (30%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[32m✔[39m Build complete in [32m5413ms[39m
