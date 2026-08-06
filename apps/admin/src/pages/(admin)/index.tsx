@@ -86,8 +86,7 @@ function DashboardPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3 px-6 pb-4">
           <AttentionLink
-            to="/catalog/inventory"
-            search={{ stock: "low" }}
+            to="/catalog/products"
             label="Low stock"
             count={data?.lowStockCount}
             loading={isLoading}

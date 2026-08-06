@@ -25,8 +25,6 @@ import { Route as adminOverviewOpsRouteImport } from './pages/(admin)/overview/o
 import { Route as adminOverviewBiRouteImport } from './pages/(admin)/overview/bi'
 import { Route as adminOverviewAnalyticsRouteImport } from './pages/(admin)/overview/analytics'
 import { Route as adminOperationsServiceAreasRouteImport } from './pages/(admin)/operations/service-areas'
-import { Route as adminOperationsReturnsRouteImport } from './pages/(admin)/operations/returns'
-import { Route as adminOperationsDispatchRouteImport } from './pages/(admin)/operations/dispatch'
 import { Route as adminLegalConfigRouteImport } from './pages/(admin)/legal/config'
 import { Route as adminLegalBannersRouteImport } from './pages/(admin)/legal/banners'
 import { Route as adminFinanceTaxRouteImport } from './pages/(admin)/finance/tax'
@@ -37,29 +35,23 @@ import { Route as adminCustomersSegmentsRouteImport } from './pages/(admin)/cust
 import { Route as adminCustomersReviewsRouteImport } from './pages/(admin)/customers/reviews'
 import { Route as adminCustomersReferralsRouteImport } from './pages/(admin)/customers/referrals'
 import { Route as adminCustomersJourneysRouteImport } from './pages/(admin)/customers/journeys'
+import { Route as adminCatalogVendorsRouteImport } from './pages/(admin)/catalog/vendors'
+import { Route as adminCatalogProductsRouteImport } from './pages/(admin)/catalog/products'
 import { Route as adminCatalogPricingRouteImport } from './pages/(admin)/catalog/pricing'
 import { Route as adminCatalogMerchandisingRouteImport } from './pages/(admin)/catalog/merchandising'
 import { Route as adminCatalogHubsRouteImport } from './pages/(admin)/catalog/hubs'
 import { Route as adminCatalogCollectionsRouteImport } from './pages/(admin)/catalog/collections'
 import { Route as adminCatalogBrandsRouteImport } from './pages/(admin)/catalog/brands'
-import { Route as adminOperationsTicketsIndexRouteImport } from './pages/(admin)/operations/tickets/index'
-import { Route as adminOperationsRidersIndexRouteImport } from './pages/(admin)/operations/riders/index'
 import { Route as adminOperationsOrdersIndexRouteImport } from './pages/(admin)/operations/orders/index'
 import { Route as adminLegalPagesIndexRouteImport } from './pages/(admin)/legal/pages/index'
 import { Route as adminFinanceSubscriptionsIndexRouteImport } from './pages/(admin)/finance/subscriptions/index'
 import { Route as adminFinancePaymentsIndexRouteImport } from './pages/(admin)/finance/payments/index'
 import { Route as adminFinanceCouponsIndexRouteImport } from './pages/(admin)/finance/coupons/index'
 import { Route as adminCustomersBroadcastsIndexRouteImport } from './pages/(admin)/customers/broadcasts/index'
-import { Route as adminCatalogVendorsIndexRouteImport } from './pages/(admin)/catalog/vendors/index'
-import { Route as adminCatalogProductsIndexRouteImport } from './pages/(admin)/catalog/products/index'
-import { Route as adminCatalogInventoryIndexRouteImport } from './pages/(admin)/catalog/inventory/index'
 import { Route as adminCatalogCategoriesIndexRouteImport } from './pages/(admin)/catalog/categories/index'
-import { Route as adminCatalogBundlesIndexRouteImport } from './pages/(admin)/catalog/bundles/index'
 import { Route as adminPlatformUsersListRouteImport } from './pages/(admin)/platform/users/list'
 import { Route as adminPlatformUsersAnalyticsRouteImport } from './pages/(admin)/platform/users/analytics'
 import { Route as adminPlatformUsersUserIdRouteImport } from './pages/(admin)/platform/users/$userId'
-import { Route as adminOperationsTicketsTicketIdRouteImport } from './pages/(admin)/operations/tickets/$ticketId'
-import { Route as adminOperationsRidersRiderIdRouteImport } from './pages/(admin)/operations/riders/$riderId'
 import { Route as adminOperationsOrdersOrderIdRouteImport } from './pages/(admin)/operations/orders/$orderId'
 import { Route as adminLegalPagesPageSlugRouteImport } from './pages/(admin)/legal/pages/$pageSlug'
 import { Route as adminFinanceSubscriptionsUpcomingRouteImport } from './pages/(admin)/finance/subscriptions/upcoming'
@@ -67,23 +59,10 @@ import { Route as adminFinancePaymentsFailedRouteImport } from './pages/(admin)/
 import { Route as adminFinancePaymentsPaymentIdRouteImport } from './pages/(admin)/finance/payments/$paymentId'
 import { Route as adminFinanceCouponsNewRouteImport } from './pages/(admin)/finance/coupons/new'
 import { Route as adminCustomersBroadcastsNewRouteImport } from './pages/(admin)/customers/broadcasts/new'
-import { Route as adminCatalogVendorsNewRouteImport } from './pages/(admin)/catalog/vendors/new'
-import { Route as adminCatalogProductsNewRouteImport } from './pages/(admin)/catalog/products/new'
-import { Route as adminCatalogProductsBulkRouteImport } from './pages/(admin)/catalog/products/bulk'
-import { Route as adminCatalogInventoryBatchesRouteImport } from './pages/(admin)/catalog/inventory/batches'
-import { Route as adminCatalogInventoryAdjustmentsRouteImport } from './pages/(admin)/catalog/inventory/adjustments'
 import { Route as adminCatalogCategoriesNewRouteImport } from './pages/(admin)/catalog/categories/new'
 import { Route as adminCatalogCategoriesSlugRouteImport } from './pages/(admin)/catalog/categories/$slug'
-import { Route as adminCatalogBundlesNewRouteImport } from './pages/(admin)/catalog/bundles/new'
 import { Route as adminFinanceCouponsCouponIdIndexRouteImport } from './pages/(admin)/finance/coupons/$couponId/index'
-import { Route as adminCatalogVendorsVendorIdIndexRouteImport } from './pages/(admin)/catalog/vendors/$vendorId/index'
-import { Route as adminCatalogProductsProductIdIndexRouteImport } from './pages/(admin)/catalog/products/$productId/index'
-import { Route as adminCatalogBundlesBundleIdIndexRouteImport } from './pages/(admin)/catalog/bundles/$bundleId/index'
 import { Route as adminFinanceCouponsCouponIdEditRouteImport } from './pages/(admin)/finance/coupons/$couponId/edit'
-import { Route as adminCatalogVendorsVendorIdEditRouteImport } from './pages/(admin)/catalog/vendors/$vendorId/edit'
-import { Route as adminCatalogProductsProductIdImagesRouteImport } from './pages/(admin)/catalog/products/$productId/images'
-import { Route as adminCatalogProductsProductIdEditRouteImport } from './pages/(admin)/catalog/products/$productId/edit'
-import { Route as adminCatalogBundlesBundleIdEditRouteImport } from './pages/(admin)/catalog/bundles/$bundleId/edit'
 
 const ForbiddenRoute = ForbiddenRouteImport.update({
   id: '/forbidden',
@@ -167,16 +146,6 @@ const adminOperationsServiceAreasRoute =
     path: '/operations/service-areas',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminOperationsReturnsRoute = adminOperationsReturnsRouteImport.update({
-  id: '/operations/returns',
-  path: '/operations/returns',
-  getParentRoute: () => adminLayoutRoute,
-} as any)
-const adminOperationsDispatchRoute = adminOperationsDispatchRouteImport.update({
-  id: '/operations/dispatch',
-  path: '/operations/dispatch',
-  getParentRoute: () => adminLayoutRoute,
-} as any)
 const adminLegalConfigRoute = adminLegalConfigRouteImport.update({
   id: '/legal/config',
   path: '/legal/config',
@@ -228,6 +197,16 @@ const adminCustomersJourneysRoute = adminCustomersJourneysRouteImport.update({
   path: '/customers/journeys',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminCatalogVendorsRoute = adminCatalogVendorsRouteImport.update({
+  id: '/catalog/vendors',
+  path: '/catalog/vendors',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
+const adminCatalogProductsRoute = adminCatalogProductsRouteImport.update({
+  id: '/catalog/products',
+  path: '/catalog/products',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
 const adminCatalogPricingRoute = adminCatalogPricingRouteImport.update({
   id: '/catalog/pricing',
   path: '/catalog/pricing',
@@ -254,18 +233,6 @@ const adminCatalogBrandsRoute = adminCatalogBrandsRouteImport.update({
   path: '/catalog/brands',
   getParentRoute: () => adminLayoutRoute,
 } as any)
-const adminOperationsTicketsIndexRoute =
-  adminOperationsTicketsIndexRouteImport.update({
-    id: '/operations/tickets/',
-    path: '/operations/tickets/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminOperationsRidersIndexRoute =
-  adminOperationsRidersIndexRouteImport.update({
-    id: '/operations/riders/',
-    path: '/operations/riders/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminOperationsOrdersIndexRoute =
   adminOperationsOrdersIndexRouteImport.update({
     id: '/operations/orders/',
@@ -301,34 +268,10 @@ const adminCustomersBroadcastsIndexRoute =
     path: '/customers/broadcasts/',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminCatalogVendorsIndexRoute =
-  adminCatalogVendorsIndexRouteImport.update({
-    id: '/catalog/vendors/',
-    path: '/catalog/vendors/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogProductsIndexRoute =
-  adminCatalogProductsIndexRouteImport.update({
-    id: '/catalog/products/',
-    path: '/catalog/products/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogInventoryIndexRoute =
-  adminCatalogInventoryIndexRouteImport.update({
-    id: '/catalog/inventory/',
-    path: '/catalog/inventory/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminCatalogCategoriesIndexRoute =
   adminCatalogCategoriesIndexRouteImport.update({
     id: '/catalog/categories/',
     path: '/catalog/categories/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogBundlesIndexRoute =
-  adminCatalogBundlesIndexRouteImport.update({
-    id: '/catalog/bundles/',
-    path: '/catalog/bundles/',
     getParentRoute: () => adminLayoutRoute,
   } as any)
 const adminPlatformUsersListRoute = adminPlatformUsersListRouteImport.update({
@@ -346,18 +289,6 @@ const adminPlatformUsersUserIdRoute =
   adminPlatformUsersUserIdRouteImport.update({
     id: '/platform/users/$userId',
     path: '/platform/users/$userId',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminOperationsTicketsTicketIdRoute =
-  adminOperationsTicketsTicketIdRouteImport.update({
-    id: '/operations/tickets/$ticketId',
-    path: '/operations/tickets/$ticketId',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminOperationsRidersRiderIdRoute =
-  adminOperationsRidersRiderIdRouteImport.update({
-    id: '/operations/riders/$riderId',
-    path: '/operations/riders/$riderId',
     getParentRoute: () => adminLayoutRoute,
   } as any)
 const adminOperationsOrdersOrderIdRoute =
@@ -400,34 +331,6 @@ const adminCustomersBroadcastsNewRoute =
     path: '/customers/broadcasts/new',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminCatalogVendorsNewRoute = adminCatalogVendorsNewRouteImport.update({
-  id: '/catalog/vendors/new',
-  path: '/catalog/vendors/new',
-  getParentRoute: () => adminLayoutRoute,
-} as any)
-const adminCatalogProductsNewRoute = adminCatalogProductsNewRouteImport.update({
-  id: '/catalog/products/new',
-  path: '/catalog/products/new',
-  getParentRoute: () => adminLayoutRoute,
-} as any)
-const adminCatalogProductsBulkRoute =
-  adminCatalogProductsBulkRouteImport.update({
-    id: '/catalog/products/bulk',
-    path: '/catalog/products/bulk',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogInventoryBatchesRoute =
-  adminCatalogInventoryBatchesRouteImport.update({
-    id: '/catalog/inventory/batches',
-    path: '/catalog/inventory/batches',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogInventoryAdjustmentsRoute =
-  adminCatalogInventoryAdjustmentsRouteImport.update({
-    id: '/catalog/inventory/adjustments',
-    path: '/catalog/inventory/adjustments',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminCatalogCategoriesNewRoute =
   adminCatalogCategoriesNewRouteImport.update({
     id: '/catalog/categories/new',
@@ -440,63 +343,16 @@ const adminCatalogCategoriesSlugRoute =
     path: '/catalog/categories/$slug',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminCatalogBundlesNewRoute = adminCatalogBundlesNewRouteImport.update({
-  id: '/catalog/bundles/new',
-  path: '/catalog/bundles/new',
-  getParentRoute: () => adminLayoutRoute,
-} as any)
 const adminFinanceCouponsCouponIdIndexRoute =
   adminFinanceCouponsCouponIdIndexRouteImport.update({
     id: '/finance/coupons/$couponId/',
     path: '/finance/coupons/$couponId/',
     getParentRoute: () => adminLayoutRoute,
   } as any)
-const adminCatalogVendorsVendorIdIndexRoute =
-  adminCatalogVendorsVendorIdIndexRouteImport.update({
-    id: '/catalog/vendors/$vendorId/',
-    path: '/catalog/vendors/$vendorId/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogProductsProductIdIndexRoute =
-  adminCatalogProductsProductIdIndexRouteImport.update({
-    id: '/catalog/products/$productId/',
-    path: '/catalog/products/$productId/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogBundlesBundleIdIndexRoute =
-  adminCatalogBundlesBundleIdIndexRouteImport.update({
-    id: '/catalog/bundles/$bundleId/',
-    path: '/catalog/bundles/$bundleId/',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
 const adminFinanceCouponsCouponIdEditRoute =
   adminFinanceCouponsCouponIdEditRouteImport.update({
     id: '/finance/coupons/$couponId/edit',
     path: '/finance/coupons/$couponId/edit',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogVendorsVendorIdEditRoute =
-  adminCatalogVendorsVendorIdEditRouteImport.update({
-    id: '/catalog/vendors/$vendorId/edit',
-    path: '/catalog/vendors/$vendorId/edit',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogProductsProductIdImagesRoute =
-  adminCatalogProductsProductIdImagesRouteImport.update({
-    id: '/catalog/products/$productId/images',
-    path: '/catalog/products/$productId/images',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogProductsProductIdEditRoute =
-  adminCatalogProductsProductIdEditRouteImport.update({
-    id: '/catalog/products/$productId/edit',
-    path: '/catalog/products/$productId/edit',
-    getParentRoute: () => adminLayoutRoute,
-  } as any)
-const adminCatalogBundlesBundleIdEditRoute =
-  adminCatalogBundlesBundleIdEditRouteImport.update({
-    id: '/catalog/bundles/$bundleId/edit',
-    path: '/catalog/bundles/$bundleId/edit',
     getParentRoute: () => adminLayoutRoute,
   } as any)
 
@@ -509,6 +365,8 @@ export interface FileRoutesByFullPath {
   '/catalog/hubs': typeof adminCatalogHubsRoute
   '/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/catalog/pricing': typeof adminCatalogPricingRoute
+  '/catalog/products': typeof adminCatalogProductsRoute
+  '/catalog/vendors': typeof adminCatalogVendorsRoute
   '/customers/journeys': typeof adminCustomersJourneysRoute
   '/customers/referrals': typeof adminCustomersReferralsRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
@@ -519,8 +377,6 @@ export interface FileRoutesByFullPath {
   '/finance/tax': typeof adminFinanceTaxRoute
   '/legal/banners': typeof adminLegalBannersRoute
   '/legal/config': typeof adminLegalConfigRoute
-  '/operations/dispatch': typeof adminOperationsDispatchRoute
-  '/operations/returns': typeof adminOperationsReturnsRoute
   '/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/overview/bi': typeof adminOverviewBiRoute
@@ -533,14 +389,8 @@ export interface FileRoutesByFullPath {
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/roles/': typeof adminRolesIndexRoute
   '/staff/': typeof adminStaffIndexRoute
-  '/catalog/bundles/new': typeof adminCatalogBundlesNewRoute
   '/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
-  '/catalog/inventory/adjustments': typeof adminCatalogInventoryAdjustmentsRoute
-  '/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
-  '/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
-  '/catalog/products/new': typeof adminCatalogProductsNewRoute
-  '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
@@ -548,32 +398,17 @@ export interface FileRoutesByFullPath {
   '/finance/subscriptions/upcoming': typeof adminFinanceSubscriptionsUpcomingRoute
   '/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
-  '/operations/riders/$riderId': typeof adminOperationsRidersRiderIdRoute
-  '/operations/tickets/$ticketId': typeof adminOperationsTicketsTicketIdRoute
   '/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
   '/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/platform/users/list': typeof adminPlatformUsersListRoute
-  '/catalog/bundles/': typeof adminCatalogBundlesIndexRoute
   '/catalog/categories/': typeof adminCatalogCategoriesIndexRoute
-  '/catalog/inventory/': typeof adminCatalogInventoryIndexRoute
-  '/catalog/products/': typeof adminCatalogProductsIndexRoute
-  '/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
   '/finance/coupons/': typeof adminFinanceCouponsIndexRoute
   '/finance/payments/': typeof adminFinancePaymentsIndexRoute
   '/finance/subscriptions/': typeof adminFinanceSubscriptionsIndexRoute
   '/legal/pages/': typeof adminLegalPagesIndexRoute
   '/operations/orders/': typeof adminOperationsOrdersIndexRoute
-  '/operations/riders/': typeof adminOperationsRidersIndexRoute
-  '/operations/tickets/': typeof adminOperationsTicketsIndexRoute
-  '/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
-  '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
-  '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
-  '/catalog/bundles/$bundleId/': typeof adminCatalogBundlesBundleIdIndexRoute
-  '/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
-  '/catalog/vendors/$vendorId/': typeof adminCatalogVendorsVendorIdIndexRoute
   '/finance/coupons/$couponId/': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -585,6 +420,8 @@ export interface FileRoutesByTo {
   '/catalog/hubs': typeof adminCatalogHubsRoute
   '/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/catalog/pricing': typeof adminCatalogPricingRoute
+  '/catalog/products': typeof adminCatalogProductsRoute
+  '/catalog/vendors': typeof adminCatalogVendorsRoute
   '/customers/journeys': typeof adminCustomersJourneysRoute
   '/customers/referrals': typeof adminCustomersReferralsRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
@@ -595,8 +432,6 @@ export interface FileRoutesByTo {
   '/finance/tax': typeof adminFinanceTaxRoute
   '/legal/banners': typeof adminLegalBannersRoute
   '/legal/config': typeof adminLegalConfigRoute
-  '/operations/dispatch': typeof adminOperationsDispatchRoute
-  '/operations/returns': typeof adminOperationsReturnsRoute
   '/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/overview/bi': typeof adminOverviewBiRoute
@@ -609,14 +444,8 @@ export interface FileRoutesByTo {
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/roles': typeof adminRolesIndexRoute
   '/staff': typeof adminStaffIndexRoute
-  '/catalog/bundles/new': typeof adminCatalogBundlesNewRoute
   '/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
-  '/catalog/inventory/adjustments': typeof adminCatalogInventoryAdjustmentsRoute
-  '/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
-  '/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
-  '/catalog/products/new': typeof adminCatalogProductsNewRoute
-  '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
@@ -624,32 +453,17 @@ export interface FileRoutesByTo {
   '/finance/subscriptions/upcoming': typeof adminFinanceSubscriptionsUpcomingRoute
   '/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
-  '/operations/riders/$riderId': typeof adminOperationsRidersRiderIdRoute
-  '/operations/tickets/$ticketId': typeof adminOperationsTicketsTicketIdRoute
   '/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
   '/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/platform/users/list': typeof adminPlatformUsersListRoute
-  '/catalog/bundles': typeof adminCatalogBundlesIndexRoute
   '/catalog/categories': typeof adminCatalogCategoriesIndexRoute
-  '/catalog/inventory': typeof adminCatalogInventoryIndexRoute
-  '/catalog/products': typeof adminCatalogProductsIndexRoute
-  '/catalog/vendors': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts': typeof adminCustomersBroadcastsIndexRoute
   '/finance/coupons': typeof adminFinanceCouponsIndexRoute
   '/finance/payments': typeof adminFinancePaymentsIndexRoute
   '/finance/subscriptions': typeof adminFinanceSubscriptionsIndexRoute
   '/legal/pages': typeof adminLegalPagesIndexRoute
   '/operations/orders': typeof adminOperationsOrdersIndexRoute
-  '/operations/riders': typeof adminOperationsRidersIndexRoute
-  '/operations/tickets': typeof adminOperationsTicketsIndexRoute
-  '/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
-  '/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
-  '/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
-  '/catalog/bundles/$bundleId': typeof adminCatalogBundlesBundleIdIndexRoute
-  '/catalog/products/$productId': typeof adminCatalogProductsProductIdIndexRoute
-  '/catalog/vendors/$vendorId': typeof adminCatalogVendorsVendorIdIndexRoute
   '/finance/coupons/$couponId': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRoutesById {
@@ -663,6 +477,8 @@ export interface FileRoutesById {
   '/(admin)/catalog/hubs': typeof adminCatalogHubsRoute
   '/(admin)/catalog/merchandising': typeof adminCatalogMerchandisingRoute
   '/(admin)/catalog/pricing': typeof adminCatalogPricingRoute
+  '/(admin)/catalog/products': typeof adminCatalogProductsRoute
+  '/(admin)/catalog/vendors': typeof adminCatalogVendorsRoute
   '/(admin)/customers/journeys': typeof adminCustomersJourneysRoute
   '/(admin)/customers/referrals': typeof adminCustomersReferralsRoute
   '/(admin)/customers/reviews': typeof adminCustomersReviewsRoute
@@ -673,8 +489,6 @@ export interface FileRoutesById {
   '/(admin)/finance/tax': typeof adminFinanceTaxRoute
   '/(admin)/legal/banners': typeof adminLegalBannersRoute
   '/(admin)/legal/config': typeof adminLegalConfigRoute
-  '/(admin)/operations/dispatch': typeof adminOperationsDispatchRoute
-  '/(admin)/operations/returns': typeof adminOperationsReturnsRoute
   '/(admin)/operations/service-areas': typeof adminOperationsServiceAreasRoute
   '/(admin)/overview/analytics': typeof adminOverviewAnalyticsRoute
   '/(admin)/overview/bi': typeof adminOverviewBiRoute
@@ -687,14 +501,8 @@ export interface FileRoutesById {
   '/(admin)/staff/audit-log': typeof adminStaffAuditLogRoute
   '/(admin)/roles/': typeof adminRolesIndexRoute
   '/(admin)/staff/': typeof adminStaffIndexRoute
-  '/(admin)/catalog/bundles/new': typeof adminCatalogBundlesNewRoute
   '/(admin)/catalog/categories/$slug': typeof adminCatalogCategoriesSlugRoute
   '/(admin)/catalog/categories/new': typeof adminCatalogCategoriesNewRoute
-  '/(admin)/catalog/inventory/adjustments': typeof adminCatalogInventoryAdjustmentsRoute
-  '/(admin)/catalog/inventory/batches': typeof adminCatalogInventoryBatchesRoute
-  '/(admin)/catalog/products/bulk': typeof adminCatalogProductsBulkRoute
-  '/(admin)/catalog/products/new': typeof adminCatalogProductsNewRoute
-  '/(admin)/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/(admin)/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
   '/(admin)/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/(admin)/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
@@ -702,32 +510,17 @@ export interface FileRoutesById {
   '/(admin)/finance/subscriptions/upcoming': typeof adminFinanceSubscriptionsUpcomingRoute
   '/(admin)/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/(admin)/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
-  '/(admin)/operations/riders/$riderId': typeof adminOperationsRidersRiderIdRoute
-  '/(admin)/operations/tickets/$ticketId': typeof adminOperationsTicketsTicketIdRoute
   '/(admin)/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
   '/(admin)/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/(admin)/platform/users/list': typeof adminPlatformUsersListRoute
-  '/(admin)/catalog/bundles/': typeof adminCatalogBundlesIndexRoute
   '/(admin)/catalog/categories/': typeof adminCatalogCategoriesIndexRoute
-  '/(admin)/catalog/inventory/': typeof adminCatalogInventoryIndexRoute
-  '/(admin)/catalog/products/': typeof adminCatalogProductsIndexRoute
-  '/(admin)/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/(admin)/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
   '/(admin)/finance/coupons/': typeof adminFinanceCouponsIndexRoute
   '/(admin)/finance/payments/': typeof adminFinancePaymentsIndexRoute
   '/(admin)/finance/subscriptions/': typeof adminFinanceSubscriptionsIndexRoute
   '/(admin)/legal/pages/': typeof adminLegalPagesIndexRoute
   '/(admin)/operations/orders/': typeof adminOperationsOrdersIndexRoute
-  '/(admin)/operations/riders/': typeof adminOperationsRidersIndexRoute
-  '/(admin)/operations/tickets/': typeof adminOperationsTicketsIndexRoute
-  '/(admin)/catalog/bundles/$bundleId/edit': typeof adminCatalogBundlesBundleIdEditRoute
-  '/(admin)/catalog/products/$productId/edit': typeof adminCatalogProductsProductIdEditRoute
-  '/(admin)/catalog/products/$productId/images': typeof adminCatalogProductsProductIdImagesRoute
-  '/(admin)/catalog/vendors/$vendorId/edit': typeof adminCatalogVendorsVendorIdEditRoute
   '/(admin)/finance/coupons/$couponId/edit': typeof adminFinanceCouponsCouponIdEditRoute
-  '/(admin)/catalog/bundles/$bundleId/': typeof adminCatalogBundlesBundleIdIndexRoute
-  '/(admin)/catalog/products/$productId/': typeof adminCatalogProductsProductIdIndexRoute
-  '/(admin)/catalog/vendors/$vendorId/': typeof adminCatalogVendorsVendorIdIndexRoute
   '/(admin)/finance/coupons/$couponId/': typeof adminFinanceCouponsCouponIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -741,6 +534,8 @@ export interface FileRouteTypes {
     | '/catalog/hubs'
     | '/catalog/merchandising'
     | '/catalog/pricing'
+    | '/catalog/products'
+    | '/catalog/vendors'
     | '/customers/journeys'
     | '/customers/referrals'
     | '/customers/reviews'
@@ -751,8 +546,6 @@ export interface FileRouteTypes {
     | '/finance/tax'
     | '/legal/banners'
     | '/legal/config'
-    | '/operations/dispatch'
-    | '/operations/returns'
     | '/operations/service-areas'
     | '/overview/analytics'
     | '/overview/bi'
@@ -765,14 +558,8 @@ export interface FileRouteTypes {
     | '/staff/audit-log'
     | '/roles/'
     | '/staff/'
-    | '/catalog/bundles/new'
     | '/catalog/categories/$slug'
     | '/catalog/categories/new'
-    | '/catalog/inventory/adjustments'
-    | '/catalog/inventory/batches'
-    | '/catalog/products/bulk'
-    | '/catalog/products/new'
-    | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
@@ -780,32 +567,17 @@ export interface FileRouteTypes {
     | '/finance/subscriptions/upcoming'
     | '/legal/pages/$pageSlug'
     | '/operations/orders/$orderId'
-    | '/operations/riders/$riderId'
-    | '/operations/tickets/$ticketId'
     | '/platform/users/$userId'
     | '/platform/users/analytics'
     | '/platform/users/list'
-    | '/catalog/bundles/'
     | '/catalog/categories/'
-    | '/catalog/inventory/'
-    | '/catalog/products/'
-    | '/catalog/vendors/'
     | '/customers/broadcasts/'
     | '/finance/coupons/'
     | '/finance/payments/'
     | '/finance/subscriptions/'
     | '/legal/pages/'
     | '/operations/orders/'
-    | '/operations/riders/'
-    | '/operations/tickets/'
-    | '/catalog/bundles/$bundleId/edit'
-    | '/catalog/products/$productId/edit'
-    | '/catalog/products/$productId/images'
-    | '/catalog/vendors/$vendorId/edit'
     | '/finance/coupons/$couponId/edit'
-    | '/catalog/bundles/$bundleId/'
-    | '/catalog/products/$productId/'
-    | '/catalog/vendors/$vendorId/'
     | '/finance/coupons/$couponId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -817,6 +589,8 @@ export interface FileRouteTypes {
     | '/catalog/hubs'
     | '/catalog/merchandising'
     | '/catalog/pricing'
+    | '/catalog/products'
+    | '/catalog/vendors'
     | '/customers/journeys'
     | '/customers/referrals'
     | '/customers/reviews'
@@ -827,8 +601,6 @@ export interface FileRouteTypes {
     | '/finance/tax'
     | '/legal/banners'
     | '/legal/config'
-    | '/operations/dispatch'
-    | '/operations/returns'
     | '/operations/service-areas'
     | '/overview/analytics'
     | '/overview/bi'
@@ -841,14 +613,8 @@ export interface FileRouteTypes {
     | '/staff/audit-log'
     | '/roles'
     | '/staff'
-    | '/catalog/bundles/new'
     | '/catalog/categories/$slug'
     | '/catalog/categories/new'
-    | '/catalog/inventory/adjustments'
-    | '/catalog/inventory/batches'
-    | '/catalog/products/bulk'
-    | '/catalog/products/new'
-    | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
@@ -856,32 +622,17 @@ export interface FileRouteTypes {
     | '/finance/subscriptions/upcoming'
     | '/legal/pages/$pageSlug'
     | '/operations/orders/$orderId'
-    | '/operations/riders/$riderId'
-    | '/operations/tickets/$ticketId'
     | '/platform/users/$userId'
     | '/platform/users/analytics'
     | '/platform/users/list'
-    | '/catalog/bundles'
     | '/catalog/categories'
-    | '/catalog/inventory'
-    | '/catalog/products'
-    | '/catalog/vendors'
     | '/customers/broadcasts'
     | '/finance/coupons'
     | '/finance/payments'
     | '/finance/subscriptions'
     | '/legal/pages'
     | '/operations/orders'
-    | '/operations/riders'
-    | '/operations/tickets'
-    | '/catalog/bundles/$bundleId/edit'
-    | '/catalog/products/$productId/edit'
-    | '/catalog/products/$productId/images'
-    | '/catalog/vendors/$vendorId/edit'
     | '/finance/coupons/$couponId/edit'
-    | '/catalog/bundles/$bundleId'
-    | '/catalog/products/$productId'
-    | '/catalog/vendors/$vendorId'
     | '/finance/coupons/$couponId'
   id:
     | '__root__'
@@ -894,6 +645,8 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/hubs'
     | '/(admin)/catalog/merchandising'
     | '/(admin)/catalog/pricing'
+    | '/(admin)/catalog/products'
+    | '/(admin)/catalog/vendors'
     | '/(admin)/customers/journeys'
     | '/(admin)/customers/referrals'
     | '/(admin)/customers/reviews'
@@ -904,8 +657,6 @@ export interface FileRouteTypes {
     | '/(admin)/finance/tax'
     | '/(admin)/legal/banners'
     | '/(admin)/legal/config'
-    | '/(admin)/operations/dispatch'
-    | '/(admin)/operations/returns'
     | '/(admin)/operations/service-areas'
     | '/(admin)/overview/analytics'
     | '/(admin)/overview/bi'
@@ -918,14 +669,8 @@ export interface FileRouteTypes {
     | '/(admin)/staff/audit-log'
     | '/(admin)/roles/'
     | '/(admin)/staff/'
-    | '/(admin)/catalog/bundles/new'
     | '/(admin)/catalog/categories/$slug'
     | '/(admin)/catalog/categories/new'
-    | '/(admin)/catalog/inventory/adjustments'
-    | '/(admin)/catalog/inventory/batches'
-    | '/(admin)/catalog/products/bulk'
-    | '/(admin)/catalog/products/new'
-    | '/(admin)/catalog/vendors/new'
     | '/(admin)/customers/broadcasts/new'
     | '/(admin)/finance/coupons/new'
     | '/(admin)/finance/payments/$paymentId'
@@ -933,32 +678,17 @@ export interface FileRouteTypes {
     | '/(admin)/finance/subscriptions/upcoming'
     | '/(admin)/legal/pages/$pageSlug'
     | '/(admin)/operations/orders/$orderId'
-    | '/(admin)/operations/riders/$riderId'
-    | '/(admin)/operations/tickets/$ticketId'
     | '/(admin)/platform/users/$userId'
     | '/(admin)/platform/users/analytics'
     | '/(admin)/platform/users/list'
-    | '/(admin)/catalog/bundles/'
     | '/(admin)/catalog/categories/'
-    | '/(admin)/catalog/inventory/'
-    | '/(admin)/catalog/products/'
-    | '/(admin)/catalog/vendors/'
     | '/(admin)/customers/broadcasts/'
     | '/(admin)/finance/coupons/'
     | '/(admin)/finance/payments/'
     | '/(admin)/finance/subscriptions/'
     | '/(admin)/legal/pages/'
     | '/(admin)/operations/orders/'
-    | '/(admin)/operations/riders/'
-    | '/(admin)/operations/tickets/'
-    | '/(admin)/catalog/bundles/$bundleId/edit'
-    | '/(admin)/catalog/products/$productId/edit'
-    | '/(admin)/catalog/products/$productId/images'
-    | '/(admin)/catalog/vendors/$vendorId/edit'
     | '/(admin)/finance/coupons/$couponId/edit'
-    | '/(admin)/catalog/bundles/$bundleId/'
-    | '/(admin)/catalog/products/$productId/'
-    | '/(admin)/catalog/vendors/$vendorId/'
     | '/(admin)/finance/coupons/$couponId/'
   fileRoutesById: FileRoutesById
 }
@@ -1082,20 +812,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminOperationsServiceAreasRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/operations/returns': {
-      id: '/(admin)/operations/returns'
-      path: '/operations/returns'
-      fullPath: '/operations/returns'
-      preLoaderRoute: typeof adminOperationsReturnsRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/operations/dispatch': {
-      id: '/(admin)/operations/dispatch'
-      path: '/operations/dispatch'
-      fullPath: '/operations/dispatch'
-      preLoaderRoute: typeof adminOperationsDispatchRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/legal/config': {
       id: '/(admin)/legal/config'
       path: '/legal/config'
@@ -1166,6 +882,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCustomersJourneysRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/catalog/vendors': {
+      id: '/(admin)/catalog/vendors'
+      path: '/catalog/vendors'
+      fullPath: '/catalog/vendors'
+      preLoaderRoute: typeof adminCatalogVendorsRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/catalog/products': {
+      id: '/(admin)/catalog/products'
+      path: '/catalog/products'
+      fullPath: '/catalog/products'
+      preLoaderRoute: typeof adminCatalogProductsRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
     '/(admin)/catalog/pricing': {
       id: '/(admin)/catalog/pricing'
       path: '/catalog/pricing'
@@ -1199,20 +929,6 @@ declare module '@tanstack/react-router' {
       path: '/catalog/brands'
       fullPath: '/catalog/brands'
       preLoaderRoute: typeof adminCatalogBrandsRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/operations/tickets/': {
-      id: '/(admin)/operations/tickets/'
-      path: '/operations/tickets'
-      fullPath: '/operations/tickets/'
-      preLoaderRoute: typeof adminOperationsTicketsIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/operations/riders/': {
-      id: '/(admin)/operations/riders/'
-      path: '/operations/riders'
-      fullPath: '/operations/riders/'
-      preLoaderRoute: typeof adminOperationsRidersIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/operations/orders/': {
@@ -1257,39 +973,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCustomersBroadcastsIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/catalog/vendors/': {
-      id: '/(admin)/catalog/vendors/'
-      path: '/catalog/vendors'
-      fullPath: '/catalog/vendors/'
-      preLoaderRoute: typeof adminCatalogVendorsIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/': {
-      id: '/(admin)/catalog/products/'
-      path: '/catalog/products'
-      fullPath: '/catalog/products/'
-      preLoaderRoute: typeof adminCatalogProductsIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/inventory/': {
-      id: '/(admin)/catalog/inventory/'
-      path: '/catalog/inventory'
-      fullPath: '/catalog/inventory/'
-      preLoaderRoute: typeof adminCatalogInventoryIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/catalog/categories/': {
       id: '/(admin)/catalog/categories/'
       path: '/catalog/categories'
       fullPath: '/catalog/categories/'
       preLoaderRoute: typeof adminCatalogCategoriesIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/bundles/': {
-      id: '/(admin)/catalog/bundles/'
-      path: '/catalog/bundles'
-      fullPath: '/catalog/bundles/'
-      preLoaderRoute: typeof adminCatalogBundlesIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/platform/users/list': {
@@ -1311,20 +999,6 @@ declare module '@tanstack/react-router' {
       path: '/platform/users/$userId'
       fullPath: '/platform/users/$userId'
       preLoaderRoute: typeof adminPlatformUsersUserIdRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/operations/tickets/$ticketId': {
-      id: '/(admin)/operations/tickets/$ticketId'
-      path: '/operations/tickets/$ticketId'
-      fullPath: '/operations/tickets/$ticketId'
-      preLoaderRoute: typeof adminOperationsTicketsTicketIdRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/operations/riders/$riderId': {
-      id: '/(admin)/operations/riders/$riderId'
-      path: '/operations/riders/$riderId'
-      fullPath: '/operations/riders/$riderId'
-      preLoaderRoute: typeof adminOperationsRidersRiderIdRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/operations/orders/$orderId': {
@@ -1376,41 +1050,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCustomersBroadcastsNewRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/catalog/vendors/new': {
-      id: '/(admin)/catalog/vendors/new'
-      path: '/catalog/vendors/new'
-      fullPath: '/catalog/vendors/new'
-      preLoaderRoute: typeof adminCatalogVendorsNewRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/new': {
-      id: '/(admin)/catalog/products/new'
-      path: '/catalog/products/new'
-      fullPath: '/catalog/products/new'
-      preLoaderRoute: typeof adminCatalogProductsNewRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/bulk': {
-      id: '/(admin)/catalog/products/bulk'
-      path: '/catalog/products/bulk'
-      fullPath: '/catalog/products/bulk'
-      preLoaderRoute: typeof adminCatalogProductsBulkRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/inventory/batches': {
-      id: '/(admin)/catalog/inventory/batches'
-      path: '/catalog/inventory/batches'
-      fullPath: '/catalog/inventory/batches'
-      preLoaderRoute: typeof adminCatalogInventoryBatchesRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/inventory/adjustments': {
-      id: '/(admin)/catalog/inventory/adjustments'
-      path: '/catalog/inventory/adjustments'
-      fullPath: '/catalog/inventory/adjustments'
-      preLoaderRoute: typeof adminCatalogInventoryAdjustmentsRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/catalog/categories/new': {
       id: '/(admin)/catalog/categories/new'
       path: '/catalog/categories/new'
@@ -1425,13 +1064,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminCatalogCategoriesSlugRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/catalog/bundles/new': {
-      id: '/(admin)/catalog/bundles/new'
-      path: '/catalog/bundles/new'
-      fullPath: '/catalog/bundles/new'
-      preLoaderRoute: typeof adminCatalogBundlesNewRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/finance/coupons/$couponId/': {
       id: '/(admin)/finance/coupons/$couponId/'
       path: '/finance/coupons/$couponId'
@@ -1439,60 +1071,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminFinanceCouponsCouponIdIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
-    '/(admin)/catalog/vendors/$vendorId/': {
-      id: '/(admin)/catalog/vendors/$vendorId/'
-      path: '/catalog/vendors/$vendorId'
-      fullPath: '/catalog/vendors/$vendorId/'
-      preLoaderRoute: typeof adminCatalogVendorsVendorIdIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/$productId/': {
-      id: '/(admin)/catalog/products/$productId/'
-      path: '/catalog/products/$productId'
-      fullPath: '/catalog/products/$productId/'
-      preLoaderRoute: typeof adminCatalogProductsProductIdIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/bundles/$bundleId/': {
-      id: '/(admin)/catalog/bundles/$bundleId/'
-      path: '/catalog/bundles/$bundleId'
-      fullPath: '/catalog/bundles/$bundleId/'
-      preLoaderRoute: typeof adminCatalogBundlesBundleIdIndexRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
     '/(admin)/finance/coupons/$couponId/edit': {
       id: '/(admin)/finance/coupons/$couponId/edit'
       path: '/finance/coupons/$couponId/edit'
       fullPath: '/finance/coupons/$couponId/edit'
       preLoaderRoute: typeof adminFinanceCouponsCouponIdEditRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/vendors/$vendorId/edit': {
-      id: '/(admin)/catalog/vendors/$vendorId/edit'
-      path: '/catalog/vendors/$vendorId/edit'
-      fullPath: '/catalog/vendors/$vendorId/edit'
-      preLoaderRoute: typeof adminCatalogVendorsVendorIdEditRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/$productId/images': {
-      id: '/(admin)/catalog/products/$productId/images'
-      path: '/catalog/products/$productId/images'
-      fullPath: '/catalog/products/$productId/images'
-      preLoaderRoute: typeof adminCatalogProductsProductIdImagesRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/products/$productId/edit': {
-      id: '/(admin)/catalog/products/$productId/edit'
-      path: '/catalog/products/$productId/edit'
-      fullPath: '/catalog/products/$productId/edit'
-      preLoaderRoute: typeof adminCatalogProductsProductIdEditRouteImport
-      parentRoute: typeof adminLayoutRoute
-    }
-    '/(admin)/catalog/bundles/$bundleId/edit': {
-      id: '/(admin)/catalog/bundles/$bundleId/edit'
-      path: '/catalog/bundles/$bundleId/edit'
-      fullPath: '/catalog/bundles/$bundleId/edit'
-      preLoaderRoute: typeof adminCatalogBundlesBundleIdEditRouteImport
       parentRoute: typeof adminLayoutRoute
     }
   }
@@ -1505,6 +1088,8 @@ interface adminLayoutRouteChildren {
   adminCatalogHubsRoute: typeof adminCatalogHubsRoute
   adminCatalogMerchandisingRoute: typeof adminCatalogMerchandisingRoute
   adminCatalogPricingRoute: typeof adminCatalogPricingRoute
+  adminCatalogProductsRoute: typeof adminCatalogProductsRoute
+  adminCatalogVendorsRoute: typeof adminCatalogVendorsRoute
   adminCustomersJourneysRoute: typeof adminCustomersJourneysRoute
   adminCustomersReferralsRoute: typeof adminCustomersReferralsRoute
   adminCustomersReviewsRoute: typeof adminCustomersReviewsRoute
@@ -1515,8 +1100,6 @@ interface adminLayoutRouteChildren {
   adminFinanceTaxRoute: typeof adminFinanceTaxRoute
   adminLegalBannersRoute: typeof adminLegalBannersRoute
   adminLegalConfigRoute: typeof adminLegalConfigRoute
-  adminOperationsDispatchRoute: typeof adminOperationsDispatchRoute
-  adminOperationsReturnsRoute: typeof adminOperationsReturnsRoute
   adminOperationsServiceAreasRoute: typeof adminOperationsServiceAreasRoute
   adminOverviewAnalyticsRoute: typeof adminOverviewAnalyticsRoute
   adminOverviewBiRoute: typeof adminOverviewBiRoute
@@ -1529,14 +1112,8 @@ interface adminLayoutRouteChildren {
   adminStaffAuditLogRoute: typeof adminStaffAuditLogRoute
   adminRolesIndexRoute: typeof adminRolesIndexRoute
   adminStaffIndexRoute: typeof adminStaffIndexRoute
-  adminCatalogBundlesNewRoute: typeof adminCatalogBundlesNewRoute
   adminCatalogCategoriesSlugRoute: typeof adminCatalogCategoriesSlugRoute
   adminCatalogCategoriesNewRoute: typeof adminCatalogCategoriesNewRoute
-  adminCatalogInventoryAdjustmentsRoute: typeof adminCatalogInventoryAdjustmentsRoute
-  adminCatalogInventoryBatchesRoute: typeof adminCatalogInventoryBatchesRoute
-  adminCatalogProductsBulkRoute: typeof adminCatalogProductsBulkRoute
-  adminCatalogProductsNewRoute: typeof adminCatalogProductsNewRoute
-  adminCatalogVendorsNewRoute: typeof adminCatalogVendorsNewRoute
   adminCustomersBroadcastsNewRoute: typeof adminCustomersBroadcastsNewRoute
   adminFinanceCouponsNewRoute: typeof adminFinanceCouponsNewRoute
   adminFinancePaymentsPaymentIdRoute: typeof adminFinancePaymentsPaymentIdRoute
@@ -1544,32 +1121,17 @@ interface adminLayoutRouteChildren {
   adminFinanceSubscriptionsUpcomingRoute: typeof adminFinanceSubscriptionsUpcomingRoute
   adminLegalPagesPageSlugRoute: typeof adminLegalPagesPageSlugRoute
   adminOperationsOrdersOrderIdRoute: typeof adminOperationsOrdersOrderIdRoute
-  adminOperationsRidersRiderIdRoute: typeof adminOperationsRidersRiderIdRoute
-  adminOperationsTicketsTicketIdRoute: typeof adminOperationsTicketsTicketIdRoute
   adminPlatformUsersUserIdRoute: typeof adminPlatformUsersUserIdRoute
   adminPlatformUsersAnalyticsRoute: typeof adminPlatformUsersAnalyticsRoute
   adminPlatformUsersListRoute: typeof adminPlatformUsersListRoute
-  adminCatalogBundlesIndexRoute: typeof adminCatalogBundlesIndexRoute
   adminCatalogCategoriesIndexRoute: typeof adminCatalogCategoriesIndexRoute
-  adminCatalogInventoryIndexRoute: typeof adminCatalogInventoryIndexRoute
-  adminCatalogProductsIndexRoute: typeof adminCatalogProductsIndexRoute
-  adminCatalogVendorsIndexRoute: typeof adminCatalogVendorsIndexRoute
   adminCustomersBroadcastsIndexRoute: typeof adminCustomersBroadcastsIndexRoute
   adminFinanceCouponsIndexRoute: typeof adminFinanceCouponsIndexRoute
   adminFinancePaymentsIndexRoute: typeof adminFinancePaymentsIndexRoute
   adminFinanceSubscriptionsIndexRoute: typeof adminFinanceSubscriptionsIndexRoute
   adminLegalPagesIndexRoute: typeof adminLegalPagesIndexRoute
   adminOperationsOrdersIndexRoute: typeof adminOperationsOrdersIndexRoute
-  adminOperationsRidersIndexRoute: typeof adminOperationsRidersIndexRoute
-  adminOperationsTicketsIndexRoute: typeof adminOperationsTicketsIndexRoute
-  adminCatalogBundlesBundleIdEditRoute: typeof adminCatalogBundlesBundleIdEditRoute
-  adminCatalogProductsProductIdEditRoute: typeof adminCatalogProductsProductIdEditRoute
-  adminCatalogProductsProductIdImagesRoute: typeof adminCatalogProductsProductIdImagesRoute
-  adminCatalogVendorsVendorIdEditRoute: typeof adminCatalogVendorsVendorIdEditRoute
   adminFinanceCouponsCouponIdEditRoute: typeof adminFinanceCouponsCouponIdEditRoute
-  adminCatalogBundlesBundleIdIndexRoute: typeof adminCatalogBundlesBundleIdIndexRoute
-  adminCatalogProductsProductIdIndexRoute: typeof adminCatalogProductsProductIdIndexRoute
-  adminCatalogVendorsVendorIdIndexRoute: typeof adminCatalogVendorsVendorIdIndexRoute
   adminFinanceCouponsCouponIdIndexRoute: typeof adminFinanceCouponsCouponIdIndexRoute
 }
 
@@ -1580,6 +1142,8 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogHubsRoute: adminCatalogHubsRoute,
   adminCatalogMerchandisingRoute: adminCatalogMerchandisingRoute,
   adminCatalogPricingRoute: adminCatalogPricingRoute,
+  adminCatalogProductsRoute: adminCatalogProductsRoute,
+  adminCatalogVendorsRoute: adminCatalogVendorsRoute,
   adminCustomersJourneysRoute: adminCustomersJourneysRoute,
   adminCustomersReferralsRoute: adminCustomersReferralsRoute,
   adminCustomersReviewsRoute: adminCustomersReviewsRoute,
@@ -1590,8 +1154,6 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminFinanceTaxRoute: adminFinanceTaxRoute,
   adminLegalBannersRoute: adminLegalBannersRoute,
   adminLegalConfigRoute: adminLegalConfigRoute,
-  adminOperationsDispatchRoute: adminOperationsDispatchRoute,
-  adminOperationsReturnsRoute: adminOperationsReturnsRoute,
   adminOperationsServiceAreasRoute: adminOperationsServiceAreasRoute,
   adminOverviewAnalyticsRoute: adminOverviewAnalyticsRoute,
   adminOverviewBiRoute: adminOverviewBiRoute,
@@ -1604,14 +1166,8 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminStaffAuditLogRoute: adminStaffAuditLogRoute,
   adminRolesIndexRoute: adminRolesIndexRoute,
   adminStaffIndexRoute: adminStaffIndexRoute,
-  adminCatalogBundlesNewRoute: adminCatalogBundlesNewRoute,
   adminCatalogCategoriesSlugRoute: adminCatalogCategoriesSlugRoute,
   adminCatalogCategoriesNewRoute: adminCatalogCategoriesNewRoute,
-  adminCatalogInventoryAdjustmentsRoute: adminCatalogInventoryAdjustmentsRoute,
-  adminCatalogInventoryBatchesRoute: adminCatalogInventoryBatchesRoute,
-  adminCatalogProductsBulkRoute: adminCatalogProductsBulkRoute,
-  adminCatalogProductsNewRoute: adminCatalogProductsNewRoute,
-  adminCatalogVendorsNewRoute: adminCatalogVendorsNewRoute,
   adminCustomersBroadcastsNewRoute: adminCustomersBroadcastsNewRoute,
   adminFinanceCouponsNewRoute: adminFinanceCouponsNewRoute,
   adminFinancePaymentsPaymentIdRoute: adminFinancePaymentsPaymentIdRoute,
@@ -1620,35 +1176,17 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
     adminFinanceSubscriptionsUpcomingRoute,
   adminLegalPagesPageSlugRoute: adminLegalPagesPageSlugRoute,
   adminOperationsOrdersOrderIdRoute: adminOperationsOrdersOrderIdRoute,
-  adminOperationsRidersRiderIdRoute: adminOperationsRidersRiderIdRoute,
-  adminOperationsTicketsTicketIdRoute: adminOperationsTicketsTicketIdRoute,
   adminPlatformUsersUserIdRoute: adminPlatformUsersUserIdRoute,
   adminPlatformUsersAnalyticsRoute: adminPlatformUsersAnalyticsRoute,
   adminPlatformUsersListRoute: adminPlatformUsersListRoute,
-  adminCatalogBundlesIndexRoute: adminCatalogBundlesIndexRoute,
   adminCatalogCategoriesIndexRoute: adminCatalogCategoriesIndexRoute,
-  adminCatalogInventoryIndexRoute: adminCatalogInventoryIndexRoute,
-  adminCatalogProductsIndexRoute: adminCatalogProductsIndexRoute,
-  adminCatalogVendorsIndexRoute: adminCatalogVendorsIndexRoute,
   adminCustomersBroadcastsIndexRoute: adminCustomersBroadcastsIndexRoute,
   adminFinanceCouponsIndexRoute: adminFinanceCouponsIndexRoute,
   adminFinancePaymentsIndexRoute: adminFinancePaymentsIndexRoute,
   adminFinanceSubscriptionsIndexRoute: adminFinanceSubscriptionsIndexRoute,
   adminLegalPagesIndexRoute: adminLegalPagesIndexRoute,
   adminOperationsOrdersIndexRoute: adminOperationsOrdersIndexRoute,
-  adminOperationsRidersIndexRoute: adminOperationsRidersIndexRoute,
-  adminOperationsTicketsIndexRoute: adminOperationsTicketsIndexRoute,
-  adminCatalogBundlesBundleIdEditRoute: adminCatalogBundlesBundleIdEditRoute,
-  adminCatalogProductsProductIdEditRoute:
-    adminCatalogProductsProductIdEditRoute,
-  adminCatalogProductsProductIdImagesRoute:
-    adminCatalogProductsProductIdImagesRoute,
-  adminCatalogVendorsVendorIdEditRoute: adminCatalogVendorsVendorIdEditRoute,
   adminFinanceCouponsCouponIdEditRoute: adminFinanceCouponsCouponIdEditRoute,
-  adminCatalogBundlesBundleIdIndexRoute: adminCatalogBundlesBundleIdIndexRoute,
-  adminCatalogProductsProductIdIndexRoute:
-    adminCatalogProductsProductIdIndexRoute,
-  adminCatalogVendorsVendorIdIndexRoute: adminCatalogVendorsVendorIdIndexRoute,
   adminFinanceCouponsCouponIdIndexRoute: adminFinanceCouponsCouponIdIndexRoute,
 }
 
