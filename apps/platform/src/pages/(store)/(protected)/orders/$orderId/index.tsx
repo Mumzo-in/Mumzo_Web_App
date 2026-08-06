@@ -4,7 +4,6 @@ import {
   Download,
   LifeBuoy,
   MapPin,
-  Navigation,
   RotateCcw,
   Star,
   Undo2,
@@ -73,12 +72,12 @@ function OrderDetailPage() {
   const meta = STATUS_META[order.status];
   const shortId = order.id.slice(0, 8).toUpperCase();
 
-  const isActive =
-    order.status === "pending_payment" ||
-    order.status === "confirmed" ||
-    order.status === "packed" ||
-    order.status === "shipped" ||
-    order.status === "out_for_delivery";
+  // const isActive =
+  //   order.status === "pending_payment" ||
+  //   order.status === "confirmed" ||
+  //   order.status === "packed" ||
+  //   order.status === "shipped" ||
+  //   order.status === "out_for_delivery";
 
   return (
     <div className="mx-auto pt-8 pb-16">
@@ -116,7 +115,7 @@ function OrderDetailPage() {
               status={order.status}
               statusLog={order.statusLog}
             />
-            {isActive && (
+            {/* {isActive && (
               <Link
                 to="/orders/$orderId/tracking"
                 params={{ orderId: order.id }}
@@ -125,7 +124,7 @@ function OrderDetailPage() {
                 <Navigation size={15} />
                 Track live
               </Link>
-            )}
+            )} */}
           </section>
 
           <section className="rounded-3xl border border-border/60 bg-white p-6">
