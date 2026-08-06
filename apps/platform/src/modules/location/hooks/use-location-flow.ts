@@ -25,8 +25,24 @@ export interface ResolvedLocation {
  */
 export function useLocationFlow() {
   const { activeModal, closeModal } = useModalStore();
-  const { setLocation, markChosen } = useServiceability();
+  const { setLocation, markChosen, pincode, lat, lng } = useServiceability();
   const { addAddress, addresses } = useAddresses();
+
+  const selectedAddressId =
+    addresses.find((address) => {
+      if (
+        address.lat != null &&
+        address.lng != null &&
+        lat != null &&
+        lng != null
+      ) {
+        return (
+          Math.abs(address.lat - lat) < 0.0001 &&
+          Math.abs(address.lng - lng) < 0.0001
+        );
+      }
+      return address.pincode === pincode;
+    })?.id ?? addresses.find((a) => a.isDefault)?.id;
   const { run: runIfAuthed } = useRequireAuth();
   const geolocation = useGeolocation();
 
@@ -136,5 +152,6 @@ export function useLocationFlow() {
     handleLocationResolved,
     handleOpenChange,
     handleSaveAddress,
+    selectedAddressId,
   };
 }

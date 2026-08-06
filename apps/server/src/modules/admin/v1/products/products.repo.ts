@@ -324,8 +324,8 @@ export async function insert(
 export async function update(
   id: string,
   values: Partial<Omit<ProductRow, "id" | "createdAt" | "updatedAt">>,
-  sizes: { label: string; price: number; stock: number }[],
-  colors: { label: string; price: number; stock: number }[],
+  sizes: { id?: string; label: string; price: number; stock: number }[],
+  colors: { id?: string; label: string; price: number; stock: number }[],
   vendorLink: VendorLinkInput,
 ) {
   await db.transaction(async (tx) => {
@@ -333,33 +333,98 @@ export async function update(
       await tx.update(product).set(values).where(eq(product.id, id));
     }
 
-    // Sizes/colors are always fully replaced — the form submits the
-    // complete set for each.
-    await tx.delete(productSize).where(eq(productSize.productId, id));
-    await tx.delete(productColor).where(eq(productColor.productId, id));
+    // Sync sizes incrementally to preserve database references (e.g. inventory rows)
+    const existingSizes = await tx
+      .select({ id: productSize.id })
+      .from(productSize)
+      .where(eq(productSize.productId, id));
 
-    if (sizes.length > 0) {
-      await tx.insert(productSize).values(
-        sizes.map((size, index) => ({
+    const existingSizeIds = new Set(existingSizes.map((s) => s.id));
+    const inputSizeIds = new Set(
+      sizes.map((s) => s.id).filter(Boolean) as string[],
+    );
+
+    const sizesToDelete = existingSizes.filter((s) => !inputSizeIds.has(s.id));
+    if (sizesToDelete.length > 0) {
+      await tx.delete(productSize).where(
+        and(
+          eq(productSize.productId, id),
+          inArray(
+            productSize.id,
+            sizesToDelete.map((s) => s.id),
+          ),
+        ),
+      );
+    }
+
+    for (const [index, size] of sizes.entries()) {
+      if (size.id && existingSizeIds.has(size.id)) {
+        await tx
+          .update(productSize)
+          .set({
+            label: size.label,
+            price: size.price,
+            stock: size.stock,
+            position: index,
+          })
+          .where(eq(productSize.id, size.id));
+      } else {
+        await tx.insert(productSize).values({
           productId: id,
           label: size.label,
           price: size.price,
           stock: size.stock,
           position: index,
-        })),
+        });
+      }
+    }
+
+    // Sync colors incrementally to preserve database references
+    const existingColors = await tx
+      .select({ id: productColor.id })
+      .from(productColor)
+      .where(eq(productColor.productId, id));
+
+    const existingColorIds = new Set(existingColors.map((c) => c.id));
+    const inputColorIds = new Set(
+      colors.map((c) => c.id).filter(Boolean) as string[],
+    );
+
+    const colorsToDelete = existingColors.filter(
+      (c) => !inputColorIds.has(c.id),
+    );
+    if (colorsToDelete.length > 0) {
+      await tx.delete(productColor).where(
+        and(
+          eq(productColor.productId, id),
+          inArray(
+            productColor.id,
+            colorsToDelete.map((c) => c.id),
+          ),
+        ),
       );
     }
 
-    if (colors.length > 0) {
-      await tx.insert(productColor).values(
-        colors.map((color, index) => ({
+    for (const [index, color] of colors.entries()) {
+      if (color.id && existingColorIds.has(color.id)) {
+        await tx
+          .update(productColor)
+          .set({
+            label: color.label,
+            price: color.price,
+            stock: color.stock,
+            position: index,
+          })
+          .where(eq(productColor.id, color.id));
+      } else {
+        await tx.insert(productColor).values({
           productId: id,
           label: color.label,
           price: color.price,
           stock: color.stock,
           position: index,
-        })),
-      );
+        });
+      }
     }
 
     await syncVendorLink(tx, id, vendorLink);

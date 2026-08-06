@@ -83,24 +83,24 @@ function RootComponent() {
           <ProfileProvider>
             <ConsentProvider>
               <PreferencesProvider>
-                <PaymentMethodsProvider>
-                  <AddressProvider>
-                    <BabiesProvider>
-                      <TicketProvider>
-                        <WishlistProvider>
-                          <CartProvider>
+                <CartProvider>
+                  <PaymentMethodsProvider>
+                    <AddressProvider>
+                      <BabiesProvider>
+                        <TicketProvider>
+                          <WishlistProvider>
                             <Outlet />
 
                             <ConsentBanner />
                             <LocationModalHost />
                             <RequireAuthModalHost />
                             <OnboardingModalHost />
-                          </CartProvider>
-                        </WishlistProvider>
-                      </TicketProvider>
-                    </BabiesProvider>
-                  </AddressProvider>
-                </PaymentMethodsProvider>
+                          </WishlistProvider>
+                        </TicketProvider>
+                      </BabiesProvider>
+                    </AddressProvider>
+                  </PaymentMethodsProvider>
+                </CartProvider>
               </PreferencesProvider>
             </ConsentProvider>
           </ProfileProvider>

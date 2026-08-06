@@ -3,16 +3,33 @@ import { conflict, notFound } from "@/core/errors";
 import { finalizeSession } from "../uploads/uploads.service";
 import * as brandsRepo from "./brands.repo";
 
-export async function listBrands(search?: string) {
-  return brandsRepo.findAll(search);
+export async function listBrands(filters: {
+  page: number;
+  limit: number;
+  search?: string;
+}) {
+  const { rows, total } = await brandsRepo.findPage(filters);
+  return {
+    data: rows,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
 }
 
-async function requireBrand(id: string) {
+export async function getBrand(id: string) {
   const brand = await brandsRepo.findById(id);
   if (!brand) {
     throw notFound("Brand");
   }
   return brand;
+}
+
+async function requireBrand(id: string) {
+  return getBrand(id);
 }
 
 /**
@@ -39,6 +56,7 @@ export async function createBrand(
     slug: string;
     logoUrl?: string | null;
     isActive: boolean;
+    categorySlugs: string[];
     uploadSessionId?: string;
   },
   userId: string,
@@ -62,6 +80,10 @@ export async function createBrand(
     isActive: input.isActive,
   });
 
+  if (input.categorySlugs.length > 0) {
+    await brandsRepo.setCategories(id, input.categorySlugs);
+  }
+
   const logoUrl = await finalizeLogo(id, input.uploadSessionId, userId);
   if (logoUrl) {
     await brandsRepo.update(id, { logoUrl });
@@ -77,6 +99,7 @@ export async function updateBrand(
     slug: string;
     logoUrl: string | null;
     isActive: boolean;
+    categorySlugs: string[];
     uploadSessionId: string;
   }>,
   userId: string,
@@ -96,12 +119,15 @@ export async function updateBrand(
     }
   }
 
-  const { uploadSessionId, ...rest } = input;
+  const { uploadSessionId, categorySlugs, ...rest } = input;
   const logoUrl = await finalizeLogo(id, uploadSessionId, userId);
   const patch = logoUrl ? { ...rest, logoUrl } : rest;
 
   if (Object.keys(patch).length > 0) {
     await brandsRepo.update(id, patch);
+  }
+  if (categorySlugs !== undefined) {
+    await brandsRepo.setCategories(id, categorySlugs);
   }
 }
 

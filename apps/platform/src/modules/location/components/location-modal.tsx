@@ -38,6 +38,7 @@ export default function LocationModal() {
     handleLocationResolved,
     handleOpenChange,
     handleSaveAddress,
+    selectedAddressId,
   } = useLocationFlow();
 
   const body = (
@@ -54,6 +55,7 @@ export default function LocationModal() {
             addresses={addresses}
             onSelect={handleSelectAddress}
             onUseCurrentLocation={() => setStep("ask")}
+            selectedAddressId={selectedAddressId}
           />
         </motion.div>
       )}

@@ -155,6 +155,34 @@
       "when": 1785573079810,
       "tag": "0021_special_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1785993211282,
+      "tag": "0022_free_polaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1786010917223,
+      "tag": "0023_vendor_contacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1786010941556,
+      "tag": "0024_vendor_drop_legacy_contact",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1786032919355,
+      "tag": "0025_amazing_living_lightning",
+      "breakpoints": true
     }
   ]
 }

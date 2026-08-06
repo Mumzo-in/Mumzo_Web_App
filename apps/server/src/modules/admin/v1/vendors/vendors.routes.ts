@@ -8,9 +8,11 @@ import {
 } from "@/core";
 import {
   createVendorSchema,
+  listVendorProductsQuerySchema,
   listVendorsQuerySchema,
   updateVendorSchema,
   vendorIdParamSchema,
+  vendorProductSchema,
   vendorSchema,
 } from "./vendors.schema";
 
@@ -87,6 +89,25 @@ export const deleteRouteDef = createRoute({
     200: jsonContent(
       successSchema(z.object({ ok: z.literal(true) })),
       "Deleted",
+    ),
+    ...authErrorResponses,
+  },
+});
+
+export const listVendorProductsRoute = createRoute({
+  method: "get",
+  path: "/{id}/products",
+  tags: [TAG],
+  summary: "List products sourced from a vendor",
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: vendorIdParamSchema,
+    query: listVendorProductsQuerySchema,
+  },
+  responses: {
+    200: jsonContent(
+      paginatedSchema(vendorProductSchema),
+      "Page of the vendor's products",
     ),
     ...authErrorResponses,
   },

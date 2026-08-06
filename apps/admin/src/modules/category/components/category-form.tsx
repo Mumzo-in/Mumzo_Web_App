@@ -1,22 +1,21 @@
 import { Button } from "@mumzo/ui/components/button";
+import { Card, CardContent } from "@mumzo/ui/components/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@mumzo/ui/components/card";
-import { Checkbox } from "@mumzo/ui/components/checkbox";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@mumzo/ui/components/dialog";
 import {
   Field,
   FieldDescription,
   FieldLabel,
 } from "@mumzo/ui/components/field";
-import { ScrollArea } from "@mumzo/ui/components/scroll-area";
 import { Switch } from "@mumzo/ui/components/switch";
+import { cn } from "@mumzo/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
-import { RotateCw, Upload } from "lucide-react";
+import { Eye, RotateCw, Upload } from "lucide-react";
 import {
   forwardRef,
   useEffect,
@@ -27,8 +26,7 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 import { useImageSlotUpload } from "@/core/api/use-image-slot-upload";
-import { ControlField, TextField } from "@/core/components/form-fields";
-import { brandsQueryOptions } from "@/modules/brand";
+import { ColorField, TextField } from "@/core/components/form-fields";
 import type { CategoryInput, CategoryWithCount } from "../api/categories-api";
 
 const schema = z.object({
@@ -46,7 +44,6 @@ const schema = z.object({
     .or(z.literal("").transform(() => null)),
   isActive: z.boolean(),
   hasSizes: z.boolean(),
-  brandIds: z.array(z.string()),
 });
 
 /** "Baby Bath & Skin" → "baby-bath-skin". */
@@ -66,20 +63,10 @@ function emptyValues() {
     color: null as string | null,
     isActive: true,
     hasSizes: false,
-    brandIds: [] as string[],
   };
 }
 
-/**
- * The category detail only carries brand *names* (`Category.brands`,
- * denormalized for storefront filters) — resolve them back to ids against
- * the loaded brand directory so the checkbox list can prefill correctly.
- */
-function valuesFrom(
-  category: CategoryWithCount,
-  brands: { id: string; name: string }[],
-) {
-  const idsByName = new Map(brands.map((brand) => [brand.name, brand.id]));
+function valuesFrom(category: CategoryWithCount) {
   return {
     slug: category.slug,
     name: category.name,
@@ -87,11 +74,19 @@ function valuesFrom(
     color: category.color,
     isActive: category.isActive,
     hasSizes: category.hasSizes,
-    brandIds: category.brands
-      .map((name) => idsByName.get(name))
-      .filter((id): id is string => id !== undefined),
   };
 }
+
+const SECTIONS = [
+  { id: "base", label: "Base", description: "Name, slug and cover image." },
+  {
+    id: "settings",
+    label: "Settings",
+    description: "Visibility and product behavior.",
+  },
+] as const;
+
+type SectionId = (typeof SECTIONS)[number]["id"];
 
 export type CategoryFormHandle = {
   submit: () => void;
@@ -108,15 +103,14 @@ export const CategoryForm = forwardRef<
   }
 >(function CategoryForm({ category, onSubmit, onPendingChange }, ref) {
   const [pending, setPending] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>("base");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverUpload = useImageSlotUpload("cover");
   const [coverSessionId, setCoverSessionId] = useState<string | undefined>();
   const coverPreview = coverUpload.url ?? category?.img ?? null;
 
-  const brands = useQuery(brandsQueryOptions);
-
   const form = useForm({
-    defaultValues: category ? valuesFrom(category, []) : emptyValues(),
+    defaultValues: category ? valuesFrom(category) : emptyValues(),
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       setPending(true);
@@ -141,17 +135,6 @@ export const CategoryForm = forwardRef<
     onPendingChange?.(pending);
   }, [pending, onPendingChange]);
 
-  // Brand ids can only be resolved once the brand directory has loaded (the
-  // category detail carries names, not ids) — backfill the field then.
-  useEffect(() => {
-    if (category && brands.data) {
-      form.setFieldValue(
-        "brandIds",
-        valuesFrom(category, brands.data).brandIds,
-      );
-    }
-  }, [category, brands.data, form.setFieldValue]);
-
   useImperativeHandle(ref, () => ({
     submit: () => form.handleSubmit(),
   }));
@@ -165,233 +148,289 @@ export const CategoryForm = forwardRef<
         form.handleSubmit();
       }}
     >
-      <Card className="shadow-warm">
-        <CardHeader>
-          <CardTitle>Category details</CardTitle>
-          <CardDescription>
-            Taxonomy node shown in navigation and used to organize products.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 md:grid-cols-2">
-          <form.Field name="name">
-            {(field) => (
-              <TextField
-                field={field}
-                label="Name"
-                placeholder="Bath & Skin"
-                testId="admin-category-name"
-              />
-            )}
-          </form.Field>
-
-          <form.Field name="slug">
-            {(field) => (
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <TextField
-                    description="Used in the storefront URL."
-                    field={field}
-                    label="Slug"
-                    placeholder="bath-skin"
-                    testId="admin-category-slug"
-                  />
-                </div>
-                {category ? null : (
-                  <Button
-                    className="mb-6"
-                    onClick={() =>
-                      field.handleChange(slugify(form.getFieldValue("name")))
-                    }
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    From name
-                  </Button>
+      <div className="grid gap-5 md:grid-cols-[240px_1fr]">
+        <div className="flex flex-col gap-3">
+          <nav
+            aria-label="Category form sections"
+            className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-2 shadow-warm"
+            data-testid="admin-category-form-nav"
+          >
+            {SECTIONS.map((section) => (
+              <button
+                className={cn(
+                  "flex flex-col gap-0.5 rounded-xl px-4 py-3 text-left transition-colors",
+                  activeSection === section.id
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-secondary",
                 )}
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field name="tagline">
-            {(field) => (
-              <div className="md:col-span-2">
-                <TextField
-                  description="Optional. Shown under the category name."
-                  field={field}
-                  label="Tagline"
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field name="color">
-            {(field) => (
-              <TextField
-                description="Hex wash behind the category tile, e.g. #FCE1E6."
-                field={field}
-                label="Color"
-                placeholder="#FCE1E6"
-                testId="admin-category-color"
-              />
-            )}
-          </form.Field>
-
-          <Field>
-            <FieldLabel htmlFor="category-cover-upload">Cover image</FieldLabel>
-            <div className="flex items-center gap-3">
-              {coverPreview ? (
-                <img
-                  alt=""
-                  className="size-16 rounded-2xl border object-cover"
-                  src={coverPreview}
-                />
-              ) : (
-                <div className="size-16 rounded-2xl border bg-secondary" />
-              )}
-              <input
-                accept="image/*"
-                className="hidden"
-                id="category-cover-upload"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    coverUpload
-                      .upload(file, {
-                        entity: "categories",
-                        sessionId: coverSessionId,
-                      })
-                      .then((result) => setCoverSessionId(result.sessionId))
-                      .catch(() => undefined);
-                  }
-                  event.target.value = "";
-                }}
-                ref={fileInputRef}
-                type="file"
-              />
-              <Button
-                data-testid="admin-category-cover-upload-trigger"
-                disabled={coverUpload.status === "uploading"}
-                onClick={() => fileInputRef.current?.click()}
-                size="sm"
+                data-testid={`admin-category-section-${section.id}`}
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
                 type="button"
-                variant="outline"
               >
-                {coverUpload.status === "uploading" ? (
-                  <>
-                    <RotateCw
-                      className="animate-spin"
-                      data-icon="inline-start"
-                    />
-                    Uploading…
-                  </>
-                ) : (
-                  <>
-                    <Upload data-icon="inline-start" />
-                    {coverPreview ? "Replace cover" : "Upload cover"}
-                  </>
-                )}
-              </Button>
-              {coverUpload.status === "error" ? (
+                <span className="font-semibold text-sm">{section.label}</span>
+                <span className="text-muted-foreground text-xs">
+                  {section.description}
+                </span>
+              </button>
+            ))}
+          </nav>
+
+          <Dialog>
+            <DialogTrigger
+              render={
                 <Button
-                  onClick={() =>
-                    coverUpload
-                      .retry()
-                      .then(
-                        (result) =>
-                          result && setCoverSessionId(result.sessionId),
-                      )
-                  }
+                  className="mt-1"
+                  data-testid="admin-category-preview-trigger"
                   size="sm"
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                 >
-                  Retry
+                  <Eye data-icon="inline-start" />
+                  Preview
                 </Button>
-              ) : null}
-            </div>
-            <FieldDescription>
-              Hero/tile image shown in navigation and category pages.
-            </FieldDescription>
-            {coverUpload.status === "error" ? (
-              <p className="text-destructive text-xs">
-                {coverUpload.error ?? "Upload failed."}
-              </p>
-            ) : null}
-          </Field>
-
-          <form.Field name="isActive">
-            {(field) => (
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor={field.name}>Active</FieldLabel>
-                <Switch
-                  checked={field.state.value}
-                  id={field.name}
-                  onCheckedChange={(checked) => field.handleChange(checked)}
-                />
-              </Field>
-            )}
-          </form.Field>
-
-          <form.Field name="hasSizes">
-            {(field) => (
-              <ControlField field={field} label="Products carry sizes">
-                <Switch
-                  checked={field.state.value}
-                  id={field.name}
-                  onCheckedChange={(checked) => field.handleChange(checked)}
-                />
-              </ControlField>
-            )}
-          </form.Field>
-
-          <form.Field name="brandIds">
-            {(field) => (
-              <div className="md:col-span-2">
-                <Field>
-                  <FieldLabel>Brands stocked here</FieldLabel>
-                  <ScrollArea className="h-48 rounded-xl border p-3">
-                    <div className="flex flex-col gap-2">
-                      {(brands.data ?? []).map((brand) => {
-                        const checked = field.state.value.includes(brand.id);
-                        return (
-                          <div
-                            className="flex items-center gap-2"
-                            key={brand.id}
-                          >
-                            <Checkbox
-                              checked={checked}
-                              id={`category-brand-${brand.id}`}
-                              onCheckedChange={(next) => {
-                                field.handleChange(
-                                  next
-                                    ? [...field.state.value, brand.id]
-                                    : field.state.value.filter(
-                                        (id) => id !== brand.id,
-                                      ),
-                                );
-                              }}
-                            />
-                            <FieldLabel
-                              className="cursor-pointer font-normal text-sm"
-                              htmlFor={`category-brand-${brand.id}`}
-                            >
-                              {brand.name}
-                            </FieldLabel>
-                          </div>
-                        );
-                      })}
+              }
+            />
+            <DialogContent className="sm:max-w-xs">
+              <DialogHeader>
+                <DialogTitle>Storefront preview</DialogTitle>
+              </DialogHeader>
+              <form.Subscribe selector={(state) => state.values}>
+                {(values) => (
+                  <Card
+                    className="relative aspect-[1/1.05] overflow-hidden rounded-2xl border"
+                    style={{ backgroundColor: values.color || "#F6F3EC" }}
+                  >
+                    {coverPreview ? (
+                      <img
+                        alt=""
+                        className="absolute right-[-8%] bottom-[-6%] h-[62%] w-[70%] rounded-2xl object-cover shadow-md"
+                        src={coverPreview}
+                      />
+                    ) : (
+                      <div className="absolute right-[-8%] bottom-[-6%] flex h-[62%] w-[70%] items-center justify-center rounded-2xl border border-white/20 bg-white/35">
+                        <span className="select-none text-3xl opacity-20 grayscale filter">
+                          👶
+                        </span>
+                      </div>
+                    )}
+                    <div className="relative flex h-full flex-col justify-start p-4">
+                      <p className="font-semibold text-[10px] text-foreground/60 uppercase tracking-widest">
+                        Shelf
+                      </p>
+                      <p className="mt-1 max-w-[70%] font-bold font-serif text-foreground text-lg leading-tight">
+                        {values.name || "Category name"}
+                      </p>
+                      <p className="mt-1 line-clamp-2 max-w-[65%] text-[11px] text-foreground/55 leading-relaxed">
+                        {values.tagline}
+                      </p>
                     </div>
-                  </ScrollArea>
+                  </Card>
+                )}
+              </form.Subscribe>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Card className="shadow-warm">
+          <CardContent className="grid gap-5 pt-6 md:grid-cols-2">
+            {activeSection === "base" ? (
+              <>
+                <form.Field name="name">
+                  {(field) => (
+                    <TextField
+                      field={field}
+                      label="Name"
+                      placeholder="Bath & Skin"
+                      testId="admin-category-name"
+                    />
+                  )}
+                </form.Field>
+
+                <form.Field name="slug">
+                  {(field) => (
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <TextField
+                          description="Used in the storefront URL."
+                          field={field}
+                          label="Slug"
+                          placeholder="bath-skin"
+                          testId="admin-category-slug"
+                        />
+                      </div>
+                      {category ? null : (
+                        <Button
+                          className="mb-6"
+                          onClick={() =>
+                            field.handleChange(
+                              slugify(form.getFieldValue("name")),
+                            )
+                          }
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          From name
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Field name="tagline">
+                  {(field) => (
+                    <div className="md:col-span-2">
+                      <TextField
+                        description="Optional. Shown under the category name."
+                        field={field}
+                        label="Tagline"
+                      />
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Field name="color">
+                  {(field) => (
+                    <ColorField
+                      description="Hex wash behind the category tile, e.g. #FCE1E6."
+                      field={field}
+                      label="Color"
+                      placeholder="#FCE1E6"
+                      testId="admin-category-color"
+                    />
+                  )}
+                </form.Field>
+
+                <Field>
+                  <FieldLabel htmlFor="category-cover-upload">
+                    Cover image
+                  </FieldLabel>
+                  <div className="flex items-center gap-3">
+                    {coverPreview ? (
+                      <img
+                        alt=""
+                        className="size-16 rounded-2xl border object-cover"
+                        src={coverPreview}
+                      />
+                    ) : (
+                      <div className="size-16 rounded-2xl border bg-secondary" />
+                    )}
+                    <input
+                      accept="image/*"
+                      className="hidden"
+                      id="category-cover-upload"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) {
+                          coverUpload
+                            .upload(file, {
+                              entity: "categories",
+                              sessionId: coverSessionId,
+                            })
+                            .then((result) =>
+                              setCoverSessionId(result.sessionId),
+                            )
+                            .catch(() => undefined);
+                        }
+                        event.target.value = "";
+                      }}
+                      ref={fileInputRef}
+                      type="file"
+                    />
+                    <Button
+                      data-testid="admin-category-cover-upload-trigger"
+                      disabled={coverUpload.status === "uploading"}
+                      onClick={() => fileInputRef.current?.click()}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      {coverUpload.status === "uploading" ? (
+                        <>
+                          <RotateCw
+                            className="animate-spin"
+                            data-icon="inline-start"
+                          />
+                          Uploading…
+                        </>
+                      ) : (
+                        <>
+                          <Upload data-icon="inline-start" />
+                          {coverPreview ? "Replace cover" : "Upload cover"}
+                        </>
+                      )}
+                    </Button>
+                    {coverUpload.status === "error" ? (
+                      <Button
+                        onClick={() =>
+                          coverUpload
+                            .retry()
+                            .then(
+                              (result) =>
+                                result && setCoverSessionId(result.sessionId),
+                            )
+                        }
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        Retry
+                      </Button>
+                    ) : null}
+                  </div>
                   <FieldDescription>
-                    Denormalized onto the category for storefront filters.
+                    Hero/tile image shown in navigation and category pages.
                   </FieldDescription>
+                  {coverUpload.status === "error" ? (
+                    <p className="text-destructive text-xs">
+                      {coverUpload.error ?? "Upload failed."}
+                    </p>
+                  ) : null}
                 </Field>
-              </div>
+              </>
+            ) : (
+              <>
+                <form.Field name="isActive">
+                  {(field) => (
+                    <Field>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={field.state.value}
+                          id={field.name}
+                          onCheckedChange={(checked) =>
+                            field.handleChange(checked)
+                          }
+                        />
+                        <FieldLabel htmlFor={field.name}>Active</FieldLabel>
+                      </div>
+                    </Field>
+                  )}
+                </form.Field>
+
+                <form.Field name="hasSizes">
+                  {(field) => (
+                    <Field>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={field.state.value}
+                          id={field.name}
+                          onCheckedChange={(checked) =>
+                            field.handleChange(checked)
+                          }
+                        />
+                        <FieldLabel htmlFor={field.name}>
+                          Products carry sizes
+                        </FieldLabel>
+                      </div>
+                    </Field>
+                  )}
+                </form.Field>
+              </>
             )}
-          </form.Field>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </form>
   );
 });

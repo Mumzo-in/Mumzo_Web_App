@@ -5,6 +5,14 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@mumzo/ui/components/empty";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@mumzo/ui/components/select";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import {
   Table,
@@ -34,6 +42,10 @@ type DataTableProps<T> = {
   /** Row click → detail navigation. */
   onRowClick?: (row: T) => void;
   testId?: string;
+  /** Omit to hide the page-size selector — callers without `setLimit` wired don't need it. */
+  pageSize?: number;
+  onPageSizeChange?: (limit: number) => void;
+  pageSizeOptions?: readonly number[];
 };
 
 /**
@@ -54,6 +66,9 @@ export function DataTable<T>({
   emptyDescription = "No records match this view.",
   onRowClick,
   testId = "admin-data-table",
+  pageSize,
+  onPageSizeChange,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
 }: DataTableProps<T>) {
   const columnCount = table.getAllColumns().length;
 
@@ -170,6 +185,28 @@ export function DataTable<T>({
           ) : null}
         </p>
         <div className="flex items-center gap-2">
+          {pageSize && onPageSizeChange ? (
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              <SelectTrigger
+                className="w-28"
+                data-testid={`${testId}-page-size`}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {pageSizeOptions.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size} / page
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          ) : null}
           <Button
             variant="outline"
             size="sm"
@@ -195,6 +232,8 @@ export function DataTable<T>({
     </div>
   );
 }
+
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 
 /** Stable keys — index-as-key is banned (AGENTS.md §6). */
 const SKELETON_ROWS = [

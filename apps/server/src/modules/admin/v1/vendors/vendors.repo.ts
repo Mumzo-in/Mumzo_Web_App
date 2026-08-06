@@ -1,6 +1,13 @@
 import { db } from "@mumzo/db";
-import { productVendor, vendor } from "@mumzo/db/schema/catalog";
-import { count, eq, ilike, or } from "drizzle-orm";
+import type { VendorContact } from "@mumzo/db/schema/catalog";
+import {
+  category,
+  inventory,
+  product,
+  productVendor,
+  vendor,
+} from "@mumzo/db/schema/catalog";
+import { count, eq, ilike, or, sum } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
@@ -8,11 +15,19 @@ const selection = {
   id: vendor.id,
   name: vendor.name,
   slug: vendor.slug,
-  contactName: vendor.contactName,
-  phone: vendor.phone,
-  email: vendor.email,
+  type: vendor.type,
+  contacts: vendor.contacts,
   address: vendor.address,
+  city: vendor.city,
+  state: vendor.state,
+  pincode: vendor.pincode,
+  lat: vendor.lat,
+  lng: vendor.lng,
   gstin: vendor.gstin,
+  pan: vendor.pan,
+  paymentTerms: vendor.paymentTerms,
+  defaultLeadTimeDays: vendor.defaultLeadTimeDays,
+  notes: vendor.notes,
   isActive: vendor.isActive,
   productCount: count(productVendor.productId),
 };
@@ -76,16 +91,26 @@ export async function findBySlug(slug: string) {
   return row;
 }
 
-export async function insert(input: {
+export type VendorWriteInput = {
   name: string;
   slug: string;
-  contactName: string | null;
-  phone: string | null;
-  email: string | null;
+  type: string;
+  contacts: VendorContact[];
   address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  lat: number | null;
+  lng: number | null;
   gstin: string | null;
+  pan: string | null;
+  paymentTerms: string;
+  defaultLeadTimeDays: number | null;
+  notes: string | null;
   isActive: boolean;
-}) {
+};
+
+export async function insert(input: VendorWriteInput) {
   const [row] = await db
     .insert(vendor)
     .values(input)
@@ -96,19 +121,7 @@ export async function insert(input: {
   return row.id;
 }
 
-export async function update(
-  id: string,
-  input: Partial<{
-    name: string;
-    slug: string;
-    contactName: string | null;
-    phone: string | null;
-    email: string | null;
-    address: string | null;
-    gstin: string | null;
-    isActive: boolean;
-  }>,
-) {
+export async function update(id: string, input: Partial<VendorWriteInput>) {
   await db.update(vendor).set(input).where(eq(vendor.id, id));
 }
 
@@ -122,4 +135,56 @@ export async function productCount(vendorId: string) {
     .from(productVendor)
     .where(eq(productVendor.vendorId, vendorId));
   return row?.count ?? 0;
+}
+
+export async function findProductsPage(
+  vendorId: string,
+  filters: { page: number; limit: number },
+) {
+  const [rows, countRows] = await Promise.all([
+    db
+      .select({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        categorySlug: category.slug,
+        price: product.price,
+        status: product.status,
+        stock: sum(inventory.stock),
+        costPrice: productVendor.costPrice,
+        leadTimeDays: productVendor.leadTimeDays,
+        isPrimary: productVendor.isPrimary,
+        vendorSku: productVendor.vendorSku,
+        moq: productVendor.moq,
+      })
+      .from(productVendor)
+      .innerJoin(product, eq(product.id, productVendor.productId))
+      .innerJoin(category, eq(category.id, product.categoryId))
+      .leftJoin(inventory, eq(inventory.productId, product.id))
+      .where(eq(productVendor.vendorId, vendorId))
+      .groupBy(
+        product.id,
+        category.slug,
+        productVendor.costPrice,
+        productVendor.leadTimeDays,
+        productVendor.isPrimary,
+        productVendor.vendorSku,
+        productVendor.moq,
+      )
+      .orderBy(product.name)
+      .limit(filters.limit)
+      .offset((filters.page - 1) * filters.limit),
+    db
+      .select({ total: count() })
+      .from(productVendor)
+      .where(eq(productVendor.vendorId, vendorId)),
+  ]);
+
+  return {
+    rows: rows.map((row) => ({
+      ...row,
+      stock: Number(row.stock ?? 0),
+    })),
+    total: countRows[0]?.total ?? 0,
+  };
 }

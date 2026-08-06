@@ -1,3 +1,4 @@
+import type { VendorContact } from "@mumzo/db/schema/catalog";
 import { conflict, notFound } from "@/core/errors";
 import * as vendorsRepo from "./vendors.repo";
 
@@ -9,7 +10,22 @@ export async function listVendors(filters: {
   const { rows, total } = await vendorsRepo.findPage(filters);
 
   return {
-    data: rows,
+    data: rows.map((row) => ({
+      ...row,
+      type: row.type as
+        | "distributor"
+        | "retailer"
+        | "manufacturer"
+        | "company"
+        | "other",
+      paymentTerms: row.paymentTerms as
+        | "net_30"
+        | "prepaid"
+        | "cod"
+        | "net_7"
+        | "net_15"
+        | "net_60",
+    })),
     meta: {
       page: filters.page,
       limit: filters.limit,
@@ -22,7 +38,23 @@ export async function listVendors(filters: {
 export async function getVendor(id: string) {
   const row = await requireVendor(id);
   const productCount = await vendorsRepo.productCount(id);
-  return { ...row, productCount };
+  return {
+    ...row,
+    type: row.type as
+      | "distributor"
+      | "retailer"
+      | "manufacturer"
+      | "company"
+      | "other",
+    paymentTerms: row.paymentTerms as
+      | "net_30"
+      | "prepaid"
+      | "cod"
+      | "net_7"
+      | "net_15"
+      | "net_60",
+    productCount,
+  };
 }
 
 async function requireVendor(id: string) {
@@ -36,11 +68,19 @@ async function requireVendor(id: string) {
 type VendorInput = {
   name: string;
   slug: string;
-  contactName?: string | null;
-  phone?: string | null;
-  email?: string | null;
+  type: string;
+  contacts: VendorContact[];
   address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  lat?: number | null;
+  lng?: number | null;
   gstin?: string | null;
+  pan?: string | null;
+  paymentTerms: string;
+  defaultLeadTimeDays?: number | null;
+  notes?: string | null;
   isActive: boolean;
 };
 
@@ -60,11 +100,19 @@ export async function createVendor(input: VendorInput) {
   return vendorsRepo.insert({
     name: input.name,
     slug: input.slug,
-    contactName: input.contactName ?? null,
-    phone: input.phone ?? null,
-    email: input.email ?? null,
+    type: input.type,
+    contacts: input.contacts,
     address: input.address ?? null,
+    city: input.city ?? null,
+    state: input.state ?? null,
+    pincode: input.pincode ?? null,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
     gstin: input.gstin ?? null,
+    pan: input.pan ?? null,
+    paymentTerms: input.paymentTerms,
+    defaultLeadTimeDays: input.defaultLeadTimeDays ?? null,
+    notes: input.notes ?? null,
     isActive: input.isActive,
   });
 }
@@ -99,4 +147,23 @@ export async function deleteVendor(id: string) {
   }
 
   await vendorsRepo.remove(id);
+}
+
+export async function listVendorProducts(
+  vendorId: string,
+  filters: { page: number; limit: number },
+) {
+  await requireVendor(vendorId);
+
+  const { rows, total } = await vendorsRepo.findProductsPage(vendorId, filters);
+
+  return {
+    data: rows,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
 }

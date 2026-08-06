@@ -45,11 +45,19 @@ const blankMapStyle: MapLibreGL.StyleSpecification = {
   ],
 };
 
-// Prevent equivalent inline style objects from triggering a full map style reload.
+// Prevent equivalent inline objects (styles, MapOptions rest props, ...) from
+// triggering a full map reload every render. `JSON.stringify` misses
+// functions/DOM refs, but by the time a value reaches here (MapLibre style
+// specs, center/zoom/bearing/pitch, etc.) it is plain serializable data — the
+// key is the actual dependency, so the returned object identity is only ever
+// replaced when the *content* changes.
 function useStableValue<T>(value: T): T {
-  const _key = useMemo(() => JSON.stringify(value) ?? "", [value]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => value, [value]);
+  const key = JSON.stringify(value) ?? "";
+  const ref = useRef({ key, value });
+  if (ref.current.key !== key) {
+    ref.current = { key, value };
+  }
+  return ref.current.value;
 }
 
 function mergeHoverPaint<T extends Record<string, unknown>>(
@@ -261,6 +269,13 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   onViewportChangeRef.current = onViewportChange;
 
   const stableStyles = useStableValue(styles);
+  // `...props` (MapOptions minus the named props above) is a fresh object
+  // every render regardless of whether its values changed — without this,
+  // the mount effect below (keyed on `props`) tears down and recreates the
+  // whole MapLibre instance on every re-render of a parent that passes any
+  // rest prop (e.g. `center`/`zoom`), which can cascade into a render loop
+  // when a child (a click handler, a drag handler) feeds state back up.
+  const stableProps = useStableValue(props);
 
   const mapStyles = useMemo(() => {
     // Explicit styles win. Otherwise `blank` opts into the transparent
@@ -295,7 +310,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       attributionControl: {
         compact: true,
       },
-      ...props,
+      ...stableProps,
       ...viewport,
     });
 
@@ -326,7 +341,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       setMapInstance(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewport, resolvedTheme, mapStyles.light, props, mapStyles.dark]);
+  }, [viewport, resolvedTheme, mapStyles.light, stableProps, mapStyles.dark]);
 
   // Sync controlled viewport to map
   useEffect(() => {
@@ -479,9 +494,15 @@ function MapMarker({
     onDragEnd,
   };
 
+  // `...markerOptions` is a fresh object every render — without stabilizing
+  // it, the `useMemo` below (keyed on `markerOptions`) recreates the whole
+  // MapLibre marker on every render of the parent, which can remove/re-add
+  // it before it ever gets a chance to paint.
+  const stableMarkerOptions = useStableValue(markerOptions);
+
   const marker = useMemo(() => {
     const markerInstance = new MapLibreGL.Marker({
-      ...markerOptions,
+      ...stableMarkerOptions,
       element: document.createElement("div"),
       draggable,
     }).setLngLat([longitude, latitude]);
@@ -520,7 +541,7 @@ function MapMarker({
     return markerInstance;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [longitude, markerOptions, draggable, latitude]);
+  }, [longitude, stableMarkerOptions, draggable, latitude]);
 
   useEffect(() => {
     if (!map) return;
@@ -530,9 +551,12 @@ function MapMarker({
     return () => {
       marker.remove();
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, marker.remove, marker.addTo]);
+    // `marker.remove`/`marker.addTo` are prototype methods — referentially
+    // identical across marker instances, so depending on them (instead of
+    // `marker` itself) meant this effect never re-ran when `marker` was
+    // recreated (a `longitude`/`latitude` change): the old marker was never
+    // removed and the new one never added to the map.
+  }, [map, marker]);
 
   const { offset, rotation, rotationAlignment, pitchAlignment } = markerOptions;
 
@@ -636,12 +660,13 @@ function MarkerPopup({
 }: MarkerPopupProps) {
   const { marker, map } = useMarkerContext();
   const container = useMemo(() => document.createElement("div"), []);
-  const { offset, maxWidth } = popupOptions;
+  const stablePopupOptions = useStableValue(popupOptions);
+  const { offset, maxWidth } = stablePopupOptions;
 
   const popup = useMemo(() => {
     const popupInstance = new MapLibreGL.Popup({
       offset: 16,
-      ...popupOptions,
+      ...stablePopupOptions,
       closeButton: false,
     })
       .setMaxWidth("none")
@@ -649,7 +674,7 @@ function MarkerPopup({
 
     return popupInstance;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [container, popupOptions]);
+  }, [container, stablePopupOptions]);
 
   useEffect(() => {
     if (!map) return;
@@ -660,8 +685,11 @@ function MarkerPopup({
     return () => {
       marker.setPopup(null);
     };
+    // `marker` itself must be a dependency (not just `marker.setPopup`, a
+    // prototype method that's referentially identical across instances) so
+    // the popup re-attaches when the marker is recreated (a position change).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, popup, marker.setPopup, container]);
+  }, [map, popup, marker, container]);
 
   // Sync popup options when they change.
   useEffect(() => {
@@ -702,19 +730,20 @@ function MarkerTooltip({
 }: MarkerTooltipProps) {
   const { marker, map } = useMarkerContext();
   const container = useMemo(() => document.createElement("div"), []);
-  const { offset, maxWidth } = popupOptions;
+  const stablePopupOptions = useStableValue(popupOptions);
+  const { offset, maxWidth } = stablePopupOptions;
 
   const tooltip = useMemo(() => {
     const tooltipInstance = new MapLibreGL.Popup({
       offset: 16,
-      ...popupOptions,
+      ...stablePopupOptions,
       closeOnClick: true,
       closeButton: false,
     }).setMaxWidth("none");
 
     return tooltipInstance;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popupOptions]);
+  }, [stablePopupOptions]);
 
   useEffect(() => {
     if (!map) return;
@@ -734,16 +763,11 @@ function MarkerTooltip({
       marker.getElement()?.removeEventListener("mouseleave", handleMouseLeave);
       tooltip.remove();
     };
+    // Depend on `marker`/`tooltip` themselves, not their prototype methods
+    // (referentially identical across instances — see the `MapMarker` mount
+    // effect for the bug this pattern caused there).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    map,
-    marker.getElement,
-    marker.getLngLat,
-    tooltip.setDOMContent,
-    tooltip.remove,
-    container,
-    tooltip.setLngLat,
-  ]);
+  }, [map, marker, tooltip, container]);
 
   // Sync tooltip options when they change.
   useEffect(() => {
@@ -1043,12 +1067,13 @@ function MapPopup({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const container = useMemo(() => document.createElement("div"), []);
-  const { offset, maxWidth } = popupOptions;
+  const stablePopupOptions = useStableValue(popupOptions);
+  const { offset, maxWidth } = stablePopupOptions;
 
   const popup = useMemo(() => {
     const popupInstance = new MapLibreGL.Popup({
       offset: 16,
-      ...popupOptions,
+      ...stablePopupOptions,
       closeButton: false,
     })
       .setMaxWidth("none")
@@ -1056,7 +1081,7 @@ function MapPopup({
 
     return popupInstance;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latitude, popupOptions, longitude]);
+  }, [latitude, stablePopupOptions, longitude]);
 
   useEffect(() => {
     if (!map) return;
@@ -1074,17 +1099,11 @@ function MapPopup({
         popup.remove();
       }
     };
+    // Depend on `popup` itself, not its prototype methods (referentially
+    // identical across instances — see the `MapMarker` mount effect for the
+    // bug this pattern caused there).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    map,
-    popup.remove,
-    popup.on,
-    popup.addTo,
-    popup.off,
-    popup.isOpen,
-    container,
-    popup.setDOMContent,
-  ]);
+  }, [map, popup, container]);
 
   // Sync popup position and options when they change.
   useEffect(() => {

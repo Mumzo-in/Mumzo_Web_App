@@ -4,6 +4,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   numeric,
   pgTable,
   primaryKey,
@@ -38,15 +39,31 @@ export const brand = pgTable("brand", {
 });
 
 /** Suppliers a product is sourced from. */
+/** A vendor can have several points of contact; exactly one is primary. */
+export type VendorContact = {
+  name: string;
+  phone: string | null;
+  email: string | null;
+  isPrimary: boolean;
+};
+
 export const vendor = pgTable("vendor", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
-  contactName: text("contact_name"),
-  phone: text("phone"),
-  email: text("email"),
+  type: text("type").default("distributor").notNull(), // manufacturer | distributor | retailer | company | other
+  contacts: jsonb("contacts").$type<VendorContact[]>().default([]).notNull(),
   address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  pincode: text("pincode"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   gstin: text("gstin"),
+  pan: text("pan"),
+  paymentTerms: text("payment_terms").default("net_30").notNull(), // prepaid | cod | net_7 | net_15 | net_30 | net_60
+  defaultLeadTimeDays: integer("default_lead_time_days"),
+  notes: text("notes"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -171,10 +188,10 @@ export const product = pgTable(
 export const productVendor = pgTable(
   "product_vendor",
   {
+    id: uuid("id").defaultRandom().primaryKey(),
     productId: uuid("product_id")
       .notNull()
-      .references(() => product.id, { onDelete: "cascade" })
-      .primaryKey(),
+      .references(() => product.id, { onDelete: "cascade" }),
     vendorId: uuid("vendor_id")
       .notNull()
       .references(() => vendor.id, { onDelete: "restrict" }),
@@ -183,6 +200,9 @@ export const productVendor = pgTable(
     /** What we pay the supplier. Drives margin; never exposed to customers. */
     costPrice: integer("cost_price"),
     leadTimeDays: integer("lead_time_days"),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    vendorSku: text("vendor_sku"),
+    moq: integer("moq"),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -190,7 +210,14 @@ export const productVendor = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("product_vendor_vendorId_idx").on(table.vendorId)],
+  (table) => [
+    // 1:1 per product (a product has at most one vendor on file) — every
+    // read here (products.repo leftJoin, vendors.repo counts) assumes a
+    // single row per productId, so that's the column the unique constraint
+    // — and `syncVendorLink`'s upsert target — must be on.
+    unique("product_vendor_product_id_key").on(table.productId),
+    index("product_vendor_vendorId_idx").on(table.vendorId),
+  ],
 );
 
 /**
@@ -270,13 +297,23 @@ export const hub = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
+    type: text("type").default("dark_store").notNull(), // dark_store | micro_warehouse | fulfilment_center
     address: text("address").notNull(),
+    city: text("city"),
+    state: text("state"),
+    pincode: text("pincode"),
     /** Dark-store coordinates — used for the radius-based serviceability
      * fallback (docs/order-checkout-flow.md's pincode-first, then
      * nearest-hub-within-radius resolution) and the admin map view. Nullable
      * so existing hubs don't need backfilling before this feature ships. */
     lat: doublePrecision("lat"),
     lng: doublePrecision("lng"),
+    contactName: text("contact_name"),
+    contactPhone: text("contact_phone"),
+    capacity: integer("capacity"),
+    operatingHoursStart: text("operating_hours_start"),
+    operatingHoursEnd: text("operating_hours_end"),
+    avgPickPackMins: integer("avg_pick_pack_mins").default(3).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     /** The hub order placement/stock checks use until real pincode-based
      * routing exists (docs/order-checkout-flow.md's single-hub-launch note).
@@ -311,6 +348,17 @@ export const serviceArea = pgTable(
     hubId: uuid("hub_id")
       .notNull()
       .references(() => hub.id, { onDelete: "cascade" }),
+    zoneTier: text("zone_tier").default("express").notNull(), // express | outer_express | standard | national_fallback
+    etaMinutes: integer("eta_minutes").default(15).notNull(),
+    deliveryFee: integer("delivery_fee").default(1500).notNull(), // paise
+    freeDeliveryThreshold: integer("free_delivery_threshold")
+      .default(19900)
+      .notNull(), // paise
+    minOrderValue: integer("min_order_value").default(9900).notNull(), // paise
+    distanceFromHubKm: doublePrecision("distance_from_hub_km"),
+    surgeExtraMins: integer("surge_extra_mins").default(0).notNull(),
+    surgeActive: boolean("surge_active").default(false).notNull(),
+    polygon: text("polygon"), // stringified GeoJSON or boundary coordinate list
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -318,7 +366,50 @@ export const serviceArea = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [unique().on(table.pincode)],
+  (table) => [
+    unique().on(table.pincode),
+    index("service_area_zone_tier_idx").on(table.zoneTier),
+  ],
+);
+
+/**
+ * Immutable audit log of every inventory change.
+ */
+export const stockMovement = pgTable(
+  "stock_movement",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    hubId: uuid("hub_id")
+      .notNull()
+      .references(() => hub.id, { onDelete: "restrict" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "restrict" }),
+    productSizeId: uuid("product_size_id").references(() => productSize.id, {
+      onDelete: "restrict",
+    }),
+    productColorId: uuid("product_color_id").references(() => productColor.id, {
+      onDelete: "restrict",
+    }),
+    type: text("type").notNull(), // grn | sale | return | transfer_out | transfer_in | adjustment | wastage
+    quantity: integer("quantity").notNull(), // positive = in, negative = out
+    stockAfter: integer("stock_after").notNull(),
+    referenceType: text("reference_type"), // order | purchase_order | stock_transfer | adjustment | wastage
+    referenceId: uuid("reference_id"),
+    unitCostPaise: integer("unit_cost_paise"),
+    reason: text("reason"),
+    actor: text("actor").notNull(), // system | admin:<id> | rider:<id>
+    batchNumber: text("batch_number"),
+    expiryDate: timestamp("expiry_date"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("stock_movement_hub_id_idx").on(table.hubId),
+    index("stock_movement_product_id_idx").on(table.productId),
+    index("stock_movement_type_idx").on(table.type),
+    index("stock_movement_reference_id_idx").on(table.referenceId),
+    index("stock_movement_created_at_idx").on(table.createdAt),
+  ],
 );
 
 /**
@@ -453,10 +544,7 @@ export const productRelations = relations(product, ({ one, many }) => ({
     fields: [product.categoryId],
     references: [category.id],
   }),
-  vendor: one(productVendor, {
-    fields: [product.id],
-    references: [productVendor.productId],
-  }),
+  vendors: many(productVendor),
   sizes: many(productSize),
   colors: many(productColor),
   inventory: many(inventory),
@@ -491,6 +579,26 @@ export const productColorRelations = relations(productColor, ({ one }) => ({
 export const hubRelations = relations(hub, ({ many }) => ({
   inventory: many(inventory),
   serviceAreas: many(serviceArea),
+  stockMovements: many(stockMovement),
+}));
+
+export const stockMovementRelations = relations(stockMovement, ({ one }) => ({
+  hub: one(hub, {
+    fields: [stockMovement.hubId],
+    references: [hub.id],
+  }),
+  product: one(product, {
+    fields: [stockMovement.productId],
+    references: [product.id],
+  }),
+  productSize: one(productSize, {
+    fields: [stockMovement.productSizeId],
+    references: [productSize.id],
+  }),
+  productColor: one(productColor, {
+    fields: [stockMovement.productColorId],
+    references: [productColor.id],
+  }),
 }));
 
 export const serviceAreaRelations = relations(serviceArea, ({ one }) => ({

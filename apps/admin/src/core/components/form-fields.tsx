@@ -5,6 +5,14 @@ import {
   FieldLabel,
 } from "@mumzo/ui/components/field";
 import { Input } from "@mumzo/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@mumzo/ui/components/select";
 import { Textarea } from "@mumzo/ui/components/textarea";
 import type { AnyFieldApi } from "@tanstack/react-form";
 import type { ReactNode } from "react";
@@ -60,6 +68,50 @@ export function TextField({
         onChange={(event) => field.handleChange(event.target.value)}
         data-testid={testId}
       />
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {invalid ? <FieldError errors={errors} /> : null}
+    </Field>
+  );
+}
+
+/** Hex color input paired with a native swatch button that opens the OS color picker. */
+export function ColorField({
+  field,
+  label,
+  description,
+  placeholder,
+  testId,
+}: BaseProps & { placeholder?: string; testId?: string }) {
+  const errors = errorsOf(field);
+  const invalid = errors.length > 0;
+  const value: string = field.state.value ?? "";
+  const isValidHex = /^#[0-9a-fA-F]{6}$/.test(value);
+
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <div className="flex items-center gap-2">
+        <div className="relative size-9 shrink-0 overflow-hidden rounded-lg border border-border">
+          <input
+            aria-label={`${label} swatch`}
+            className="absolute inset-0 size-full cursor-pointer border-none p-0"
+            onChange={(event) => field.handleChange(event.target.value)}
+            type="color"
+            value={isValidHex ? value : "#f6f3ec"}
+          />
+        </div>
+        <Input
+          aria-invalid={invalid || undefined}
+          className="flex-1"
+          data-testid={testId}
+          id={field.name}
+          name={field.name}
+          onBlur={field.handleBlur}
+          onChange={(event) => field.handleChange(event.target.value)}
+          placeholder={placeholder}
+          value={value}
+        />
+      </div>
       {description ? <FieldDescription>{description}</FieldDescription> : null}
       {invalid ? <FieldError errors={errors} /> : null}
     </Field>
@@ -122,6 +174,55 @@ export function TextareaField({
         onChange={(event) => field.handleChange(event.target.value)}
         data-testid={testId}
       />
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {invalid ? <FieldError errors={errors} /> : null}
+    </Field>
+  );
+}
+
+export function SelectField({
+  field,
+  label,
+  description,
+  placeholder = "Select…",
+  options,
+  testId,
+}: BaseProps & {
+  placeholder?: string;
+  options: { value: string; label: string }[];
+  testId?: string;
+}) {
+  const errors = errorsOf(field);
+  const invalid = errors.length > 0;
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <Select
+        onValueChange={(value) => field.handleChange(value)}
+        value={field.state.value ?? ""}
+      >
+        <SelectTrigger
+          aria-invalid={invalid || undefined}
+          className="w-full"
+          data-testid={testId}
+          id={field.name}
+        >
+          <SelectValue placeholder={placeholder}>
+            {(value: string) =>
+              options.find((option) => option.value === value)?.label ?? value
+            }
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
       {description ? <FieldDescription>{description}</FieldDescription> : null}
       {invalid ? <FieldError errors={errors} /> : null}
     </Field>

@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { hub, product, productColor, productSize } from "./catalog";
+import { deliveryAssignment } from "./delivery";
 import { coupon } from "./marketing";
 
 /**
@@ -296,6 +297,10 @@ export const orderRelations = relations(order, ({ one, many }) => ({
   payment: one(payment, {
     fields: [order.id],
     references: [payment.orderId],
+  }),
+  deliveryAssignment: one(deliveryAssignment, {
+    fields: [order.id],
+    references: [deliveryAssignment.orderId],
   }),
 }));
 

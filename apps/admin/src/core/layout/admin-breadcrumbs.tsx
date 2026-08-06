@@ -43,11 +43,13 @@ export function AdminBreadcrumbs() {
     ...(match ? [{ label: match.item.label, to: match.item.to }] : []),
   ];
 
+  const hasDetailCrumb = match && !isExactPage;
+
   return (
     <Breadcrumb data-testid="admin-breadcrumbs">
       <BreadcrumbList>
         {trail.map((crumb, index) => {
-          const last = index === trail.length - 1;
+          const last = index === trail.length - 1 && !hasDetailCrumb;
           return (
             <Fragment key={crumb.to}>
               <BreadcrumbItem>
@@ -64,13 +66,10 @@ export function AdminBreadcrumbs() {
           );
         })}
         {/* A detail page isn't in the nav — mark that we're one level deeper. */}
-        {match && !isExactPage ? (
-          <>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Detail</BreadcrumbPage>
-            </BreadcrumbItem>
-          </>
+        {hasDetailCrumb ? (
+          <BreadcrumbItem>
+            <BreadcrumbPage>Detail</BreadcrumbPage>
+          </BreadcrumbItem>
         ) : null}
       </BreadcrumbList>
     </Breadcrumb>

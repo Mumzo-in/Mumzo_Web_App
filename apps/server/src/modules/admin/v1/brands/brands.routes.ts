@@ -1,10 +1,16 @@
 import { createRoute, z } from "@hono/zod-openapi";
 
-import { authErrorResponses, jsonContent, successSchema } from "@/core";
+import {
+  authErrorResponses,
+  jsonContent,
+  paginatedSchema,
+  successSchema,
+} from "@/core";
 import {
   brandIdParamSchema,
   brandSchema,
   createBrandSchema,
+  listBrandsQuerySchema,
   updateBrandSchema,
 } from "./brands.schema";
 
@@ -14,20 +20,24 @@ export const listRoute = createRoute({
   method: "get",
   path: "/",
   tags: [TAG],
-  summary: "List brands",
+  summary: "List brands, paginated",
   security: [{ cookieAuth: [] }],
-  request: {
-    query: z.object({
-      search: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .openapi({ param: { name: "search", in: "query" } }),
-    }),
-  },
+  request: { query: listBrandsQuerySchema },
   responses: {
-    200: jsonContent(successSchema(z.array(brandSchema)), "All brands"),
+    200: jsonContent(paginatedSchema(brandSchema), "Page of brands"),
+    ...authErrorResponses,
+  },
+});
+
+export const getRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  tags: [TAG],
+  summary: "Get a brand by id",
+  security: [{ cookieAuth: [] }],
+  request: { params: brandIdParamSchema },
+  responses: {
+    200: jsonContent(successSchema(brandSchema), "The brand"),
     ...authErrorResponses,
   },
 });

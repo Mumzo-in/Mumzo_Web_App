@@ -12,12 +12,10 @@ export const PRODUCT_STATUS_META: Record<
 
 /**
  * Product fixtures spanning the category taxonomy. Prices/mrp are WHOLE
- * RUPEES per `packages/schema/src/product.ts`. `brand`/`vendor.vendorName`
- * are denormalized display fields — kept consistent with the brand/vendor
- * fixtures by hand here, the way the real server would resolve them.
- *
- * Does NOT import brand-data or vendor-data — those modules derive counts by
- * importing this file, so importing back would create a cycle.
+ * RUPEES per `packages/schema/src/product.ts`. `brand`/`brandId` reference
+ * real seeded brands (brand/category now run on the real backend); products
+ * themselves are still mock until the product module gets its own backend
+ * pass. `vendor.vendorName` remains a denormalized display field.
  */
 export const products: Product[] = [
   {
@@ -25,8 +23,8 @@ export const products: Product[] = [
     slug: "babywhiz-newborn-diapers-pack-of-60",
     sku: "BW-DIA-NB-60",
     name: "Newborn Diapers, Ultra Soft",
-    brand: "BabyWhiz",
-    brandId: "brand_babywhiz",
+    brand: "Pampers",
+    brandId: "dc642a36-1132-4a2e-9498-7326b5b85641",
     vendor: {
       vendorId: "vendor_shreesupply",
       vendorName: "Shree Supply Co.",
@@ -64,8 +62,8 @@ export const products: Product[] = [
     slug: "babywhiz-pant-style-diapers-large",
     sku: "BW-DIA-PL-54",
     name: "Pant Style Diapers, Large",
-    brand: "BabyWhiz",
-    brandId: "brand_babywhiz",
+    brand: "Pampers",
+    brandId: "dc642a36-1132-4a2e-9498-7326b5b85641",
     vendor: {
       vendorId: "vendor_shreesupply",
       vendorName: "Shree Supply Co.",
@@ -100,8 +98,8 @@ export const products: Product[] = [
     slug: "tinytoes-gentle-baby-wipes",
     sku: "TT-WIP-72",
     name: "Gentle Baby Wipes",
-    brand: "TinyToes",
-    brandId: "brand_tinytoes",
+    brand: "SuperBottoms",
+    brandId: "07dd4bd9-8230-4d8a-9e11-4fe622876309",
     vendor: null,
     categorySlug: "diapers",
     price: 199,
@@ -129,8 +127,8 @@ export const products: Product[] = [
     slug: "lilbud-anti-colic-feeding-bottle",
     sku: "LB-BOT-250",
     name: "Anti-Colic Feeding Bottle 250ml",
-    brand: "LilBud",
-    brandId: "brand_lilbud",
+    brand: "Philips Avent",
+    brandId: "18f3a496-3522-4087-8a64-8587f646c046",
     vendor: {
       vendorId: "vendor_nandi",
       vendorName: "Nandi Trading Ltd.",
@@ -168,8 +166,8 @@ export const products: Product[] = [
     slug: "lilbud-silicone-bib",
     sku: "LB-BIB-01",
     name: "Silicone Catch-All Bib",
-    brand: "LilBud",
-    brandId: "brand_lilbud",
+    brand: "Philips Avent",
+    brandId: "18f3a496-3522-4087-8a64-8587f646c046",
     vendor: null,
     categorySlug: "feeding",
     price: 249,
@@ -200,8 +198,8 @@ export const products: Product[] = [
     slug: "mamaearthly-infant-formula-stage-1",
     sku: "ME-FOR-S1-400",
     name: "Infant Formula Stage 1",
-    brand: "MamaEarthly",
-    brandId: "brand_mamaearthly",
+    brand: "Slurrp Farm",
+    brandId: "6f2c180e-0290-442a-b038-bccfcb93f779",
     vendor: {
       vendorId: "vendor_krishnaagro",
       vendorName: "Krishna Agro & Foods",
@@ -236,8 +234,8 @@ export const products: Product[] = [
     slug: "mamaearthly-apple-puree",
     sku: "ME-PUR-APL-6",
     name: "Apple Puree, Stage 1 (6-pack)",
-    brand: "MamaEarthly",
-    brandId: "brand_mamaearthly",
+    brand: "Slurrp Farm",
+    brandId: "6f2c180e-0290-442a-b038-bccfcb93f779",
     vendor: {
       vendorId: "vendor_krishnaagro",
       vendorName: "Krishna Agro & Foods",
@@ -272,8 +270,8 @@ export const products: Product[] = [
     slug: "cozynest-no-tears-shampoo",
     sku: "CN-SHM-200",
     name: "No More Tears Baby Shampoo",
-    brand: "CozyNest",
-    brandId: "brand_cozynest",
+    brand: "Mee Mee",
+    brandId: "716261fc-53a1-429e-aad4-3074ef1decf2",
     vendor: null,
     categorySlug: "bath-skin",
     price: 249,
@@ -301,8 +299,8 @@ export const products: Product[] = [
     slug: "cozynest-daily-moisture-lotion",
     sku: "CN-LOT-200",
     name: "Daily Moisture Baby Lotion",
-    brand: "CozyNest",
-    brandId: "brand_cozynest",
+    brand: "Mee Mee",
+    brandId: "716261fc-53a1-429e-aad4-3074ef1decf2",
     vendor: null,
     categorySlug: "bath-skin",
     price: 229,
@@ -330,8 +328,8 @@ export const products: Product[] = [
     slug: "babble-and-bloom-maternity-support-belt",
     sku: "BB-MAT-BELT",
     name: "Maternity Support Belt",
-    brand: "Babble & Bloom",
-    brandId: "brand_babble",
+    brand: "Mother Sparsh",
+    brandId: "5e1cd500-2d10-4ba4-9ce5-6eeeb6e1a976",
     vendor: {
       vendorId: "vendor_sunriseimports",
       vendorName: "Sunrise Imports",
@@ -370,8 +368,8 @@ export const products: Product[] = [
     slug: "babble-and-bloom-nursing-pillow",
     sku: "BB-NUR-PIL",
     name: "Contoured Nursing Pillow",
-    brand: "Babble & Bloom",
-    brandId: "brand_babble",
+    brand: "Mother Sparsh",
+    brandId: "5e1cd500-2d10-4ba4-9ce5-6eeeb6e1a976",
     vendor: {
       vendorId: "vendor_sunriseimports",
       vendorName: "Sunrise Imports",
@@ -406,8 +404,8 @@ export const products: Product[] = [
     slug: "tinytoes-wooden-rattle-set",
     sku: "TT-TOY-RAT-3",
     name: "Wooden Rattle Set (3 pcs)",
-    brand: "TinyToes",
-    brandId: "brand_tinytoes",
+    brand: "SuperBottoms",
+    brandId: "07dd4bd9-8230-4d8a-9e11-4fe622876309",
     vendor: {
       vendorId: "vendor_littleones",
       vendorName: "Little Ones Wholesale",
@@ -442,8 +440,8 @@ export const products: Product[] = [
     slug: "snuggleup-stroller-toy-bar",
     sku: "SU-TOY-STB",
     name: "Stroller Toy Bar",
-    brand: "SnuggleUp",
-    brandId: "brand_snuggleup",
+    brand: "Funskool",
+    brandId: "d4f9d275-ce67-4779-97fc-7d7905ca4960",
     vendor: null,
     categorySlug: "toys",
     price: 449,
@@ -471,8 +469,8 @@ export const products: Product[] = [
     slug: "babywhiz-cotton-onesies-pack-of-5",
     sku: "BW-CLO-ONE-5",
     name: "Cotton Onesies (Pack of 5)",
-    brand: "BabyWhiz",
-    brandId: "brand_babywhiz",
+    brand: "Pampers",
+    brandId: "dc642a36-1132-4a2e-9498-7326b5b85641",
     vendor: {
       vendorId: "vendor_shreesupply",
       vendorName: "Shree Supply Co.",
@@ -511,8 +509,8 @@ export const products: Product[] = [
     slug: "cozynest-muslin-swaddle-set",
     sku: "CN-SWD-MUS-3",
     name: "Muslin Swaddle Set (3 pcs)",
-    brand: "CozyNest",
-    brandId: "brand_cozynest",
+    brand: "Mee Mee",
+    brandId: "716261fc-53a1-429e-aad4-3074ef1decf2",
     vendor: null,
     categorySlug: "baby-essentials",
     price: 799,
@@ -540,8 +538,8 @@ export const products: Product[] = [
     slug: "lilbud-bottle-and-toy-cleanser",
     sku: "LB-CLN-500",
     name: "Bottle & Toy Cleanser",
-    brand: "LilBud",
-    brandId: "brand_lilbud",
+    brand: "Philips Avent",
+    brandId: "18f3a496-3522-4087-8a64-8587f646c046",
     vendor: null,
     categorySlug: "feeding",
     price: 179,
@@ -569,8 +567,8 @@ export const products: Product[] = [
     slug: "tinytoes-silicone-teether",
     sku: "TT-TOY-TEE-01",
     name: "Silicone Cooling Teether",
-    brand: "TinyToes",
-    brandId: "brand_tinytoes",
+    brand: "SuperBottoms",
+    brandId: "07dd4bd9-8230-4d8a-9e11-4fe622876309",
     vendor: {
       vendorId: "vendor_littleones",
       vendorName: "Little Ones Wholesale",
@@ -608,8 +606,8 @@ export const products: Product[] = [
     slug: "babble-and-bloom-stretch-mark-cream",
     sku: "BB-SKN-STR-150",
     name: "Stretch Mark Cream",
-    brand: "Babble & Bloom",
-    brandId: "brand_babble",
+    brand: "Mother Sparsh",
+    brandId: "5e1cd500-2d10-4ba4-9ce5-6eeeb6e1a976",
     vendor: null,
     categorySlug: "mom-care",
     price: 549,

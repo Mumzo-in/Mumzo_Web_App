@@ -27,7 +27,7 @@ import {
   TextField,
 } from "@/core/components/form-fields";
 import StringListEditor from "@/core/components/string-list-editor";
-import { brandsQueryOptions } from "@/modules/brand";
+import { brandsAllQueryOptions } from "@/modules/brand";
 import { categoriesQueryOptions } from "@/modules/category";
 import type { Coupon, CouponInput } from "../api/coupons-api";
 import { PRODUCT_SCOPE_OPTIONS, VISIBILITY_OPTIONS } from "../data/coupon-data";
@@ -160,7 +160,7 @@ export const CouponForm = forwardRef<
 >(function CouponForm({ coupon, onSubmit, onPendingChange }, ref) {
   const [pending, setPending] = useState(false);
   const { data: categories } = useQuery(categoriesQueryOptions);
-  const { data: brands } = useQuery(brandsQueryOptions);
+  const { data: brands } = useQuery(brandsAllQueryOptions);
 
   const form = useForm({
     defaultValues: coupon ? valuesFrom(coupon) : emptyValues(),

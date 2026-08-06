@@ -58,13 +58,7 @@ export function RichTextEditor({
   }
 
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-input bg-background shadow-xs",
-        className,
-      )}
-      data-testid={testId}
-    >
+    <div className={cn("border bg-background", className)} data-testid={testId}>
       <div className="flex flex-wrap items-center gap-1 border-border/60 border-b p-1.5">
         <Toggle
           aria-label="Bold"

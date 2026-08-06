@@ -4,12 +4,14 @@ import {
   deleteRouteDef,
   getRoute,
   listRoute,
+  listVendorProductsRoute,
   updateRouteDef,
 } from "./vendors.routes";
 import {
   createVendor,
   deleteVendor,
   getVendor,
+  listVendorProducts,
   listVendors,
   updateVendor,
 } from "./vendors.service";
@@ -44,6 +46,12 @@ const vendors = app
   .openapi(deleteRouteDef, async (c) => {
     await deleteVendor(c.req.valid("param").id);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
+  })
+  .openapi(listVendorProductsRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const query = c.req.valid("query");
+    const { data, meta } = await listVendorProducts(id, query);
+    return c.json({ success: true as const, data: { data, meta } }, 200);
   });
 
 export default vendors;

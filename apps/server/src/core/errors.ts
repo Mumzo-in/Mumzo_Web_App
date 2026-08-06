@@ -64,6 +64,32 @@ export function formatZodError(err: ZodError): string {
 }
 
 /**
+ * `pg` driver error shape — `code` is the Postgres SQLSTATE. We only care
+ * about `22P02` (invalid_text_representation), thrown when an id param that
+ * looks nothing like a UUID reaches a `uuid` column comparison. Every
+ * `*IdParamSchema` in this codebase validates the id is a non-empty string,
+ * not that it's a well-formed UUID — so a stale/garbage id must be caught
+ * here rather than at the route boundary. Drizzle wraps the raw `pg` error
+ * in `DrizzleQueryError` and puts the original on `.cause`, so both the
+ * error itself and its cause are checked.
+ */
+function hasPgCode(value: unknown, code: string): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    (value as { code?: unknown }).code === code
+  );
+}
+
+function isInvalidUuidInput(err: unknown): boolean {
+  return (
+    hasPgCode(err, "22P02") ||
+    (err instanceof Error && hasPgCode(err.cause, "22P02"))
+  );
+}
+
+/**
  * The single place error responses are produced. Registered via `app.onError`,
  * so any thrown error anywhere becomes a correctly-shaped envelope.
  */
@@ -76,6 +102,10 @@ export function errorHandler(err: Error, c: Context) {
     }
 
     return c.json(body(err.code, err.message), err.status);
+  }
+
+  if (isInvalidUuidInput(err)) {
+    return c.json(body(ERROR_CODES.NOT_FOUND, "Not found"), 404);
   }
 
   if (err instanceof ZodError) {

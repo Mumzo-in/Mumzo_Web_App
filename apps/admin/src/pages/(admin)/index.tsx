@@ -329,7 +329,7 @@ function DashboardPage() {
               <CardDescription>Recently registered moms</CardDescription>
             </div>
             <Link
-              to="/customers"
+              to="/customers/segments"
               className="font-medium text-primary text-xs hover:underline"
             >
               View all

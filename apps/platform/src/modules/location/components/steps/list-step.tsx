@@ -6,10 +6,12 @@ export function ListStep({
   addresses,
   onSelect,
   onUseCurrentLocation,
+  selectedAddressId,
 }: {
   addresses: Address[];
   onSelect: (address: Address) => void;
   onUseCurrentLocation: () => void;
+  selectedAddressId?: string;
 }) {
   return (
     <div>
@@ -28,6 +30,7 @@ export function ListStep({
             key={address.id}
             address={address}
             selectable
+            selected={address.id === selectedAddressId}
             onSelect={() => onSelect(address)}
           />
         ))}

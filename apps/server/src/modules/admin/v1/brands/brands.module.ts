@@ -3,12 +3,14 @@ import { unauthorized } from "@/core/errors";
 import {
   createRouteDef,
   deleteRouteDef,
+  getRoute,
   listRoute,
   updateRouteDef,
 } from "./brands.routes";
 import {
   createBrand,
   deleteBrand,
+  getBrand,
   listBrands,
   updateBrand,
 } from "./brands.service";
@@ -24,11 +26,13 @@ app.delete("/:id", requirePermission("brand", "delete"));
 
 const brands = app
   .openapi(listRoute, async (c) => {
-    const { search } = c.req.valid("query");
-    return c.json(
-      { success: true as const, data: await listBrands(search) },
-      200,
-    );
+    const query = c.req.valid("query");
+    const { data, meta } = await listBrands(query);
+    return c.json({ success: true as const, data: { data, meta } }, 200);
+  })
+  .openapi(getRoute, async (c) => {
+    const brand = await getBrand(c.req.valid("param").id);
+    return c.json({ success: true as const, data: brand }, 200);
   })
   .openapi(createRouteDef, async (c) => {
     const user = c.get("user");

@@ -27,6 +27,7 @@ import { formatNumber } from "@/core/components/format";
 import {
   type CategoryWithCount,
   reorderCategories,
+  updateCategory,
 } from "../api/categories-api";
 import { categoriesQueryOptions } from "../queries/categories";
 
@@ -53,10 +54,23 @@ export function CategoryList() {
     }),
   );
 
-  const handleToggleActive = (slug: string, checked: boolean) => {
+  const handleToggleActive = async (slug: string, checked: boolean) => {
+    const previous = localCategories;
     setLocalCategories((prev) =>
       prev.map((c) => (c.slug === slug ? { ...c, isActive: checked } : c)),
     );
+
+    try {
+      await updateCategory(slug, { isActive: checked });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.categories.lists(),
+      });
+    } catch (error) {
+      setLocalCategories(previous);
+      toast.error(
+        error instanceof Error ? error.message : "Could not update category.",
+      );
+    }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
