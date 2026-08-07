@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import { type Baby, seedBabies } from "../data/baby-data";
+import type { Baby } from "../data/baby-data";
 
 type BabyDraft = Omit<Baby, "id">;
 
@@ -26,9 +26,9 @@ const STORAGE_KEY = "mumzo_babies_v1";
 function readStored(): Baby[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Baby[]) : seedBabies;
+    return raw ? (JSON.parse(raw) as Baby[]) : [];
   } catch {
-    return seedBabies;
+    return [];
   }
 }
 

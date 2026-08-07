@@ -8,6 +8,15 @@ import { routeTree } from "./routeTree.gen";
 
 import "@/styles/globals.css";
 
+// Unregister any active PWA service workers and clear cache to resolve caching issues
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

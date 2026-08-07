@@ -20,7 +20,6 @@ import {
   toProduct,
 } from "@/modules/catalog";
 import { HeroCarousel } from "@/modules/home";
-import { OffersStrip } from "@/modules/offers";
 
 export const Route = createFileRoute("/(store)/")({
   component: HomePage,
@@ -136,7 +135,7 @@ function HomePage() {
       </section>
 
       {/* Offers */}
-      <section className="mt-12">
+      {/* <section className="mt-12">
         <SectionHeader
           kicker="Coupons"
           title="Offers for you"
@@ -150,7 +149,7 @@ function HomePage() {
           }
         />
         <OffersStrip />
-      </section>
+      </section> */}
 
       {/* Product section 2 — Bestsellers */}
       <section className="mt-12">

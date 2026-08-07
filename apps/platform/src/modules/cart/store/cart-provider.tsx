@@ -256,7 +256,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 export function useCart(): CartContextValue {
   const ctx = useContext(CartContext);
   if (!ctx) {
-    throw new Error("useCart must be used inside <CartProvider>");
+    return {
+      items: [],
+      addItem: () => {},
+      removeItem: () => {},
+      updateQty: () => {},
+      clear: () => {},
+      couponCode: null,
+      applyCoupon: async () => {},
+      removeCoupon: () => {},
+      totals: EMPTY_TOTALS,
+      isLoading: false,
+    };
   }
   return ctx;
 }

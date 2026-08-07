@@ -12,23 +12,34 @@ const LocationModal = lazy(() => import("./location-modal"));
  * picked, or skipped a location). */
 export default function LocationModalHost() {
   const { activeModal, openModal } = useModalStore();
-  const { hasChosenLocation, setLocation, pincode, query } =
-    useServiceability();
+  const { hasChosenLocation, setLocation } = useServiceability();
   const { defaultAddress } = useAddresses();
 
-  // If a default address is loaded and the current location is the fallback default,
-  // automatically set the location to the default address.
+  // If a default address is loaded, automatically set the location to it
+  // on first load of the session or when the default address changes.
   useEffect(() => {
     if (defaultAddress) {
-      const isFallback = pincode === "500034" && query === "Banjara Hills";
-      if (isFallback) {
-        void setLocation(defaultAddress.pincode, defaultAddress.city, {
-          lat: defaultAddress.lat,
-          lng: defaultAddress.lng,
-        });
+      const initializedId = sessionStorage.getItem(
+        "mumzo_location_initialized_from_user",
+      );
+      if (initializedId !== defaultAddress.id) {
+        sessionStorage.setItem(
+          "mumzo_location_initialized_from_user",
+          defaultAddress.id,
+        );
+        void setLocation(
+          defaultAddress.pincode,
+          defaultAddress.line2 || defaultAddress.city,
+          {
+            lat: defaultAddress.lat,
+            lng: defaultAddress.lng,
+          },
+        );
       }
+    } else {
+      sessionStorage.removeItem("mumzo_location_initialized_from_user");
     }
-  }, [defaultAddress, pincode, query, setLocation]);
+  }, [defaultAddress, setLocation]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount only, not on every hasChosenLocation/openModal change
   useEffect(() => {

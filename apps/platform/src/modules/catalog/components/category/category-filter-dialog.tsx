@@ -21,6 +21,7 @@ interface CategoryFilterDialogProps {
   onChange: (next: CategoryFilterState) => void;
   resultCount: number;
   className?: string;
+  loading?: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export default function CategoryFilterDialog({
   onChange,
   resultCount,
   className,
+  loading,
 }: CategoryFilterDialogProps) {
   const count = activeFilterCount(state);
 
@@ -59,6 +61,7 @@ export default function CategoryFilterDialog({
           state={state}
           onChange={onChange}
           headerClassName="pr-10"
+          loading={loading}
         />
         <DialogClose className="w-full rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground text-sm">
           Show {resultCount} results

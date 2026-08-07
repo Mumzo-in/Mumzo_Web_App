@@ -173,7 +173,9 @@ function ProfilePage() {
           </h2>
           <div className="mt-1.5 space-y-0.5 text-foreground/50 text-xs">
             <p className="font-semibold text-foreground/70">{userPhone}</p>
-            {user.email && <p className="text-foreground/40">{user.email}</p>}
+            {user.email && !user.email.endsWith("@phone.mumzo.local") && (
+              <p className="text-foreground/40">{user.email}</p>
+            )}
           </div>
           {babies.length > 0 && (
             <p className="mt-2 flex items-center justify-center gap-1.5 text-primary text-xs sm:justify-start">

@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mumzo/ui/components/select";
+import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { Slider } from "@mumzo/ui/components/slider";
 import { cn } from "@mumzo/ui/lib/utils";
 import { useEffect, useRef, useState } from "react";
@@ -38,6 +39,7 @@ interface CategoryFilterPanelProps {
   /** Extra classes for the sticky "Filters / Clear" header row — the mobile
    * dialog uses this to keep "Clear" clear of the dialog's own close button. */
   headerClassName?: string;
+  loading?: boolean;
 }
 
 /** Pill toggle used by the age / size / type groups. */
@@ -101,6 +103,7 @@ export default function CategoryFilterPanel({
   onChange,
   className,
   headerClassName,
+  loading,
 }: CategoryFilterPanelProps) {
   const count = activeFilterCount(state);
 
@@ -192,76 +195,110 @@ export default function CategoryFilterPanel({
 
       <Accordion multiple defaultValue={[...SECTION_KEYS]} className="px-6">
         {/* Age */}
-        {facets.ages.length > 0 && (
+        {(facets.ages.length > 0 || loading) && (
           <AccordionItem value="age">
             <AccordionTrigger className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
               Age
             </AccordionTrigger>
             <AccordionContent>
               <div className="flex flex-wrap gap-2">
-                {facets.ages.map((age: AgeGroup) => (
-                  <Pill
-                    key={age}
-                    active={state.ages.includes(age)}
-                    onClick={() => toggle("ages", age)}
-                    testId={`filter-age-${age}`}
-                  >
-                    {AGE_LABEL[age]}
-                  </Pill>
-                ))}
+                {loading ? (
+                  <>
+                    <Skeleton className="h-7 w-12 rounded-full" />
+                    <Skeleton className="h-7 w-16 rounded-full" />
+                    <Skeleton className="h-7 w-14 rounded-full" />
+                    <Skeleton className="h-7 w-10 rounded-full" />
+                  </>
+                ) : (
+                  facets.ages.map((age: AgeGroup) => (
+                    <Pill
+                      key={age}
+                      active={state.ages.includes(age)}
+                      onClick={() => toggle("ages", age)}
+                      testId={`filter-age-${age}`}
+                    >
+                      {AGE_LABEL[age]}
+                    </Pill>
+                  ))
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
         )}
 
         {/* Type */}
-        {facets.types.length > 0 && (
+        {(facets.types.length > 0 || loading) && (
           <AccordionItem value="type">
             <AccordionTrigger className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
               Type
             </AccordionTrigger>
             <AccordionContent>
               <div className="flex flex-wrap gap-2">
-                {facets.types.map((type) => (
-                  <Pill
-                    key={type}
-                    active={state.types.includes(type)}
-                    onClick={() => toggle("types", type)}
-                    testId={`filter-type-${type}`}
-                  >
-                    {type}
-                  </Pill>
-                ))}
+                {loading ? (
+                  <>
+                    <Skeleton className="h-7 w-14 rounded-full" />
+                    <Skeleton className="h-7 w-20 rounded-full" />
+                    <Skeleton className="h-7 w-12 rounded-full" />
+                  </>
+                ) : (
+                  facets.types.map((type) => (
+                    <Pill
+                      key={type}
+                      active={state.types.includes(type)}
+                      onClick={() => toggle("types", type)}
+                      testId={`filter-type-${type}`}
+                    >
+                      {type}
+                    </Pill>
+                  ))
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
         )}
 
         {/* Brand */}
-        {facets.brands.length > 0 && (
+        {(facets.brands.length > 0 || loading) && (
           <AccordionItem value="brand">
             <AccordionTrigger className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
               Brand
             </AccordionTrigger>
             <AccordionContent>
-              <div className="flex max-h-56 flex-col gap-2 overflow-y-auto">
-                {facets.brands.map((brand) => (
-                  <label
-                    key={brand}
-                    className="group flex cursor-pointer items-center gap-2.5"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={state.brands.includes(brand)}
-                      onChange={() => toggle("brands", brand)}
-                      data-testid={`filter-brand-${brand}`}
-                      className="size-4 rounded border-border/70 accent-primary"
-                    />
-                    <span className="text-foreground/80 text-sm group-hover:text-foreground">
-                      {brand}
-                    </span>
-                  </label>
-                ))}
+              <div className="flex max-h-56 flex-col gap-2.5 overflow-y-auto">
+                {loading ? (
+                  <>
+                    <div className="flex items-center gap-2.5 py-0.5">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-4 w-28 rounded" />
+                    </div>
+                    <div className="flex items-center gap-2.5 py-0.5">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-4 w-20 rounded" />
+                    </div>
+                    <div className="flex items-center gap-2.5 py-0.5">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-4 w-24 rounded" />
+                    </div>
+                  </>
+                ) : (
+                  facets.brands.map((brand) => (
+                    <label
+                      key={brand}
+                      className="group flex cursor-pointer items-center gap-2.5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={state.brands.includes(brand)}
+                        onChange={() => toggle("brands", brand)}
+                        data-testid={`filter-brand-${brand}`}
+                        className="size-4 rounded border-border/70 accent-primary"
+                      />
+                      <span className="text-foreground/80 text-sm group-hover:text-foreground">
+                        {brand}
+                      </span>
+                    </label>
+                  ))
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -336,46 +373,62 @@ export default function CategoryFilterPanel({
         </AccordionItem>
 
         {/* Size */}
-        {facets.sizes.length > 0 && (
+        {(facets.sizes.length > 0 || loading) && (
           <AccordionItem value="size">
             <AccordionTrigger className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
               Size
             </AccordionTrigger>
             <AccordionContent>
               <div className="flex flex-wrap gap-2">
-                {facets.sizes.map((size) => (
-                  <Pill
-                    key={size}
-                    active={state.sizes.includes(size)}
-                    onClick={() => toggle("sizes", size)}
-                    testId={`filter-size-${size}`}
-                  >
-                    {size}
-                  </Pill>
-                ))}
+                {loading ? (
+                  <>
+                    <Skeleton className="h-7 w-10 rounded-full" />
+                    <Skeleton className="h-7 w-12 rounded-full" />
+                    <Skeleton className="h-7 w-14 rounded-full" />
+                  </>
+                ) : (
+                  facets.sizes.map((size) => (
+                    <Pill
+                      key={size}
+                      active={state.sizes.includes(size)}
+                      onClick={() => toggle("sizes", size)}
+                      testId={`filter-size-${size}`}
+                    >
+                      {size}
+                    </Pill>
+                  ))
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
         )}
 
         {/* Color */}
-        {facets.colors.length > 0 && (
+        {(facets.colors.length > 0 || loading) && (
           <AccordionItem value="color">
             <AccordionTrigger className="font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
               Color
             </AccordionTrigger>
             <AccordionContent>
               <div className="flex flex-wrap gap-2">
-                {facets.colors.map((color) => (
-                  <Pill
-                    key={color}
-                    active={state.colors.includes(color)}
-                    onClick={() => toggle("colors", color)}
-                    testId={`filter-color-${color}`}
-                  >
-                    {color}
-                  </Pill>
-                ))}
+                {loading ? (
+                  <>
+                    <Skeleton className="h-7 w-14 rounded-full" />
+                    <Skeleton className="h-7 w-16 rounded-full" />
+                    <Skeleton className="h-7 w-10 rounded-full" />
+                  </>
+                ) : (
+                  facets.colors.map((color) => (
+                    <Pill
+                      key={color}
+                      active={state.colors.includes(color)}
+                      onClick={() => toggle("colors", color)}
+                      testId={`filter-color-${color}`}
+                    >
+                      {color}
+                    </Pill>
+                  ))
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>

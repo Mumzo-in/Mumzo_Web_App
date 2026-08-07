@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { LANGUAGES, type LanguageCode, useProfile } from "@/modules/account";
+import { authClient } from "@/modules/auth";
 
 export const Route = createFileRoute("/(store)/(protected)/profile/edit")({
   component: ProfileEditPage,
@@ -15,7 +16,29 @@ export const Route = createFileRoute("/(store)/(protected)/profile/edit")({
 function ProfileEditPage() {
   const navigate = useNavigate();
   const { profile, updateProfile } = useProfile();
-  const [form, setForm] = useState(profile);
+  const { data: session } = authClient.useSession();
+  const [form, setForm] = useState(() => {
+    if (session?.user) {
+      const user = session.user;
+      const userPhone =
+        "phoneNumber" in user && typeof user.phoneNumber === "string"
+          ? user.phoneNumber
+          : "phone" in user && typeof user.phone === "string"
+            ? user.phone
+            : "";
+      const email =
+        user.email && !user.email.endsWith("@phone.mumzo.local")
+          ? user.email
+          : "";
+      return {
+        name: user.name || profile.name,
+        phone: userPhone || profile.phone,
+        email: email,
+        language: profile.language,
+      };
+    }
+    return profile;
+  });
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();

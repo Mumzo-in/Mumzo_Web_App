@@ -141,7 +141,7 @@ function SearchPage() {
   // Facet query — cat + search only, unfiltered by sort/brand/price/size, so
   // facets (and the brand slug↔name map) reflect the *whole* matching set,
   // not just what's currently selected.
-  const { data: facetPage } = useQuery(
+  const { data: facetPage, isLoading: isFacetLoading } = useQuery(
     productsQueryOptions({ categorySlug: cat, search: q, limit: 100 }),
   );
   const facetProducts = useMemo(
@@ -357,6 +357,7 @@ function SearchPage() {
           state={panelState}
           onChange={updateFilters}
           resultCount={filtered.length}
+          loading={isFacetLoading}
         />
       </div>
 
@@ -368,6 +369,7 @@ function SearchPage() {
             state={panelState}
             onChange={updateFilters}
             className="max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl border border-border/60 bg-card"
+            loading={isFacetLoading}
           />
         </aside>
 

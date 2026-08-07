@@ -38,7 +38,10 @@ export default function UserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          {session.user.email &&
+            !session.user.email.endsWith("@phone.mumzo.local") && (
+              <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+            )}
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
