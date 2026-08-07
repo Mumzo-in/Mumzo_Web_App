@@ -69,37 +69,43 @@ function DashboardPage() {
     queryFn: getDashboard,
   });
 
+  const hasAlerts =
+    data && ((data.lowStockCount ?? 0) > 0 || (data.pendingRefunds ?? 0) > 0);
+  const showNeedsAttention = isLoading || hasAlerts;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Needs Attention Bar */}
-      <Card
-        className="border border-border shadow-warm"
-        data-testid="admin-needs-attention"
-      >
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <div className="flex flex-col gap-0.5">
-            <CardTitle className="text-lg">Needs attention</CardTitle>
-            <CardDescription className="text-xs">
-              Queues that are waiting on someone.
-            </CardDescription>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <AttentionLink
-              to="/catalog/products"
-              label="Low stock"
-              count={data?.lowStockCount}
-              loading={isLoading}
-            />
-            <AttentionLink
-              to="/finance/refunds"
-              search={{ status: "pending" }}
-              label="Pending refunds"
-              count={data?.pendingRefunds}
-              loading={isLoading}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {showNeedsAttention && (
+        <Card
+          className="border border-border shadow-warm"
+          data-testid="admin-needs-attention"
+        >
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+            <div className="flex flex-col gap-0.5">
+              <CardTitle className="text-lg">Needs attention</CardTitle>
+              <CardDescription className="text-xs">
+                Queues that are waiting on someone.
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <AttentionLink
+                to="/catalog/products"
+                label="Low stock"
+                count={data?.lowStockCount}
+                loading={isLoading}
+              />
+              <AttentionLink
+                to="/finance/refunds"
+                search={{ status: "pending" }}
+                label="Pending refunds"
+                count={data?.pendingRefunds}
+                loading={isLoading}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Metric Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   type LucideIcon,
+  Megaphone,
   Receipt,
   Settings,
   Smartphone,
@@ -95,7 +96,7 @@ export const NAV_SECTIONS: NavSection[] = [
     id: "platform",
     label: "Platform",
     icon: Smartphone,
-    to: "/finance/coupons",
+    to: "/platform/users/analytics",
     groups: [
       {
         label: "Users",
@@ -105,16 +106,24 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        label: "Marketing",
-        items: [
-          { label: "Coupons & Offers", to: "/finance/coupons" },
-          { label: "Banners CMS", to: "/legal/banners", comingSoon: true },
-        ],
-      },
-      {
         label: "System",
         items: [
           { label: "Feature Flags", to: "/platform/flags", comingSoon: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: "marketing",
+    label: "Marketing",
+    icon: Megaphone,
+    to: "/finance/coupons",
+    groups: [
+      {
+        label: "Promotions",
+        items: [
+          { label: "Coupons & Offers", to: "/finance/coupons" },
+          { label: "Banners CMS", to: "/legal/banners", comingSoon: true },
         ],
       },
     ],

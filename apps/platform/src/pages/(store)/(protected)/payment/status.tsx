@@ -53,7 +53,9 @@ function PaymentStatusPage() {
   const { status, orderId } = Route.useSearch();
   const config = CONFIG[status];
   const Icon = config.icon;
-  const reference = orderId ?? `MZ${Date.now().toString().slice(-8)}`;
+  const reference = orderId
+    ? `#${orderId.slice(0, 8).toUpperCase()}`
+    : `#MZ${Date.now().toString().slice(-8)}`;
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-16 pb-24 text-center">
