@@ -7,6 +7,12 @@ import {
   CardTitle,
 } from "@mumzo/ui/components/card";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@mumzo/ui/components/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { queryKeys } from "@/core/api/query-keys";
@@ -20,9 +26,13 @@ import PageHeader from "@/core/components/page-header";
 import StatusChip from "@/core/components/status-chip";
 import {
   ageInMonths,
+  CustomerActivityTimeline,
   getUser,
   isPlaceholderEmail,
   USER_STATUS_META,
+  UserCartList,
+  UserOrdersTable,
+  UserWishlistList,
 } from "@/modules/users";
 
 export const Route = createFileRoute("/(admin)/platform/users/$userId")({
@@ -136,6 +146,31 @@ function UserDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="overflow-visible shadow-warm">
+        <CardContent className="pt-6">
+          <Tabs defaultValue="orders">
+            <TabsList>
+              <TabsTrigger value="orders">Orders</TabsTrigger>
+              <TabsTrigger value="cart">Cart</TabsTrigger>
+              <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+            </TabsList>
+            <TabsContent value="orders" className="pt-4">
+              <UserOrdersTable userId={data.id} />
+            </TabsContent>
+            <TabsContent value="cart" className="pt-4">
+              <UserCartList userId={data.id} />
+            </TabsContent>
+            <TabsContent value="wishlist" className="pt-4">
+              <UserWishlistList userId={data.id} />
+            </TabsContent>
+            <TabsContent value="activity" className="pt-4">
+              <CustomerActivityTimeline userId={data.id} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </>
   );
 }

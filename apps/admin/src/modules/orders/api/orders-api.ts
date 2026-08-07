@@ -26,3 +26,34 @@ export function updateOrderStatus(
     body: { status },
   });
 }
+
+export type CreateOrderLineInput = {
+  productId: string;
+  productSizeId?: string | null;
+  productColorId?: string | null;
+  qty: number;
+};
+
+export type CreateOrderInput = {
+  hubId: string;
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  addressLandmark?: string;
+  addressPincode: string;
+  addressCity: string;
+  addressLabel?: string;
+  items: CreateOrderLineInput[];
+  note?: string;
+};
+
+export function createOrder(
+  input: CreateOrderInput,
+): Promise<AdminOrderDetail> {
+  return apiRequest<AdminOrderDetail>("/orders", {
+    method: "POST",
+    body: input,
+  });
+}

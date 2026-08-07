@@ -9,6 +9,7 @@ import {
 import { cart, cartItem } from "@mumzo/db/schema/commerce";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
+import { logCustomerEvent } from "@/core/customer-event";
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import {
@@ -240,6 +241,18 @@ export async function addItem(
     });
   }
 
+  if (owner.userId) {
+    logCustomerEvent({
+      userId: owner.userId,
+      action: "cart.add_item",
+      entityType: "product",
+      entityId: input.productId,
+      metadata: { productId: input.productId, qty: input.qty },
+    }).catch((error) => {
+      console.error("Failed to log cart.add_item event:", error);
+    });
+  }
+
   return getCart(owner);
 }
 
@@ -269,7 +282,27 @@ export async function updateItemQty(
 
 export async function removeItem(owner: CartOwner, itemId: string) {
   await assertOwnedItem(owner, itemId);
+
+  const [removed] = await db
+    .select({ productId: cartItem.productId })
+    .from(cartItem)
+    .where(eq(cartItem.id, itemId))
+    .limit(1);
+
   await db.delete(cartItem).where(eq(cartItem.id, itemId));
+
+  if (owner.userId && removed) {
+    logCustomerEvent({
+      userId: owner.userId,
+      action: "cart.remove_item",
+      entityType: "product",
+      entityId: removed.productId,
+      metadata: { productId: removed.productId },
+    }).catch((error) => {
+      console.error("Failed to log cart.remove_item event:", error);
+    });
+  }
+
   return getCart(owner);
 }
 

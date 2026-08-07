@@ -28,9 +28,9 @@ export const userIdParamSchema = z.object({
 });
 
 /**
- * Only `joinedAt`/`name` are real, sortable columns. `orderCount`/
- * `lifetimeValue` aren't accepted here — there's no `order` table yet, so
- * sorting by them would silently no-op (every row ties at 0).
+ * Only `joinedAt`/`name` are real, sortable columns today. `orderCount`/
+ * `lifetimeValue` aren't accepted here — sorting by an aggregate would need
+ * a dedicated query path, not a plain column sort.
  */
 export const listUsersSortBySchema = z.enum(["joinedAt", "name"]);
 
@@ -41,6 +41,46 @@ export const listUsersQuerySchema = z.object({
   sortBy: listUsersSortBySchema.default("joinedAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
+
+export const listUserSubResourceQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+export const userCartItemSchema = z.object({
+  productId: z.string(),
+  name: z.string(),
+  variantLabel: z.string().nullable(),
+  price: z.number().int(),
+  qty: z.number().int(),
+});
+
+export const userCartSchema = z
+  .object({
+    items: z.array(userCartItemSchema),
+    updatedAt: z.string().nullable(),
+  })
+  .openapi("AdminUserCart");
+
+export const userWishlistItemSchema = z
+  .object({
+    productId: z.string(),
+    name: z.string(),
+    price: z.number().int(),
+    addedAt: z.string(),
+  })
+  .openapi("AdminUserWishlistItem");
+
+export const customerEventSchema = z
+  .object({
+    id: z.string(),
+    action: z.string(),
+    entityType: z.string(),
+    entityId: z.string().nullable(),
+    metadata: z.unknown().nullable(),
+    createdAt: z.string(),
+  })
+  .openapi("AdminCustomerEvent");
 
 export const userGrowthPointSchema = z.object({
   date: z.string(),

@@ -12,6 +12,7 @@ import {
   createCouponSchema,
   listCouponsQuerySchema,
   updateCouponSchema,
+  usageSchema,
 } from "./coupons.schema";
 
 const TAG = "Admin | Finance";
@@ -88,6 +89,19 @@ export const deleteRouteDef = createRoute({
       successSchema(z.object({ ok: z.literal(true) })),
       "Deactivated",
     ),
+    ...authErrorResponses,
+  },
+});
+
+export const usageRoute = createRoute({
+  method: "get",
+  path: "/{id}/usage",
+  tags: [TAG],
+  summary: "Get coupon usage stats",
+  security: [{ cookieAuth: [] }],
+  request: { params: couponIdParamSchema },
+  responses: {
+    200: jsonContent(successSchema(z.array(usageSchema)), "Coupon redemptions"),
     ...authErrorResponses,
   },
 });

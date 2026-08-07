@@ -4,6 +4,7 @@ import {
   date,
   doublePrecision,
   index,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -118,5 +119,42 @@ export const wishlistRelations = relations(wishlist, ({ one }) => ({
   product: one(product, {
     fields: [wishlist.productId],
     references: [product.id],
+  }),
+}));
+
+/**
+ * Timestamped customer behavior events — cart adds/removes, wishlist
+ * adds/removes, order placed/cancelled — so the admin can show a real
+ * per-user activity timeline. Mirrors `staffActivityLog`'s shape
+ * (packages/db/src/schema/staff.ts) but scoped to customer-facing actions
+ * rather than staff audit trail.
+ */
+export const customerEvent = pgTable(
+  "customer_event",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("customer_event_userId_idx").on(table.userId),
+    index("customer_event_userId_createdAt_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+    index("customer_event_action_idx").on(table.action),
+  ],
+);
+
+export const customerEventRelations = relations(customerEvent, ({ one }) => ({
+  user: one(user, {
+    fields: [customerEvent.userId],
+    references: [user.id],
   }),
 }));

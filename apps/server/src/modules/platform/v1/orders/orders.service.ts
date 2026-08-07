@@ -20,6 +20,7 @@ import { notify } from "@mumzo/notifications";
 import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
+import { logCustomerEvent } from "@/core/customer-event";
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import { validateCoupon } from "@/modules/admin/v1/coupons/coupons.service";
@@ -298,6 +299,16 @@ export async function placeOrder(
       console.error(`Failed to publish order.created for ${orderId}:`, error);
     });
 
+  logCustomerEvent({
+    userId,
+    action: "order.placed",
+    entityType: "order",
+    entityId: orderId,
+    metadata: { orderId, total: totals.total },
+  }).catch((error) => {
+    console.error(`Failed to log order.placed event for ${orderId}:`, error);
+  });
+
   notify
     .sendToAllStaff("order.created", {
       orderId,
@@ -458,6 +469,16 @@ export async function cancelOrder(
       actor: "customer",
       note: reason ?? null,
     });
+  });
+
+  logCustomerEvent({
+    userId,
+    action: "order.cancelled",
+    entityType: "order",
+    entityId: orderId,
+    metadata: { orderId, reason: reason ?? null },
+  }).catch((error) => {
+    console.error(`Failed to log order.cancelled event for ${orderId}:`, error);
   });
 
   return getOrder(userId, orderId);

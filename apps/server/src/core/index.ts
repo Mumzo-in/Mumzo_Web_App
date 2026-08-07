@@ -7,6 +7,7 @@
 export * from "./activity";
 export * from "./constants";
 export * from "./create-app";
+export * from "./customer-event";
 export * from "./errors";
 export * from "./middleware";
 export * from "./openapi";

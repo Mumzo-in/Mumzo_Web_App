@@ -1,6 +1,12 @@
 import { db } from "@mumzo/db";
 import { user } from "@mumzo/db/schema/auth";
-import { hub } from "@mumzo/db/schema/catalog";
+import {
+  hub,
+  inventory,
+  product,
+  productColor,
+  productSize,
+} from "@mumzo/db/schema/catalog";
 import {
   order,
   orderItem,
@@ -11,10 +17,13 @@ import { notify } from "@mumzo/notifications";
 import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { Context } from "hono";
+import type { z } from "zod";
 import { logActivity } from "@/core";
 import { badRequest, notFound } from "@/core/errors";
 import type { AppEnv } from "@/core/types";
 import { toWholeRupees } from "@/lib/money";
+import { computeCartTotals, resolveLine } from "@/shared/pricing";
+import type { createOrderSchema } from "./orders.schema";
 
 function toAdminOrderItem(row: {
   id: string;
@@ -32,6 +41,220 @@ function toAdminOrderItem(row: {
     price: toWholeRupees(row.priceSnapshot),
     qty: row.qty,
   };
+}
+
+/**
+ * Manual order creation for phone/walk-in customers — no cart, no
+ * geolocation. Staff pick the hub and line items directly; pricing/GST/HSN
+ * snapshots are resolved the same way `placeOrder` does (variant row wins
+ * over the parent product — see `resolveLine`), and stock is checked
+ * against that hub's `inventory` row for each line.
+ */
+export async function createOrder(
+  input: z.infer<typeof createOrderSchema>,
+  actor: string,
+  c?: Context<AppEnv>,
+) {
+  const [hubRow] = await db
+    .select({ id: hub.id, name: hub.name })
+    .from(hub)
+    .where(and(eq(hub.id, input.hubId), eq(hub.isActive, true)))
+    .limit(1);
+  if (!hubRow) {
+    throw badRequest("Selected hub is not active.");
+  }
+
+  const productIds = [...new Set(input.items.map((line) => line.productId))];
+  const products = await db
+    .select()
+    .from(product)
+    .where(inArray(product.id, productIds));
+  const productById = new Map(products.map((p) => [p.id, p]));
+
+  const sizeIds = input.items
+    .map((line) => line.productSizeId)
+    .filter((id): id is string => Boolean(id));
+  const sizes =
+    sizeIds.length > 0
+      ? await db
+          .select()
+          .from(productSize)
+          .where(inArray(productSize.id, sizeIds))
+      : [];
+  const sizeById = new Map(sizes.map((s) => [s.id, s]));
+
+  const colorIds = input.items
+    .map((line) => line.productColorId)
+    .filter((id): id is string => Boolean(id));
+  const colors =
+    colorIds.length > 0
+      ? await db
+          .select()
+          .from(productColor)
+          .where(inArray(productColor.id, colorIds))
+      : [];
+  const colorById = new Map(colors.map((cl) => [cl.id, cl]));
+
+  const stockRows = await db
+    .select({
+      productId: inventory.productId,
+      productSizeId: inventory.productSizeId,
+      productColorId: inventory.productColorId,
+      stock: inventory.stock,
+    })
+    .from(inventory)
+    .where(
+      and(
+        eq(inventory.hubId, hubRow.id),
+        inArray(inventory.productId, productIds),
+      ),
+    );
+  const stockByKey = new Map(
+    stockRows.map((r) => [
+      `${r.productId}:${r.productSizeId ?? ""}:${r.productColorId ?? ""}`,
+      r.stock,
+    ]),
+  );
+
+  const lines = input.items.map((line) => {
+    const productRow = productById.get(line.productId);
+    if (!productRow) {
+      throw badRequest(`Product ${line.productId} not found.`);
+    }
+    const sizeRow = line.productSizeId
+      ? (sizeById.get(line.productSizeId) ?? null)
+      : null;
+    const colorRow = line.productColorId
+      ? (colorById.get(line.productColorId) ?? null)
+      : null;
+    const resolved = resolveLine(productRow, sizeRow, colorRow);
+    const stockKey = `${line.productId}:${line.productSizeId ?? ""}:${line.productColorId ?? ""}`;
+    const stock = stockByKey.get(stockKey) ?? 0;
+    if (line.qty > stock) {
+      throw badRequest(
+        `${productRow.name}${sizeRow ? ` (${sizeRow.label})` : colorRow ? ` (${colorRow.label})` : ""} has only ${stock} in stock at ${hubRow.name}.`,
+      );
+    }
+    return {
+      productId: line.productId,
+      productSizeId: line.productSizeId ?? null,
+      productColorId: line.productColorId ?? null,
+      nameSnapshot: productRow.name,
+      variantLabel: sizeRow?.label ?? colorRow?.label ?? null,
+      price: resolved.price,
+      gstRate: resolved.gstRate,
+      hsn: resolved.hsn,
+      weightGrams: resolved.weightGrams,
+      qty: line.qty,
+    };
+  });
+
+  const totals = computeCartTotals(lines);
+
+  const orderId = await db.transaction(async (tx) => {
+    const [orderRow] = await tx
+      .insert(order)
+      .values({
+        userId: input.customerId ?? null,
+        hubId: hubRow.id,
+        status: "confirmed",
+        addressLabel: input.addressLabel,
+        addressName: input.customerName,
+        addressPhone: input.customerPhone,
+        addressLine1: input.addressLine1,
+        addressLine2: input.addressLine2 ?? "",
+        addressLandmark: input.addressLandmark ?? null,
+        addressPincode: input.addressPincode,
+        addressCity: input.addressCity,
+        subtotal: totals.subtotal,
+        gstAmount: totals.gstAmount,
+        deliveryFee: totals.deliveryFee,
+        discount: totals.discount,
+        total: totals.total,
+        idempotencyKey: crypto.randomUUID(),
+      })
+      .returning({ id: order.id });
+
+    if (!orderRow) {
+      throw new Error("Insert into order returned no row.");
+    }
+
+    await tx.insert(orderItem).values(
+      lines.map((line) => ({
+        orderId: orderRow.id,
+        productId: line.productId,
+        productSizeId: line.productSizeId,
+        productColorId: line.productColorId,
+        nameSnapshot: line.nameSnapshot,
+        variantLabelSnapshot: line.variantLabel,
+        priceSnapshot: line.price,
+        gstRateSnapshot: line.gstRate,
+        hsnSnapshot: line.hsn ?? "",
+        weightGramsSnapshot: line.weightGrams,
+        qty: line.qty,
+      })),
+    );
+
+    await tx.insert(orderStatusLog).values([
+      {
+        orderId: orderRow.id,
+        fromStatus: null,
+        toStatus: "confirmed",
+        actor,
+        note: input.note ?? "Manual order created by staff.",
+      },
+    ]);
+
+    await tx.insert(payment).values({
+      orderId: orderRow.id,
+      provider: "cod",
+      status: "cod_pending",
+      amount: totals.total,
+      method: "cod",
+    });
+
+    if (c) {
+      await logActivity({
+        c,
+        action: "order.create",
+        entityType: "order",
+        entityId: orderRow.id,
+        description: `Created manual order for ${input.customerName} (${totals.total} paise) at hub "${hubRow.name}"`,
+        newValues: { hubId: hubRow.id, total: totals.total },
+        tx,
+      });
+    }
+
+    return orderRow.id;
+  });
+
+  realtime
+    .publish(ROOMS.adminOrders, "order.created", {
+      orderId,
+      hubId: hubRow.id,
+      total: totals.total,
+      addressName: input.customerName,
+    })
+    .catch((error) => {
+      console.error(`Failed to publish order.created for ${orderId}:`, error);
+    });
+
+  if (input.customerId) {
+    notify
+      .send({
+        userId: input.customerId,
+        templateId: "order.status_updated",
+        data: { orderId, status: "confirmed" },
+      })
+      .catch((error) => {
+        console.error(
+          `Failed to enqueue notification for order ${orderId}:`,
+          error,
+        );
+      });
+  }
+
+  return getOrder(orderId);
 }
 
 export async function listOrders(filters: {

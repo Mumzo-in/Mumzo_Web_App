@@ -1,11 +1,13 @@
 export {
   type Coupon,
   type CouponInput,
+  type CouponRedemption,
   type CouponType,
   type CouponVisibility,
   createCoupon,
   deactivateCoupon,
   getCoupon,
+  getCouponUsage,
   listCoupons,
   type ProductScope,
   updateCoupon,

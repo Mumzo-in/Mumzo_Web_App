@@ -5,11 +5,12 @@ import {
   AccordionTrigger,
 } from "@mumzo/ui/components/accordion";
 import { cn } from "@mumzo/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Tag } from "lucide-react";
 import { useState } from "react";
 import { ApiError } from "@/core/api/client";
-import { offers } from "@/core/data";
 
+import { listPublicCoupons } from "../../api/coupons-api";
 import { useCart } from "../../store/cart-provider";
 import CouponCard from "./coupon-card";
 
@@ -23,6 +24,11 @@ export default function CouponBox() {
   const [code, setCode] = useState(couponCode ?? "");
   const [msg, setMsg] = useState<CouponMessage | null>(null);
   const [applying, setApplying] = useState(false);
+
+  const { data: coupons, isLoading } = useQuery({
+    queryKey: ["coupons", "public-list"],
+    queryFn: listPublicCoupons,
+  });
 
   const apply = async (codeToApply = code) => {
     if (!codeToApply.trim()) return;
@@ -80,10 +86,6 @@ export default function CouponBox() {
         </p>
       )}
 
-      {/* Offers collapsed by default via the accordion. Still browsed from
-          the mock marketing list (offers aren't served by an API yet) —
-          selecting one applies it through the real coupon endpoint, which
-          validates eligibility server-side. */}
       <Accordion className="mt-4 border-border/50 border-t">
         <AccordionItem value="offers">
           <AccordionTrigger
@@ -93,19 +95,41 @@ export default function CouponBox() {
             View available offers
           </AccordionTrigger>
           <AccordionContent>
-            <div className="flex flex-col gap-2">
-              {offers.map((o) => (
-                <CouponCard
-                  key={o.code}
-                  offer={o}
-                  selected={couponCode === o.code}
-                  onSelect={() => {
-                    setCode(o.code);
-                    void apply(o.code);
-                  }}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex animate-pulse flex-col gap-2 pt-2">
+                <div className="h-12 rounded-2xl bg-secondary" />
+                <div className="h-12 rounded-2xl bg-secondary" />
+              </div>
+            ) : !coupons || coupons.length === 0 ? (
+              <p className="pt-4 pb-2 text-center text-muted-foreground text-xs">
+                No offers available right now.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {coupons.map((c) => {
+                  const offer = {
+                    code: c.code,
+                    desc:
+                      c.description ||
+                      (c.type === "flat"
+                        ? `Flat ₹${c.value} off`
+                        : `${c.value}% off${c.cap ? ` up to ₹${c.cap}` : ""}`),
+                    minAmt: c.minAmt,
+                  };
+                  return (
+                    <CouponCard
+                      key={offer.code}
+                      offer={offer}
+                      selected={couponCode === offer.code}
+                      onSelect={() => {
+                        setCode(offer.code);
+                        void apply(offer.code);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

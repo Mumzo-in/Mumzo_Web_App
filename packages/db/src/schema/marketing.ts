@@ -67,6 +67,7 @@ export const coupon = pgTable(
     /** Null = active immediately. */
     startsAt: timestamp("starts_at"),
     isActive: boolean("is_active").default(true).notNull(),
+    isGlobal: boolean("is_global").default(false).notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

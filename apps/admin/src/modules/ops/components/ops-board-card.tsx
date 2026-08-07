@@ -43,7 +43,7 @@ export function OpsBoardCard({
     <Card
       ref={overlay ? undefined : setNodeRef}
       className={cn(
-        "gap-0 overflow-hidden border border-border/60 p-0",
+        "shrink-0 gap-0 overflow-hidden border border-border/60 p-0",
         isDragging && !overlay && "opacity-40",
         overlay && "shadow-lg",
       )}

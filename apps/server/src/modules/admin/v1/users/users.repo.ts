@@ -1,6 +1,19 @@
 import { db } from "@mumzo/db";
-import { baby } from "@mumzo/db/schema/account";
+import { baby, customerEvent, wishlist } from "@mumzo/db/schema/account";
 import { user } from "@mumzo/db/schema/auth";
+import {
+  hub,
+  product,
+  productColor,
+  productSize,
+} from "@mumzo/db/schema/catalog";
+import {
+  cart,
+  cartItem,
+  order,
+  orderItem,
+  payment,
+} from "@mumzo/db/schema/commerce";
 import {
   and,
   asc,
@@ -15,6 +28,7 @@ import {
   type SQL,
   sql,
 } from "drizzle-orm";
+import { toWholeRupees } from "@/lib/money";
 
 /** Pure data access — no business rules. `users.service.ts` owns those. */
 
@@ -110,6 +124,216 @@ export async function findById(id: string) {
     .where(eq(user.id, id))
     .limit(1);
   return row;
+}
+
+/** Real order aggregates for the customer list/detail — orderCount,
+ * lifetimeValue (paise, converted by the caller), and the most recent
+ * placedAt, per user. */
+export async function orderStatsByUserId(userIds: string[]) {
+  type Stats = {
+    orderCount: number;
+    lifetimeValue: number;
+    lastOrderAt: Date | null;
+  };
+  const byUser = new Map<string, Stats>();
+  if (userIds.length === 0) return byUser;
+
+  const rows = await db
+    .select({
+      userId: order.userId,
+      orderCount: sql<number>`count(*)::int`,
+      lifetimeValue: sql<number>`coalesce(sum(${order.total}), 0)::int`,
+      // Raw `sql` fragments don't get the driver's timestamp parsing, so this
+      // can come back as a string rather than a real `Date` — normalize it.
+      lastOrderAt: sql<string | null>`max(${order.placedAt})`,
+    })
+    .from(order)
+    .where(inArray(order.userId, userIds))
+    .groupBy(order.userId);
+
+  for (const row of rows) {
+    byUser.set(row.userId, {
+      orderCount: row.orderCount,
+      lifetimeValue: row.lifetimeValue,
+      lastOrderAt: row.lastOrderAt ? new Date(row.lastOrderAt) : null,
+    });
+  }
+
+  return byUser;
+}
+
+export async function ordersByUserId(
+  userId: string,
+  filters: { page: number; limit: number },
+) {
+  const offset = (filters.page - 1) * filters.limit;
+  const where = eq(order.userId, userId);
+
+  const [rows, [countRow]] = await Promise.all([
+    db
+      .select({
+        id: order.id,
+        status: order.status,
+        addressName: order.addressName,
+        hubName: hub.name,
+        total: order.total,
+        paymentMethod: payment.method,
+        placedAt: order.placedAt,
+      })
+      .from(order)
+      .innerJoin(hub, eq(order.hubId, hub.id))
+      .leftJoin(payment, eq(payment.orderId, order.id))
+      .where(where)
+      .orderBy(desc(order.placedAt))
+      .limit(filters.limit)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)::int` }).from(order).where(where),
+  ]);
+
+  const orderIds = rows.map((r) => r.id);
+  const itemCounts = new Map<string, number>();
+  if (orderIds.length > 0) {
+    const counts = await db
+      .select({
+        orderId: orderItem.orderId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(orderItem)
+      .where(inArray(orderItem.orderId, orderIds))
+      .groupBy(orderItem.orderId);
+    for (const c of counts) {
+      itemCounts.set(c.orderId, c.count);
+    }
+  }
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      customerName: row.addressName,
+      hubName: row.hubName,
+      itemCount: itemCounts.get(row.id) ?? 0,
+      total: toWholeRupees(row.total),
+      paymentMethod: row.paymentMethod ?? "cod",
+      placedAt: row.placedAt.toISOString(),
+    })),
+    total: countRow?.count ?? 0,
+  };
+}
+
+/** One active cart per user — live pricing off product/variant rows, same
+ * as the customer-facing cart (see `commerce.ts`'s cart comment). */
+export async function cartByUserId(userId: string) {
+  const [cartRow] = await db
+    .select({ id: cart.id, updatedAt: cart.updatedAt })
+    .from(cart)
+    .where(eq(cart.userId, userId))
+    .limit(1);
+
+  if (!cartRow) return { items: [], updatedAt: null };
+
+  const rows = await db
+    .select({
+      productId: product.id,
+      name: product.name,
+      productPrice: product.price,
+      size: productSize,
+      color: productColor,
+      qty: cartItem.qty,
+    })
+    .from(cartItem)
+    .innerJoin(product, eq(cartItem.productId, product.id))
+    .leftJoin(productSize, eq(cartItem.productSizeId, productSize.id))
+    .leftJoin(productColor, eq(cartItem.productColorId, productColor.id))
+    .where(eq(cartItem.cartId, cartRow.id));
+
+  return {
+    items: rows.map((row) => ({
+      productId: row.productId,
+      name: row.name,
+      variantLabel: row.size?.label ?? row.color?.label ?? null,
+      price: toWholeRupees(
+        row.size?.price ?? row.color?.price ?? row.productPrice,
+      ),
+      qty: row.qty,
+    })),
+    updatedAt: cartRow.updatedAt.toISOString(),
+  };
+}
+
+export async function wishlistByUserId(
+  userId: string,
+  filters: { page: number; limit: number },
+) {
+  const offset = (filters.page - 1) * filters.limit;
+  const where = eq(wishlist.userId, userId);
+
+  const [rows, [countRow]] = await Promise.all([
+    db
+      .select({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        addedAt: wishlist.createdAt,
+      })
+      .from(wishlist)
+      .innerJoin(product, eq(wishlist.productId, product.id))
+      .where(where)
+      .orderBy(desc(wishlist.createdAt))
+      .limit(filters.limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(wishlist)
+      .where(where),
+  ]);
+
+  return {
+    rows: rows.map((row) => ({
+      productId: row.productId,
+      name: row.name,
+      price: toWholeRupees(row.price),
+      addedAt: row.addedAt.toISOString(),
+    })),
+    total: countRow?.count ?? 0,
+  };
+}
+
+export async function activityByUserId(
+  userId: string,
+  filters: { page: number; limit: number },
+) {
+  const offset = (filters.page - 1) * filters.limit;
+  const where = eq(customerEvent.userId, userId);
+
+  const [rows, [countRow]] = await Promise.all([
+    db
+      .select({
+        id: customerEvent.id,
+        action: customerEvent.action,
+        entityType: customerEvent.entityType,
+        entityId: customerEvent.entityId,
+        metadata: customerEvent.metadata,
+        createdAt: customerEvent.createdAt,
+      })
+      .from(customerEvent)
+      .where(where)
+      .orderBy(desc(customerEvent.createdAt))
+      .limit(filters.limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(customerEvent)
+      .where(where),
+  ]);
+
+  return {
+    rows: rows.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+    })),
+    total: countRow?.count ?? 0,
+  };
 }
 
 export async function babiesByUserId(userIds: string[]) {

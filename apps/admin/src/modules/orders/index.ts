@@ -1,4 +1,12 @@
-export { getOrder, listOrders, updateOrderStatus } from "./api/orders-api";
+export {
+  type CreateOrderInput,
+  type CreateOrderLineInput,
+  createOrder,
+  getOrder,
+  listOrders,
+  updateOrderStatus,
+} from "./api/orders-api";
+export { default as NewOrderDialog } from "./components/new-order-dialog";
 export { default as OrderTable } from "./components/order-table";
 export {
   type AdminOrderDetail,

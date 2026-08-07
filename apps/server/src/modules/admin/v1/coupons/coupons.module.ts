@@ -5,11 +5,13 @@ import {
   getRoute,
   listRoute,
   updateRouteDef,
+  usageRoute,
 } from "./coupons.routes";
 import {
   createCoupon,
   deleteCoupon,
   getCoupon,
+  getCouponUsage,
   listCoupons,
   updateCoupon,
 } from "./coupons.service";
@@ -28,6 +30,10 @@ const coupons = app
     const query = c.req.valid("query");
     const { data, meta } = await listCoupons(query);
     return c.json({ success: true as const, data: { data, meta } }, 200);
+  })
+  .openapi(usageRoute, async (c) => {
+    const data = await getCouponUsage(c.req.valid("param").id);
+    return c.json({ success: true as const, data }, 200);
   })
   .openapi(getRoute, async (c) => {
     const coupon = await getCoupon(c.req.valid("param").id);

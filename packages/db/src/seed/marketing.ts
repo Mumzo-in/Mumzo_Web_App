@@ -1,5 +1,6 @@
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../index";
+import { order } from "../schema/commerce";
 import { coupon } from "../schema/marketing";
 
 /**
@@ -24,6 +25,7 @@ type CouponSeed = {
   maxUses: number | null;
   usedCount: number;
   isActive: boolean;
+  isGlobal: boolean;
   firstOrderOnly: boolean;
 };
 
@@ -39,6 +41,7 @@ const COUPON_SEEDS: CouponSeed[] = [
     maxUses: 5000,
     usedCount: 1842,
     isActive: true,
+    isGlobal: true,
     firstOrderOnly: false,
   },
   {
@@ -52,6 +55,7 @@ const COUPON_SEEDS: CouponSeed[] = [
     maxUses: null,
     usedCount: 934,
     isActive: true,
+    isGlobal: true,
     firstOrderOnly: true,
   },
   {
@@ -65,6 +69,7 @@ const COUPON_SEEDS: CouponSeed[] = [
     maxUses: 2000,
     usedCount: 1987,
     isActive: true,
+    isGlobal: true,
     firstOrderOnly: false,
   },
   {
@@ -78,6 +83,7 @@ const COUPON_SEEDS: CouponSeed[] = [
     maxUses: 3000,
     usedCount: 2440,
     isActive: false,
+    isGlobal: false,
     firstOrderOnly: false,
   },
   {
@@ -91,6 +97,7 @@ const COUPON_SEEDS: CouponSeed[] = [
     maxUses: 1000,
     usedCount: 112,
     isActive: true,
+    isGlobal: true,
     firstOrderOnly: false,
   },
 ];
@@ -108,6 +115,71 @@ export async function seedCoupons() {
 
   if (missing.length > 0) {
     await db.insert(coupon).values(missing.map((seed) => ({ ...seed })));
+  }
+
+  // Update existing coupons to match their seed properties (especially isGlobal)
+  for (const seed of COUPON_SEEDS) {
+    await db
+      .update(coupon)
+      .set({
+        isGlobal: seed.isGlobal,
+        isActive: seed.isActive,
+        expiresAt: seed.expiresAt,
+      })
+      .where(eq(coupon.code, seed.code));
+  }
+
+  // Link some of the mock orders to coupons so that we have realistic redemption data
+  const mockOrderUpdates = [
+    {
+      orderId: "8d45efba-4bdd-43b1-8534-6d53daab8239",
+      couponCode: "MUMZO100",
+      discount: 10000,
+    },
+    {
+      orderId: "218061d4-1145-4a34-9577-61d219673745",
+      couponCode: "MUMZO100",
+      discount: 10000,
+    },
+    {
+      orderId: "421d38fd-dd5f-44a6-8832-29577ac52baa",
+      couponCode: "FIRSTBABY",
+      discount: 12608,
+    },
+    {
+      orderId: "3b3dfbae-7274-4fd7-a01d-468b3c442789",
+      couponCode: "DIAPER15",
+      discount: 9434,
+    },
+    {
+      orderId: "e5b57ff7-6014-41d1-9cef-ca864c5d7ae9",
+      couponCode: "FIRSTBABY",
+      discount: 1008,
+    },
+    {
+      orderId: "e16078e9-c31a-4398-97a8-af9128420dce",
+      couponCode: "MUMZO100",
+      discount: 10000,
+    },
+  ];
+
+  for (const item of mockOrderUpdates) {
+    // Fetch the coupon ID in the database
+    const [dbCoupon] = await db
+      .select({ id: coupon.id })
+      .from(coupon)
+      .where(eq(coupon.code, item.couponCode))
+      .limit(1);
+
+    if (dbCoupon) {
+      await db
+        .update(order)
+        .set({
+          couponId: dbCoupon.id,
+          discount: item.discount,
+        })
+        .where(eq(order.id, item.orderId));
+    }
   }
 
   return {

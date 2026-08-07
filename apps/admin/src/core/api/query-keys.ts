@@ -58,6 +58,10 @@ export const queryKeys = {
     ...domainKeys("users"),
     analytics: (range?: { from: string; to: string }) =>
       ["users", "analytics", range ?? {}] as const,
+    orders: (id: string) => ["users", "orders", id] as const,
+    cart: (id: string) => ["users", "cart", id] as const,
+    wishlist: (id: string) => ["users", "wishlist", id] as const,
+    activity: (id: string) => ["users", "activity", id] as const,
   },
   payments: {
     ...domainKeys("payments"),
@@ -77,6 +81,7 @@ export const queryKeys = {
   },
   staff: domainKeys("staff"),
   activityLogs: domainKeys("activity-logs"),
+  customerEvents: domainKeys("customer-events"),
   broadcasts: domainKeys("broadcasts"),
   cmsPages: domainKeys("cms-pages"),
   referrals: {

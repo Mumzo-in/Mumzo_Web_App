@@ -48,6 +48,7 @@ type CouponWriteInput = {
   expiresAt: string;
   startsAt?: string | null;
   isActive: boolean;
+  isGlobal: boolean;
 };
 
 function serialize(
@@ -77,6 +78,7 @@ function serialize(
     expiresAt: row.expiresAt.toISOString(),
     startsAt: row.startsAt?.toISOString() ?? null,
     isActive: row.isActive,
+    isGlobal: row.isGlobal,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   });
@@ -116,6 +118,7 @@ export async function listCoupons(filters: {
         expiresAt: row.expiresAt.toISOString(),
         startsAt: row.startsAt?.toISOString() ?? null,
         isActive: row.isActive,
+        isGlobal: row.isGlobal,
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       }),
@@ -401,4 +404,22 @@ export async function validateCoupon(input: ValidateCouponInput) {
     discount,
     finalTotal: input.cartTotal - discount,
   };
+}
+
+export async function getCouponUsage(id: string) {
+  await requireCoupon(id);
+  const rows = await couponsRepo.findCouponUsage(id);
+  return rows.map((row) => ({
+    orderId: row.orderId,
+    placedAt: row.placedAt.toISOString(),
+    total: toWholeRupees(row.total),
+    discount: toWholeRupees(row.discount),
+    status: row.status,
+    user: {
+      id: row.userId,
+      name: row.userName,
+      email: row.userEmail,
+      phone: row.userPhone,
+    },
+  }));
 }

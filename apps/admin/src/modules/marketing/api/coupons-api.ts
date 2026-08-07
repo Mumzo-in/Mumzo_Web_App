@@ -37,6 +37,7 @@ export type Coupon = {
   expiresAt: string;
   startsAt: string | null;
   isActive: boolean;
+  isGlobal: boolean;
 
   createdAt: string;
   updatedAt: string;
@@ -73,6 +74,7 @@ export type CouponInput = {
   expiresAt: string;
   startsAt: string | null;
   isActive: boolean;
+  isGlobal: boolean;
 };
 
 export function createCoupon(input: CouponInput): Promise<Coupon> {
@@ -95,4 +97,22 @@ export function updateCoupon(
 /** api-plan §15f: deactivates the coupon, does not delete it. */
 export function deactivateCoupon(id: string): Promise<{ ok: true }> {
   return apiRequest<{ ok: true }>(`/coupons/${id}`, { method: "DELETE" });
+}
+
+export type CouponRedemption = {
+  orderId: string;
+  placedAt: string;
+  total: number;
+  discount: number;
+  status: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+};
+
+export function getCouponUsage(id: string): Promise<CouponRedemption[]> {
+  return apiRequest<CouponRedemption[]>(`/coupons/${id}/usage`);
 }

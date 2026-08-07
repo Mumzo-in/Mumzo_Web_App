@@ -75,6 +75,54 @@ export const ACTIVE_USER_SORT_PRESETS: readonly UserSortPreset[] = [
   "nameDesc",
 ];
 
+export type UserCartItem = {
+  productId: string;
+  name: string;
+  variantLabel: string | null;
+  price: number;
+  qty: number;
+};
+
+export type UserCart = {
+  items: UserCartItem[];
+  updatedAt: string | null;
+};
+
+export type UserWishlistItem = {
+  productId: string;
+  name: string;
+  price: number;
+  addedAt: string;
+};
+
+export type CustomerEvent = {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  metadata: unknown | null;
+  createdAt: string;
+};
+
+/** Cross-customer feed row — same shape as `CustomerEvent` plus who it
+ * belongs to, since this view isn't scoped to a single user's page. */
+export type AdminCustomerEvent = CustomerEvent & {
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+};
+
+/** Human labels for `customerEvent.action` values written by the server's
+ * `logCustomerEvent` call sites (cart/wishlist/order services). */
+export const CUSTOMER_EVENT_LABELS: Record<string, string> = {
+  "cart.add_item": "Added to cart",
+  "cart.remove_item": "Removed from cart",
+  "wishlist.add": "Added to wishlist",
+  "wishlist.remove": "Removed from wishlist",
+  "order.placed": "Placed an order",
+  "order.cancelled": "Cancelled an order",
+};
+
 /** Baby age in months — the storefront's key recommendation signal. */
 export function ageInMonths(dob: string, now = new Date()): number {
   const born = new Date(dob);

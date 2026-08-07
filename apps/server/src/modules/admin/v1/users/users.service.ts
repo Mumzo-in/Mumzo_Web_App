@@ -1,30 +1,42 @@
 import { notFound } from "@/core/errors";
+import { toWholeRupees } from "@/lib/money";
 import * as usersRepo from "./users.repo";
 
 type UserRow = NonNullable<Awaited<ReturnType<typeof usersRepo.findById>>>;
+type OrderStats = {
+  orderCount: number;
+  lifetimeValue: number;
+  lastOrderAt: Date | null;
+};
 
 /**
- * `orderCount`/`lifetimeValue`/`lastOrderAt` are always 0/null — there is no
- * `order` table yet, so these stay honest placeholders rather than fabricated
- * numbers (matches `modules/admin/v1/dashboard/service.ts`'s `recentUsers`).
- *
  * `status` is always "active" — the customer `user` table has no ban/status
  * column yet (unlike `staffUser`, which gets one from the admin plugin).
  */
-function serialize(row: UserRow, babies: { name: string; dob: string }[]) {
+function serialize(
+  row: UserRow,
+  babies: { name: string; dob: string }[],
+  stats: OrderStats,
+) {
   return {
     id: row.id,
     name: row.name,
     email: row.email,
     phone: row.phoneNumber,
     status: "active" as const,
-    orderCount: 0,
-    lifetimeValue: 0,
+    orderCount: stats.orderCount,
+    lifetimeValue: toWholeRupees(stats.lifetimeValue),
     babies,
     joinedAt: row.createdAt.toISOString(),
-    lastOrderAt: null,
+    lastOrderAt: stats.lastOrderAt ? stats.lastOrderAt.toISOString() : null,
   };
 }
+
+const EMPTY_STATS: OrderStats = {
+  orderCount: 0,
+  lifetimeValue: 0,
+  lastOrderAt: null,
+};
 
 export async function listUsers(filters: {
   page: number;
@@ -34,10 +46,20 @@ export async function listUsers(filters: {
   sortDir: "asc" | "desc";
 }) {
   const { rows, total } = await usersRepo.findPage(filters);
-  const babiesByUser = await usersRepo.babiesByUserId(rows.map((r) => r.id));
+  const userIds = rows.map((r) => r.id);
+  const [babiesByUser, statsByUser] = await Promise.all([
+    usersRepo.babiesByUserId(userIds),
+    usersRepo.orderStatsByUserId(userIds),
+  ]);
 
   return {
-    data: rows.map((row) => serialize(row, babiesByUser.get(row.id) ?? [])),
+    data: rows.map((row) =>
+      serialize(
+        row,
+        babiesByUser.get(row.id) ?? [],
+        statsByUser.get(row.id) ?? EMPTY_STATS,
+      ),
+    ),
     meta: {
       page: filters.page,
       limit: filters.limit,
@@ -53,8 +75,79 @@ export async function getUser(id: string) {
     throw notFound("Customer");
   }
 
-  const babiesByUser = await usersRepo.babiesByUserId([id]);
-  return serialize(row, babiesByUser.get(id) ?? []);
+  const [babiesByUser, statsByUser] = await Promise.all([
+    usersRepo.babiesByUserId([id]),
+    usersRepo.orderStatsByUserId([id]),
+  ]);
+  return serialize(
+    row,
+    babiesByUser.get(id) ?? [],
+    statsByUser.get(id) ?? EMPTY_STATS,
+  );
+}
+
+async function requireUser(id: string) {
+  const row = await usersRepo.findById(id);
+  if (!row) {
+    throw notFound("Customer");
+  }
+  return row;
+}
+
+export async function listUserOrders(
+  id: string,
+  filters: { page: number; limit: number },
+) {
+  await requireUser(id);
+  const { rows, total } = await usersRepo.ordersByUserId(id, filters);
+  return {
+    data: rows,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
+}
+
+export async function getUserCart(id: string) {
+  await requireUser(id);
+  return usersRepo.cartByUserId(id);
+}
+
+export async function listUserWishlist(
+  id: string,
+  filters: { page: number; limit: number },
+) {
+  await requireUser(id);
+  const { rows, total } = await usersRepo.wishlistByUserId(id, filters);
+  return {
+    data: rows,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
+}
+
+export async function listUserActivity(
+  id: string,
+  filters: { page: number; limit: number },
+) {
+  await requireUser(id);
+  const { rows, total } = await usersRepo.activityByUserId(id, filters);
+  return {
+    data: rows,
+    meta: {
+      page: filters.page,
+      limit: filters.limit,
+      total,
+      hasNext: filters.page * filters.limit < total,
+    },
+  };
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;

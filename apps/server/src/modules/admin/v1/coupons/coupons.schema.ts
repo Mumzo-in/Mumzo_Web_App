@@ -39,6 +39,7 @@ export const couponSchema = z
     expiresAt: z.string(),
     startsAt: z.string().nullable(),
     isActive: z.boolean(),
+    isGlobal: z.boolean(),
 
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -79,6 +80,7 @@ const couponWriteFields = z.object({
   expiresAt: z.string().datetime(),
   startsAt: z.string().datetime().nullable().optional(),
   isActive: z.boolean().default(true),
+  isGlobal: z.boolean().default(false),
 });
 
 // Cross-field rules (pct value <= 100, product/user selection required for
@@ -121,3 +123,19 @@ export const validateCouponResultSchema = z
     finalTotal: z.number().int(),
   })
   .openapi("CouponValidationResult");
+
+export const usageSchema = z
+  .object({
+    orderId: z.string(),
+    placedAt: z.string(),
+    total: z.number(),
+    discount: z.number(),
+    status: z.string(),
+    user: z.object({
+      id: z.string(),
+      name: z.string().nullable(),
+      email: z.string().nullable(),
+      phone: z.string().nullable(),
+    }),
+  })
+  .openapi("CouponUsage");

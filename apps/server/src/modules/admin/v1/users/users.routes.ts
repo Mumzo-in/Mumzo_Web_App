@@ -6,12 +6,17 @@ import {
   paginatedSchema,
   successSchema,
 } from "@/core";
+import { orderSummarySchema } from "@/modules/admin/v1/orders/orders.schema";
 import {
   adminUserSchema,
+  customerEventSchema,
+  listUserSubResourceQuerySchema,
   listUsersQuerySchema,
+  userCartSchema,
   userGrowthPointSchema,
   userGrowthQuerySchema,
   userIdParamSchema,
+  userWishlistItemSchema,
 } from "./users.schema";
 
 const TAG = "Admin | Customers";
@@ -54,6 +59,76 @@ export const getRoute = createRoute({
   request: { params: userIdParamSchema },
   responses: {
     200: jsonContent(successSchema(adminUserSchema), "The customer"),
+    ...authErrorResponses,
+  },
+});
+
+export const listUserOrdersRoute = createRoute({
+  method: "get",
+  path: "/{id}/orders",
+  tags: [TAG],
+  summary: "List a customer's orders",
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: userIdParamSchema,
+    query: listUserSubResourceQuerySchema,
+  },
+  responses: {
+    200: jsonContent(
+      paginatedSchema(orderSummarySchema),
+      "Page of the customer's orders",
+    ),
+    ...authErrorResponses,
+  },
+});
+
+export const getUserCartRoute = createRoute({
+  method: "get",
+  path: "/{id}/cart",
+  tags: [TAG],
+  summary: "Get a customer's current cart",
+  security: [{ cookieAuth: [] }],
+  request: { params: userIdParamSchema },
+  responses: {
+    200: jsonContent(successSchema(userCartSchema), "The customer's cart"),
+    ...authErrorResponses,
+  },
+});
+
+export const listUserWishlistRoute = createRoute({
+  method: "get",
+  path: "/{id}/wishlist",
+  tags: [TAG],
+  summary: "List a customer's wishlist",
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: userIdParamSchema,
+    query: listUserSubResourceQuerySchema,
+  },
+  responses: {
+    200: jsonContent(
+      paginatedSchema(userWishlistItemSchema),
+      "Page of the customer's wishlist",
+    ),
+    ...authErrorResponses,
+  },
+});
+
+export const listUserActivityRoute = createRoute({
+  method: "get",
+  path: "/{id}/activity",
+  tags: [TAG],
+  summary: "List a customer's activity timeline",
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: userIdParamSchema,
+    query: listUserSubResourceQuerySchema,
+  },
+  responses: {
+    200: jsonContent(
+      paginatedSchema(customerEventSchema),
+      "Page of the customer's activity events",
+    ),
     ...authErrorResponses,
   },
 });

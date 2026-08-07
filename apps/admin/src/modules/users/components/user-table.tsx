@@ -1,3 +1,4 @@
+import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import {
   Select,
@@ -7,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mumzo/ui/components/select";
-import { getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Eye } from "lucide-react";
 import { useMemo } from "react";
 import { queryKeys } from "@/core/api/query-keys";
 import { usePaginatedList } from "@/core/api/use-paginated-list";
@@ -126,6 +128,33 @@ export function UserTable() {
             {formatDate(row.original.joinedAt)}
           </span>
         ),
+      },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => {
+          const customer = row.original;
+          return (
+            <div className="flex justify-end">
+              <Button
+                data-testid={`admin-user-view-${customer.id}`}
+                onClick={(event) => event.stopPropagation()}
+                render={
+                  <Link
+                    params={{ userId: customer.id }}
+                    to="/platform/users/$userId"
+                  />
+                }
+                size="sm"
+                variant="outline"
+              >
+                <Eye className="size-3.5" data-icon="inline-start" />
+                View
+              </Button>
+            </div>
+          );
+        },
       },
     ],
     [],

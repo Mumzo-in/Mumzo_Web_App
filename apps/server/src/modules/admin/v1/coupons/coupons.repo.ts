@@ -1,12 +1,13 @@
 import { db } from "@mumzo/db";
 import { user } from "@mumzo/db/schema/auth";
 import { brand, category, product } from "@mumzo/db/schema/catalog";
+import { order } from "@mumzo/db/schema/commerce";
 import {
   coupon,
   couponAssignment,
   couponProduct,
 } from "@mumzo/db/schema/marketing";
-import { and, count, eq, ilike, inArray } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
@@ -27,9 +28,36 @@ export async function findPage(filters: {
 
   const [rows, countRows] = await Promise.all([
     db
-      .select()
+      .select({
+        id: coupon.id,
+        code: coupon.code,
+        description: coupon.description,
+        type: coupon.type,
+        value: coupon.value,
+        cap: coupon.cap,
+        minAmt: coupon.minAmt,
+        categorySlug: coupon.categorySlug,
+        brandId: coupon.brandId,
+        productScope: coupon.productScope,
+        visibility: coupon.visibility,
+        segment: coupon.segment,
+        firstOrderOnly: coupon.firstOrderOnly,
+        maxUses: coupon.maxUses,
+        maxUsesPerUser: coupon.maxUsesPerUser,
+        usedCount: sql<number>`count(${order.id})::int`,
+        isStackable: coupon.isStackable,
+        priority: coupon.priority,
+        expiresAt: coupon.expiresAt,
+        startsAt: coupon.startsAt,
+        isActive: coupon.isActive,
+        isGlobal: coupon.isGlobal,
+        createdAt: coupon.createdAt,
+        updatedAt: coupon.updatedAt,
+      })
       .from(coupon)
+      .leftJoin(order, eq(coupon.id, order.couponId))
       .where(where)
+      .groupBy(coupon.id)
       .orderBy(coupon.createdAt)
       .limit(filters.limit)
       .offset((filters.page - 1) * filters.limit),
@@ -41,10 +69,38 @@ export async function findPage(filters: {
 
 export async function findById(id: string) {
   const [row] = await db
-    .select()
+    .select({
+      id: coupon.id,
+      code: coupon.code,
+      description: coupon.description,
+      type: coupon.type,
+      value: coupon.value,
+      cap: coupon.cap,
+      minAmt: coupon.minAmt,
+      categorySlug: coupon.categorySlug,
+      brandId: coupon.brandId,
+      productScope: coupon.productScope,
+      visibility: coupon.visibility,
+      segment: coupon.segment,
+      firstOrderOnly: coupon.firstOrderOnly,
+      maxUses: coupon.maxUses,
+      maxUsesPerUser: coupon.maxUsesPerUser,
+      usedCount: sql<number>`count(${order.id})::int`,
+      isStackable: coupon.isStackable,
+      priority: coupon.priority,
+      expiresAt: coupon.expiresAt,
+      startsAt: coupon.startsAt,
+      isActive: coupon.isActive,
+      isGlobal: coupon.isGlobal,
+      createdAt: coupon.createdAt,
+      updatedAt: coupon.updatedAt,
+    })
     .from(coupon)
+    .leftJoin(order, eq(coupon.id, order.couponId))
     .where(eq(coupon.id, id))
+    .groupBy(coupon.id)
     .limit(1);
+
   if (!row) {
     return undefined;
   }
@@ -197,4 +253,23 @@ export async function update(
 
 export async function remove(id: string) {
   await db.delete(coupon).where(eq(coupon.id, id));
+}
+
+export async function findCouponUsage(couponId: string) {
+  return db
+    .select({
+      orderId: order.id,
+      placedAt: order.placedAt,
+      total: order.total,
+      discount: order.discount,
+      status: order.status,
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      userPhone: user.phoneNumber,
+    })
+    .from(order)
+    .innerJoin(user, eq(order.userId, user.id))
+    .where(eq(order.couponId, couponId))
+    .orderBy(desc(order.placedAt));
 }

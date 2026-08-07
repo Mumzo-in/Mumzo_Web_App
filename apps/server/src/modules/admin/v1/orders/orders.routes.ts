@@ -7,6 +7,7 @@ import {
   successSchema,
 } from "@/core";
 import {
+  createOrderSchema,
   listOrdersQuerySchema,
   orderDetailSchema,
   orderIdParamSchema,
@@ -15,6 +16,23 @@ import {
 } from "./orders.schema";
 
 const TAG = "Admin | Orders";
+
+export const createRouteDef = createRoute({
+  method: "post",
+  path: "/",
+  tags: [TAG],
+  summary: "Create a manual (phone/walk-in) order",
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: {
+      content: { "application/json": { schema: createOrderSchema } },
+    },
+  },
+  responses: {
+    200: jsonContent(successSchema(orderDetailSchema), "Order created"),
+    ...authErrorResponses,
+  },
+});
 
 export const listRoute = createRoute({
   method: "get",

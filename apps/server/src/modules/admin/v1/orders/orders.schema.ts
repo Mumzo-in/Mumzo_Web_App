@@ -31,6 +31,40 @@ export const updateOrderStatusSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
+/** One line item for a manually-created (phone/walk-in) order — a product
+ * plus, optionally, which size/color variant, and how many units. */
+export const createOrderLineSchema = z
+  .object({
+    productId: z.uuid(),
+    productSizeId: z.uuid().nullable().optional(),
+    productColorId: z.uuid().nullable().optional(),
+    qty: z.number().int().positive(),
+  })
+  .openapi("CreateOrderLine");
+
+/**
+ * Admin-side manual order creation — no cart, no logged-in customer
+ * session. The hub is picked explicitly by staff (not auto-resolved from
+ * geolocation) and the address is entered ad-hoc rather than pulled from a
+ * saved `address` row, since phone orders rarely have one on file yet.
+ */
+export const createOrderSchema = z
+  .object({
+    hubId: z.uuid(),
+    customerId: z.string().min(1).optional(),
+    customerName: z.string().trim().min(1).max(120),
+    customerPhone: z.string().trim().min(6).max(20),
+    addressLine1: z.string().trim().min(1).max(200),
+    addressLine2: z.string().trim().max(200).optional(),
+    addressLandmark: z.string().trim().max(200).optional(),
+    addressPincode: z.string().trim().min(4).max(10),
+    addressCity: z.string().trim().min(1).max(100),
+    addressLabel: z.string().trim().max(40).default("Manual order"),
+    items: createOrderLineSchema.array().min(1),
+    note: z.string().max(500).optional(),
+  })
+  .openapi("CreateOrder");
+
 export const orderItemSchema = z
   .object({
     id: z.string(),

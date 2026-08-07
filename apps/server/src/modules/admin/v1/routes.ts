@@ -6,6 +6,7 @@ import brandsRoutes from "./brands/brands.module";
 import bundlesRoutes from "./bundles/bundles.module";
 import categoriesRoutes from "./categories/categories.module";
 import couponsRoutes from "./coupons/coupons.module";
+import customerEventsRoutes from "./customer-events/customer-events.module";
 import dashboardRoutes from "./dashboard";
 import devicesRoutes from "./devices/devices.module";
 import hubsRoutes from "./hubs/hubs.module";
@@ -48,4 +49,5 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/users", router: usersRoutes },
   { path: "/ws", router: wsRoutes },
   { path: "/activity-logs", router: activityLogsRoutes },
+  { path: "/customer-events", router: customerEventsRoutes },
 ];

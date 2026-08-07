@@ -52,6 +52,7 @@ import { Route as adminCatalogCategoriesIndexRouteImport } from './pages/(admin)
 import { Route as adminCatalogBrandsIndexRouteImport } from './pages/(admin)/catalog/brands/index'
 import { Route as adminPlatformUsersListRouteImport } from './pages/(admin)/platform/users/list'
 import { Route as adminPlatformUsersAnalyticsRouteImport } from './pages/(admin)/platform/users/analytics'
+import { Route as adminPlatformUsersActivityRouteImport } from './pages/(admin)/platform/users/activity'
 import { Route as adminPlatformUsersUserIdRouteImport } from './pages/(admin)/platform/users/$userId'
 import { Route as adminOperationsOrdersOrderIdRouteImport } from './pages/(admin)/operations/orders/$orderId'
 import { Route as adminLegalPagesPageSlugRouteImport } from './pages/(admin)/legal/pages/$pageSlug'
@@ -306,6 +307,12 @@ const adminPlatformUsersAnalyticsRoute =
     path: '/platform/users/analytics',
     getParentRoute: () => adminLayoutRoute,
   } as any)
+const adminPlatformUsersActivityRoute =
+  adminPlatformUsersActivityRouteImport.update({
+    id: '/platform/users/activity',
+    path: '/platform/users/activity',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminPlatformUsersUserIdRoute =
   adminPlatformUsersUserIdRouteImport.update({
     id: '/platform/users/$userId',
@@ -489,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
   '/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
+  '/platform/users/activity': typeof adminPlatformUsersActivityRoute
   '/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/platform/users/list': typeof adminPlatformUsersListRoute
   '/catalog/brands/': typeof adminCatalogBrandsIndexRoute
@@ -557,6 +565,7 @@ export interface FileRoutesByTo {
   '/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
   '/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
+  '/platform/users/activity': typeof adminPlatformUsersActivityRoute
   '/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/platform/users/list': typeof adminPlatformUsersListRoute
   '/catalog/brands': typeof adminCatalogBrandsIndexRoute
@@ -627,6 +636,7 @@ export interface FileRoutesById {
   '/(admin)/legal/pages/$pageSlug': typeof adminLegalPagesPageSlugRoute
   '/(admin)/operations/orders/$orderId': typeof adminOperationsOrdersOrderIdRoute
   '/(admin)/platform/users/$userId': typeof adminPlatformUsersUserIdRoute
+  '/(admin)/platform/users/activity': typeof adminPlatformUsersActivityRoute
   '/(admin)/platform/users/analytics': typeof adminPlatformUsersAnalyticsRoute
   '/(admin)/platform/users/list': typeof adminPlatformUsersListRoute
   '/(admin)/catalog/brands/': typeof adminCatalogBrandsIndexRoute
@@ -697,6 +707,7 @@ export interface FileRouteTypes {
     | '/legal/pages/$pageSlug'
     | '/operations/orders/$orderId'
     | '/platform/users/$userId'
+    | '/platform/users/activity'
     | '/platform/users/analytics'
     | '/platform/users/list'
     | '/catalog/brands/'
@@ -765,6 +776,7 @@ export interface FileRouteTypes {
     | '/legal/pages/$pageSlug'
     | '/operations/orders/$orderId'
     | '/platform/users/$userId'
+    | '/platform/users/activity'
     | '/platform/users/analytics'
     | '/platform/users/list'
     | '/catalog/brands'
@@ -834,6 +846,7 @@ export interface FileRouteTypes {
     | '/(admin)/legal/pages/$pageSlug'
     | '/(admin)/operations/orders/$orderId'
     | '/(admin)/platform/users/$userId'
+    | '/(admin)/platform/users/activity'
     | '/(admin)/platform/users/analytics'
     | '/(admin)/platform/users/list'
     | '/(admin)/catalog/brands/'
@@ -1167,6 +1180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminPlatformUsersAnalyticsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/platform/users/activity': {
+      id: '/(admin)/platform/users/activity'
+      path: '/platform/users/activity'
+      fullPath: '/platform/users/activity'
+      preLoaderRoute: typeof adminPlatformUsersActivityRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
     '/(admin)/platform/users/$userId': {
       id: '/(admin)/platform/users/$userId'
       path: '/platform/users/$userId'
@@ -1381,6 +1401,7 @@ interface adminLayoutRouteChildren {
   adminLegalPagesPageSlugRoute: typeof adminLegalPagesPageSlugRoute
   adminOperationsOrdersOrderIdRoute: typeof adminOperationsOrdersOrderIdRoute
   adminPlatformUsersUserIdRoute: typeof adminPlatformUsersUserIdRoute
+  adminPlatformUsersActivityRoute: typeof adminPlatformUsersActivityRoute
   adminPlatformUsersAnalyticsRoute: typeof adminPlatformUsersAnalyticsRoute
   adminPlatformUsersListRoute: typeof adminPlatformUsersListRoute
   adminCatalogBrandsIndexRoute: typeof adminCatalogBrandsIndexRoute
@@ -1449,6 +1470,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminLegalPagesPageSlugRoute: adminLegalPagesPageSlugRoute,
   adminOperationsOrdersOrderIdRoute: adminOperationsOrdersOrderIdRoute,
   adminPlatformUsersUserIdRoute: adminPlatformUsersUserIdRoute,
+  adminPlatformUsersActivityRoute: adminPlatformUsersActivityRoute,
   adminPlatformUsersAnalyticsRoute: adminPlatformUsersAnalyticsRoute,
   adminPlatformUsersListRoute: adminPlatformUsersListRoute,
   adminCatalogBrandsIndexRoute: adminCatalogBrandsIndexRoute,

@@ -103,6 +103,7 @@ export const NAV_SECTIONS: NavSection[] = [
         items: [
           { label: "Analytics", to: "/platform/users/analytics" },
           { label: "Users", to: "/platform/users/list" },
+          { label: "User Activity", to: "/platform/users/activity" },
         ],
       },
       {
