@@ -1,4 +1,10 @@
+import { db } from "@mumzo/db";
+import { inventory } from "@mumzo/db/schema/catalog";
+import { and, eq, isNull } from "drizzle-orm";
+import type { Context } from "hono";
+import { logActivity } from "@/core";
 import { badRequest, notFound } from "@/core/errors";
+import type { AppEnv } from "@/core/types";
 import * as inventoryRepo from "./inventory.repo";
 
 const LOW_STOCK_THRESHOLD_FALLBACK = 12;
@@ -41,14 +47,17 @@ export async function listInventory(filters: {
  * exclusive, matching the cart/order rule (see `shared/pricing.ts`); pass
  * neither for a product with no variants.
  */
-export async function adjustInventory(input: {
-  hubId: string;
-  productId: string;
-  productSizeId?: string | null;
-  productColorId?: string | null;
-  stock: number;
-  reorderPoint?: number;
-}) {
+export async function adjustInventory(
+  input: {
+    hubId: string;
+    productId: string;
+    productSizeId?: string | null;
+    productColorId?: string | null;
+    stock: number;
+    reorderPoint?: number;
+  },
+  c?: Context<AppEnv>,
+) {
   if (input.productSizeId && input.productColorId) {
     throw badRequest("Pick a size or a color, not both.");
   }
@@ -74,7 +83,36 @@ export async function adjustInventory(input: {
     throw badRequest("That variant doesn't belong to this product.");
   }
 
+  const [previousRow] = await db
+    .select({ stock: inventory.stock, reorderPoint: inventory.reorderPoint })
+    .from(inventory)
+    .where(
+      and(
+        eq(inventory.hubId, input.hubId),
+        eq(inventory.productId, input.productId),
+        input.productSizeId
+          ? eq(inventory.productSizeId, input.productSizeId)
+          : isNull(inventory.productSizeId),
+        input.productColorId
+          ? eq(inventory.productColorId, input.productColorId)
+          : isNull(inventory.productColorId),
+      ),
+    )
+    .limit(1);
+
   await inventoryRepo.upsert(input);
+
+  if (c) {
+    await logActivity({
+      c,
+      action: "inventory.adjust",
+      entityType: "inventory",
+      entityId: input.productId,
+      description: `Adjusted inventory stock to ${input.stock} (previous: ${previousRow?.stock ?? 0})`,
+      previousValues: previousRow || null,
+      newValues: input,
+    });
+  }
 }
 
 /** A product's variants, for the "which variant" picker in the stock dialog

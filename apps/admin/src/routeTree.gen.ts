@@ -17,6 +17,7 @@ import { Route as adminStaffIndexRouteImport } from './pages/(admin)/staff/index
 import { Route as adminRolesIndexRouteImport } from './pages/(admin)/roles/index'
 import { Route as adminStaffAuditLogRouteImport } from './pages/(admin)/staff/audit-log'
 import { Route as adminSettingsProfileRouteImport } from './pages/(admin)/settings/profile'
+import { Route as adminSettingsActivityLogsRouteImport } from './pages/(admin)/settings/activity-logs'
 import { Route as adminPlatformSystemRouteImport } from './pages/(admin)/platform/system'
 import { Route as adminPlatformIntegrationsRouteImport } from './pages/(admin)/platform/integrations'
 import { Route as adminPlatformFlagsRouteImport } from './pages/(admin)/platform/flags'
@@ -115,6 +116,12 @@ const adminSettingsProfileRoute = adminSettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminSettingsActivityLogsRoute =
+  adminSettingsActivityLogsRouteImport.update({
+    id: '/settings/activity-logs',
+    path: '/settings/activity-logs',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminPlatformSystemRoute = adminPlatformSystemRouteImport.update({
   id: '/platform/system',
   path: '/platform/system',
@@ -462,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/platform/flags': typeof adminPlatformFlagsRoute
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
+  '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/roles/': typeof adminRolesIndexRoute
@@ -529,6 +537,7 @@ export interface FileRoutesByTo {
   '/platform/flags': typeof adminPlatformFlagsRoute
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
+  '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/roles': typeof adminRolesIndexRoute
@@ -598,6 +607,7 @@ export interface FileRoutesById {
   '/(admin)/platform/flags': typeof adminPlatformFlagsRoute
   '/(admin)/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/(admin)/platform/system': typeof adminPlatformSystemRoute
+  '/(admin)/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/(admin)/settings/profile': typeof adminSettingsProfileRoute
   '/(admin)/staff/audit-log': typeof adminStaffAuditLogRoute
   '/(admin)/roles/': typeof adminRolesIndexRoute
@@ -667,6 +677,7 @@ export interface FileRouteTypes {
     | '/platform/flags'
     | '/platform/integrations'
     | '/platform/system'
+    | '/settings/activity-logs'
     | '/settings/profile'
     | '/staff/audit-log'
     | '/roles/'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/platform/flags'
     | '/platform/integrations'
     | '/platform/system'
+    | '/settings/activity-logs'
     | '/settings/profile'
     | '/staff/audit-log'
     | '/roles'
@@ -802,6 +814,7 @@ export interface FileRouteTypes {
     | '/(admin)/platform/flags'
     | '/(admin)/platform/integrations'
     | '/(admin)/platform/system'
+    | '/(admin)/settings/activity-logs'
     | '/(admin)/settings/profile'
     | '/(admin)/staff/audit-log'
     | '/(admin)/roles/'
@@ -907,6 +920,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof adminSettingsProfileRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/settings/activity-logs': {
+      id: '/(admin)/settings/activity-logs'
+      path: '/settings/activity-logs'
+      fullPath: '/settings/activity-logs'
+      preLoaderRoute: typeof adminSettingsActivityLogsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/platform/system': {
@@ -1341,6 +1361,7 @@ interface adminLayoutRouteChildren {
   adminPlatformFlagsRoute: typeof adminPlatformFlagsRoute
   adminPlatformIntegrationsRoute: typeof adminPlatformIntegrationsRoute
   adminPlatformSystemRoute: typeof adminPlatformSystemRoute
+  adminSettingsActivityLogsRoute: typeof adminSettingsActivityLogsRoute
   adminSettingsProfileRoute: typeof adminSettingsProfileRoute
   adminStaffAuditLogRoute: typeof adminStaffAuditLogRoute
   adminRolesIndexRoute: typeof adminRolesIndexRoute
@@ -1407,6 +1428,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminPlatformFlagsRoute: adminPlatformFlagsRoute,
   adminPlatformIntegrationsRoute: adminPlatformIntegrationsRoute,
   adminPlatformSystemRoute: adminPlatformSystemRoute,
+  adminSettingsActivityLogsRoute: adminSettingsActivityLogsRoute,
   adminSettingsProfileRoute: adminSettingsProfileRoute,
   adminStaffAuditLogRoute: adminStaffAuditLogRoute,
   adminRolesIndexRoute: adminRolesIndexRoute,

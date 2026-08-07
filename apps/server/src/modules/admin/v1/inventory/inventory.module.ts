@@ -29,7 +29,7 @@ const inventory = app
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(adjustRouteDef, async (c) => {
-    await adjustInventory(c.req.valid("json"));
+    await adjustInventory(c.req.valid("json"), c);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   });
 

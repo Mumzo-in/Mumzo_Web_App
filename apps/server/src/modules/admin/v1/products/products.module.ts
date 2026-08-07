@@ -39,7 +39,7 @@ const products = app
     if (!user) {
       throw unauthorized();
     }
-    const id = await createProduct(c.req.valid("json"), user.id);
+    const id = await createProduct(c.req.valid("json"), user.id, c);
     return c.json({ success: true as const, data: { id } }, 201);
   })
   .openapi(updateRouteDef, async (c) => {
@@ -47,11 +47,16 @@ const products = app
     if (!user) {
       throw unauthorized();
     }
-    await updateProduct(c.req.valid("param").id, c.req.valid("json"), user.id);
+    await updateProduct(
+      c.req.valid("param").id,
+      c.req.valid("json"),
+      user.id,
+      c,
+    );
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   })
   .openapi(deleteRouteDef, async (c) => {
-    await deleteProduct(c.req.valid("param").id);
+    await deleteProduct(c.req.valid("param").id, c);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   });
 

@@ -1,5 +1,8 @@
 import { buildKey, KEY_PREFIXES, toPublicUrl } from "@mumzo/storage";
+import type { Context } from "hono";
+import { logActivity } from "@/core";
 import { conflict, notFound } from "@/core/errors";
+import type { AppEnv } from "@/core/types";
 import { toPaise, toWholeRupees } from "@/lib/money";
 import { finalizeSession } from "@/modules/admin/v1/uploads/uploads.service";
 import * as productsRepo from "./products.repo";
@@ -259,7 +262,11 @@ async function finalizeImages(
   });
 }
 
-export async function createProduct(rawInput: ProductInput, userId: string) {
+export async function createProduct(
+  rawInput: ProductInput,
+  userId: string,
+  c?: Context<AppEnv>,
+) {
   const [bySlug, bySku] = await Promise.all([
     productsRepo.findIdBySlug(rawInput.slug),
     productsRepo.findIdBySku(rawInput.sku),
@@ -312,6 +319,17 @@ export async function createProduct(rawInput: ProductInput, userId: string) {
     );
   }
 
+  if (c) {
+    await logActivity({
+      c,
+      action: "product.create",
+      entityType: "product",
+      entityId: id,
+      description: `Created product "${rawInput.name}" (SKU: ${rawInput.sku})`,
+      newValues: rawInput,
+    });
+  }
+
   return id;
 }
 
@@ -327,8 +345,9 @@ export async function updateProduct(
   id: string,
   rawInput: ProductInput,
   userId: string,
+  c?: Context<AppEnv>,
 ) {
-  await requireProductId(id);
+  const row = await requireProductId(id);
 
   const [bySlug, bySku] = await Promise.all([
     productsRepo.findIdBySlug(rawInput.slug),
@@ -368,9 +387,32 @@ export async function updateProduct(
     colors,
     vendor,
   );
+
+  if (c) {
+    await logActivity({
+      c,
+      action: "product.update",
+      entityType: "product",
+      entityId: id,
+      description: `Updated product "${rawInput.name}"`,
+      previousValues: row,
+      newValues: rawInput,
+    });
+  }
 }
 
-export async function deleteProduct(id: string) {
-  await requireProductId(id);
+export async function deleteProduct(id: string, c?: Context<AppEnv>) {
+  const row = await requireProductId(id);
   await productsRepo.remove(id);
+
+  if (c) {
+    await logActivity({
+      c,
+      action: "product.delete",
+      entityType: "product",
+      entityId: id,
+      description: `Deleted product "${row.name}"`,
+      previousValues: row,
+    });
+  }
 }

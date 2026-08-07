@@ -76,6 +76,7 @@ export const queryKeys = {
     upcoming: () => ["subscriptions", "upcoming"] as const,
   },
   staff: domainKeys("staff"),
+  activityLogs: domainKeys("activity-logs"),
   broadcasts: domainKeys("broadcasts"),
   cmsPages: domainKeys("cms-pages"),
   referrals: {

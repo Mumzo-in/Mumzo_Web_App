@@ -63,6 +63,7 @@ import {
   listAllHubs,
   listProductInventory,
 } from "../api/inventory-api";
+import { productQueryOptions } from "../queries/products";
 
 const MAX_IMAGES = 10;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -723,16 +724,22 @@ function UpdateStockDialog({
 }
 
 /** Per-hub availability — a simple read-only list plus the "Update stock" dialog. */
-function AvailabilityPanel({
-  productId,
-  sizes,
-}: {
-  productId?: string;
-  sizes: ProductSizeInput[];
-}) {
+function AvailabilityPanel({ productId }: { productId?: string }) {
   const queryClient = useQueryClient();
 
-  const savedSizes = sizes.filter((size) => size.id);
+  // Always resolve the size id from the *saved* product, not the live form
+  // state — the form's `sizes` field drifts from what's actually persisted
+  // as soon as the operator edits it without saving (or on a freshly
+  // created product before its first refetch), and using it here previously
+  // sent two different `productSizeId` values across separate "Update
+  // stock" calls, each creating its own inventory row per hub — the
+  // "duplicate hub" bug.
+  const { data: product } = useQuery({
+    ...productQueryOptions(productId as string),
+    enabled: Boolean(productId),
+  });
+
+  const savedSizes = (product?.sizes ?? []).filter((size) => size.id);
   const soleSizeId =
     savedSizes.length === 1 &&
     savedSizes[0]?.label !== "Default" &&
@@ -1129,14 +1136,7 @@ export const ProductForm = forwardRef<
                 <div className="md:col-span-2">
                   <FieldLabel>Hub availability</FieldLabel>
                   <div className="mt-2">
-                    <form.Subscribe selector={(state) => state.values.sizes}>
-                      {(sizes) => (
-                        <AvailabilityPanel
-                          productId={productId}
-                          sizes={sizes}
-                        />
-                      )}
-                    </form.Subscribe>
+                    <AvailabilityPanel productId={productId} />
                   </div>
                 </div>
               </>

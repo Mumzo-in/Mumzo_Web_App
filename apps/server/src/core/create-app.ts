@@ -6,7 +6,7 @@ import { logger } from "hono/logger";
 
 import { ERROR_CODES } from "./constants";
 import { errorHandler, formatZodError, notFoundHandler } from "./errors";
-import { globalRateLimit, requestId } from "./middleware";
+import { activityLogger, globalRateLimit, requestId } from "./middleware";
 import type { AppEnv } from "./types";
 
 /**
@@ -64,6 +64,7 @@ export function createApp() {
   app.use(requestId);
   app.use(logger());
   app.use(globalRateLimit);
+  app.use("/api/v1/admin/*", activityLogger);
   app.use(
     "/*",
     cors({

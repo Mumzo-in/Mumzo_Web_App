@@ -2,10 +2,12 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
+  jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -111,6 +113,7 @@ export const staffVerification = pgTable(
 export const staffUserRelations = relations(staffUser, ({ many }) => ({
   sessions: many(staffSession),
   accounts: many(staffAccount),
+  activityLogs: many(staffActivityLog),
 }));
 
 export const staffSessionRelations = relations(staffSession, ({ one }) => ({
@@ -192,6 +195,43 @@ export const staffRolePermissionRelations = relations(
     role: one(staffRole, {
       fields: [staffRolePermission.roleId],
       references: [staffRole.id],
+    }),
+  }),
+);
+
+export const staffActivityLog = pgTable(
+  "staff_activity_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    staffUserId: text("staff_user_id")
+      .notNull()
+      .references(() => staffUser.id, { onDelete: "cascade" }),
+    action: text("action").notNull(), // e.g. "product.create"
+    entityType: text("entity_type").notNull(), // e.g. "product"
+    entityId: text("entity_id"),
+    description: text("description").notNull(), // human readable
+    previousValues: jsonb("previous_values"),
+    newValues: jsonb("new_values"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("staff_activity_log_staff_user_id_idx").on(table.staffUserId),
+    index("staff_activity_log_entity_type_entity_id_idx").on(
+      table.entityType,
+      table.entityId,
+    ),
+    index("staff_activity_log_created_at_idx").on(table.createdAt),
+  ],
+);
+
+export const staffActivityLogRelations = relations(
+  staffActivityLog,
+  ({ one }) => ({
+    staffUser: one(staffUser, {
+      fields: [staffActivityLog.staffUserId],
+      references: [staffUser.id],
     }),
   }),
 );

@@ -4,6 +4,7 @@
  * Leaf layer: core must never import from `modules/`.
  */
 
+export * from "./activity";
 export * from "./constants";
 export * from "./create-app";
 export * from "./errors";

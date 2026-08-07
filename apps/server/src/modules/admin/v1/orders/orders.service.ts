@@ -10,8 +10,10 @@ import {
 import { notify } from "@mumzo/notifications";
 import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
-
+import type { Context } from "hono";
+import { logActivity } from "@/core";
 import { badRequest, notFound } from "@/core/errors";
+import type { AppEnv } from "@/core/types";
 import { toWholeRupees } from "@/lib/money";
 
 function toAdminOrderItem(row: {
@@ -197,6 +199,7 @@ export async function updateOrderStatus(
   orderId: string,
   input: { status: string; note?: string },
   actor: string,
+  c?: Context<AppEnv>,
 ) {
   const [row] = await db
     .select({ id: order.id, status: order.status, userId: order.userId })
@@ -226,6 +229,19 @@ export async function updateOrderStatus(
       actor,
       note: input.note ?? null,
     });
+
+    if (c) {
+      await logActivity({
+        c,
+        action: "order.update_status",
+        entityType: "order",
+        entityId: orderId,
+        description: `Changed status of order ${orderId} from "${row.status}" to "${input.status}"`,
+        previousValues: { status: row.status },
+        newValues: { status: input.status, note: input.note },
+        tx,
+      });
+    }
   });
 
   // Best-effort — neither call must fail the status update that already

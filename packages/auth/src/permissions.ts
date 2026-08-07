@@ -40,6 +40,7 @@ export const statement = {
   staff: ["create", "read", "update", "delete"],
   report: ["read", "export"],
   upload: ["create", "delete"],
+  activityLog: ["read"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -64,6 +65,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   staff: "Staff & roles",
   report: "Reports",
   upload: "Media uploads",
+  activityLog: "Activity logs",
 };
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -137,6 +139,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       staff: ["create", "read", "update", "delete"],
       report: ["read", "export"],
       upload: ["create", "delete"],
+      activityLog: ["read"],
     },
   },
   {
@@ -160,6 +163,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       fleet: ["read", "assign"],
       report: ["read", "export"],
       upload: ["create", "delete"],
+      activityLog: ["read"],
     },
   },
   {

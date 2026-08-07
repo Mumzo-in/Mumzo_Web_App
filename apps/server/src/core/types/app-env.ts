@@ -22,5 +22,6 @@ export type AppEnv = {
   Variables: {
     requestId: string;
     user: SessionUser | null;
+    loggedActivity?: boolean;
   };
 };

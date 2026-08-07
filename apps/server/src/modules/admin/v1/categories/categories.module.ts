@@ -36,7 +36,7 @@ const categories = app
   )
   // Registered before `/{slug}` so the literal path wins the match.
   .openapi(reorderRouteDef, async (c) => {
-    await reorderCategories(c.req.valid("json").slugs);
+    await reorderCategories(c.req.valid("json").slugs, c);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   })
   .openapi(getRoute, async (c) => {
@@ -48,7 +48,7 @@ const categories = app
     if (!user) {
       throw unauthorized();
     }
-    const id = await createCategory(c.req.valid("json"), user.id);
+    const id = await createCategory(c.req.valid("json"), user.id, c);
     return c.json({ success: true as const, data: { id } }, 201);
   })
   .openapi(updateRouteDef, async (c) => {
@@ -60,11 +60,12 @@ const categories = app
       c.req.valid("param").slug,
       c.req.valid("json"),
       user.id,
+      c,
     );
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   })
   .openapi(deleteRouteDef, async (c) => {
-    await deleteCategory(c.req.valid("param").slug);
+    await deleteCategory(c.req.valid("param").slug, c);
     return c.json({ success: true as const, data: { ok: true as const } }, 200);
   });
 

@@ -8,6 +8,7 @@
  * Registration order is set in `core/create-app.ts`, not here.
  */
 
+export * from "./activity";
 export * from "./auth";
 export * from "./permissions";
 export * from "./rate-limit";

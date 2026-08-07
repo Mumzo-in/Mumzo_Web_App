@@ -16,7 +16,13 @@ export async function findAll(filters: {
   search?: string;
   lowStockOnly?: boolean;
 }) {
-  // Self-heal: delete orphaned inventory rows (where size/color is set but deleted)
+  // Orphaned inventory rows (their size/color variant was since deleted) are
+  // real garbage — safe to sweep. The broader "does productSizeId=null even
+  // belong here" self-heal that used to run alongside this was removed: it
+  // guessed at intent from a label string and could delete real per-hub
+  // stock. The actual duplicate-row bug was the admin form resolving a
+  // variant's id from live (possibly stale) form state instead of the saved
+  // product — fixed at the source in `product-form.tsx`.
   await db.execute(sql`
     DELETE FROM inventory
     WHERE product_size_id IS NOT NULL
@@ -26,44 +32,6 @@ export async function findAll(filters: {
     DELETE FROM inventory
     WHERE product_color_id IS NOT NULL
       AND product_color_id NOT IN (SELECT id FROM product_color)
-  `);
-  // Self-heal: delete inventory rows with product_size_id = null for products that have real size variants
-  await db.execute(sql`
-    DELETE FROM inventory
-    WHERE product_size_id IS NULL
-      AND product_id IN (
-        SELECT DISTINCT product_id 
-        FROM product_size 
-        WHERE label <> 'Default' AND label <> ''
-      )
-  `);
-  // Self-heal: delete inventory rows with product_size_id IS NOT NULL for products that do NOT have real variants
-  await db.execute(sql`
-    DELETE FROM inventory
-    WHERE product_size_id IS NOT NULL
-      AND product_id NOT IN (
-        SELECT DISTINCT product_id 
-        FROM product_size 
-        WHERE label <> 'Default' AND label <> ''
-      )
-  `);
-  // Self-heal: delete inventory rows with product_color_id = null for products that have color variants
-  await db.execute(sql`
-    DELETE FROM inventory
-    WHERE product_color_id IS NULL
-      AND product_id IN (
-        SELECT DISTINCT product_id 
-        FROM product_color
-      )
-  `);
-  // Self-heal: delete inventory rows with product_color_id IS NOT NULL for products that do NOT have color variants
-  await db.execute(sql`
-    DELETE FROM inventory
-    WHERE product_color_id IS NOT NULL
-      AND product_id NOT IN (
-        SELECT DISTINCT product_id 
-        FROM product_color
-      )
   `);
 
   const conditions: SQL[] = [

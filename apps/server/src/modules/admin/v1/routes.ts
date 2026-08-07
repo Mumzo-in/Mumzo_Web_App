@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
 import type { AppEnv } from "@/core";
-
+import activityLogsRoutes from "./activity-logs/activity-logs.module";
 import authRoutes from "./auth";
 import brandsRoutes from "./brands/brands.module";
 import bundlesRoutes from "./bundles/bundles.module";
@@ -47,4 +47,5 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/uploads", router: uploadsRoutes },
   { path: "/users", router: usersRoutes },
   { path: "/ws", router: wsRoutes },
+  { path: "/activity-logs", router: activityLogsRoutes },
 ];

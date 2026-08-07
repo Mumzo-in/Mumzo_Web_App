@@ -29,6 +29,7 @@ const orders = app
       c.req.valid("param").id,
       c.req.valid("json"),
       `admin:${user.id}`,
+      c,
     );
     return c.json({ success: true as const, data: order }, 200);
   });
