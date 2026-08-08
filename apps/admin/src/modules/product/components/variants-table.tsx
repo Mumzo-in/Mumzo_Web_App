@@ -105,9 +105,9 @@ export function VariantsTable({
   }
 
   return (
-    <Field>
+    <Field className="min-w-0">
       <FieldLabel>Stock &amp; pricing</FieldLabel>
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <div className="w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-border">
         <Table>
           <TableHeader>
             <TableRow>
