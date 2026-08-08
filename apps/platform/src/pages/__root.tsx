@@ -17,7 +17,7 @@ import {
   PreferencesProvider,
   ProfileProvider,
 } from "@/modules/account";
-import { OnboardingModalHost, RequireAuthModalHost } from "@/modules/auth";
+import { RequireAuthModalHost } from "@/modules/auth";
 import { CartProvider } from "@/modules/cart";
 import { defaultOgImage } from "@/modules/catalog";
 import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
@@ -94,7 +94,6 @@ function RootComponent() {
                             <ConsentBanner />
                             <LocationModalHost />
                             <RequireAuthModalHost />
-                            <OnboardingModalHost />
                           </WishlistProvider>
                         </TicketProvider>
                       </BabiesProvider>
