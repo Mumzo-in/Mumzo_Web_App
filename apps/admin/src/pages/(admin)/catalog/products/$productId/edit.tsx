@@ -80,29 +80,16 @@ function EditProductPage() {
       toast.error("Pick a category first.");
       return;
     }
-    if (!values.type.trim()) {
-      toast.error("Set a type in Attributes — Wipes, Formula, etc.");
-      return;
-    }
-    if (values.price == null || values.mrp == null) {
-      toast.error("Set a selling price and MRP first.");
-      return;
-    }
-    if (values.sizes.some((size) => size.price <= 0 || size.stock < 0)) {
-      toast.error("Set a price and stock for every size row in Stock.");
-      return;
-    }
     await updateProduct(productId, {
       ...values,
       categorySlug: values.categorySlug,
-      price: values.price,
-      mrp: values.mrp,
+      unitType: values.unitType || null,
       weight: values.weight || null,
       vendor: values.vendorId
         ? {
             vendorId: values.vendorId,
             relationship: product.vendor?.relationship ?? "distributor",
-            costPrice: values.costPrice,
+            costPrice: null,
             leadTimeDays: product.vendor?.leadTimeDays ?? null,
             notes: product.vendor?.notes ?? null,
           }
@@ -151,13 +138,12 @@ function EditProductPage() {
             </Button>
           </>
         }
-        description={product.sku}
+        description={product.sizes[0]?.sku ?? "No SKU yet"}
         title={`Edit ${product.name}`}
       />
       <ProductForm
         initialValues={{
           name: product.name,
-          sku: product.sku,
           slug: product.slug,
           brandId: product.brandId,
           categorySlug:
@@ -165,19 +151,26 @@ function EditProductPage() {
           type: product.type,
           description: product.description,
           about: product.about,
+          unitType: product.unitType ?? "",
           qty: product.qty,
           weight: product.weight ?? "",
           countryOfOrigin: product.countryOfOrigin,
-          price: product.price,
-          mrp: product.mrp,
-          costPrice: product.vendor?.costPrice ?? null,
           vendorId: product.vendor?.vendorId ?? "",
           images: product.images,
           uploadSessionId: null,
           sizes:
             product.sizes.length > 0
               ? product.sizes
-              : [{ label: "", price: 0, stock: 0 }],
+              : [
+                  {
+                    label: "",
+                    sku: "",
+                    price: 0,
+                    mrp: 0,
+                    costPrice: null,
+                    stock: 0,
+                  },
+                ],
           ages: product.ages,
           highlights: product.highlights,
           tags: product.tags,

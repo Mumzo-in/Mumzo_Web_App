@@ -15,7 +15,6 @@ import { and, count, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
 const selection = {
   id: product.id,
   slug: product.slug,
-  sku: product.sku,
   name: product.name,
   brandId: product.brandId,
   brandName: brand.name,
@@ -29,6 +28,7 @@ const selection = {
   categorySlug: category.slug,
   price: product.price,
   mrp: product.mrp,
+  unitType: product.unitType,
   qty: product.qty,
   weight: product.weight,
   description: product.description,
@@ -70,7 +70,6 @@ export async function findPage(filters: {
   if (filters.search) {
     const clause = or(
       ilike(product.name, `%${filters.search}%`),
-      ilike(product.sku, `%${filters.search}%`),
       ilike(brand.name, `%${filters.search}%`),
     );
     if (clause) {
@@ -117,12 +116,20 @@ export async function findById(id: string) {
   return row;
 }
 
+type VariantRow = {
+  id: string;
+  label: string;
+  sku: string;
+  price: number;
+  mrp: number;
+  costPrice: number | null;
+  stock: number;
+  weightGrams: number;
+};
+
 export async function sizesByProductId(productIds: string[]) {
   if (productIds.length === 0) {
-    return new Map<
-      string,
-      { id: string; label: string; price: number; stock: number }[]
-    >();
+    return new Map<string, VariantRow[]>();
   }
 
   const rows = await db
@@ -130,25 +137,30 @@ export async function sizesByProductId(productIds: string[]) {
       id: productSize.id,
       productId: productSize.productId,
       label: productSize.label,
+      sku: productSize.sku,
       price: productSize.price,
+      mrp: productSize.mrp,
+      costPrice: productSize.costPrice,
       stock: productSize.stock,
+      weightGrams: productSize.weightGrams,
     })
     .from(productSize)
     .where(inArray(productSize.productId, productIds))
     .orderBy(productSize.position);
 
-  const byProduct = new Map<
-    string,
-    { id: string; label: string; price: number; stock: number }[]
-  >();
+  const byProduct = new Map<string, VariantRow[]>();
 
   for (const row of rows) {
     const list = byProduct.get(row.productId) ?? [];
     list.push({
       id: row.id,
       label: row.label,
+      sku: row.sku,
       price: row.price,
+      mrp: row.mrp,
+      costPrice: row.costPrice,
       stock: row.stock,
+      weightGrams: row.weightGrams,
     });
     byProduct.set(row.productId, list);
   }
@@ -158,10 +170,7 @@ export async function sizesByProductId(productIds: string[]) {
 
 export async function colorsByProductId(productIds: string[]) {
   if (productIds.length === 0) {
-    return new Map<
-      string,
-      { id: string; label: string; price: number; stock: number }[]
-    >();
+    return new Map<string, VariantRow[]>();
   }
 
   const rows = await db
@@ -169,25 +178,30 @@ export async function colorsByProductId(productIds: string[]) {
       id: productColor.id,
       productId: productColor.productId,
       label: productColor.label,
+      sku: productColor.sku,
       price: productColor.price,
+      mrp: productColor.mrp,
+      costPrice: productColor.costPrice,
       stock: productColor.stock,
+      weightGrams: productColor.weightGrams,
     })
     .from(productColor)
     .where(inArray(productColor.productId, productIds))
     .orderBy(productColor.position);
 
-  const byProduct = new Map<
-    string,
-    { id: string; label: string; price: number; stock: number }[]
-  >();
+  const byProduct = new Map<string, VariantRow[]>();
 
   for (const row of rows) {
     const list = byProduct.get(row.productId) ?? [];
     list.push({
       id: row.id,
       label: row.label,
+      sku: row.sku,
       price: row.price,
+      mrp: row.mrp,
+      costPrice: row.costPrice,
       stock: row.stock,
+      weightGrams: row.weightGrams,
     });
     byProduct.set(row.productId, list);
   }
@@ -200,15 +214,6 @@ export async function findIdBySlug(slug: string) {
     .select({ id: product.id })
     .from(product)
     .where(eq(product.slug, slug))
-    .limit(1);
-  return row;
-}
-
-export async function findIdBySku(sku: string) {
-  const [row] = await db
-    .select({ id: product.id })
-    .from(product)
-    .where(eq(product.sku, sku))
     .limit(1);
   return row;
 }
@@ -281,10 +286,21 @@ async function syncVendorLink(
     });
 }
 
+type VariantInput = {
+  id?: string;
+  label: string;
+  sku: string;
+  price: number;
+  mrp: number;
+  costPrice: number | null;
+  stock: number;
+  weightGrams: number;
+};
+
 export async function insert(
   values: Omit<ProductRow, "id" | "createdAt" | "updatedAt">,
-  sizes: { label: string; price: number; stock: number }[],
-  colors: { label: string; price: number; stock: number }[],
+  sizes: VariantInput[],
+  colors: VariantInput[],
   vendorLink: VendorLinkInput,
 ) {
   return db.transaction(async (tx) => {
@@ -302,8 +318,12 @@ export async function insert(
         sizes.map((size, index) => ({
           productId: row.id,
           label: size.label,
+          sku: size.sku,
           price: size.price,
+          mrp: size.mrp,
+          costPrice: size.costPrice,
           stock: size.stock,
+          weightGrams: size.weightGrams,
           position: index,
         })),
       );
@@ -314,8 +334,12 @@ export async function insert(
         colors.map((color, index) => ({
           productId: row.id,
           label: color.label,
+          sku: color.sku,
           price: color.price,
+          mrp: color.mrp,
+          costPrice: color.costPrice,
           stock: color.stock,
+          weightGrams: color.weightGrams,
           position: index,
         })),
       );
@@ -330,8 +354,8 @@ export async function insert(
 export async function update(
   id: string,
   values: Partial<Omit<ProductRow, "id" | "createdAt" | "updatedAt">>,
-  sizes: { id?: string; label: string; price: number; stock: number }[],
-  colors: { id?: string; label: string; price: number; stock: number }[],
+  sizes: VariantInput[],
+  colors: VariantInput[],
   vendorLink: VendorLinkInput,
 ) {
   await db.transaction(async (tx) => {
@@ -369,8 +393,12 @@ export async function update(
           .update(productSize)
           .set({
             label: size.label,
+            sku: size.sku,
             price: size.price,
+            mrp: size.mrp,
+            costPrice: size.costPrice,
             stock: size.stock,
+            weightGrams: size.weightGrams,
             position: index,
           })
           .where(eq(productSize.id, size.id));
@@ -378,8 +406,12 @@ export async function update(
         await tx.insert(productSize).values({
           productId: id,
           label: size.label,
+          sku: size.sku,
           price: size.price,
+          mrp: size.mrp,
+          costPrice: size.costPrice,
           stock: size.stock,
+          weightGrams: size.weightGrams,
           position: index,
         });
       }
@@ -417,8 +449,12 @@ export async function update(
           .update(productColor)
           .set({
             label: color.label,
+            sku: color.sku,
             price: color.price,
+            mrp: color.mrp,
+            costPrice: color.costPrice,
             stock: color.stock,
+            weightGrams: color.weightGrams,
             position: index,
           })
           .where(eq(productColor.id, color.id));
@@ -426,8 +462,12 @@ export async function update(
         await tx.insert(productColor).values({
           productId: id,
           label: color.label,
+          sku: color.sku,
           price: color.price,
+          mrp: color.mrp,
+          costPrice: color.costPrice,
           stock: color.stock,
+          weightGrams: color.weightGrams,
           position: index,
         });
       }

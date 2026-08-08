@@ -382,26 +382,13 @@ type ProductOption = {
 };
 
 function flattenProduct(product: Product): ProductOption[] {
-  if (product.sizes.length === 0) {
-    return [
-      {
-        key: `${product.id}:`,
-        productId: product.id,
-        productSizeId: null,
-        label: product.name,
-        variantLabel: null,
-        sku: product.sku,
-        price: product.price,
-      },
-    ];
-  }
   return product.sizes.map((size) => ({
     key: `${product.id}:${size.id ?? size.label}`,
     productId: product.id,
     productSizeId: size.id ?? null,
     label: product.name,
     variantLabel: size.label,
-    sku: product.sku,
+    sku: size.sku,
     price: size.price,
   }));
 }

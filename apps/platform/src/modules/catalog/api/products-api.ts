@@ -27,7 +27,6 @@ export type PublicProductColor = {
 export type PublicProduct = {
   id: string;
   slug: string;
-  sku: string;
   name: string;
   brand: string;
   brandSlug: string;

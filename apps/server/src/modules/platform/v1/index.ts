@@ -22,6 +22,7 @@ import productsRoutes, {
   productsByCategory as categoryProductsRoutes,
 } from "./products/products.module";
 import profileRoutes from "./profile/profile.module";
+import referralsRoutes from "./referrals/referrals.module";
 import wishlistRoutes from "./wishlist/wishlist.module";
 
 /**
@@ -79,6 +80,7 @@ app.route("/devices", devicesRoutes);
 app.route("/location", locationRoutes);
 app.route("/orders", ordersRoutes);
 app.route("/profile", profileRoutes);
+app.route("/referrals", referralsRoutes);
 app.route("/wishlist", wishlistRoutes);
 app.route("/og", ogRoutes);
 

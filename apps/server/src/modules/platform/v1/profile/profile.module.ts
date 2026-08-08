@@ -24,6 +24,7 @@ const profile = app.openapi(completeOnboardingRoute, async (c) => {
     name: body.name,
     email: body.email,
     babies: body.babies ?? [],
+    referralCode: body.referralCode,
   });
 
   return c.json({ success: true as const, data: result }, 200);

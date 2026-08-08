@@ -34,6 +34,8 @@ export {
   type ProductVendor,
   primaryImage,
   totalStock,
+  UNIT_TYPES,
+  type UnitType,
   type VendorRelationship,
 } from "./product";
 export {

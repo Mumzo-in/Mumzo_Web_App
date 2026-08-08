@@ -8,19 +8,31 @@ import { finalizeSession } from "@/modules/admin/v1/uploads/uploads.service";
 import * as productsRepo from "./products.repo";
 
 /** Read-side shape — every row loaded from the DB has an id. */
-type Size = { id: string; label: string; price: number; stock: number };
-type Color = { id: string; label: string; price: number; stock: number };
+type Size = {
+  id: string;
+  label: string;
+  sku: string;
+  price: number;
+  mrp: number;
+  costPrice: number | null;
+  stock: number;
+  weightGrams: number;
+};
+type Color = Size;
 
-/** Write-side shape — the form always fully replaces sizes/colors on save,
- * so any `id` it sends (from a row it displayed) is stale by the time the
- * repo re-inserts; the repo never reads it. */
-type SizeInput = { id?: string; label: string; price: number; stock: number };
-type ColorInput = {
+/** Write-side shape — the repo syncs sizes/colors incrementally by id, so an
+ * `id` present here refers to an existing row; absent means a new row. */
+type SizeInput = {
   id?: string;
   label: string;
+  sku: string;
   price: number;
+  mrp: number;
+  costPrice: number | null;
   stock: number;
+  weightGrams: number;
 };
+type ColorInput = SizeInput;
 
 type VendorRelationship = "own" | "retainer" | "distributor";
 
@@ -39,8 +51,16 @@ function rollUpStock(sizes: Size[]): number {
 
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findById>>;
 
-function toRupeeVariant<T extends { price: number }>(variant: T): T {
-  return { ...variant, price: toWholeRupees(variant.price) };
+function toRupeeVariant<
+  T extends { price: number; mrp: number; costPrice: number | null },
+>(variant: T): T {
+  return {
+    ...variant,
+    price: toWholeRupees(variant.price),
+    mrp: toWholeRupees(variant.mrp),
+    costPrice:
+      variant.costPrice === null ? null : toWholeRupees(variant.costPrice),
+  };
 }
 
 function serialize(
@@ -53,7 +73,6 @@ function serialize(
   return {
     id: row.id,
     slug: row.slug,
-    sku: row.sku,
     name: row.name,
     brand: row.brandName,
     brandId: row.brandId,
@@ -73,6 +92,13 @@ function serialize(
     categorySlug: row.categorySlug,
     price: toWholeRupees(row.price),
     mrp: toWholeRupees(row.mrp),
+    unitType: row.unitType as
+      | "pack"
+      | "weight"
+      | "volume"
+      | "size"
+      | "piece"
+      | null,
     qty: row.qty,
     weight: row.weight,
     description: row.description,
@@ -143,16 +169,21 @@ export async function getProduct(id: string) {
   );
 }
 
+type UnitType = "pack" | "weight" | "volume" | "size" | "piece" | null;
+
+/** `sku`/`price`/`mrp` are per-variant now (`sizes[]`), not here — the
+ * product row's own `sku`/`price`/`mrp` (and `vendor.costPrice`) are derived
+ * from the primary (first) variant before the repo write, so the
+ * cart/checkout/storefront pricing fallback — which still reads those
+ * columns directly — keeps working unchanged. */
 type ProductInput = {
   name: string;
   slug: string;
-  sku: string;
   brandId: string;
   vendor: VendorInput;
   categorySlug: string;
   status: "draft" | "active" | "inactive" | "archived";
-  price: number;
-  mrp: number;
+  unitType: UnitType;
   qty: string;
   weight: string | null;
   description: string;
@@ -198,25 +229,43 @@ async function assertVendorExists(vendor: VendorInput) {
 /** The admin form submits/edits money in whole rupees; the DB stores paise
  * (see `lib/money.ts`). This is the one place a `ProductInput` crosses that
  * boundary before reaching the repo. */
+function toPaiseVariant(variant: SizeInput): SizeInput {
+  return {
+    ...variant,
+    price: toPaise(variant.price),
+    mrp: toPaise(variant.mrp),
+    costPrice: variant.costPrice === null ? null : toPaise(variant.costPrice),
+  };
+}
+
 function toPaiseInput(input: ProductInput): ProductInput {
   return {
     ...input,
-    price: toPaise(input.price),
-    mrp: toPaise(input.mrp),
-    vendor: input.vendor
-      ? {
-          ...input.vendor,
-          costPrice:
-            input.vendor.costPrice === null
-              ? null
-              : toPaise(input.vendor.costPrice),
-        }
-      : null,
-    sizes: input.sizes.map((size) => ({ ...size, price: toPaise(size.price) })),
-    colors: input.colors.map((color) => ({
-      ...color,
-      price: toPaise(color.price),
-    })),
+    sizes: input.sizes.map(toPaiseVariant),
+    colors: input.colors.map(toPaiseVariant),
+  };
+}
+
+/** The product row's own `sku`/`price`/`mrp` and `vendor.costPrice` are a
+ * rollup of the primary (first) variant — cart/checkout/storefront pricing
+ * still fall back to these columns directly for an unsized product, so they
+ * must stay in sync rather than disappear now that pricing lives per-variant. */
+function deriveProductLevelFields(
+  sizes: SizeInput[],
+  vendor: VendorInput,
+): {
+  price: number;
+  mrp: number;
+  vendor: VendorInput;
+} {
+  const primary = sizes[0];
+  if (!primary) {
+    throw new Error("A product needs at least one size/variant row.");
+  }
+  return {
+    price: primary.price,
+    mrp: primary.mrp,
+    vendor: vendor ? { ...vendor, costPrice: primary.costPrice } : null,
   };
 }
 
@@ -268,16 +317,10 @@ export async function createProduct(
   userId: string,
   c?: Context<AppEnv>,
 ) {
-  const [bySlug, bySku] = await Promise.all([
-    productsRepo.findIdBySlug(rawInput.slug),
-    productsRepo.findIdBySku(rawInput.sku),
-  ]);
+  const bySlug = await productsRepo.findIdBySlug(rawInput.slug);
 
   if (bySlug) {
     throw conflict(`The slug "${rawInput.slug}" is already in use.`);
-  }
-  if (bySku) {
-    throw conflict(`The SKU "${rawInput.sku}" is already in use.`);
   }
 
   await assertBrandExists(rawInput.brandId);
@@ -294,14 +337,15 @@ export async function createProduct(
     images,
     ...rest
   } = input;
+  const derived = deriveProductLevelFields(sizes, vendor);
 
   // Product row doesn't exist yet to key the final image path on — insert
   // first with draft images, then finalize once the id is known.
   const id = await productsRepo.insert(
-    { ...rest, categoryId, images },
+    { ...rest, ...derived, categoryId, images },
     sizes,
     colors,
-    vendor,
+    derived.vendor,
   );
 
   if (uploadSessionId) {
@@ -316,7 +360,7 @@ export async function createProduct(
       { images: finalImages },
       sizes,
       colors,
-      vendor,
+      derived.vendor,
     );
   }
 
@@ -326,7 +370,7 @@ export async function createProduct(
       action: "product.create",
       entityType: "product",
       entityId: id,
-      description: `Created product "${rawInput.name}" (SKU: ${rawInput.sku})`,
+      description: `Created product "${rawInput.name}"`,
       newValues: rawInput,
     });
   }
@@ -350,16 +394,10 @@ export async function updateProduct(
 ) {
   const row = await requireProductId(id);
 
-  const [bySlug, bySku] = await Promise.all([
-    productsRepo.findIdBySlug(rawInput.slug),
-    productsRepo.findIdBySku(rawInput.sku),
-  ]);
+  const bySlug = await productsRepo.findIdBySlug(rawInput.slug);
 
   if (bySlug && bySlug.id !== id) {
     throw conflict(`The slug "${rawInput.slug}" is already in use.`);
-  }
-  if (bySku && bySku.id !== id) {
-    throw conflict(`The SKU "${rawInput.sku}" is already in use.`);
   }
 
   await assertBrandExists(rawInput.brandId);
@@ -376,6 +414,7 @@ export async function updateProduct(
     images,
     ...rest
   } = input;
+  const derived = deriveProductLevelFields(sizes, vendor);
 
   const finalImages = uploadSessionId
     ? await finalizeImages(id, images, uploadSessionId, userId)
@@ -383,10 +422,10 @@ export async function updateProduct(
 
   await productsRepo.update(
     id,
-    { ...rest, categoryId, images: finalImages },
+    { ...rest, ...derived, categoryId, images: finalImages },
     sizes,
     colors,
-    vendor,
+    derived.vendor,
   );
 
   if (c) {

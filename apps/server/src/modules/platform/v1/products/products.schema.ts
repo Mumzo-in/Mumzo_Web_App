@@ -26,7 +26,6 @@ export const publicProductSchema = z
   .object({
     id: z.string(),
     slug: z.string(),
-    sku: z.string(),
     name: z.string(),
     brand: z.string(),
     brandSlug: z.string(),

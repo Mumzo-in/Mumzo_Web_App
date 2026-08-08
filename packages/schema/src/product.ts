@@ -47,15 +47,36 @@ export const PRODUCT_STATUSES = [
 
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
-/** A purchasable variant. Price and stock are per-size, not per-product.
+/** Structured measurement category — shown in Basic alongside the free-text
+ * `qty` label ("Pack of 72"), which stays free text for the human-readable
+ * description. */
+export const UNIT_TYPES = [
+  { key: "pack", label: "Pack" },
+  { key: "weight", label: "Weight" },
+  { key: "volume", label: "Volume" },
+  { key: "size", label: "Size" },
+  { key: "piece", label: "Piece" },
+] as const;
+
+export type UnitType = (typeof UNIT_TYPES)[number]["key"];
+
+/** A purchasable variant. Price, MRP, stock, and SKU are per-size, not
+ * per-product — a product's own `sku`/`price`/`mrp` are a rollup of its
+ * primary (first) variant, kept in sync server-side.
  * `id` identifies the underlying `productSize` row — present when read from
  * the API (needed to add this exact variant to the cart), absent on a
  * freshly-added row in the admin form before it's saved. */
 export type ProductSize = {
   id?: string;
   label: string;
+  sku: string;
   price: number;
+  mrp: number;
+  /** What we pay the vendor for this variant. Nullable — not every variant
+   * has vendor cost tracked. */
+  costPrice: number | null;
   stock: number;
+  weightGrams?: number;
 };
 
 /** A color/style variant — same shape as `ProductSize`, but a separate axis
@@ -63,8 +84,12 @@ export type ProductSize = {
 export type ProductColor = {
   id?: string;
   label: string;
+  sku: string;
   price: number;
+  mrp: number;
+  costPrice: number | null;
   stock: number;
+  weightGrams?: number;
 };
 
 /** "own" — we hold the stock ourselves. "retainer" — vendor holds stock,
@@ -81,7 +106,10 @@ export type ProductVendor = {
   /** Display name, resolved server-side. */
   vendorName: string;
   relationship: VendorRelationship;
-  /** What we pay the supplier. Drives margin; never exposed to customers. */
+  /** What we pay the supplier for the primary variant. Read-only rollup —
+   * the authoritative cost lives per-variant (`ProductSize.costPrice`); this
+   * mirrors the primary variant's cost and isn't independently editable.
+   * Drives margin; never exposed to customers. */
   costPrice: number | null;
   leadTimeDays: number | null;
   notes: string | null;
@@ -91,8 +119,6 @@ export type Product = {
   id: string;
   /** URL segment on the storefront (`/product/$slug`). */
   slug: string;
-  /** Internal stock-keeping code — operators search by this. */
-  sku: string;
   name: string;
   /** Display name, resolved server-side from `brandId`. */
   brand: string;
@@ -101,11 +127,14 @@ export type Product = {
   vendor: ProductVendor | null;
   categorySlug: CategorySlug;
 
-  /** Whole rupees. `discount` is derived from these two, never stored. */
+  /** Whole rupees, rolled up from the primary (first) variant server-side.
+   * `discount` is derived from these two, never stored. */
   price: number;
   mrp: number;
 
-  /** Pack size as free text — "Pack of 72", "300 g". Rendered on the PDP. */
+  /** Structured measurement category. */
+  unitType: UnitType | null;
+  /** Pack size as free text — "Pack of 72", "300 g". Rendered on the product page. */
   qty: string;
   weight: string | null;
 

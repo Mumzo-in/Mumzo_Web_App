@@ -7,4 +7,5 @@ export * from "./marketing";
 export * from "./media";
 export * from "./notifications";
 export * from "./procurement";
+export * from "./referrals";
 export * from "./staff";

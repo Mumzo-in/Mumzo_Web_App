@@ -120,7 +120,6 @@ export const product = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull().unique(),
-    sku: text("sku").notNull().unique(),
     name: text("name").notNull(),
     brandId: uuid("brand_id")
       .notNull()
@@ -144,6 +143,9 @@ export const product = pgTable(
     /** Fallback barcode for a variant-less product — hub pick/pack scanning. */
     barcode: text("barcode").unique(),
 
+    /** UnitType: "pack" | "weight" | "volume" | "size" | "piece". Nullable —
+     * older/draft products may not have one set yet. */
+    unitType: text("unit_type"),
     qty: text("qty").notNull(),
     weight: text("weight"),
 
@@ -233,8 +235,15 @@ export const productSize = pgTable(
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
+    /** Per-variant stock-keeping code — operators search/scan by this. */
+    sku: text("sku").notNull().unique(),
     /** Paise. */
     price: integer("price").notNull(),
+    /** Paise. Printed MRP for this variant. */
+    mrp: integer("mrp").notNull(),
+    /** Paise. What we pay the vendor for this variant — nullable, not every
+     * variant has vendor cost tracked. */
+    costPrice: integer("cost_price"),
     stock: integer("stock").default(0).notNull(),
     position: integer("position").default(0).notNull(),
     /** GST slab as a whole percent — overrides `product.gstRate` for this variant. */
@@ -269,8 +278,15 @@ export const productColor = pgTable(
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
+    /** Per-variant stock-keeping code — operators search/scan by this. */
+    sku: text("sku").notNull().unique(),
     /** Paise. */
     price: integer("price").notNull(),
+    /** Paise. Printed MRP for this variant. */
+    mrp: integer("mrp").notNull(),
+    /** Paise. What we pay the vendor for this variant — nullable, not every
+     * variant has vendor cost tracked. */
+    costPrice: integer("cost_price"),
     stock: integer("stock").default(0).notNull(),
     position: integer("position").default(0).notNull(),
     /** GST slab as a whole percent — overrides `product.gstRate` for this variant. */

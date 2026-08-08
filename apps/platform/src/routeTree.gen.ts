@@ -47,7 +47,6 @@ import { Route as storeprotectedProfilePaymentMethodsRouteImport } from './pages
 import { Route as storeprotectedProfileNotificationsRouteImport } from './pages/(store)/(protected)/profile/notifications'
 import { Route as storeprotectedProfileEditRouteImport } from './pages/(store)/(protected)/profile/edit'
 import { Route as storeprotectedPaymentStatusRouteImport } from './pages/(store)/(protected)/payment/status'
-import { Route as storeprotectedCheckoutReviewRouteImport } from './pages/(store)/(protected)/checkout/review'
 import { Route as storeprotectedCheckoutPaymentRouteImport } from './pages/(store)/(protected)/checkout/payment'
 import { Route as storeprotectedCheckoutAddressRouteImport } from './pages/(store)/(protected)/checkout/address'
 import { Route as storeprotectedOrdersOrderIdIndexRouteImport } from './pages/(store)/(protected)/orders/$orderId/index'
@@ -257,12 +256,6 @@ const storeprotectedPaymentStatusRoute =
     path: '/payment/status',
     getParentRoute: () => storeprotectedLayoutRoute,
   } as any)
-const storeprotectedCheckoutReviewRoute =
-  storeprotectedCheckoutReviewRouteImport.update({
-    id: '/review',
-    path: '/review',
-    getParentRoute: () => storeprotectedCheckoutLayoutRoute,
-  } as any)
 const storeprotectedCheckoutPaymentRoute =
   storeprotectedCheckoutPaymentRouteImport.update({
     id: '/payment',
@@ -334,7 +327,6 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
-  '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
   '/profile/edit': typeof storeprotectedProfileEditRoute
   '/profile/notifications': typeof storeprotectedProfileNotificationsRoute
@@ -379,7 +371,6 @@ export interface FileRoutesByTo {
   '/profile': typeof storeProfileIndexRoute
   '/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
-  '/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/payment/status': typeof storeprotectedPaymentStatusRoute
   '/profile/edit': typeof storeprotectedProfileEditRoute
   '/profile/notifications': typeof storeprotectedProfileNotificationsRoute
@@ -428,7 +419,6 @@ export interface FileRoutesById {
   '/(store)/profile/': typeof storeProfileIndexRoute
   '/(store)/(protected)/checkout/address': typeof storeprotectedCheckoutAddressRoute
   '/(store)/(protected)/checkout/payment': typeof storeprotectedCheckoutPaymentRoute
-  '/(store)/(protected)/checkout/review': typeof storeprotectedCheckoutReviewRoute
   '/(store)/(protected)/payment/status': typeof storeprotectedPaymentStatusRoute
   '/(store)/(protected)/profile/edit': typeof storeprotectedProfileEditRoute
   '/(store)/(protected)/profile/notifications': typeof storeprotectedProfileNotificationsRoute
@@ -476,7 +466,6 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/checkout/address'
     | '/checkout/payment'
-    | '/checkout/review'
     | '/payment/status'
     | '/profile/edit'
     | '/profile/notifications'
@@ -521,7 +510,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/checkout/address'
     | '/checkout/payment'
-    | '/checkout/review'
     | '/payment/status'
     | '/profile/edit'
     | '/profile/notifications'
@@ -569,7 +557,6 @@ export interface FileRouteTypes {
     | '/(store)/profile/'
     | '/(store)/(protected)/checkout/address'
     | '/(store)/(protected)/checkout/payment'
-    | '/(store)/(protected)/checkout/review'
     | '/(store)/(protected)/payment/status'
     | '/(store)/(protected)/profile/edit'
     | '/(store)/(protected)/profile/notifications'
@@ -861,13 +848,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof storeprotectedPaymentStatusRouteImport
       parentRoute: typeof storeprotectedLayoutRoute
     }
-    '/(store)/(protected)/checkout/review': {
-      id: '/(store)/(protected)/checkout/review'
-      path: '/review'
-      fullPath: '/checkout/review'
-      preLoaderRoute: typeof storeprotectedCheckoutReviewRouteImport
-      parentRoute: typeof storeprotectedCheckoutLayoutRoute
-    }
     '/(store)/(protected)/checkout/payment': {
       id: '/(store)/(protected)/checkout/payment'
       path: '/payment'
@@ -923,7 +903,6 @@ declare module '@tanstack/react-router' {
 interface storeprotectedCheckoutLayoutRouteChildren {
   storeprotectedCheckoutAddressRoute: typeof storeprotectedCheckoutAddressRoute
   storeprotectedCheckoutPaymentRoute: typeof storeprotectedCheckoutPaymentRoute
-  storeprotectedCheckoutReviewRoute: typeof storeprotectedCheckoutReviewRoute
   storeprotectedCheckoutIndexRoute: typeof storeprotectedCheckoutIndexRoute
 }
 
@@ -931,7 +910,6 @@ const storeprotectedCheckoutLayoutRouteChildren: storeprotectedCheckoutLayoutRou
   {
     storeprotectedCheckoutAddressRoute: storeprotectedCheckoutAddressRoute,
     storeprotectedCheckoutPaymentRoute: storeprotectedCheckoutPaymentRoute,
-    storeprotectedCheckoutReviewRoute: storeprotectedCheckoutReviewRoute,
     storeprotectedCheckoutIndexRoute: storeprotectedCheckoutIndexRoute,
   }
 

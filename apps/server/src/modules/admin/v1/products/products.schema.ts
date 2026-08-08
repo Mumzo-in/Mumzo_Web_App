@@ -10,20 +10,38 @@ import { z } from "@hono/zod-openapi";
 /** `id` is present on read (identifies the `productSize` row for the cart to
  * reference) and absent on write — the form always fully replaces a
  * product's sizes/colors on save, so there's never an existing id to send. */
-export const productSizeSchema = z.object({
-  id: z.string().optional(),
-  label: z.string().min(1),
-  price: z.number().int().positive(),
-  stock: z.number().int().min(0),
-});
+export const productSizeSchema = z
+  .object({
+    id: z.string().optional(),
+    label: z.string().min(1),
+    sku: z.string().min(1),
+    price: z.number().int().positive(),
+    mrp: z.number().int().positive(),
+    costPrice: z.number().int().positive().nullable().default(null),
+    stock: z.number().int().min(0),
+    weightGrams: z.number().int().min(0).default(0),
+  })
+  .refine((data) => data.mrp >= data.price, {
+    message: "MRP must be at least the selling price.",
+    path: ["mrp"],
+  });
 
 /** Same shape as `productSizeSchema` — color/style, a separate axis. */
-export const productColorSchema = z.object({
-  id: z.string().optional(),
-  label: z.string().min(1),
-  price: z.number().int().positive(),
-  stock: z.number().int().min(0),
-});
+export const productColorSchema = z
+  .object({
+    id: z.string().optional(),
+    label: z.string().min(1),
+    sku: z.string().min(1),
+    price: z.number().int().positive(),
+    mrp: z.number().int().positive(),
+    costPrice: z.number().int().positive().nullable().default(null),
+    stock: z.number().int().min(0),
+    weightGrams: z.number().int().min(0).default(0),
+  })
+  .refine((data) => data.mrp >= data.price, {
+    message: "MRP must be at least the selling price.",
+    path: ["mrp"],
+  });
 
 /** Sourcing info, wire shape — `null` for a self-stocked product. */
 export const productVendorSchema = z
@@ -41,16 +59,17 @@ export const productSchema = z
   .object({
     id: z.string(),
     slug: z.string(),
-    sku: z.string(),
     name: z.string(),
     brand: z.string(),
     brandId: z.string(),
     vendor: productVendorSchema,
     categorySlug: z.string(),
 
+    /** Rolled up from the primary (first) variant server-side. */
     price: z.number().int(),
     mrp: z.number().int(),
 
+    unitType: z.enum(["pack", "weight", "volume", "size", "piece"]).nullable(),
     qty: z.string(),
     weight: z.string().nullable(),
 
@@ -97,6 +116,10 @@ export const productVendorInputSchema = z
  * What the form owns — excludes `id`/`stock`/`rating`/`updatedAt`, matching
  * `ProductInput` in the admin's mock API (`stock` rolls up from sizes or its
  * own endpoint, `rating` is derived from reviews, the rest are server-owned).
+ * `sku`/`price`/`mrp` are **not** here — they're per-variant now (`sizes[]`),
+ * and the product row's own `sku`/`price`/`mrp` are derived server-side from
+ * the primary (first) variant so the cart/checkout/storefront pricing
+ * fallback, which still reads those columns directly, keeps working.
  * `uploadSessionId` is optional and write-only — when present, the service
  * moves that session's draft images to their final product-scoped keys
  * before persisting `images`.
@@ -105,15 +128,15 @@ export const productWriteSchema = z
   .object({
     name: z.string().min(2).max(120),
     slug: slugSchema,
-    sku: z.string().min(2).max(40),
     brandId: z.string().min(1),
     vendor: productVendorInputSchema.default(null),
     categorySlug: z.string().min(1),
     status: z.enum(["draft", "active", "inactive", "archived"]),
 
-    price: z.number().int().positive(),
-    mrp: z.number().int().positive(),
-
+    unitType: z
+      .enum(["pack", "weight", "volume", "size", "piece"])
+      .nullable()
+      .default(null),
     qty: z.string().min(1),
     weight: z.string().nullable(),
 
@@ -126,7 +149,7 @@ export const productWriteSchema = z
     /** Draft image-upload session to finalize on save. Omit when `images`
      * already holds final URLs (no pending uploads this submit). */
     uploadSessionId: z.string().nullable().default(null),
-    sizes: z.array(productSizeSchema).default([]),
+    sizes: z.array(productSizeSchema).min(1),
     colors: z.array(productColorSchema).default([]),
 
     ages: z.array(z.string()).default([]),
@@ -135,14 +158,22 @@ export const productWriteSchema = z
 
     isBestseller: z.boolean().default(false),
   })
-  .refine((data) => data.mrp >= data.price, {
-    message: "MRP must be at least the selling price.",
-    path: ["mrp"],
-  })
+  .refine(
+    (data) => {
+      const primary = data.sizes[0];
+      return (
+        primary === undefined ||
+        primary.costPrice == null ||
+        primary.price >= primary.costPrice
+      );
+    },
+    { message: "Selling price is below cost.", path: ["sizes", 0, "price"] },
+  )
   .refine(
     (data) =>
-      data.vendor?.costPrice == null || data.price >= data.vendor.costPrice,
-    { message: "Selling price is below cost.", path: ["price"] },
+      new Set(data.sizes.map((size) => size.sku.trim().toLowerCase())).size ===
+      data.sizes.length,
+    { message: "SKUs must be unique.", path: ["sizes"] },
   )
   .refine(
     (data) =>

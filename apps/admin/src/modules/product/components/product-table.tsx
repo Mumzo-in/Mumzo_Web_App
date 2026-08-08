@@ -71,7 +71,7 @@ export function ProductTable({ stockFilter }: { stockFilter?: string }) {
             <div className="flex flex-col">
               <span className="font-medium">{row.original.name}</span>
               <span className="text-muted-foreground text-xs">
-                {row.original.sku}
+                {row.original.sizes[0]?.sku ?? "—"}
               </span>
             </div>
           </div>

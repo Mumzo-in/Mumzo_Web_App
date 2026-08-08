@@ -22,6 +22,11 @@ import { logActivity } from "@/core";
 import { badRequest, notFound } from "@/core/errors";
 import type { AppEnv } from "@/core/types";
 import { toWholeRupees } from "@/lib/money";
+import {
+  onFirstOrderPlaced,
+  onOrderDelivered,
+  onOrderReturned,
+} from "@/modules/platform/v1/referrals/referrals.service";
 import { computeCartTotals, resolveLine } from "@/shared/pricing";
 import type { createOrderSchema } from "./orders.schema";
 
@@ -498,5 +503,33 @@ export async function updateOrderStatus(
       );
     });
 
+  // Best-effort referral funnel hooks — a referral write must never fail an
+  // order-status update that already committed. Most orders aren't from a
+  // referred user, so each of these is a no-op on the common path.
+  if (row.userId) {
+    void handleReferralStatusHook(row.userId, orderId, input.status);
+  }
+
   return getOrder(orderId);
+}
+
+async function handleReferralStatusHook(
+  userId: string,
+  orderId: string,
+  status: string,
+) {
+  try {
+    if (status === "confirmed") {
+      await onFirstOrderPlaced(userId, orderId);
+    } else if (status === "delivered") {
+      await onOrderDelivered(orderId);
+    } else if (status === "returned") {
+      await onOrderReturned(orderId);
+    }
+  } catch (error) {
+    console.error(
+      `Referral status hook failed for order ${orderId} (${status}):`,
+      error,
+    );
+  }
 }

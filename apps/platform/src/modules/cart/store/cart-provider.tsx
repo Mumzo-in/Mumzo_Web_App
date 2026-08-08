@@ -50,8 +50,8 @@ interface CartContextValue {
   updateQty: (cartItemId: string, qty: number) => void;
   clear: () => void;
   couponCode: string | null;
-  applyCoupon: (code: string) => Promise<void>;
-  removeCoupon: () => void;
+  applyCoupon: (code: string) => Promise<PublicCart>;
+  removeCoupon: () => Promise<PublicCart>;
   totals: PublicCart["totals"];
   isLoading: boolean;
 }
@@ -217,12 +217,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (code: string) => {
       const next = await applyCartCoupon(code);
       setCart(next);
+      return next;
     },
     [setCart],
   );
 
-  const removeCoupon = useCallback(() => {
-    void removeCartCoupon().then(setCart);
+  const removeCoupon = useCallback(async () => {
+    const next = await removeCartCoupon();
+    setCart(next);
+    return next;
   }, [setCart]);
 
   const value = useMemo<CartContextValue>(
@@ -263,8 +266,8 @@ export function useCart(): CartContextValue {
       updateQty: () => {},
       clear: () => {},
       couponCode: null,
-      applyCoupon: async () => {},
-      removeCoupon: () => {},
+      applyCoupon: async () => ({}) as never,
+      removeCoupon: async () => ({}) as never,
       totals: EMPTY_TOTALS,
       isLoading: false,
     };

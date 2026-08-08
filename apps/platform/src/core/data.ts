@@ -66,7 +66,6 @@ const P = (
 ): Product => ({
   id,
   slug: slugify(name),
-  sku: id.toUpperCase(),
   categorySlug,
   name,
   brand,
@@ -77,6 +76,7 @@ const P = (
   vendor: null,
   price,
   mrp,
+  unitType: null,
   qty,
   weight: null,
   description: "",
@@ -85,7 +85,18 @@ const P = (
   countryOfOrigin: "India",
   images: [img],
   // The old mock carried a single `size` string; the model wants variants.
-  sizes: size ? [{ label: size, price, stock }] : [],
+  sizes: size
+    ? [
+        {
+          label: size,
+          price,
+          stock,
+          sku: `${id}-${size}`,
+          mrp,
+          costPrice: null,
+        },
+      ]
+    : [],
   colors: [],
   ages: [],
   type: "",

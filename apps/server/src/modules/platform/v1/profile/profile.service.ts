@@ -7,6 +7,7 @@ import { user } from "@mumzo/db/schema/auth";
 import { eq } from "drizzle-orm";
 
 import { badRequest } from "@/core/errors";
+import { applyCodeOnSignup } from "../referrals/referrals.service";
 
 type OnboardingInput = {
   name: string;
@@ -16,6 +17,7 @@ type OnboardingInput = {
     dob: string;
     gender?: "girl" | "boy" | "other";
   }[];
+  referralCode?: string;
 };
 
 /**
@@ -64,6 +66,14 @@ export async function completeOnboarding(
         gender: entry.gender ?? null,
       })),
     );
+  }
+
+  // Best-effort: an invalid code, a self-referral, or "already used a code"
+  // must never fail onboarding — the profile write above already committed.
+  if (input.referralCode) {
+    await applyCodeOnSignup(userId, input.referralCode).catch((error) => {
+      console.error(`Failed to apply referral code for user ${userId}:`, error);
+    });
   }
 
   const [row] = await db

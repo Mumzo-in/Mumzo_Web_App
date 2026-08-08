@@ -17,7 +17,7 @@ async function check() {
 
   const rows = await db
     .select({
-      sku: product.sku,
+      sku: productSize.sku,
       productName: product.name,
       isBestseller: product.isBestseller,
       label: productSize.label,
@@ -26,7 +26,7 @@ async function check() {
     })
     .from(product)
     .innerJoin(productSize, eq(product.id, productSize.productId))
-    .where(inArray(product.sku, skusToCheck));
+    .where(inArray(productSize.sku, skusToCheck));
 
   console.log("--- PRODUCTS VARIATIONS IN DB ---");
   rows.forEach((r) => {

@@ -20,6 +20,7 @@ import {
 import { RequireAuthModalHost } from "@/modules/auth";
 import { CartProvider } from "@/modules/cart";
 import { defaultOgImage } from "@/modules/catalog";
+import { CheckoutProvider } from "@/modules/checkout";
 import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
 import { TicketProvider } from "@/modules/support";
 import { WishlistProvider } from "@/modules/wishlist";
@@ -84,21 +85,23 @@ function RootComponent() {
             <ConsentProvider>
               <PreferencesProvider>
                 <CartProvider>
-                  <PaymentMethodsProvider>
-                    <AddressProvider>
-                      <BabiesProvider>
-                        <TicketProvider>
-                          <WishlistProvider>
-                            <Outlet />
+                  <CheckoutProvider>
+                    <PaymentMethodsProvider>
+                      <AddressProvider>
+                        <BabiesProvider>
+                          <TicketProvider>
+                            <WishlistProvider>
+                              <Outlet />
 
-                            <ConsentBanner />
-                            <LocationModalHost />
-                            <RequireAuthModalHost />
-                          </WishlistProvider>
-                        </TicketProvider>
-                      </BabiesProvider>
-                    </AddressProvider>
-                  </PaymentMethodsProvider>
+                              <ConsentBanner />
+                              <LocationModalHost />
+                              <RequireAuthModalHost />
+                            </WishlistProvider>
+                          </TicketProvider>
+                        </BabiesProvider>
+                      </AddressProvider>
+                    </PaymentMethodsProvider>
+                  </CheckoutProvider>
                 </CartProvider>
               </PreferencesProvider>
             </ConsentProvider>

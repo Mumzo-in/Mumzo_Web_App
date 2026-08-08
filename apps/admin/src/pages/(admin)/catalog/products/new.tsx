@@ -31,29 +31,16 @@ function NewProductPage() {
       toast.error("Pick a category first.");
       return;
     }
-    if (!values.type.trim()) {
-      toast.error("Set a type in Attributes — Wipes, Formula, etc.");
-      return;
-    }
-    if (values.price == null || values.mrp == null) {
-      toast.error("Set a selling price and MRP first.");
-      return;
-    }
-    if (values.sizes.some((size) => size.price <= 0 || size.stock < 0)) {
-      toast.error("Set a price and stock for every size row in Stock.");
-      return;
-    }
     const { id } = await createProduct({
       ...values,
       categorySlug: values.categorySlug,
-      price: values.price,
-      mrp: values.mrp,
+      unitType: values.unitType || null,
       weight: values.weight || null,
       vendor: values.vendorId
         ? {
             vendorId: values.vendorId,
             relationship: "distributor",
-            costPrice: values.costPrice,
+            costPrice: null,
             leadTimeDays: null,
             notes: null,
           }
@@ -99,23 +86,22 @@ function NewProductPage() {
       <ProductForm
         initialValues={{
           name: "",
-          sku: "",
           slug: "",
           brandId: "",
           categorySlug: "",
           type: "",
           description: "",
           about: "",
+          unitType: "",
           qty: "",
           weight: "",
           countryOfOrigin: "India",
-          price: null,
-          mrp: null,
-          costPrice: null,
           vendorId: "",
           images: [],
           uploadSessionId: null,
-          sizes: [{ label: "", price: 0, stock: 0 }],
+          sizes: [
+            { label: "", sku: "", price: 0, mrp: 0, costPrice: null, stock: 0 },
+          ],
           ages: [],
           highlights: [],
           tags: [],

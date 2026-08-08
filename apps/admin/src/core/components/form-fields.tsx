@@ -209,7 +209,10 @@ export function SelectField({
         >
           <SelectValue placeholder={placeholder}>
             {(value: string) =>
-              options.find((option) => option.value === value)?.label ?? value
+              value
+                ? (options.find((option) => option.value === value)?.label ??
+                  value)
+                : placeholder
             }
           </SelectValue>
         </SelectTrigger>

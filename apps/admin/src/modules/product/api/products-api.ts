@@ -1,25 +1,35 @@
-import type { AgeGroup, ProductStatus, ProductVendor } from "@mumzo/schema";
+import type {
+  AgeGroup,
+  ProductStatus,
+  ProductVendor,
+  UnitType,
+} from "@mumzo/schema";
 import { apiList, apiRequest, type Paginated } from "@/core/api/client";
 import type { ListParams } from "@/core/api/query-keys";
 
 export type ProductVariant = {
   id?: string;
   label: string;
+  sku: string;
   price: number;
+  mrp: number;
+  costPrice: number | null;
   stock: number;
+  weightGrams?: number;
 };
 
 export type Product = {
   id: string;
   slug: string;
-  sku: string;
   name: string;
   brand: string;
   brandId: string;
   vendor: ProductVendor | null;
   categorySlug: string;
+  /** Rolled up from the primary (first) variant server-side. */
   price: number;
   mrp: number;
+  unitType: UnitType | null;
   qty: string;
   weight: string | null;
   description: string;
@@ -47,6 +57,8 @@ export function getProduct(id: string): Promise<Product> {
   return apiRequest<Product>(`/products/${encodeURIComponent(id)}`);
 }
 
+/** `costPrice` is ignored on write — the server derives it from the primary
+ * variant's `costPrice` (`sizes[0]`) so there's one source of truth. */
 export type ProductVendorInput = {
   vendorId: string;
   relationship: "own" | "retainer" | "distributor";
@@ -55,16 +67,17 @@ export type ProductVendorInput = {
   notes: string | null;
 } | null;
 
+/** `sku`/`price`/`mrp` aren't here — they're per-variant now (`sizes[]`); the
+ * product row's own `sku`/`price`/`mrp` are derived server-side from the
+ * primary (first) variant. */
 export type ProductInput = {
   name: string;
   slug: string;
-  sku: string;
   brandId: string;
   vendor: ProductVendorInput;
   categorySlug: string;
   status: ProductStatus;
-  price: number;
-  mrp: number;
+  unitType: UnitType | null;
   qty: string;
   weight: string | null;
   description: string;

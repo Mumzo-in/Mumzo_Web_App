@@ -4,5 +4,6 @@
 // are registered before `getTemplate`/`renderTemplate` are called.
 import "./order-created";
 import "./order-status-updated";
+import "./referral-coupon-issued";
 
 export { defineTemplate, getTemplate, renderTemplate } from "./registry";

@@ -10,6 +10,7 @@ import {
   mountOpenAPI,
   successSchema,
 } from "./core";
+import { startReferralSettlementSweep } from "./modules/platform/v1/referrals/referrals.sweep";
 import router from "./router";
 
 const app = createApp();
@@ -19,9 +20,15 @@ const app = createApp();
 // alongside the DB pool on shutdown so an in-flight send isn't abandoned.
 const notificationWorker = startNotificationWorker();
 
+// In-process referral settlement sweep — see referrals.sweep.ts. Same
+// lifecycle as the notification worker: closed on shutdown so an in-flight
+// sweep isn't abandoned mid-batch.
+const referralSweep = startReferralSettlementSweep();
+
 async function shutdown(signal: string) {
   console.log(`[server] ${signal} received, shutting down...`);
   await notificationWorker.close();
+  referralSweep.close();
   await pool.end();
   process.exit(0);
 }

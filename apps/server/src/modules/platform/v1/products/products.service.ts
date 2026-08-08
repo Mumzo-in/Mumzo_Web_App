@@ -7,16 +7,40 @@ import {
 import type { PublicSort } from "./products.repo";
 import * as productsRepo from "./products.repo";
 
-type Size = { id: string; label: string; price: number; stock: number };
-type Color = { id: string; label: string; price: number; stock: number };
+/** Wider than what's serialized to the public API — `sizesByProductId`/
+ * `colorsByProductId` (shared with the admin repo) also carry `sku`/`mrp`/
+ * `costPrice` now, but the customer-facing response below picks only
+ * `id`/`label`/`price`/`stock` per variant so vendor cost never leaks. */
+type Size = {
+  id: string;
+  label: string;
+  price: number;
+  mrp: number;
+  costPrice: number | null;
+  stock: number;
+};
+type Color = Size;
+
+type PublicVariant = {
+  id: string;
+  label: string;
+  price: number;
+  stock: number;
+};
 
 /** Total stock across variants, or 0 for an unsized product — DB is the source. */
-function rollUpStock(sizes: Size[]): number {
+function rollUpStock(sizes: PublicVariant[]): number {
   return sizes.reduce((sum, size) => sum + size.stock, 0);
 }
 
-function toRupeeVariant<T extends { price: number }>(variant: T): T {
-  return { ...variant, price: toWholeRupees(variant.price) };
+/** Picks only the customer-facing fields — never `sku`/`costPrice`. */
+function toPublicVariant(variant: Size): PublicVariant {
+  return {
+    id: variant.id,
+    label: variant.label,
+    price: toWholeRupees(variant.price),
+    stock: variant.stock,
+  };
 }
 
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findPublicById>>;
@@ -26,12 +50,11 @@ function serialize(
   sizesInPaise: Size[],
   colorsInPaise: Color[],
 ) {
-  const sizes = sizesInPaise.map(toRupeeVariant);
-  const colors = colorsInPaise.map(toRupeeVariant);
+  const sizes = sizesInPaise.map(toPublicVariant);
+  const colors = colorsInPaise.map(toPublicVariant);
   return {
     id: row.id,
     slug: row.slug,
-    sku: row.sku,
     name: row.name,
     brand: row.brandName,
     brandSlug: row.brandSlug,

@@ -47,11 +47,21 @@ type ProductSeed = {
   type: string;
   tags: string[];
   isBestseller?: boolean;
-  sizes?: { label: string; price: number; stock: number }[];
+  sizes?: {
+    label: string;
+    price: number;
+    stock: number;
+    weightGrams?: number;
+  }[];
   /** Color/style variants (stroller colors, car-seat colors) — a separate
    * axis from `sizes`, not a size. Most products have one or the other, not
    * both, but nothing here forces that. */
-  colors?: { label: string; price: number; stock: number }[];
+  colors?: {
+    label: string;
+    price: number;
+    stock: number;
+    weightGrams?: number;
+  }[];
   /** Flat stock when there are no sized variants. */
   stock?: number;
   images?: string[];
@@ -93,10 +103,10 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/90120260089_3.jpg?width=340",
     ],
     sizes: [
-      { label: "S", price: 1299, stock: 30 },
-      { label: "M", price: 1599, stock: 40 },
-      { label: "L", price: 1899, stock: 35 },
-      { label: "XL", price: 2036, stock: 25 },
+      { label: "S", price: 1299, stock: 30, weightGrams: 1500 },
+      { label: "M", price: 1599, stock: 40, weightGrams: 1800 },
+      { label: "L", price: 1899, stock: 35, weightGrams: 2000 },
+      { label: "XL", price: 2036, stock: 25, weightGrams: 2200 },
     ],
   },
 
@@ -229,8 +239,8 @@ const PRODUCT_SEEDS: ProductSeed[] = [
       "https://d1rannd7dfx5r5.cloudfront.net/product/1301_3.webp?width=340",
     ],
     sizes: [
-      { label: "50 ml", price: 349, stock: 40 },
-      { label: "100 ml", price: 649, stock: 35 },
+      { label: "50 ml", price: 349, stock: 40, weightGrams: 50 },
+      { label: "100 ml", price: 649, stock: 35, weightGrams: 100 },
     ],
   },
 
@@ -3172,16 +3182,21 @@ const PRODUCT_SEEDS: ProductSeed[] = [
   },
 ];
 
+/** Seed-defined `sku`/`price`/`mrp`/`costPrice` describe the *primary*
+ * variant — `product.sku`/`price`/`mrp` no longer exist as columns, sizes
+ * and colors carry their own now. A size/color row's own `sku` is derived
+ * `${seed.sku}-${index}` when the seed doesn't give one explicitly, since
+ * `ProductSeed["sizes"/"colors"]` predates per-variant SKUs. */
 export async function seedProducts() {
-  const skus = PRODUCT_SEEDS.map((seed) => seed.sku);
+  const slugs = PRODUCT_SEEDS.map((seed) => seed.slug);
 
   const existing = await db
-    .select({ sku: product.sku })
+    .select({ slug: product.slug })
     .from(product)
-    .where(inArray(product.sku, skus));
+    .where(inArray(product.slug, slugs));
 
-  const present = new Set(existing.map((row) => row.sku));
-  const missing = PRODUCT_SEEDS.filter((seed) => !present.has(seed.sku));
+  const present = new Set(existing.map((row) => row.slug));
+  const missing = PRODUCT_SEEDS.filter((seed) => !present.has(seed.slug));
 
   if (missing.length === 0) {
     return { created: 0, skipped: PRODUCT_SEEDS.length };
@@ -3218,7 +3233,6 @@ export async function seedProducts() {
         .insert(product)
         .values({
           slug: seed.slug,
-          sku: seed.sku,
           name: seed.name,
           brandId,
           categoryId,
@@ -3252,8 +3266,12 @@ export async function seedProducts() {
           sizes.map((size, index) => ({
             productId: row.id,
             label: size.label,
+            sku: `${seed.sku}-${index + 1}`,
             price: size.price,
+            mrp: seed.mrp,
+            costPrice: seed.costPrice,
             stock: size.stock,
+            weightGrams: size.weightGrams ?? 0,
             position: index,
           })),
         );
@@ -3262,21 +3280,28 @@ export async function seedProducts() {
           colors.map((color, index) => ({
             productId: row.id,
             label: color.label,
+            sku: `${seed.sku}-${index + 1}`,
             price: color.price,
+            mrp: seed.mrp,
+            costPrice: seed.costPrice,
             stock: color.stock,
+            weightGrams: color.weightGrams ?? 0,
             position: index,
           })),
         );
-      } else if (seed.stock !== undefined) {
-        // Unsized products still get one implicit variant so stock rolls up
-        // consistently with the admin's `rollUpStock` (sum of `productSize`
-        // rows) — matching how `products.repo.ts`'s `insert()` is used
-        // elsewhere for flat-price products.
+      } else {
+        // Unsized products still get one implicit variant — the product
+        // row's own price/mrp/stock (still read directly by cart/checkout
+        // for unsized products) are rolled up from this row.
         await tx.insert(productSize).values({
           productId: row.id,
           label: "Default",
+          sku: seed.sku,
           price: seed.price,
-          stock: seed.stock,
+          mrp: seed.mrp,
+          costPrice: seed.costPrice,
+          stock: seed.stock ?? 0,
+          weightGrams: 0,
           position: 0,
         });
       }
@@ -3299,18 +3324,18 @@ export async function seedProducts() {
  * real photo from the admin panel is never overwritten.
  */
 export async function backfillProductPlaceholderImages() {
-  const skus = PRODUCT_SEEDS.map((seed) => seed.sku);
-  const seedBySku = new Map(PRODUCT_SEEDS.map((seed) => [seed.sku, seed]));
+  const slugs = PRODUCT_SEEDS.map((seed) => seed.slug);
+  const seedBySlug = new Map(PRODUCT_SEEDS.map((seed) => [seed.slug, seed]));
 
   const rows = await db
-    .select({ id: product.id, sku: product.sku, images: product.images })
+    .select({ id: product.id, slug: product.slug, images: product.images })
     .from(product)
-    .where(inArray(product.sku, skus));
+    .where(inArray(product.slug, slugs));
 
   let updated = 0;
 
   for (const row of rows) {
-    const seed = seedBySku.get(row.sku);
+    const seed = seedBySlug.get(row.slug);
     if (!seed) {
       continue;
     }
@@ -3368,7 +3393,10 @@ export async function backfillMisclassifiedColorSizes() {
       id: productSize.id,
       productId: productSize.productId,
       label: productSize.label,
+      sku: productSize.sku,
       price: productSize.price,
+      mrp: productSize.mrp,
+      costPrice: productSize.costPrice,
       stock: productSize.stock,
       position: productSize.position,
     })
@@ -3382,7 +3410,10 @@ export async function backfillMisclassifiedColorSizes() {
       await tx.insert(productColor).values({
         productId: row.productId,
         label: row.label,
+        sku: row.sku,
         price: row.price,
+        mrp: row.mrp,
+        costPrice: row.costPrice,
         stock: row.stock,
         position: row.position,
       });

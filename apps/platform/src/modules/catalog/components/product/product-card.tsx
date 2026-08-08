@@ -20,45 +20,41 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   );
   const wished = has(product.id);
   const isOutOfStock = product.stock <= 0;
-  // A product with any real size/color options (including a single "Default"
-  // pseudo-variant) has no variant-less inventory row — quick-adding without
-  // picking one would always resolve to zero stock everywhere. Send those to
-  // the PDP to pick a variant instead of adding blind.
-  const hasVariants = product.sizes.length > 0 || product.colors.length > 0;
 
-  const handleAdd = () => {
-    if (isOutOfStock || hasVariants) return;
+  const variantCount = product.sizes.length + product.colors.length;
+  // 2+ real variants → user must choose on the PDP
+  const hasMultipleVariants = variantCount > 1;
+  // ≤1 variants (0 = no variants, 1 = single implicit "Default") → quick-add from card
+  const canQuickAdd = variantCount <= 1;
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isOutOfStock || !canQuickAdd) return;
     addItem(product);
     toast.success(`${product.name} added to cart!`);
   };
 
-  const handleWish = () => {
-    // No optimistic toast here — `toggle` may just open the sign-in modal
-    // (nothing actually saved yet) or resolve asynchronously; the provider
-    // itself is the only place that knows which actually happened.
+  const handleWish = (e: React.MouseEvent) => {
+    e.preventDefault();
     toggle(product.id);
   };
 
   return (
-    <div
+    <Link
+      to="/product/$productId"
+      params={{ productId: product.id }}
       className={cn(
         "group flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-white transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_18px_40px_rgba(31,27,58,0.08)]",
         className,
       )}
     >
       <div className="relative aspect-4/3 overflow-hidden bg-accent/10 md:aspect-square">
-        <Link
-          to="/product/$productId"
-          params={{ productId: product.id }}
-          className="block h-full w-full"
-        >
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        </Link>
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
         <button
           type="button"
           onClick={handleWish}
@@ -95,21 +91,15 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         )}
       </div>
       <div className="flex flex-1 flex-col p-3 md:p-4">
-        <Link
-          to="/product/$productId"
-          params={{ productId: product.id }}
-          className="block"
-        >
-          <span className="font-semibold text-[10px] text-foreground/50 uppercase tracking-wider">
-            {product.brand}
-          </span>
-          <span className="mt-1 line-clamp-2 block font-medium text-xs leading-snug transition-colors hover:text-primary md:text-sm">
-            {product.name}
-          </span>
-          <span className="mt-1 block text-[11px] text-foreground/60 md:text-xs">
-            {product.qty}
-          </span>
-        </Link>
+        <span className="font-semibold text-[10px] text-foreground/50 uppercase tracking-wider">
+          {product.brand}
+        </span>
+        <span className="mt-1 line-clamp-2 block font-medium text-xs leading-snug transition-colors group-hover:text-primary md:text-sm">
+          {product.name}
+        </span>
+        <span className="mt-1 block text-[11px] text-foreground/60 md:text-xs">
+          {product.qty}
+        </span>
         <div className="mt-auto flex items-end justify-between gap-2 pt-3 md:pt-4">
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-base text-foreground md:text-lg">
@@ -121,11 +111,19 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               </span>
             )}
           </div>
-          {inCart ? (
-            <div className="inline-flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground">
+          {inCart && canQuickAdd ? (
+            /* Already in cart — qty stepper. role="none" prevents the card
+               Link from navigating when the inner buttons are clicked. */
+            <span
+              role="none"
+              className="inline-flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground"
+            >
               <button
                 type="button"
-                onClick={() => updateQty(inCart.id, inCart.qty - 1)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  updateQty(inCart.id, inCart.qty - 1);
+                }}
                 data-testid={`web-qty-minus-${product.id}`}
                 aria-label="Decrease quantity"
                 className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
@@ -140,23 +138,25 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               </span>
               <button
                 type="button"
-                onClick={() => updateQty(inCart.id, inCart.qty + 1)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  updateQty(inCart.id, inCart.qty + 1);
+                }}
                 data-testid={`web-qty-plus-${product.id}`}
                 aria-label="Increase quantity"
                 className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
               >
                 <Plus size={14} strokeWidth={3} />
               </button>
-            </div>
-          ) : hasVariants && !isOutOfStock ? (
-            <Link
-              to="/product/$productId"
-              params={{ productId: product.id }}
+            </span>
+          ) : hasMultipleVariants && !isOutOfStock ? (
+            /* 2+ real variants → navigate to PDP to pick */
+            <span
               data-testid={`web-add-${product.id}`}
               className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-semibold text-[11px] text-primary-foreground transition-colors hover:bg-primary/95 active:scale-95 md:px-4 md:py-2 md:text-xs"
             >
-              <Plus size={14} strokeWidth={3} /> Select
-            </Link>
+              Choose options
+            </span>
           ) : (
             <button
               type="button"
@@ -171,6 +171,6 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

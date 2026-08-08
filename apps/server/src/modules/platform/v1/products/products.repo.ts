@@ -24,7 +24,6 @@ import {
 const selection = {
   id: product.id,
   slug: product.slug,
-  sku: product.sku,
   name: product.name,
   brandName: brand.name,
   brandSlug: brand.slug,

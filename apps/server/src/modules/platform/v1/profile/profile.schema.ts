@@ -18,6 +18,10 @@ export const completeOnboardingSchema = z
     name: z.string().trim().min(1, "Name is required").max(120),
     email: z.string().trim().email().optional(),
     babies: z.array(onboardingBabySchema).max(10).optional(),
+    /** Referral code of the friend who invited this user, if any. Applied
+     * best-effort — an invalid or self-referral code never blocks
+     * onboarding, it's just silently skipped. */
+    referralCode: z.string().trim().min(1).max(32).optional(),
   })
   .openapi("CompleteOnboardingInput");
 

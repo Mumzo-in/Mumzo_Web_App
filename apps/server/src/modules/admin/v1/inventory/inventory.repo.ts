@@ -50,7 +50,8 @@ export async function findAll(filters: {
     filters.search
       ? or(
           ilike(product.name, `%${filters.search}%`),
-          ilike(product.sku, `%${filters.search}%`),
+          ilike(productSize.sku, `%${filters.search}%`),
+          ilike(productColor.sku, `%${filters.search}%`),
         )
       : undefined,
     filters.lowStockOnly
@@ -65,7 +66,7 @@ export async function findAll(filters: {
       hubName: hub.name,
       productId: inventory.productId,
       productName: product.name,
-      sku: product.sku,
+      sku: sql<string>`coalesce(${productSize.sku}, ${productColor.sku})`,
       productSizeId: inventory.productSizeId,
       sizeLabel: productSize.label,
       productColorId: inventory.productColorId,
