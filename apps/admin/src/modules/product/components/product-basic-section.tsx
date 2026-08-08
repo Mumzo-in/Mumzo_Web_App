@@ -12,7 +12,6 @@ import {
 import { SelectField, TextField } from "@/core/components/form-fields";
 import type { Brand } from "@/modules/brand";
 import type { ProductFormApi } from "./product-form-api";
-import { slugify } from "./product-form-schema";
 import { TagListField } from "./tag-list-field";
 
 export function ProductBasicSection({
@@ -24,14 +23,7 @@ export function ProductBasicSection({
 }) {
   return (
     <>
-      <form.Field
-        listeners={{
-          onChange: ({ value }) => {
-            form.setFieldValue("slug", slugify(value));
-          },
-        }}
-        name="name"
-      >
+      <form.Field name="name">
         {(field) => (
           <TextField
             description="Shown as the product title everywhere on the storefront."

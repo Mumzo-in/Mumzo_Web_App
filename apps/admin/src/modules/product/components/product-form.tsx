@@ -3,11 +3,13 @@ import { cn } from "@mumzo/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { forwardRef, useImperativeHandle, useState } from "react";
+import { toast } from "sonner";
 import { listAllBrands } from "@/modules/brand";
 import { listAllVendors } from "@/modules/vendor";
 import { ProductBasicSection } from "./product-basic-section";
 import {
   emptyValues,
+  FIELD_SECTIONS,
   type ProductFormValues,
   productFormSchema,
   SECTIONS,
@@ -62,14 +64,63 @@ export const ProductForm = forwardRef<
       onPendingChange?.(true);
       try {
         await onSubmit(value);
+      } catch (error) {
+        console.error("Product form submit failed:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Could not save the product.",
+        );
+        throw error;
       } finally {
         onPendingChange?.(false);
       }
     },
   });
 
+  async function submitAndReportErrors() {
+    await form.handleSubmit();
+    const fieldMeta = form.state.fieldMeta as Record<
+      string,
+      { errors?: unknown[] } | undefined
+    >;
+    const invalidFields = Object.entries(fieldMeta)
+      .filter(([, meta]) => (meta?.errors?.length ?? 0) > 0)
+      .map(([name]) => name);
+    if (invalidFields.length === 0) {
+      return;
+    }
+    console.error("Product form validation failed:", {
+      fields: invalidFields,
+      errors: form.state.errors,
+    });
+    const invalidSections = new Set(
+      invalidFields.map(
+        (name) => FIELD_SECTIONS[name as keyof ProductFormValues],
+      ),
+    );
+    if (invalidSections.size > 0 && !invalidSections.has(activeSection)) {
+      const [firstSection] = SECTIONS.filter((section) =>
+        invalidSections.has(section.id),
+      );
+      if (firstSection) {
+        setActiveSection(firstSection.id);
+      }
+    }
+    const sectionLabels = SECTIONS.filter((section) =>
+      invalidSections.has(section.id),
+    )
+      .map((section) => section.label)
+      .join(", ");
+    toast.error(
+      `Fix the highlighted fields before saving${sectionLabels ? ` (${sectionLabels})` : ""}.`,
+    );
+  }
+
   useImperativeHandle(ref, () => ({
-    submit: () => form.handleSubmit(),
+    submit: () => {
+      submitAndReportErrors();
+    },
   }));
 
   return (
@@ -78,7 +129,7 @@ export const ProductForm = forwardRef<
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        form.handleSubmit();
+        submitAndReportErrors();
       }}
     >
       <div className="grid gap-5 md:grid-cols-[240px_1fr]">

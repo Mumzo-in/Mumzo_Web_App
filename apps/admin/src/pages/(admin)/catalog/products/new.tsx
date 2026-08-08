@@ -31,32 +31,41 @@ function NewProductPage() {
       toast.error("Pick a category first.");
       return;
     }
-    const { id } = await createProduct({
-      ...values,
-      categorySlug: values.categorySlug,
-      unitType: values.unitType || null,
-      weight: values.weight || null,
-      vendor: values.vendorId
-        ? {
-            vendorId: values.vendorId,
-            relationship: "distributor",
-            costPrice: null,
-            leadTimeDays: null,
-            notes: null,
-          }
-        : null,
-      uploadSessionId: values.uploadSessionId,
-      sizes: normalizeSizes(values.sizes),
-      colors: [],
-      status,
-      isBestseller,
-    });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
-    toast.success(`Created "${values.name}".`);
-    navigate({
-      to: "/catalog/products/$productId/edit",
-      params: { productId: id },
-    });
+    try {
+      const { id } = await createProduct({
+        ...values,
+        categorySlug: values.categorySlug,
+        unitType: values.unitType || null,
+        vendor: values.vendorId
+          ? {
+              vendorId: values.vendorId,
+              relationship: "distributor",
+              costPrice: null,
+              leadTimeDays: null,
+              notes: null,
+            }
+          : null,
+        uploadSessionId: values.uploadSessionId,
+        sizes: normalizeSizes(values.sizes),
+        colors: [],
+        status,
+        isBestseller,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.products.all,
+      });
+      toast.success(`Created "${values.name}".`);
+      navigate({
+        to: "/catalog/products/$productId/edit",
+        params: { productId: id },
+      });
+    } catch (error) {
+      console.error("Failed to create product:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Could not create product.",
+      );
+      throw error;
+    }
   }
 
   return (
@@ -86,21 +95,26 @@ function NewProductPage() {
       <ProductForm
         initialValues={{
           name: "",
-          slug: "",
           brandId: "",
           categorySlug: "",
           type: "",
           description: "",
           about: "",
           unitType: "",
-          qty: "",
-          weight: "",
           countryOfOrigin: "India",
           vendorId: "",
           images: [],
           uploadSessionId: null,
           sizes: [
-            { label: "", sku: "", price: 0, mrp: 0, costPrice: null, stock: 0 },
+            {
+              label: "",
+              sku: "",
+              price: 0,
+              mrp: 0,
+              costPrice: null,
+              stock: 0,
+              qty: "",
+            },
           ],
           ages: [],
           highlights: [],

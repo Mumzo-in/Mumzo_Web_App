@@ -78,7 +78,6 @@ const P = (
   mrp,
   unitType: null,
   qty,
-  weight: null,
   description: "",
   about: "",
   highlights: [],
@@ -94,6 +93,7 @@ const P = (
           sku: `${id}-${size}`,
           mrp,
           costPrice: null,
+          qty,
         },
       ]
     : [],

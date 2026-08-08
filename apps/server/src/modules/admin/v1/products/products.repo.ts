@@ -30,7 +30,6 @@ const selection = {
   mrp: product.mrp,
   unitType: product.unitType,
   qty: product.qty,
-  weight: product.weight,
   description: product.description,
   about: product.about,
   highlights: product.highlights,
@@ -125,6 +124,7 @@ type VariantRow = {
   costPrice: number | null;
   stock: number;
   weightGrams: number;
+  qty: string;
 };
 
 export async function sizesByProductId(productIds: string[]) {
@@ -143,6 +143,7 @@ export async function sizesByProductId(productIds: string[]) {
       costPrice: productSize.costPrice,
       stock: productSize.stock,
       weightGrams: productSize.weightGrams,
+      qty: productSize.qty,
     })
     .from(productSize)
     .where(inArray(productSize.productId, productIds))
@@ -161,6 +162,7 @@ export async function sizesByProductId(productIds: string[]) {
       costPrice: row.costPrice,
       stock: row.stock,
       weightGrams: row.weightGrams,
+      qty: row.qty,
     });
     byProduct.set(row.productId, list);
   }
@@ -184,6 +186,7 @@ export async function colorsByProductId(productIds: string[]) {
       costPrice: productColor.costPrice,
       stock: productColor.stock,
       weightGrams: productColor.weightGrams,
+      qty: productColor.qty,
     })
     .from(productColor)
     .where(inArray(productColor.productId, productIds))
@@ -202,6 +205,7 @@ export async function colorsByProductId(productIds: string[]) {
       costPrice: row.costPrice,
       stock: row.stock,
       weightGrams: row.weightGrams,
+      qty: row.qty,
     });
     byProduct.set(row.productId, list);
   }
@@ -295,6 +299,7 @@ type VariantInput = {
   costPrice: number | null;
   stock: number;
   weightGrams: number;
+  qty: string;
 };
 
 export async function insert(
@@ -324,6 +329,7 @@ export async function insert(
           costPrice: size.costPrice,
           stock: size.stock,
           weightGrams: size.weightGrams,
+          qty: size.qty,
           position: index,
         })),
       );
@@ -340,6 +346,7 @@ export async function insert(
           costPrice: color.costPrice,
           stock: color.stock,
           weightGrams: color.weightGrams,
+          qty: color.qty,
           position: index,
         })),
       );
@@ -399,6 +406,7 @@ export async function update(
             costPrice: size.costPrice,
             stock: size.stock,
             weightGrams: size.weightGrams,
+            qty: size.qty,
             position: index,
           })
           .where(eq(productSize.id, size.id));
@@ -412,6 +420,7 @@ export async function update(
           costPrice: size.costPrice,
           stock: size.stock,
           weightGrams: size.weightGrams,
+          qty: size.qty,
           position: index,
         });
       }
@@ -455,6 +464,7 @@ export async function update(
             costPrice: color.costPrice,
             stock: color.stock,
             weightGrams: color.weightGrams,
+            qty: color.qty,
             position: index,
           })
           .where(eq(productColor.id, color.id));
@@ -468,6 +478,7 @@ export async function update(
           costPrice: color.costPrice,
           stock: color.stock,
           weightGrams: color.weightGrams,
+          qty: color.qty,
           position: index,
         });
       }

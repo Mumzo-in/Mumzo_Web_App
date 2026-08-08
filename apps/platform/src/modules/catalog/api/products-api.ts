@@ -34,7 +34,6 @@ export type PublicProduct = {
   price: number;
   mrp: number;
   qty: string;
-  weight: string | null;
   description: string;
   about: string;
   highlights: string[];

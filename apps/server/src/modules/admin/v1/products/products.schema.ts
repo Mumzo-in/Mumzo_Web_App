@@ -20,6 +20,8 @@ export const productSizeSchema = z
     costPrice: z.number().int().positive().nullable().default(null),
     stock: z.number().int().min(0),
     weightGrams: z.number().int().min(0).default(0),
+    /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+    qty: z.string().min(1),
   })
   .refine((data) => data.mrp >= data.price, {
     message: "MRP must be at least the selling price.",
@@ -37,6 +39,8 @@ export const productColorSchema = z
     costPrice: z.number().int().positive().nullable().default(null),
     stock: z.number().int().min(0),
     weightGrams: z.number().int().min(0).default(0),
+    /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+    qty: z.string().min(1),
   })
   .refine((data) => data.mrp >= data.price, {
     message: "MRP must be at least the selling price.",
@@ -71,7 +75,6 @@ export const productSchema = z
 
     unitType: z.enum(["pack", "weight", "volume", "size", "piece"]).nullable(),
     qty: z.string(),
-    weight: z.string().nullable(),
 
     description: z.string(),
     about: z.string(),
@@ -95,12 +98,6 @@ export const productSchema = z
   })
   .openapi("Product");
 
-const slugSchema = z
-  .string()
-  .min(2)
-  .max(120)
-  .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only.");
-
 /** Sourcing input the Sourcing tab submits — `null` for self-stocked. */
 export const productVendorInputSchema = z
   .object({
@@ -116,10 +113,14 @@ export const productVendorInputSchema = z
  * What the form owns — excludes `id`/`stock`/`rating`/`updatedAt`, matching
  * `ProductInput` in the admin's mock API (`stock` rolls up from sizes or its
  * own endpoint, `rating` is derived from reviews, the rest are server-owned).
- * `sku`/`price`/`mrp` are **not** here — they're per-variant now (`sizes[]`),
- * and the product row's own `sku`/`price`/`mrp` are derived server-side from
- * the primary (first) variant so the cart/checkout/storefront pricing
- * fallback, which still reads those columns directly, keeps working.
+ * `sku`/`price`/`mrp`/`qty` are **not** here — they're per-variant now
+ * (`sizes[]`), and the product row's own `sku`/`price`/`mrp`/`qty` are
+ * derived server-side from the primary (first) variant so the
+ * cart/checkout/storefront pricing fallback, which still reads those
+ * columns directly, keeps working.
+ * `slug` also isn't here — the service generates it from `name` on create
+ * (slugified name plus a random suffix, Amazon-style) and leaves it
+ * unchanged on update, so it's never client-writable.
  * `uploadSessionId` is optional and write-only — when present, the service
  * moves that session's draft images to their final product-scoped keys
  * before persisting `images`.
@@ -127,7 +128,6 @@ export const productVendorInputSchema = z
 export const productWriteSchema = z
   .object({
     name: z.string().min(2).max(120),
-    slug: slugSchema,
     brandId: z.string().min(1),
     vendor: productVendorInputSchema.default(null),
     categorySlug: z.string().min(1),
@@ -137,8 +137,6 @@ export const productWriteSchema = z
       .enum(["pack", "weight", "volume", "size", "piece"])
       .nullable()
       .default(null),
-    qty: z.string().min(1),
-    weight: z.string().nullable(),
 
     description: z.string().max(2000).default(""),
     about: z.string().max(2000).default(""),

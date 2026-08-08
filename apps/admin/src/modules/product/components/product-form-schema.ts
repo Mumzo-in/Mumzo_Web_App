@@ -8,15 +8,6 @@ import {
 } from "@mumzo/schema";
 import { z } from "zod";
 
-/** "Baby Bath & Skin" → "baby-bath-skin" — mirrors the category form's slugify. */
-export function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 const variantSchema = z
   .object({
     id: z.string().optional(),
@@ -27,6 +18,7 @@ const variantSchema = z
     costPrice: z.number().positive().nullable(),
     stock: z.number().min(0, "Stock can't be negative."),
     weightGrams: z.number().min(0, "Weight can't be negative."),
+    qty: z.string().min(1, "Describe the pack size."),
   })
   .refine((data) => data.mrp >= data.price, {
     message: "MRP must be at least the selling price.",
@@ -38,19 +30,12 @@ const variantSchema = z
  * onSubmit validator, instead of the old page-level toast pre-checks. */
 export const productFormSchema = z.object({
   name: z.string().min(2, "Give the product a name.").max(120),
-  slug: z
-    .string()
-    .min(2, "Slug is required.")
-    .max(120)
-    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only."),
   brandId: z.string().min(1, "Pick a brand."),
   categorySlug: z.enum(CATEGORY_SLUGS, { message: "Pick a category." }),
   type: z.string().min(1, "Set a type — Wipes, Formula…"),
   description: z.string(),
   about: z.string(),
   unitType: z.enum(["", ...UNIT_TYPES.map((unit) => unit.key)]),
-  qty: z.string().min(1, "Describe the pack size."),
-  weight: z.string(),
   countryOfOrigin: z.string(),
   vendorId: z.string(),
   images: z.array(z.string()),
@@ -101,19 +86,18 @@ export type ProductSizeInput = {
   costPrice: number | null;
   stock: number;
   weightGrams?: number;
+  /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+  qty: string;
 };
 
 export type ProductFormValues = {
   name: string;
-  slug: string;
   brandId: string;
   categorySlug: CategorySlug | "";
   type: string;
   description: string;
   about: string;
   unitType: UnitType | "";
-  qty: string;
-  weight: string;
   countryOfOrigin: string;
   vendorId: string;
   images: string[];
@@ -131,6 +115,30 @@ export type ProductFormValues = {
   isBestseller: boolean;
 };
 
+/** Maps each top-level form field to the section nav tab it's rendered in, so
+ * a validation error on a field in a hidden section can still be surfaced —
+ * sections other than the active one aren't mounted, so their field errors
+ * are otherwise invisible. */
+export const FIELD_SECTIONS: Record<keyof ProductFormValues, SectionId> = {
+  name: "basic",
+  brandId: "basic",
+  categorySlug: "basic",
+  type: "basic",
+  description: "basic",
+  about: "basic",
+  unitType: "basic",
+  ages: "basic",
+  highlights: "basic",
+  tags: "basic",
+  countryOfOrigin: "stock",
+  vendorId: "stock",
+  sizes: "stock",
+  status: "basic",
+  isBestseller: "basic",
+  images: "images",
+  uploadSessionId: "images",
+};
+
 export function emptyVariant(): ProductSizeInput {
   return {
     label: "",
@@ -140,21 +148,19 @@ export function emptyVariant(): ProductSizeInput {
     costPrice: null,
     stock: 0,
     weightGrams: 0,
+    qty: "1 pc",
   };
 }
 
 export function emptyValues(): ProductFormValues {
   return {
     name: "",
-    slug: "",
     brandId: "",
     categorySlug: "",
     type: "",
     description: "",
     about: "",
     unitType: "",
-    qty: "1 pc",
-    weight: "",
     countryOfOrigin: "India",
     vendorId: "",
     images: [],

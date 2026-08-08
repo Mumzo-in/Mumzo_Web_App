@@ -31,7 +31,6 @@ const selection = {
   price: product.price,
   mrp: product.mrp,
   qty: product.qty,
-  weight: product.weight,
   description: product.description,
   about: product.about,
   highlights: product.highlights,

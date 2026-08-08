@@ -62,7 +62,6 @@ function serialize(
     price: toWholeRupees(row.price),
     mrp: toWholeRupees(row.mrp),
     qty: row.qty,
-    weight: row.weight,
     description: row.description,
     about: row.about,
     highlights: row.highlights,

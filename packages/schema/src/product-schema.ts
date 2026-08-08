@@ -55,7 +55,6 @@ export const productFormSchema = z
     mrp: z.number().int().positive("MRP must be more than zero."),
 
     qty: z.string().min(1, "Pack size is required (e.g. “Pack of 72”)."),
-    weight: z.string().nullable(),
 
     description: z.string().max(2000).default(""),
     about: z.string().max(2000).default(""),

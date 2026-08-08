@@ -1,1 +1,0 @@
-ALTER TABLE "vendor" ADD COLUMN "contacts" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -77,6 +77,8 @@ export type ProductSize = {
   costPrice: number | null;
   stock: number;
   weightGrams?: number;
+  /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+  qty: string;
 };
 
 /** A color/style variant — same shape as `ProductSize`, but a separate axis
@@ -90,6 +92,8 @@ export type ProductColor = {
   costPrice: number | null;
   stock: number;
   weightGrams?: number;
+  /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+  qty: string;
 };
 
 /** "own" — we hold the stock ourselves. "retainer" — vendor holds stock,
@@ -136,7 +140,6 @@ export type Product = {
   unitType: UnitType | null;
   /** Pack size as free text — "Pack of 72", "300 g". Rendered on the product page. */
   qty: string;
-  weight: string | null;
 
   description: string;
   about: string;

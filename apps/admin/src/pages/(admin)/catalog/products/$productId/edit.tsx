@@ -80,29 +80,38 @@ function EditProductPage() {
       toast.error("Pick a category first.");
       return;
     }
-    await updateProduct(productId, {
-      ...values,
-      categorySlug: values.categorySlug,
-      unitType: values.unitType || null,
-      weight: values.weight || null,
-      vendor: values.vendorId
-        ? {
-            vendorId: values.vendorId,
-            relationship: product.vendor?.relationship ?? "distributor",
-            costPrice: null,
-            leadTimeDays: product.vendor?.leadTimeDays ?? null,
-            notes: product.vendor?.notes ?? null,
-          }
-        : null,
-      uploadSessionId: values.uploadSessionId,
-      sizes: normalizeSizes(values.sizes),
-      colors: product.colors,
-      status,
-      isBestseller,
-    });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
-    toast.success(`Saved "${values.name}".`);
-    navigate({ to: "/catalog/products" });
+    try {
+      await updateProduct(productId, {
+        ...values,
+        categorySlug: values.categorySlug,
+        unitType: values.unitType || null,
+        vendor: values.vendorId
+          ? {
+              vendorId: values.vendorId,
+              relationship: product.vendor?.relationship ?? "distributor",
+              costPrice: null,
+              leadTimeDays: product.vendor?.leadTimeDays ?? null,
+              notes: product.vendor?.notes ?? null,
+            }
+          : null,
+        uploadSessionId: values.uploadSessionId,
+        sizes: normalizeSizes(values.sizes),
+        colors: product.colors,
+        status,
+        isBestseller,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.products.all,
+      });
+      toast.success(`Saved "${values.name}".`);
+      navigate({ to: "/catalog/products" });
+    } catch (error) {
+      console.error("Failed to update product:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Could not save product.",
+      );
+      throw error;
+    }
   }
 
   return (
@@ -144,7 +153,6 @@ function EditProductPage() {
       <ProductForm
         initialValues={{
           name: product.name,
-          slug: product.slug,
           brandId: product.brandId,
           categorySlug:
             product.categorySlug as ProductFormValues["categorySlug"],
@@ -152,8 +160,6 @@ function EditProductPage() {
           description: product.description,
           about: product.about,
           unitType: product.unitType ?? "",
-          qty: product.qty,
-          weight: product.weight ?? "",
           countryOfOrigin: product.countryOfOrigin,
           vendorId: product.vendor?.vendorId ?? "",
           images: product.images,
@@ -169,6 +175,7 @@ function EditProductPage() {
                     mrp: 0,
                     costPrice: null,
                     stock: 0,
+                    qty: product.qty,
                   },
                 ],
           ages: product.ages,

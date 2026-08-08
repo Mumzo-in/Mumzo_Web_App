@@ -39,7 +39,6 @@ type ProductSeed = {
   mrp: number;
   costPrice: number;
   qty: string;
-  weight?: string;
   description: string;
   about: string;
   highlights: string[];
@@ -79,7 +78,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 2100,
     costPrice: 1323,
     qty: "Pack of 72",
-    weight: "12+ kg",
     description: "Specially designed diapers for baby's comfort and snug fit.",
     about:
       "<p>Product Description: - Specially designed diapers for baby's comfort</p>\n" +
@@ -153,7 +151,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 799,
     costPrice: 422,
     qty: "Pack of 20",
-    weight: "Large",
     description:
       "Eco-friendly, soft, breathable, and skin-friendly diaper pants.",
     about:
@@ -287,7 +284,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 399,
     costPrice: 254,
     qty: "Pack of 26",
-    weight: "12-17 kg",
     description:
       "Description: - It is the best overnight diaper as one diaper is sufficient for one night",
     about:
@@ -372,7 +368,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 339,
     costPrice: 202,
     qty: "Pack of 11",
-    weight: "12-17 kg",
     description: "Comfy-Pro pant-style baby diaper with antibacterial benefits",
     about:
       "<p>Comfy-Pro pant-style baby diaper with antibacterial benefits</p>" +
@@ -412,7 +407,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 899,
     costPrice: 520,
     qty: "Pack of 88",
-    weight: "Up to 5 kg",
     description: "Pant-style newborn diapers with an all-round soft fit.",
     about:
       "<p>A large pack of newborn-size pant diapers designed for an all-round soft, stretchy fit with quick absorption for a newborn's frequent changes.</p>",
@@ -440,7 +434,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 499,
     costPrice: 260,
     qty: "Pack of 20",
-    weight: "XXL",
     description: "XXL pant-style diapers for growing toddlers.",
     about:
       "<p>Stretchable pant-style diapers sized XXL, built with a soft waistband and high absorbency for older toddlers.</p>",
@@ -463,7 +456,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 749,
     costPrice: 420,
     qty: "Pack of 46",
-    weight: "XL",
     description: "Soft, leak-proof pant diapers in XL size.",
     about:
       "<p>Pant-style diapers with a soft, breathable outer layer and leak-proof sides, sized XL for a comfortable all-day fit.</p>",
@@ -486,7 +478,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 279,
     costPrice: 162,
     qty: "Pack of 21",
-    weight: "2-5 kg",
     description: "Tape-style diapers for newborns, 2-5 kg.",
     about:
       "<p>Tape-fastened diapers designed for newborns weighing 2-5 kg, with an adjustable waist tape for a secure fit on tiny bodies.</p>",
@@ -513,7 +504,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 649,
     costPrice: 355,
     qty: "Pack of 32",
-    weight: "7-12 kg",
     description: "Airy, breathable pant diapers for 7-12 kg babies.",
     about:
       "<p>Pant-style diapers with an airy, breathable core designed to reduce heat and rash, sized medium for babies weighing 7-12 kg.</p>",
@@ -540,7 +530,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 399,
     costPrice: 227,
     qty: "Pack of 20",
-    weight: "6-11 kg",
     description: "Anti-bacterial pant diapers, medium size.",
     about:
       "<p>Pant-style diapers with an anti-bacterial layer to guard against rash-causing bacteria, sized medium for 6-11 kg babies.</p>",
@@ -563,7 +552,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 799,
     costPrice: 455,
     qty: "Pack of 66",
-    weight: "4-8 kg",
     description: "Extra-absorbent small-size diaper pants for infants.",
     about:
       "<p>Pant-style diapers with an extra-absorbent core sized small, built for infants weighing 4-8 kg who need frequent changes.</p>",
@@ -590,7 +578,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 399,
     costPrice: 227,
     qty: "Pack of 26",
-    weight: "Medium",
     description: "Soft, leak-proof feather-light pant diapers.",
     about:
       "<p>Lightweight pant-style diapers with a soft, feather-touch inner layer and leak-proof sides, sized medium.</p>",
@@ -617,7 +604,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 1799,
     costPrice: 975,
     qty: "Starter kit",
-    weight: "3M-3Y",
     description: "Reusable cloth diaper starter kit for 3 months to 3 years.",
     about:
       "<p>A reusable, adjustable cloth diaper kit designed to fit from 3 months to 3 years, paired with absorbent inserts for a washable, budget-friendly alternative to disposables.</p>",
@@ -644,7 +630,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 949,
     costPrice: 520,
     qty: "1 unit",
-    weight: "3M-3Y",
     description: "Reusable cloth diaper with a printed design.",
     about:
       "<p>A single reusable cloth diaper with an adjustable fit spanning 3 months to 3 years, printed in a little-wheels design.</p>",
@@ -671,7 +656,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 3999,
     costPrice: 2275,
     qty: "Pack of 5",
-    weight: "3-36 months",
     description: "Pack of 5 reusable cloth diapers for daily use.",
     about:
       "<p>A pack of five reusable, adjustable cloth diapers sized for 3-36 months, built for everyday use as a full washable diapering system.</p>",
@@ -862,7 +846,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 999,
     costPrice: 585,
     qty: "Pack of 2",
-    weight: "260 ml",
     description: "Twin-pack feeding bottle with a natural-latch nipple.",
     about:
       "<p>A wide-neck feeding bottle with a soft, breast-shaped nipple designed to encourage a natural latch, sold as a twin pack.</p>",
@@ -2112,7 +2095,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 349,
     costPrice: 195,
     qty: "Pack of 3",
-    weight: "75 g x 3",
     description: "Nourishing bathing bar for gentle baby skin cleansing.",
     about:
       "<p>Soap-free bathing bar enriched with moisturisers, gentle enough for daily use on baby's skin.</p>",
@@ -2453,7 +2435,6 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     mrp: 399,
     costPrice: 230,
     qty: "Pack of 6",
-    weight: "6 x 50 g",
     description: "Multigrain cereal trial pack in six mini portions.",
     about:
       "<p>A sampler pack of millet and multigrain baby cereals, made with no preservatives or added sugar, so you can find the flavour your little one loves.</p>",
@@ -3239,7 +3220,6 @@ export async function seedProducts() {
           price: seed.price,
           mrp: seed.mrp,
           qty: seed.qty,
-          weight: seed.weight ?? null,
           description: seed.description,
           about: seed.about,
           highlights: seed.highlights,
@@ -3272,6 +3252,7 @@ export async function seedProducts() {
             costPrice: seed.costPrice,
             stock: size.stock,
             weightGrams: size.weightGrams ?? 0,
+            qty: seed.qty,
             position: index,
           })),
         );
@@ -3286,6 +3267,7 @@ export async function seedProducts() {
             costPrice: seed.costPrice,
             stock: color.stock,
             weightGrams: color.weightGrams ?? 0,
+            qty: seed.qty,
             position: index,
           })),
         );
@@ -3302,6 +3284,7 @@ export async function seedProducts() {
           costPrice: seed.costPrice,
           stock: seed.stock ?? 0,
           weightGrams: 0,
+          qty: seed.qty,
           position: 0,
         });
       }
@@ -3399,6 +3382,7 @@ export async function backfillMisclassifiedColorSizes() {
       costPrice: productSize.costPrice,
       stock: productSize.stock,
       position: productSize.position,
+      qty: productSize.qty,
     })
     .from(productSize)
     .where(inArray(productSize.label, MISCLASSIFIED_COLOR_LABELS));
@@ -3416,6 +3400,7 @@ export async function backfillMisclassifiedColorSizes() {
         costPrice: row.costPrice,
         stock: row.stock,
         position: row.position,
+        qty: row.qty,
       });
       await tx.delete(productSize).where(eq(productSize.id, row.id));
     });

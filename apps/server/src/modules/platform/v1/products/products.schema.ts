@@ -35,7 +35,6 @@ export const publicProductSchema = z
     mrp: z.number().int(),
 
     qty: z.string(),
-    weight: z.string().nullable(),
 
     description: z.string(),
     about: z.string(),

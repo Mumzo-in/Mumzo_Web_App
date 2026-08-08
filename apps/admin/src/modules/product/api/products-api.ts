@@ -16,6 +16,8 @@ export type ProductVariant = {
   costPrice: number | null;
   stock: number;
   weightGrams?: number;
+  /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+  qty: string;
 };
 
 export type Product = {
@@ -30,8 +32,8 @@ export type Product = {
   price: number;
   mrp: number;
   unitType: UnitType | null;
+  /** Rolled up from the primary (first) variant server-side. */
   qty: string;
-  weight: string | null;
   description: string;
   about: string;
   highlights: string[];
@@ -67,19 +69,18 @@ export type ProductVendorInput = {
   notes: string | null;
 } | null;
 
-/** `sku`/`price`/`mrp` aren't here — they're per-variant now (`sizes[]`); the
- * product row's own `sku`/`price`/`mrp` are derived server-side from the
- * primary (first) variant. */
+/** `sku`/`price`/`mrp`/`qty` aren't here — they're per-variant now
+ * (`sizes[]`); the product row's own `sku`/`price`/`mrp`/`qty` are derived
+ * server-side from the primary (first) variant. `slug` isn't here either —
+ * the server generates it from `name` (Amazon-style: slugified name plus a
+ * random suffix), so it's never client-writable. */
 export type ProductInput = {
   name: string;
-  slug: string;
   brandId: string;
   vendor: ProductVendorInput;
   categorySlug: string;
   status: ProductStatus;
   unitType: UnitType | null;
-  qty: string;
-  weight: string | null;
   description: string;
   about: string;
   highlights: string[];

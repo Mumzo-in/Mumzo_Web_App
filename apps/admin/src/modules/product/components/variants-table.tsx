@@ -92,6 +92,18 @@ export function VariantsTable({
     );
   }
 
+  function qtyInput(row: ProductSizeInput, index: number) {
+    return (
+      <Input
+        aria-label="Pack size"
+        data-testid={`admin-product-variant-qty-${index}`}
+        onChange={(event) => updateRow(index, { qty: event.target.value })}
+        placeholder="Pack of 72"
+        value={row.qty}
+      />
+    );
+  }
+
   return (
     <Field>
       <FieldLabel>Stock &amp; pricing</FieldLabel>
@@ -101,6 +113,7 @@ export function VariantsTable({
             <TableRow>
               <TableHead>Label</TableHead>
               <TableHead>SKU</TableHead>
+              <TableHead>Pack size</TableHead>
               <TableHead>Weight (g)</TableHead>
               <TableHead>Buying price</TableHead>
               <TableHead>Selling price</TableHead>
@@ -129,6 +142,9 @@ export function VariantsTable({
                 </TableCell>
                 <TableCell className="min-w-32">
                   {skuInput(row, index)}
+                </TableCell>
+                <TableCell className="min-w-32">
+                  {qtyInput(row, index)}
                 </TableCell>
                 <TableCell className="min-w-24">
                   {numberInput(row, index, "weightGrams", "Weight (g)")}

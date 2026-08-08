@@ -146,8 +146,9 @@ export const product = pgTable(
     /** UnitType: "pack" | "weight" | "volume" | "size" | "piece". Nullable —
      * older/draft products may not have one set yet. */
     unitType: text("unit_type"),
+    /** Rolled up from the primary (first) variant server-side, same as
+     * price/mrp — not independently editable. */
     qty: text("qty").notNull(),
-    weight: text("weight"),
 
     description: text("description").default("").notNull(),
     about: text("about").default("").notNull(),
@@ -254,6 +255,8 @@ export const productSize = pgTable(
     weightGrams: integer("weight_grams").default(0).notNull(),
     /** Per-variant barcode — hub pick/pack scanning. */
     barcode: text("barcode").unique(),
+    /** Pack size label shown on the product page — "Pack of 72", "500 ml". */
+    qty: text("qty").notNull(),
   },
   (table) => [
     unique("product_size_productId_label_key").on(table.productId, table.label),
@@ -297,6 +300,8 @@ export const productColor = pgTable(
     weightGrams: integer("weight_grams").default(0).notNull(),
     /** Per-variant barcode — hub pick/pack scanning. */
     barcode: text("barcode").unique(),
+    /** Pack size label shown on the product page — "Pack of 72", "500 ml". */
+    qty: text("qty").notNull(),
   },
   (table) => [
     unique("product_color_productId_label_key").on(

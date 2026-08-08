@@ -29,7 +29,6 @@ export function toProduct(p: PublicProduct): Product {
     mrp: p.mrp,
     unitType: null,
     qty: p.qty,
-    weight: p.weight,
     description: p.description,
     about: p.about,
     highlights: p.highlights,
@@ -40,11 +39,12 @@ export function toProduct(p: PublicProduct): Product {
       label: s.label,
       price: s.price,
       stock: s.stock,
-      // Public API never exposes a real SKU/MRP/cost per variant — the
+      // Public API never exposes a real SKU/MRP/cost/qty per variant — the
       // variant's own id is the only stable identifier available here.
       sku: s.id,
       mrp: p.mrp,
       costPrice: null,
+      qty: p.qty,
     })),
     colors: p.colors.map((c) => ({
       id: c.id,
@@ -54,6 +54,7 @@ export function toProduct(p: PublicProduct): Product {
       sku: c.id,
       mrp: p.mrp,
       costPrice: null,
+      qty: p.qty,
     })),
     ages: p.ages as Product["ages"],
     type: p.type,
