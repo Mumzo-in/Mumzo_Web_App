@@ -33,6 +33,16 @@ export async function findAll(filters: {
     WHERE product_color_id IS NOT NULL
       AND product_color_id NOT IN (SELECT id FROM product_color)
   `);
+  await db.execute(sql`
+    DELETE FROM inventory
+    WHERE product_size_id IS NULL
+      AND product_id IN (SELECT product_id FROM product_size)
+  `);
+  await db.execute(sql`
+    DELETE FROM inventory
+    WHERE product_color_id IS NULL
+      AND product_id IN (SELECT product_id FROM product_color)
+  `);
 
   const conditions: SQL[] = [
     filters.hubId ? eq(inventory.hubId, filters.hubId) : undefined,

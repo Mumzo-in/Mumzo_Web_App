@@ -31,6 +31,14 @@ import {
   PopoverTrigger,
 } from "@mumzo/ui/components/popover";
 import { RichTextEditor } from "@mumzo/ui/components/rich-text-editor";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@mumzo/ui/components/select";
 import { Switch } from "@mumzo/ui/components/switch";
 import {
   ToggleGroup,
@@ -63,6 +71,7 @@ import {
   listAllHubs,
   listProductInventory,
 } from "../api/inventory-api";
+import type { Product } from "../api/products-api";
 import { productQueryOptions } from "../queries/products";
 
 const MAX_IMAGES = 10;
@@ -526,13 +535,11 @@ function SizesEditor({
  * and picking 2 hubs sets both hubs to 100 in stock).
  */
 function UpdateStockDialog({
-  productId,
-  sizeId,
+  product,
   inventoryRows,
   onApplied,
 }: {
-  productId: string;
-  sizeId: string | null;
+  product: Product;
   inventoryRows: InventoryRow[];
   onApplied: () => void;
 }) {
@@ -543,6 +550,23 @@ function UpdateStockDialog({
   const [mode, setMode] = useState<"replace" | "increment" | "decrement">(
     "replace",
   );
+
+  const sizes = product.sizes ?? [];
+  const colors = product.colors ?? [];
+  const variants = [
+    ...sizes.map((s) => ({
+      id: s.id ?? null,
+      label: s.label,
+      type: "size" as const,
+    })),
+    ...colors.map((c) => ({
+      id: c.id ?? null,
+      label: c.label,
+      type: "color" as const,
+    })),
+  ];
+
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
 
   const { data: hubs, isLoading: hubsLoading } = useQuery({
     queryKey: ["hubs", "all"],
@@ -555,10 +579,21 @@ function UpdateStockDialog({
       if (stock == null || selectedHubIds.length === 0) {
         return;
       }
+
+      const selectedVariant =
+        variants.find((v) => v.id === selectedVariantId) ?? variants[0];
+      const sizeId =
+        selectedVariant?.type === "size" ? selectedVariant.id : null;
+      const colorId =
+        selectedVariant?.type === "color" ? selectedVariant.id : null;
+
       await Promise.all(
         selectedHubIds.map((hubId) => {
           const existingRow = inventoryRows.find(
-            (row) => row.hubId === hubId && row.productSizeId === sizeId,
+            (row) =>
+              row.hubId === hubId &&
+              row.productSizeId === sizeId &&
+              row.productColorId === colorId,
           );
           const currentStock = existingRow ? existingRow.stock : 0;
 
@@ -571,8 +606,9 @@ function UpdateStockDialog({
 
           return adjustInventory({
             hubId,
-            productId,
+            productId: product.id,
             productSizeId: sizeId,
+            productColorId: colorId,
             stock: newStock,
             ...(reorderPoint != null ? { reorderPoint } : {}),
           });
@@ -605,8 +641,15 @@ function UpdateStockDialog({
 
   const hubOptions = (hubs ?? []).filter((hub) => hub.isActive);
 
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setSelectedVariantId(variants[0]?.id ?? "");
+    }
+  }
+
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogTrigger
         render={
           <Button
@@ -628,6 +671,33 @@ function UpdateStockDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
+          {variants.length > 1 && (
+            <Field>
+              <FieldLabel>Variant</FieldLabel>
+              <Select
+                onValueChange={(value) => setSelectedVariantId(value ?? "")}
+                value={selectedVariantId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select variant…">
+                    {(value: string) =>
+                      variants.find((v) => v.id === value)?.label ?? value
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {variants.map((v) => (
+                      <SelectItem key={v.id} value={v.id ?? ""}>
+                        {v.label || "Default"}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
           <Field>
             <FieldLabel>Update method</FieldLabel>
             <ToggleGroup
@@ -727,25 +797,10 @@ function UpdateStockDialog({
 function AvailabilityPanel({ productId }: { productId?: string }) {
   const queryClient = useQueryClient();
 
-  // Always resolve the size id from the *saved* product, not the live form
-  // state — the form's `sizes` field drifts from what's actually persisted
-  // as soon as the operator edits it without saving (or on a freshly
-  // created product before its first refetch), and using it here previously
-  // sent two different `productSizeId` values across separate "Update
-  // stock" calls, each creating its own inventory row per hub — the
-  // "duplicate hub" bug.
   const { data: product } = useQuery({
     ...productQueryOptions(productId as string),
     enabled: Boolean(productId),
   });
-
-  const savedSizes = (product?.sizes ?? []).filter((size) => size.id);
-  const soleSizeId =
-    savedSizes.length === 1 &&
-    savedSizes[0]?.label !== "Default" &&
-    savedSizes[0]?.label !== ""
-      ? (savedSizes[0]?.id ?? null)
-      : null;
 
   const { data: inventoryRows, isLoading } = useQuery({
     queryKey: ["products", "inventory", productId],
@@ -760,6 +815,10 @@ function AvailabilityPanel({ productId }: { productId?: string }) {
         variants.
       </p>
     );
+  }
+
+  if (isLoading || !product) {
+    return <p className="text-muted-foreground text-sm">Loading…</p>;
   }
 
   const rows: InventoryRow[] = inventoryRows ?? [];
@@ -777,8 +836,7 @@ function AvailabilityPanel({ productId }: { productId?: string }) {
               queryKey: ["products", "inventory", productId],
             })
           }
-          productId={productId}
-          sizeId={soleSizeId}
+          product={product}
         />
       </div>
 
@@ -790,7 +848,12 @@ function AvailabilityPanel({ productId }: { productId?: string }) {
               key={row.id}
             >
               <div className="flex flex-col">
-                <span className="font-medium text-sm">{row.hubName}</span>
+                <span className="font-medium text-sm">
+                  {row.hubName}
+                  {row.variantLabel && row.variantLabel !== "Default"
+                    ? ` (${row.variantLabel})`
+                    : ""}
+                </span>
                 <span className="text-[10px] text-muted-foreground">
                   Alert threshold: {row.reorderPoint}
                 </span>
@@ -804,8 +867,6 @@ function AvailabilityPanel({ productId }: { productId?: string }) {
             </div>
           ))}
         </div>
-      ) : isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading…</p>
       ) : (
         <p className="text-muted-foreground text-sm">
           Not stocked at any hub yet.
