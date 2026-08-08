@@ -159,8 +159,8 @@ export const ProductForm = forwardRef<
           ))}
         </nav>
 
-        <Card className="shadow-warm">
-          <CardContent className="grid gap-5 pt-6 md:grid-cols-2">
+        <Card className="min-w-0 shadow-warm">
+          <CardContent className="grid min-w-0 gap-5 pt-6 md:grid-cols-2">
             {activeSection === "basic" ? (
               <ProductBasicSection brands={brands} form={form} />
             ) : null}

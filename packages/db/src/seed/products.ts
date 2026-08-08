@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
 import {
   brand,
@@ -8,6 +8,9 @@ import {
   productSize,
 } from "../schema/catalog";
 import { productPlaceholderImage } from "./placeholder-image";
+
+/** Seed data is written in whole rupees; the DB stores integer paise. */
+const toPaise = (rupees: number) => Math.round(rupees * 100);
 
 /**
  * Seed real catalog products.
@@ -3217,8 +3220,8 @@ export async function seedProducts() {
           name: seed.name,
           brandId,
           categoryId,
-          price: seed.price,
-          mrp: seed.mrp,
+          price: toPaise(seed.price),
+          mrp: toPaise(seed.mrp),
           qty: seed.qty,
           description: seed.description,
           about: seed.about,
@@ -3247,9 +3250,9 @@ export async function seedProducts() {
             productId: row.id,
             label: size.label,
             sku: `${seed.sku}-${index + 1}`,
-            price: size.price,
-            mrp: seed.mrp,
-            costPrice: seed.costPrice,
+            price: toPaise(size.price),
+            mrp: toPaise(seed.mrp),
+            costPrice: toPaise(seed.costPrice),
             stock: size.stock,
             weightGrams: size.weightGrams ?? 0,
             qty: seed.qty,
@@ -3262,9 +3265,9 @@ export async function seedProducts() {
             productId: row.id,
             label: color.label,
             sku: `${seed.sku}-${index + 1}`,
-            price: color.price,
-            mrp: seed.mrp,
-            costPrice: seed.costPrice,
+            price: toPaise(color.price),
+            mrp: toPaise(seed.mrp),
+            costPrice: toPaise(seed.costPrice),
             stock: color.stock,
             weightGrams: color.weightGrams ?? 0,
             qty: seed.qty,
@@ -3279,9 +3282,9 @@ export async function seedProducts() {
           productId: row.id,
           label: "Default",
           sku: seed.sku,
-          price: seed.price,
-          mrp: seed.mrp,
-          costPrice: seed.costPrice,
+          price: toPaise(seed.price),
+          mrp: toPaise(seed.mrp),
+          costPrice: toPaise(seed.costPrice),
           stock: seed.stock ?? 0,
           weightGrams: 0,
           qty: seed.qty,
@@ -3408,4 +3411,88 @@ export async function backfillMisclassifiedColorSizes() {
   }
 
   return { moved };
+}
+
+/**
+ * One-off repair for rows written before `seedProducts()` converted rupees
+ * to paise on insert (see the `toPaise` fix at the top of this file) — those
+ * rows have `price`/`mrp`/`cost_price` sitting at the raw rupee number
+ * instead of paise, and any manual patch since may have only touched some of
+ * the three columns, leaving them inconsistent with each other. Re-derives
+ * all three, on `product` and every `product_size`/`product_color` row, from
+ * this file's own `PRODUCT_SEEDS` (the source of truth for whole-rupee
+ * values), matched by `product.slug`. Safe to run repeatedly — it always
+ * overwrites with the same correct paise values.
+ */
+export async function repairProductMoney() {
+  let productsFixed = 0;
+  let variantsFixed = 0;
+
+  for (const seed of PRODUCT_SEEDS) {
+    const [productRow] = await db
+      .select({ id: product.id })
+      .from(product)
+      .where(eq(product.slug, seed.slug));
+
+    if (!productRow) {
+      continue;
+    }
+
+    await db
+      .update(product)
+      .set({ price: toPaise(seed.price), mrp: toPaise(seed.mrp) })
+      .where(eq(product.id, productRow.id));
+    productsFixed += 1;
+
+    const sizes = seed.sizes ?? [];
+    const colors = seed.colors ?? [];
+
+    if (sizes.length > 0) {
+      for (const size of sizes) {
+        const result = await db
+          .update(productSize)
+          .set({
+            price: toPaise(size.price),
+            mrp: toPaise(seed.mrp),
+            costPrice: toPaise(seed.costPrice),
+          })
+          .where(
+            and(
+              eq(productSize.productId, productRow.id),
+              eq(productSize.label, size.label),
+            ),
+          );
+        variantsFixed += result.rowCount ?? 0;
+      }
+    } else if (colors.length > 0) {
+      for (const color of colors) {
+        const result = await db
+          .update(productColor)
+          .set({
+            price: toPaise(color.price),
+            mrp: toPaise(seed.mrp),
+            costPrice: toPaise(seed.costPrice),
+          })
+          .where(
+            and(
+              eq(productColor.productId, productRow.id),
+              eq(productColor.label, color.label),
+            ),
+          );
+        variantsFixed += result.rowCount ?? 0;
+      }
+    } else {
+      const result = await db
+        .update(productSize)
+        .set({
+          price: toPaise(seed.price),
+          mrp: toPaise(seed.mrp),
+          costPrice: toPaise(seed.costPrice),
+        })
+        .where(eq(productSize.productId, productRow.id));
+      variantsFixed += result.rowCount ?? 0;
+    }
+  }
+
+  return { productsFixed, variantsFixed };
 }

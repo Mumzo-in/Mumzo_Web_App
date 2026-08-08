@@ -35,6 +35,19 @@ export function AvailabilityPanel({ productId }: { productId?: string }) {
 
   const rows: InventoryRow[] = inventoryRows ?? [];
 
+  const hubGroups = new Map<
+    string,
+    { hubName: string; variants: InventoryRow[] }
+  >();
+  for (const row of rows) {
+    const group = hubGroups.get(row.hubId);
+    if (group) {
+      group.variants.push(row);
+    } else {
+      hubGroups.set(row.hubId, { hubName: row.hubName, variants: [row] });
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -52,29 +65,36 @@ export function AvailabilityPanel({ productId }: { productId?: string }) {
         />
       </div>
 
-      {rows.length > 0 ? (
+      {hubGroups.size > 0 ? (
         <div className="flex flex-col gap-2">
-          {rows.map((row) => (
+          {[...hubGroups.entries()].map(([hubId, group]) => (
             <div
-              className="flex items-center justify-between rounded-xl border border-border px-3 py-2"
-              key={row.id}
+              className="flex items-center justify-between gap-4 rounded-xl border border-border px-3 py-2"
+              key={hubId}
             >
               <div className="flex flex-col">
-                <span className="font-medium text-sm">
-                  {row.hubName}
-                  {row.variantLabel && row.variantLabel !== "Default"
-                    ? ` (${row.variantLabel})`
-                    : ""}
-                </span>
+                <span className="font-medium text-sm">{group.hubName}</span>
                 <span className="text-[10px] text-muted-foreground">
-                  Alert threshold: {row.reorderPoint}
+                  Alert threshold: {group.variants[0]?.reorderPoint}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                {row.isLowStock ? (
-                  <Badge variant="destructive">Low stock</Badge>
-                ) : null}
-                <span className="numeric text-sm">{row.stock} in stock</span>
+              <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+                {group.variants.map((variant) => (
+                  <div className="flex items-center gap-2" key={variant.id}>
+                    {variant.variantLabel &&
+                    variant.variantLabel !== "Default" ? (
+                      <span className="text-muted-foreground text-xs">
+                        {variant.variantLabel}:
+                      </span>
+                    ) : null}
+                    {variant.isLowStock ? (
+                      <Badge variant="destructive">Low stock</Badge>
+                    ) : null}
+                    <span className="numeric text-sm">
+                      {variant.stock} in stock
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

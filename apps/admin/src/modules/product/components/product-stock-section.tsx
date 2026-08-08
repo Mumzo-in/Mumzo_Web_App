@@ -44,7 +44,7 @@ export function ProductStockSection({
 
       <form.Field name="sizes">
         {(field) => (
-          <div className="md:col-span-2">
+          <div className="min-w-0 md:col-span-2">
             <VariantsTable
               onChange={field.handleChange}
               values={field.state.value ?? []}
