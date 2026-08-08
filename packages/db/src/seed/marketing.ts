@@ -12,7 +12,14 @@ import { coupon } from "../schema/marketing";
  * (`apps/admin/src/modules/marketing/data/coupon-data.ts`) so a freshly
  * seeded database renders identically to what the panel already showed
  * against mock data.
+ *
+ * `minAmt`/`cap` are paise in the DB (see `schema/marketing.ts`); `value` is
+ * paise too for `flat` coupons but a plain percent for `pct` ones. Seed
+ * amounts below are written in whole rupees for readability and converted
+ * with `toPaise` at insert time.
  */
+
+const toPaise = (rupees: number) => Math.round(rupees * 100);
 
 type CouponSeed = {
   code: string;
@@ -114,7 +121,14 @@ export async function seedCoupons() {
   const missing = COUPON_SEEDS.filter((seed) => !present.has(seed.code));
 
   if (missing.length > 0) {
-    await db.insert(coupon).values(missing.map((seed) => ({ ...seed })));
+    await db.insert(coupon).values(
+      missing.map((seed) => ({
+        ...seed,
+        value: seed.type === "flat" ? toPaise(seed.value) : seed.value,
+        minAmt: toPaise(seed.minAmt),
+        cap: seed.cap === null ? null : toPaise(seed.cap),
+      })),
+    );
   }
 
   // Update existing coupons to match their seed properties (especially isGlobal)
@@ -125,6 +139,9 @@ export async function seedCoupons() {
         isGlobal: seed.isGlobal,
         isActive: seed.isActive,
         expiresAt: seed.expiresAt,
+        value: seed.type === "flat" ? toPaise(seed.value) : seed.value,
+        minAmt: toPaise(seed.minAmt),
+        cap: seed.cap === null ? null : toPaise(seed.cap),
       })
       .where(eq(coupon.code, seed.code));
   }

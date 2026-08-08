@@ -84,20 +84,22 @@ export const ProductForm = forwardRef<
       string,
       { errors?: unknown[] } | undefined
     >;
-    const invalidFields = Object.entries(fieldMeta)
-      .filter(([, meta]) => (meta?.errors?.length ?? 0) > 0)
-      .map(([name]) => name);
-    if (invalidFields.length === 0) {
+    const invalidEntries = Object.entries(fieldMeta).filter(
+      ([, meta]) => (meta?.errors?.length ?? 0) > 0,
+    );
+    if (invalidEntries.length === 0) {
       return;
     }
     console.error("Product form validation failed:", {
-      fields: invalidFields,
+      fields: invalidEntries.map(([name]) => name),
       errors: form.state.errors,
     });
+    const invalidFields = invalidEntries.map(([name]) => name);
     const invalidSections = new Set(
-      invalidFields.map(
-        (name) => FIELD_SECTIONS[name as keyof ProductFormValues],
-      ),
+      invalidFields.map((name) => {
+        const topLevelKey = name.split(/[[.]/)[0] as keyof ProductFormValues;
+        return FIELD_SECTIONS[topLevelKey];
+      }),
     );
     if (invalidSections.size > 0 && !invalidSections.has(activeSection)) {
       const [firstSection] = SECTIONS.filter((section) =>
@@ -107,13 +109,20 @@ export const ProductForm = forwardRef<
         setActiveSection(firstSection.id);
       }
     }
-    const sectionLabels = SECTIONS.filter((section) =>
-      invalidSections.has(section.id),
-    )
-      .map((section) => section.label)
-      .join(", ");
+    const messages = invalidEntries
+      .flatMap(([, meta]) =>
+        (meta?.errors ?? []).map((error) =>
+          typeof error === "string"
+            ? error
+            : ((error as { message?: string } | undefined)?.message ?? ""),
+        ),
+      )
+      .filter(Boolean);
+    const uniqueMessages = [...new Set(messages)];
     toast.error(
-      `Fix the highlighted fields before saving${sectionLabels ? ` (${sectionLabels})` : ""}.`,
+      uniqueMessages.length > 0
+        ? uniqueMessages.join(" ")
+        : "Fix the highlighted fields before saving.",
     );
   }
 

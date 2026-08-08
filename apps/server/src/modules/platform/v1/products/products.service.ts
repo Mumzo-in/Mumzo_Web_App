@@ -72,7 +72,12 @@ function serialize(
     ages: row.ages,
     type: row.type,
     tags: row.tags,
-    stock: sizes.length > 0 ? rollUpStock(sizes) : 0,
+    stock:
+      sizes.length > 0
+        ? rollUpStock(sizes)
+        : colors.length > 0
+          ? rollUpStock(colors)
+          : 0,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
     updatedAt: row.updatedAt.toISOString(),

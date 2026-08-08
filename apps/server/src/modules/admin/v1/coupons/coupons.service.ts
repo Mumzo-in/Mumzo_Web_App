@@ -384,8 +384,9 @@ export async function validateCoupon(input: ValidateCouponInput) {
     }
   }
   if (input.cartTotal < row.minAmt) {
+    const shortfall = toWholeRupees(row.minAmt - input.cartTotal);
     throw badRequest(
-      `Add ${row.minAmt - input.cartTotal} more to use this coupon.`,
+      `Add ₹${shortfall.toLocaleString("en-IN")} more to use this coupon.`,
       ERROR_CODES.COUPON_MIN_AMOUNT,
     );
   }
