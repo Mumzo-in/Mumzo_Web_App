@@ -8,7 +8,17 @@ import {
   productVendor,
   vendor,
 } from "@mumzo/db/schema/catalog";
-import { and, count, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
@@ -95,7 +105,7 @@ export async function findPage(filters: {
   const [rows, countRows] = await Promise.all([
     baseQuery()
       .where(where)
-      .orderBy(product.updatedAt)
+      .orderBy(desc(product.updatedAt))
       .limit(filters.limit)
       .offset((filters.page - 1) * filters.limit),
     db

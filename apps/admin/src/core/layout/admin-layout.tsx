@@ -30,7 +30,7 @@ export function AdminLayout({
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <AdminHeader actions={headerActions} />
           <main
-            className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6"
+            className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6"
             data-testid="admin-main"
           >
             {children}
