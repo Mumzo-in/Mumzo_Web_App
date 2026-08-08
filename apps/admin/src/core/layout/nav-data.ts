@@ -127,6 +127,18 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: "Banners CMS", to: "/legal/banners", comingSoon: true },
         ],
       },
+      {
+        label: "Referrals",
+        items: [
+          { label: "Overview", to: "/marketing/referrals" },
+          { label: "Tiers & Rules", to: "/marketing/referrals/tiers" },
+          {
+            label: "Participants",
+            to: "/marketing/referrals/participants",
+          },
+          { label: "Coupons Issued", to: "/marketing/referrals/coupons" },
+        ],
+      },
     ],
   },
   {

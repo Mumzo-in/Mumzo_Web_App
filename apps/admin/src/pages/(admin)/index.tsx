@@ -91,6 +91,7 @@ function DashboardPage() {
             <div className="flex flex-wrap gap-3">
               <AttentionLink
                 to="/catalog/products"
+                search={{ stock: "low" }}
                 label="Low stock"
                 count={data?.lowStockCount}
                 loading={isLoading}

@@ -100,6 +100,7 @@ export async function listProducts(filters: {
   status?: string;
   categorySlug?: string;
   vendorId?: string;
+  stock?: string;
 }) {
   const { rows, total } = await productsRepo.findPage(filters);
   const productIds = rows.map((row) => row.id);

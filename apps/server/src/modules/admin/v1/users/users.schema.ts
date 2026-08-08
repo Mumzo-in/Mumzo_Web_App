@@ -107,3 +107,28 @@ export const userGrowthQuerySchema = z
     message: "`from` must not be after `to`.",
     path: ["from"],
   });
+
+export const userAnalyticsMetricsSchema = z.object({
+  activeOrderedCount: z.number().int(),
+  activeOrderedChangePct: z.number(),
+  activeSessionCount: z.number().int(),
+  activeSessionChangePct: z.number(),
+  repeatPurchaseRatePct: z.number(),
+  repeatPurchaseRateChangePct: z.number(),
+  gmvPerActiveUser: z.number().int(),
+  gmvPerActiveUserChangePct: z.number(),
+  avgLifetimeValue: z.number().int(),
+  totalUsers: z.number().int(),
+});
+
+export type UserAnalyticsMetrics = z.infer<typeof userAnalyticsMetricsSchema>;
+
+export const orderRetentionPointSchema = z.object({
+  /** Months since signup. */
+  month: z.number().int(),
+  retentionPct: z.number(),
+});
+
+/** Same `from`/`to` shape as `userGrowthQuerySchema`, reused for both the
+ * metrics cards and the retention curve on the analytics page. */
+export const userAnalyticsQuerySchema = userGrowthQuerySchema;

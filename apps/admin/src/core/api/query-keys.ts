@@ -87,5 +87,10 @@ export const queryKeys = {
   referrals: {
     config: () => ["referrals", "config"] as const,
     stats: () => ["referrals", "stats"] as const,
+    activity: () => ["referrals", "activity"] as const,
+    participants: domainKeys("referral-participants"),
+    invites: (participantId: string) =>
+      ["referral-participants", "invites", participantId] as const,
+    coupons: domainKeys("referral-coupons"),
   },
 } as const;

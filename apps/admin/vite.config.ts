@@ -3,7 +3,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   // Read the repo-root `.env` instead of a per-app copy. Only `VITE_*`
@@ -44,16 +43,5 @@ export default defineConfig({
       routeToken: "_layout",
     }),
     react(),
-    VitePWA({
-      registerType: "autoUpdate",
-      manifest: {
-        name: "Mumzo SuperAdmin",
-        short_name: "Mumzo Admin",
-        description: "Mumzo control panel — catalog, orders & ops",
-        theme_color: "#1f1b3a",
-      },
-      pwaAssets: { disabled: false, config: true },
-      devOptions: { enabled: true },
-    }),
   ],
 });

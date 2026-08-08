@@ -12,6 +12,9 @@ import {
   customerEventSchema,
   listUserSubResourceQuerySchema,
   listUsersQuerySchema,
+  orderRetentionPointSchema,
+  userAnalyticsMetricsSchema,
+  userAnalyticsQuerySchema,
   userCartSchema,
   userGrowthPointSchema,
   userGrowthQuerySchema,
@@ -30,6 +33,37 @@ export const listRoute = createRoute({
   request: { query: listUsersQuerySchema },
   responses: {
     200: jsonContent(paginatedSchema(adminUserSchema), "Page of customers"),
+    ...authErrorResponses,
+  },
+});
+
+export const analyticsMetricsRoute = createRoute({
+  method: "get",
+  path: "/analytics/metrics",
+  tags: [TAG],
+  summary: "Active/repeat/GMV/LTV cards for the customer analytics page",
+  security: [{ cookieAuth: [] }],
+  request: { query: userAnalyticsQuerySchema },
+  responses: {
+    200: jsonContent(
+      successSchema(userAnalyticsMetricsSchema),
+      "Analytics metrics",
+    ),
+    ...authErrorResponses,
+  },
+});
+
+export const retentionRoute = createRoute({
+  method: "get",
+  path: "/analytics/retention",
+  tags: [TAG],
+  summary: "Cohort order-retention curve, months 0-6 since signup",
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: jsonContent(
+      successSchema(z.array(orderRetentionPointSchema)),
+      "Retention curve",
+    ),
     ...authErrorResponses,
   },
 });

@@ -19,69 +19,85 @@ export type UserAnalyticsSummary = {
   retention: RetentionPoint[];
 };
 
-export const userAnalyticsSummary: UserAnalyticsSummary = {
-  metrics: [
-    // Placeholder — always overwritten by the real `GET /dashboard/user-counts`
-    // response in `api/user-analytics-api.ts`. Kept as an entry so the map
-    // that swaps it in has something to find by id.
-    {
-      id: "total-users",
-      label: "Total users",
-      value: "3,214",
-      changePct: 6.8,
-      trend: "up",
-      hint: "vs last 30 days",
-    },
+/** Raw shape from `GET /users/analytics/metrics` — mapped into
+ * `DashboardMetric[]` (pre-formatted, display-ready) in `user-analytics-api.ts`. */
+export type UserAnalyticsMetrics = {
+  activeOrderedCount: number;
+  activeOrderedChangePct: number;
+  activeSessionCount: number;
+  activeSessionChangePct: number;
+  repeatPurchaseRatePct: number;
+  repeatPurchaseRateChangePct: number;
+  gmvPerActiveUser: number;
+  gmvPerActiveUserChangePct: number;
+  avgLifetimeValue: number;
+  totalUsers: number;
+};
+
+function trendFor(changePct: number): DashboardMetric["trend"] {
+  if (changePct > 0) return "up";
+  if (changePct < 0) return "down";
+  return "flat";
+}
+
+/** Maps the raw metrics response into the six `DashboardMetric` cards the
+ * analytics page renders, formatting values for display. */
+export function toUserAnalyticsMetrics(
+  metrics: UserAnalyticsMetrics,
+  formatMoney: (rupees: number) => string,
+  formatNumber: (value: number) => string,
+): DashboardMetric[] {
+  const activeOrderedPct =
+    metrics.totalUsers === 0
+      ? 0
+      : Math.round((metrics.activeOrderedCount / metrics.totalUsers) * 1000) /
+        10;
+  const activeSessionPct =
+    metrics.totalUsers === 0
+      ? 0
+      : Math.round((metrics.activeSessionCount / metrics.totalUsers) * 1000) /
+        10;
+
+  return [
     {
       id: "active-ordered",
       label: "Active (ordered, 30d)",
-      value: "1,042",
-      changePct: 4.1,
-      trend: "up",
-      hint: "% of total: 32%",
+      value: formatNumber(metrics.activeOrderedCount),
+      changePct: metrics.activeOrderedChangePct,
+      trend: trendFor(metrics.activeOrderedChangePct),
+      hint: `% of total: ${activeOrderedPct}%`,
     },
     {
       id: "active-session",
       label: "Active (session, 30d)",
-      value: "1,890",
-      changePct: 2.3,
-      trend: "up",
-      hint: "% of total: 59%",
+      value: formatNumber(metrics.activeSessionCount),
+      changePct: metrics.activeSessionChangePct,
+      trend: trendFor(metrics.activeSessionChangePct),
+      hint: `% of total: ${activeSessionPct}%`,
     },
     {
       id: "repeat-purchase-rate",
       label: "Repeat purchase rate",
-      value: "38%",
-      changePct: 1.5,
-      trend: "up",
+      value: `${metrics.repeatPurchaseRatePct}%`,
+      changePct: metrics.repeatPurchaseRateChangePct,
+      trend: trendFor(metrics.repeatPurchaseRateChangePct),
       hint: "2+ orders / active users",
     },
     {
       id: "gmv-per-active-user",
       label: "GMV per active user",
-      value: "₹1,860",
-      changePct: -1.2,
-      trend: "down",
+      value: formatMoney(metrics.gmvPerActiveUser),
+      changePct: metrics.gmvPerActiveUserChangePct,
+      trend: trendFor(metrics.gmvPerActiveUserChangePct),
       hint: "last 30 days",
     },
     {
       id: "avg-ltv",
       label: "Avg. lifetime value",
-      value: "₹4,120",
-      changePct: 3.4,
-      trend: "up",
+      value: formatMoney(metrics.avgLifetimeValue),
+      changePct: 0,
+      trend: "flat",
       hint: "all-time, per user",
     },
-  ],
-  // Always overwritten by the real `GET /users/growth` response.
-  growth: [],
-  retention: [
-    { month: 0, retentionPct: 100 },
-    { month: 1, retentionPct: 54 },
-    { month: 2, retentionPct: 41 },
-    { month: 3, retentionPct: 33 },
-    { month: 4, retentionPct: 29 },
-    { month: 5, retentionPct: 26 },
-    { month: 6, retentionPct: 24 },
-  ],
-};
+  ];
+}

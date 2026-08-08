@@ -8,7 +8,7 @@ import {
   productVendor,
   vendor,
 } from "@mumzo/db/schema/catalog";
-import { and, count, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
+import { and, count, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
@@ -63,6 +63,7 @@ export async function findPage(filters: {
   status?: string;
   categorySlug?: string;
   vendorId?: string;
+  stock?: string;
 }) {
   const conditions: SQL[] = [];
 
@@ -84,6 +85,11 @@ export async function findPage(filters: {
   }
   if (filters.vendorId) {
     conditions.push(eq(productVendor.vendorId, filters.vendorId));
+  }
+  if (filters.stock === "low") {
+    conditions.push(
+      sql`exists (select 1 from inventory where inventory.product_id = ${product.id} and inventory.stock <= inventory.reorder_point)`,
+    );
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;

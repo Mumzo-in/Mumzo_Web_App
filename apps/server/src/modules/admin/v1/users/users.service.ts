@@ -188,3 +188,87 @@ export async function usersGrowth(range: { from?: string; to?: string }) {
 
   return points;
 }
+
+function resolveRange(range: { from?: string; to?: string }) {
+  const to = range.to ? new Date(`${range.to}T00:00:00.000Z`) : new Date();
+  const from = range.from
+    ? new Date(`${range.from}T00:00:00.000Z`)
+    : new Date(to.getTime() - 29 * DAY_MS);
+  // `to` is inclusive of the calendar day the caller asked for — push the
+  // exclusive upper bound one day past it, same convention as `usersGrowth`.
+  const exclusiveTo = new Date(to.getTime() + DAY_MS);
+  return { from, to: exclusiveTo };
+}
+
+function changePct(current: number, prior: number) {
+  if (prior === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - prior) / prior) * 1000) / 10;
+}
+
+/**
+ * The six analytics cards, computed range-scoped (current vs. the
+ * immediately preceding period of equal length, for the change badges) plus
+ * one all-time average. Every number here comes from a handful of aggregate
+ * queries run in parallel — never a per-user loop — so this stays cheap
+ * regardless of customer count. See `users.repo.ts` for the query shapes.
+ */
+export async function getUserAnalyticsMetrics(range: {
+  from?: string;
+  to?: string;
+}) {
+  const { from, to } = resolveRange(range);
+  const periodMs = to.getTime() - from.getTime();
+  const priorFrom = new Date(from.getTime() - periodMs);
+  const priorTo = from;
+
+  const [
+    activeOrdered,
+    activeOrderedPrior,
+    activeSession,
+    activeSessionPrior,
+    stats,
+    statsPrior,
+    lifetimeAvg,
+    totalUsers,
+  ] = await Promise.all([
+    usersRepo.activeOrderedCount(from, to),
+    usersRepo.activeOrderedCount(priorFrom, priorTo),
+    usersRepo.activeSessionCount(from, to),
+    usersRepo.activeSessionCount(priorFrom, priorTo),
+    usersRepo.orderStatsInRange(from, to),
+    usersRepo.orderStatsInRange(priorFrom, priorTo),
+    usersRepo.avgLifetimeValue(),
+    usersRepo.totalUserCount(),
+  ]);
+
+  const repeatRate =
+    stats.activeUsers === 0 ? 0 : (stats.repeatUsers / stats.activeUsers) * 100;
+  const repeatRatePrior =
+    statsPrior.activeUsers === 0
+      ? 0
+      : (statsPrior.repeatUsers / statsPrior.activeUsers) * 100;
+
+  const gmvPerUser =
+    stats.activeUsers === 0 ? 0 : Math.round(stats.gmv / stats.activeUsers);
+  const gmvPerUserPrior =
+    statsPrior.activeUsers === 0
+      ? 0
+      : Math.round(statsPrior.gmv / statsPrior.activeUsers);
+
+  return {
+    activeOrderedCount: activeOrdered,
+    activeOrderedChangePct: changePct(activeOrdered, activeOrderedPrior),
+    activeSessionCount: activeSession,
+    activeSessionChangePct: changePct(activeSession, activeSessionPrior),
+    repeatPurchaseRatePct: Math.round(repeatRate * 10) / 10,
+    repeatPurchaseRateChangePct: changePct(repeatRate, repeatRatePrior),
+    gmvPerActiveUser: toWholeRupees(gmvPerUser),
+    gmvPerActiveUserChangePct: changePct(gmvPerUser, gmvPerUserPrior),
+    avgLifetimeValue: toWholeRupees(lifetimeAvg),
+    totalUsers,
+  };
+}
+
+export async function getOrderRetention() {
+  return usersRepo.orderRetentionCohort();
+}

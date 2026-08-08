@@ -1,5 +1,6 @@
 import { createRouter, requirePermission } from "@/core";
 import {
+  analyticsMetricsRoute,
   getRoute,
   getUserCartRoute,
   growthRoute,
@@ -7,9 +8,12 @@ import {
   listUserActivityRoute,
   listUserOrdersRoute,
   listUserWishlistRoute,
+  retentionRoute,
 } from "./users.routes";
 import {
+  getOrderRetention,
   getUser,
+  getUserAnalyticsMetrics,
   getUserCart,
   listUserActivity,
   listUserOrders,
@@ -25,8 +29,9 @@ const app = createRouter();
 app.use("/*", requirePermission("user", "list"));
 app.get("/:id", requirePermission("user", "get"));
 
-// `/growth` is registered before `/{id}` — static paths must win over the
-// param route, or a request for `/growth` would be read as `id: "growth"`.
+// `/growth` and `/analytics/*` are registered before `/{id}` — static paths
+// must win over the param route, or a request for e.g. `/growth` would be
+// read as `id: "growth"`.
 const users = app
   .openapi(listRoute, async (c) => {
     const query = c.req.valid("query");
@@ -36,6 +41,15 @@ const users = app
   .openapi(growthRoute, async (c) => {
     const { from, to } = c.req.valid("query");
     const data = await usersGrowth({ from, to });
+    return c.json({ success: true as const, data }, 200);
+  })
+  .openapi(analyticsMetricsRoute, async (c) => {
+    const { from, to } = c.req.valid("query");
+    const data = await getUserAnalyticsMetrics({ from, to });
+    return c.json({ success: true as const, data }, 200);
+  })
+  .openapi(retentionRoute, async (c) => {
+    const data = await getOrderRetention();
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(getRoute, async (c) => {

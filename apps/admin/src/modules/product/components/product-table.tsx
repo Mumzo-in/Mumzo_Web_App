@@ -30,7 +30,7 @@ import { usePermission } from "@/modules/roles";
 import { deleteProduct, listProducts, type Product } from "../api/products-api";
 import { PRODUCT_STATUS_META } from "../data/product-data";
 
-export function ProductTable() {
+export function ProductTable({ stockFilter }: { stockFilter?: string }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const canWrite = usePermission("product", "update");
@@ -172,7 +172,13 @@ export function ProductTable() {
     [canWrite, canDelete, deleteMutation.isPending],
   );
 
-  const filters = useMemo(() => ({ search: search || undefined }), [search]);
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      stock: stockFilter || undefined,
+    }),
+    [search, stockFilter],
+  );
 
   const list = usePaginatedList({
     queryKey: queryKeys.products.lists(),

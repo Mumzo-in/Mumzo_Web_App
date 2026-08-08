@@ -174,4 +174,5 @@ export const listProductsQuerySchema = z.object({
   status: z.enum(["draft", "active", "inactive", "archived"]).optional(),
   categorySlug: z.string().optional(),
   vendorId: z.string().optional(),
+  stock: z.enum(["low"]).optional(),
 });

@@ -11,6 +11,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@mumzo/ui/components/chart";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyTitle,
+} from "@mumzo/ui/components/empty";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -180,6 +185,13 @@ function UserAnalyticsPage() {
           <CardContent className="h-70 pb-6">
             {isLoading || !data ? (
               <Skeleton className="h-full w-full rounded-xl" />
+            ) : data.growth.length === 0 ? (
+              <Empty className="h-full">
+                <EmptyTitle>No signups yet</EmptyTitle>
+                <EmptyDescription>
+                  New signups in this range will chart here.
+                </EmptyDescription>
+              </Empty>
             ) : (
               <ChartContainer
                 config={growthChartConfig}
@@ -260,6 +272,14 @@ function UserAnalyticsPage() {
           <CardContent className="h-70 pb-6">
             {isLoading || !data ? (
               <Skeleton className="h-full w-full rounded-xl" />
+            ) : data.retention.length === 0 ? (
+              <Empty className="h-full">
+                <EmptyTitle>No cohorts yet</EmptyTitle>
+                <EmptyDescription>
+                  Retention appears once customers who signed up in the last 6
+                  months have placed orders.
+                </EmptyDescription>
+              </Empty>
             ) : (
               <ChartContainer
                 config={retentionChartConfig}
