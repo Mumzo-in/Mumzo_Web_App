@@ -27,15 +27,17 @@ export default function CartLineItem({ item }: CartLineItemProps) {
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
   const discountAmount = (item.mrp - item.price) * item.qty;
 
-  // Dynamically fetch options when dialog opens
-  const { data: rawProduct, isLoading } = useQuery({
-    ...productQueryOptions(item.productId),
-    enabled: variantDialogOpen,
-  });
+  // Needed up front (not just when the dialog opens) to know whether this
+  // product has more than one real variant — with ≤1, there's nothing to
+  // switch between, so the size trigger shouldn't render at all.
+  const { data: rawProduct, isLoading } = useQuery(
+    productQueryOptions(item.productId),
+  );
 
   const product = rawProduct ? toProduct(rawProduct) : null;
   const sizes = product?.sizes || [];
   const colors = product?.colors || [];
+  const hasMultipleVariants = sizes.length + colors.length > 1;
 
   const handleSelectVariant = (variantLabel: string) => {
     if (variantLabel === item.variantLabel) {
@@ -91,15 +93,18 @@ export default function CartLineItem({ item }: CartLineItemProps) {
 
         {/* Dropdowns for Size and Qty */}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {/* Interactive Size Trigger Button */}
-          <button
-            type="button"
-            onClick={() => setVariantDialogOpen(true)}
-            className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border-none bg-secondary/60 px-2.5 py-1 font-semibold text-ink text-xs transition-colors hover:bg-secondary"
-          >
-            <span>Size: {item.variantLabel || "ONESIZE"}</span>
-            <ChevronDown size={13} className="text-muted-foreground" />
-          </button>
+          {/* Interactive Size Trigger Button — only when there's an actual
+              choice; a single/no-variant product has nothing to switch to. */}
+          {hasMultipleVariants && (
+            <button
+              type="button"
+              onClick={() => setVariantDialogOpen(true)}
+              className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border-none bg-secondary/60 px-2.5 py-1 font-semibold text-ink text-xs transition-colors hover:bg-secondary"
+            >
+              <span>Size: {item.variantLabel}</span>
+              <ChevronDown size={13} className="text-muted-foreground" />
+            </button>
+          )}
 
           <NativeSelect
             value={item.qty}

@@ -16,7 +16,6 @@ const variantSchema = z
     price: z.number().positive("Set a selling price."),
     mrp: z.number().positive("Set an MRP."),
     costPrice: z.number().positive().nullable(),
-    stock: z.number().min(0, "Stock can't be negative."),
     weightGrams: z.number().min(0, "Weight can't be negative."),
     qty: z.string().min(1, "Describe the pack size."),
   })
@@ -84,7 +83,6 @@ export type ProductSizeInput = {
   /** Buying/cost price from the vendor — drives margin. Nullable, not every
    * variant has vendor cost tracked. */
   costPrice: number | null;
-  stock: number;
   weightGrams?: number;
   /** Pack size shown on the product page — "Pack of 72", "500 ml". */
   qty: string;
@@ -104,9 +102,10 @@ export type ProductFormValues = {
   /** Draft upload session shared by every gallery slot this submit — finalized
    * server-side into permanent keys once the product id is known. */
   uploadSessionId: string | null;
-  /** Variants — SKU/price/MRP/stock all live per-row now. The server rolls
-   * `product.stock`/`price`/`mrp`/`sku` up from these; there's no separate
-   * plain field for any of them. */
+  /** Variants — SKU/price/MRP live per-row. The server rolls
+   * `product.price`/`mrp`/`sku` up from these; there's no separate plain
+   * field for any of them. Stock isn't here — it lives only in per-hub
+   * `inventory`, set via "Update stock" / hub availability. */
   sizes: ProductSizeInput[];
   ages: string[];
   highlights: string[];
@@ -146,7 +145,6 @@ export function emptyVariant(): ProductSizeInput {
     price: 0,
     mrp: 0,
     costPrice: null,
-    stock: 0,
     weightGrams: 0,
     qty: "1 pc",
   };

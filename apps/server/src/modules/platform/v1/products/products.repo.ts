@@ -1,5 +1,11 @@
 import { db } from "@mumzo/db";
-import { brand, category, product } from "@mumzo/db/schema/catalog";
+import {
+  brand,
+  category,
+  hub,
+  inventory,
+  product,
+} from "@mumzo/db/schema/catalog";
 import {
   and,
   asc,
@@ -196,4 +202,42 @@ export async function findPublicById(id: string) {
     .where(and(eq(product.id, id), eq(product.status, "active")))
     .limit(1);
   return row;
+}
+
+/**
+ * Live stock per variant, summed across every active hub — stock lives only
+ * in `inventory` now (per-hub), never on the product/variant rows
+ * themselves. Keyed by `productSizeId`/`productColorId` (one or the other,
+ * `null` for the no-variant row) so the service can attach the right number
+ * to each size/color it already loaded.
+ */
+export async function inventoryStockByProductIds(productIds: string[]) {
+  if (productIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const rows = await db
+    .select({
+      productId: inventory.productId,
+      productSizeId: inventory.productSizeId,
+      productColorId: inventory.productColorId,
+      stock: sql<number>`sum(${inventory.stock})`,
+    })
+    .from(inventory)
+    .innerJoin(hub, eq(hub.id, inventory.hubId))
+    .where(
+      and(inArray(inventory.productId, productIds), eq(hub.isActive, true)),
+    )
+    .groupBy(
+      inventory.productId,
+      inventory.productSizeId,
+      inventory.productColorId,
+    );
+
+  const byKey = new Map<string, number>();
+  for (const row of rows) {
+    const key = `${row.productId}:${row.productSizeId ?? ""}:${row.productColorId ?? ""}`;
+    byKey.set(key, Number(row.stock));
+  }
+  return byKey;
 }

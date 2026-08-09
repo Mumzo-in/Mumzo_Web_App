@@ -10,14 +10,15 @@ import * as productsRepo from "./products.repo";
 /** Wider than what's serialized to the public API — `sizesByProductId`/
  * `colorsByProductId` (shared with the admin repo) also carry `sku`/`mrp`/
  * `costPrice` now, but the customer-facing response below picks only
- * `id`/`label`/`price`/`stock` per variant so vendor cost never leaks. */
+ * `id`/`label`/`price` per variant so vendor cost never leaks. Stock isn't
+ * here at all — it never lived on these rows meaningfully, only in
+ * `inventory` (per hub), so it's looked up separately and merged in. */
 type Size = {
   id: string;
   label: string;
   price: number;
   mrp: number;
   costPrice: number | null;
-  stock: number;
 };
 type Color = Size;
 
@@ -28,18 +29,23 @@ type PublicVariant = {
   stock: number;
 };
 
-/** Total stock across variants, or 0 for an unsized product — DB is the source. */
-function rollUpStock(sizes: PublicVariant[]): number {
-  return sizes.reduce((sum, size) => sum + size.stock, 0);
-}
-
-/** Picks only the customer-facing fields — never `sku`/`costPrice`. */
-function toPublicVariant(variant: Size): PublicVariant {
+/** Picks only the customer-facing fields — never `sku`/`costPrice` — and
+ * attaches live stock, summed across active hubs, keyed by variant id. */
+function toPublicVariant(
+  variant: Size,
+  productId: string,
+  axis: "size" | "color",
+  stockByKey: Map<string, number>,
+): PublicVariant {
+  const key =
+    axis === "size"
+      ? `${productId}:${variant.id}:`
+      : `${productId}::${variant.id}`;
   return {
     id: variant.id,
     label: variant.label,
     price: toWholeRupees(variant.price),
-    stock: variant.stock,
+    stock: stockByKey.get(key) ?? 0,
   };
 }
 
@@ -49,9 +55,16 @@ function serialize(
   row: NonNullable<ProductRow>,
   sizesInPaise: Size[],
   colorsInPaise: Color[],
+  stockByKey: Map<string, number>,
 ) {
-  const sizes = sizesInPaise.map(toPublicVariant);
-  const colors = colorsInPaise.map(toPublicVariant);
+  const sizes = sizesInPaise.map((s) =>
+    toPublicVariant(s, row.id, "size", stockByKey),
+  );
+  const colors = colorsInPaise.map((c) =>
+    toPublicVariant(c, row.id, "color", stockByKey),
+  );
+  // No variants at all — stock lives on the product-less inventory row.
+  const noVariantStock = stockByKey.get(`${row.id}::`) ?? 0;
   return {
     id: row.id,
     slug: row.slug,
@@ -74,10 +87,10 @@ function serialize(
     tags: row.tags,
     stock:
       sizes.length > 0
-        ? rollUpStock(sizes)
+        ? sizes.reduce((sum, s) => sum + s.stock, 0)
         : colors.length > 0
-          ? rollUpStock(colors)
-          : 0,
+          ? colors.reduce((sum, c) => sum + c.stock, 0)
+          : noVariantStock,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
     updatedAt: row.updatedAt.toISOString(),
@@ -122,9 +135,10 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
   });
 
   const productIds = rows.map((row) => row.id);
-  const [sizesByProduct, colorsByProduct] = await Promise.all([
+  const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     sizesByProductId(productIds),
     colorsByProductId(productIds),
+    productsRepo.inventoryStockByProductIds(productIds),
   ]);
 
   let data = rows.map((row) =>
@@ -132,6 +146,7 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
       row,
       sizesByProduct.get(row.id) ?? [],
       colorsByProduct.get(row.id) ?? [],
+      stockByKey,
     ),
   );
 
@@ -169,14 +184,16 @@ export async function getPublicProduct(id: string) {
     throw notFound("Product");
   }
 
-  const [sizesByProduct, colorsByProduct] = await Promise.all([
+  const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     sizesByProductId([id]),
     colorsByProductId([id]),
+    productsRepo.inventoryStockByProductIds([id]),
   ]);
   return serialize(
     row,
     sizesByProduct.get(id) ?? [],
     colorsByProduct.get(id) ?? [],
+    stockByKey,
   );
 }
 

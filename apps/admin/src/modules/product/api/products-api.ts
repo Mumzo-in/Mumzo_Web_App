@@ -14,11 +14,17 @@ export type ProductVariant = {
   price: number;
   mrp: number;
   costPrice: number | null;
+  /** Live, read-only — summed from `inventory` across hubs. Not writable
+   * here; set stock via "Update stock" / hub availability. */
   stock: number;
   weightGrams?: number;
   /** Pack size shown on the product page — "Pack of 72", "500 ml". */
   qty: string;
 };
+
+/** What the create/update form actually submits per variant — no `stock`,
+ * which lives only in per-hub `inventory` and has its own endpoint. */
+export type ProductVariantInput = Omit<ProductVariant, "stock">;
 
 export type Product = {
   id: string;
@@ -88,8 +94,8 @@ export type ProductInput = {
   images: string[];
   /** Draft upload session carrying new gallery images, if any were uploaded. */
   uploadSessionId?: string | null;
-  sizes: ProductVariant[];
-  colors: ProductVariant[];
+  sizes: ProductVariantInput[];
+  colors: ProductVariantInput[];
   ages: string[];
   type: string;
   tags: string[];

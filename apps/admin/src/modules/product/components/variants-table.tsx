@@ -17,9 +17,11 @@ import { Plus, Trash2 } from "lucide-react";
 import { emptyVariant, type ProductSizeInput } from "./product-form-schema";
 
 /**
- * Variants are the only source of `product.sku`/`price`/`mrp`/`stock` — the
- * server rolls the product row's own fields up from the primary (first) row
- * here, there's no separate plain field for any of them.
+ * Variants are the only source of `product.sku`/`price`/`mrp` — the server
+ * rolls the product row's own fields up from the primary (first) row here,
+ * there's no separate plain field for any of them. Stock isn't edited here
+ * at all — it lives only in per-hub `inventory`, set via "Update stock" /
+ * hub availability, never on the product or its variants.
  */
 export function VariantsTable({
   values,
@@ -45,7 +47,7 @@ export function VariantsTable({
   function numberInput(
     row: ProductSizeInput,
     index: number,
-    key: "price" | "mrp" | "stock" | "weightGrams",
+    key: "price" | "mrp" | "weightGrams",
     placeholder: string,
   ) {
     return (
@@ -106,7 +108,7 @@ export function VariantsTable({
 
   return (
     <Field className="min-w-0">
-      <FieldLabel>Stock &amp; pricing</FieldLabel>
+      <FieldLabel>Pricing</FieldLabel>
       <div className="w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-border">
         <Table>
           <TableHeader>
@@ -118,7 +120,6 @@ export function VariantsTable({
               <TableHead>Buying price</TableHead>
               <TableHead>Selling price</TableHead>
               <TableHead>MRP</TableHead>
-              <TableHead>Stock</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -158,9 +159,6 @@ export function VariantsTable({
                 <TableCell className="min-w-28">
                   {numberInput(row, index, "mrp", "MRP")}
                 </TableCell>
-                <TableCell className="min-w-24">
-                  {numberInput(row, index, "stock", "Stock")}
-                </TableCell>
                 <TableCell>
                   <Button
                     data-testid={`admin-product-variant-remove-${index}`}
@@ -190,7 +188,8 @@ export function VariantsTable({
         Add a variant
       </Button>
       <FieldDescription>
-        Total stock across these rows becomes the product's stock.
+        Stock is set per hub — use "Update stock" or hub availability below, not
+        here.
       </FieldDescription>
     </Field>
   );

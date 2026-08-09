@@ -104,14 +104,17 @@ function ProductDetailPage() {
   }
 
   // Real variants now, rather than slicing a hardcoded global by category.
+  // A single variant needs no picker — it's already the only option, so
+  // `size`/`color` are pre-selected via the mount effect above and the
+  // selector would just add a pointless required click.
   const availableSizes = product.sizes.map((s) => s.label);
-  const needsSize = product.sizes.length > 0;
+  const needsSize = product.sizes.length > 1;
   const selectedSize = product.sizes.find((s) => s.label === size) ?? null;
 
   // Colors are a separate axis — only relevant when the product has no
   // sizes (the two are mutually exclusive in practice).
   const availableColors = product.colors.map((c) => c.label);
-  const needsColor = !needsSize && product.colors.length > 0;
+  const needsColor = product.sizes.length === 0 && product.colors.length > 1;
   const selectedColor = needsColor
     ? (product.colors.find((c) => c.label === color) ?? null)
     : null;

@@ -15,22 +15,34 @@ interface ProductCardProps {
 export default function ProductCard({ product, className }: ProductCardProps) {
   const { addItem, items, updateQty } = useCart();
   const { has, toggle } = useWishlist();
-  const inCart = items.find(
-    (i) => i.productId === product.id && !i.productSizeId && !i.productColorId,
-  );
   const wished = has(product.id);
-  const isOutOfStock = product.stock <= 0;
 
   const variantCount = product.sizes.length + product.colors.length;
   // 2+ real variants → user must choose on the PDP
   const hasMultipleVariants = variantCount > 1;
-  // ≤1 variants (0 = no variants, 1 = single implicit "Default") → quick-add from card
+  // ≤1 variants (0 = no variants, 1 = single implicit variant) → quick-add from card
   const canQuickAdd = variantCount <= 1;
+  // The one real variant, when there is exactly one — its stock/id govern
+  // quick-add, not the product-level fields, which don't reflect per-variant
+  // inventory.
+  const soleVariant = product.sizes[0] ?? product.colors[0] ?? null;
+  const isOutOfStock = soleVariant
+    ? soleVariant.stock <= 0
+    : product.stock <= 0;
+  const isSoleSize = Boolean(product.sizes[0]);
+  const inCart = items.find(
+    (i) =>
+      i.productId === product.id &&
+      (i.productSizeId ?? null) ===
+        (isSoleSize ? (soleVariant?.id ?? null) : null) &&
+      (i.productColorId ?? null) ===
+        (isSoleSize ? null : (soleVariant?.id ?? null)),
+  );
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     if (isOutOfStock || !canQuickAdd) return;
-    addItem(product);
+    addItem(product, soleVariant?.label ?? null);
     toast.success(`${product.name} added to cart!`);
   };
 
