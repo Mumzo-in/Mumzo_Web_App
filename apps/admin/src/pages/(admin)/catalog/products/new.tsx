@@ -112,7 +112,6 @@ function NewProductPage() {
               price: 0,
               mrp: 0,
               costPrice: null,
-              stock: 0,
               qty: "",
             },
           ],

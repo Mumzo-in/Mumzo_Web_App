@@ -22,7 +22,8 @@ type Size = {
 type Color = Size;
 
 /** Write-side shape — the repo syncs sizes/colors incrementally by id, so an
- * `id` present here refers to an existing row; absent means a new row. */
+ * `id` present here refers to an existing row; absent means a new row. No
+ * `stock` — that lives only in per-hub `inventory`, never on this row. */
 type SizeInput = {
   id?: string;
   label: string;
@@ -30,7 +31,6 @@ type SizeInput = {
   price: number;
   mrp: number;
   costPrice: number | null;
-  stock: number;
   weightGrams: number;
   qty: string;
 };

@@ -9,7 +9,9 @@ import { z } from "@hono/zod-openapi";
 
 /** `id` is present on read (identifies the `productSize` row for the cart to
  * reference) and absent on write — the form always fully replaces a
- * product's sizes/colors on save, so there's never an existing id to send. */
+ * product's sizes/colors on save, so there's never an existing id to send.
+ * `stock` is read-only here too — it's a live rollup of per-hub `inventory`,
+ * never a column the write path accepts (see `productSizeWriteSchema`). */
 export const productSizeSchema = z
   .object({
     id: z.string().optional(),
@@ -40,6 +42,42 @@ export const productColorSchema = z
     stock: z.number().int().min(0),
     weightGrams: z.number().int().min(0).default(0),
     /** Pack size shown on the product page — "Pack of 72", "500 ml". */
+    qty: z.string().min(1),
+  })
+  .refine((data) => data.mrp >= data.price, {
+    message: "MRP must be at least the selling price.",
+    path: ["mrp"],
+  });
+
+/** What create/update actually accept per variant — no `stock`. Stock lives
+ * only in per-hub `inventory`, set via the inventory endpoints, never
+ * through the product form. */
+export const productSizeWriteSchema = z
+  .object({
+    id: z.string().optional(),
+    label: z.string().min(1),
+    sku: z.string().min(1),
+    price: z.number().int().positive(),
+    mrp: z.number().int().positive(),
+    costPrice: z.number().int().positive().nullable().default(null),
+    weightGrams: z.number().int().min(0).default(0),
+    qty: z.string().min(1),
+  })
+  .refine((data) => data.mrp >= data.price, {
+    message: "MRP must be at least the selling price.",
+    path: ["mrp"],
+  });
+
+/** Same shape as `productSizeWriteSchema` — color/style, a separate axis. */
+export const productColorWriteSchema = z
+  .object({
+    id: z.string().optional(),
+    label: z.string().min(1),
+    sku: z.string().min(1),
+    price: z.number().int().positive(),
+    mrp: z.number().int().positive(),
+    costPrice: z.number().int().positive().nullable().default(null),
+    weightGrams: z.number().int().min(0).default(0),
     qty: z.string().min(1),
   })
   .refine((data) => data.mrp >= data.price, {
@@ -147,8 +185,8 @@ export const productWriteSchema = z
     /** Draft image-upload session to finalize on save. Omit when `images`
      * already holds final URLs (no pending uploads this submit). */
     uploadSessionId: z.string().nullable().default(null),
-    sizes: z.array(productSizeSchema).min(1),
-    colors: z.array(productColorSchema).default([]),
+    sizes: z.array(productSizeWriteSchema).min(1),
+    colors: z.array(productColorWriteSchema).default([]),
 
     ages: z.array(z.string()).default([]),
     type: z.string().min(1),

@@ -300,6 +300,9 @@ async function syncVendorLink(
     });
 }
 
+/** No `stock` — that lives only in per-hub `inventory`, never on this row
+ * (the column stays in the DB, always `0` here; nothing reads it as
+ * meaningful anymore — see `inventoryStockByProductIds`). */
 type VariantInput = {
   id?: string;
   label: string;
@@ -307,7 +310,6 @@ type VariantInput = {
   price: number;
   mrp: number;
   costPrice: number | null;
-  stock: number;
   weightGrams: number;
   qty: string;
 };
@@ -337,7 +339,6 @@ export async function insert(
           price: size.price,
           mrp: size.mrp,
           costPrice: size.costPrice,
-          stock: size.stock,
           weightGrams: size.weightGrams,
           qty: size.qty,
           position: index,
@@ -354,7 +355,6 @@ export async function insert(
           price: color.price,
           mrp: color.mrp,
           costPrice: color.costPrice,
-          stock: color.stock,
           weightGrams: color.weightGrams,
           qty: color.qty,
           position: index,
@@ -414,7 +414,6 @@ export async function update(
             price: size.price,
             mrp: size.mrp,
             costPrice: size.costPrice,
-            stock: size.stock,
             weightGrams: size.weightGrams,
             qty: size.qty,
             position: index,
@@ -428,7 +427,6 @@ export async function update(
           price: size.price,
           mrp: size.mrp,
           costPrice: size.costPrice,
-          stock: size.stock,
           weightGrams: size.weightGrams,
           qty: size.qty,
           position: index,
@@ -472,7 +470,6 @@ export async function update(
             price: color.price,
             mrp: color.mrp,
             costPrice: color.costPrice,
-            stock: color.stock,
             weightGrams: color.weightGrams,
             qty: color.qty,
             position: index,
@@ -486,7 +483,6 @@ export async function update(
           price: color.price,
           mrp: color.mrp,
           costPrice: color.costPrice,
-          stock: color.stock,
           weightGrams: color.weightGrams,
           qty: color.qty,
           position: index,

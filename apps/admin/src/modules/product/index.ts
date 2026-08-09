@@ -6,6 +6,7 @@ export {
   type Product,
   type ProductInput,
   type ProductVariant,
+  type ProductVariantInput,
   type ProductVendorInput,
   updateProduct,
 } from "./api/products-api";
