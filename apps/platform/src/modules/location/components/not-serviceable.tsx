@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useModalStore } from "@/core/hooks/use-modal-store";
-import { expressAreas } from "../data/serviceability-data";
+import { useServiceAreas } from "../data/serviceability-data";
 import { useServiceability } from "../store/serviceability-provider";
 
 /**
@@ -15,6 +15,8 @@ export default function NotServiceable({ compact }: { compact?: boolean }) {
   const { query } = useServiceability();
   const { openModal } = useModalStore();
   const [notified, setNotified] = useState(false);
+  const { data: areas } = useServiceAreas();
+  const expressAreas = (areas ?? []).filter((a) => a.expressAvailable);
 
   return (
     <div
@@ -36,7 +38,7 @@ export default function NotServiceable({ compact }: { compact?: boolean }) {
         <p className="mt-2 max-w-md text-foreground/60 text-sm leading-relaxed">
           Mumzo isn't live at{" "}
           <span className="font-semibold text-ink">{query}</span> right now.
-          We're adding new areas across Hyderabad every month.
+          We're adding new areas every month.
         </p>
       </div>
 
@@ -72,7 +74,7 @@ export default function NotServiceable({ compact }: { compact?: boolean }) {
               key={a.pincode}
               className="rounded-full bg-secondary px-3 py-1.5 font-medium text-foreground/70 text-xs"
             >
-              {a.area}
+              {a.name}
             </span>
           ))}
         </div>

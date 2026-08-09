@@ -2,7 +2,10 @@ import { Input } from "@mumzo/ui/components/input";
 import { LoaderCircle, MapPin } from "lucide-react";
 import { useState } from "react";
 import { usePlacesAutocomplete } from "@/core/hooks/use-places-autocomplete";
-import { findNearestServiceArea } from "../../data/serviceability-data";
+import {
+  findNearestServiceArea,
+  useServiceAreas,
+} from "../../data/serviceability-data";
 import type { ResolvedLocation } from "../../hooks/use-location-flow";
 import { StepBackButton } from "./step-back-button";
 
@@ -16,18 +19,24 @@ export function ManualStep({
   const [inputValue, setInputValue] = useState("");
   const [resolving, setResolving] = useState(false);
   const { suggestions, loading } = usePlacesAutocomplete(inputValue);
+  const { data: serviceAreas } = useServiceAreas();
 
   const handleSelectSuggestion = (
     label: string,
     coords: { lat: number; lng: number },
   ) => {
     setResolving(true);
-    const nearest = findNearestServiceArea(coords);
+    const nearest = findNearestServiceArea(serviceAreas ?? [], coords);
     setResolving(false);
+    // Real coverage only spans whatever's in `service_area` — outside it,
+    // `nearest` is null and the real pincode (visible in the suggestion's
+    // own label, e.g. "781001, Guwahati, …") is the only accurate one
+    // available. Never substitute a nearby-but-wrong pincode for it.
+    const labelPincode = label.match(/\b\d{6}\b/)?.[0];
     onResolved({
-      area: nearest?.area ?? label,
-      pincode: nearest?.pincode ?? "",
-      city: "Hyderabad",
+      area: nearest?.name ?? label,
+      pincode: nearest?.pincode ?? labelPincode ?? "",
+      city: nearest ? "Hyderabad" : "",
       line2: label,
       lat: coords.lat,
       lng: coords.lng,
@@ -64,31 +73,31 @@ export function ManualStep({
             className="absolute top-1/2 right-4 -translate-y-1/2 animate-spin text-foreground/40"
           />
         )}
-
-        {suggestions.length > 0 && (
-          <div
-            data-testid="web-place-suggestions"
-            className="absolute top-[calc(100%+0.5rem)] left-0 z-10 max-h-60 w-full overflow-y-auto rounded-2xl border border-border/70 bg-white shadow-warm"
-          >
-            {suggestions.map((s) => (
-              <button
-                key={`${s.lat}-${s.lng}`}
-                type="button"
-                onClick={() =>
-                  handleSelectSuggestion(s.label, { lat: s.lat, lng: s.lng })
-                }
-                data-testid={`web-place-suggestion-${s.lat}-${s.lng}`}
-                className="flex w-full items-start gap-2 px-4 py-2.5 text-left transition-colors hover:bg-secondary"
-              >
-                <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
-                <span className="text-foreground text-xs leading-snug">
-                  {s.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {suggestions.length > 0 && (
+        <div
+          data-testid="web-place-suggestions"
+          className="mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-border/70 bg-white shadow-warm"
+        >
+          {suggestions.map((s) => (
+            <button
+              key={`${s.lat}-${s.lng}`}
+              type="button"
+              onClick={() =>
+                handleSelectSuggestion(s.label, { lat: s.lat, lng: s.lng })
+              }
+              data-testid={`web-place-suggestion-${s.lat}-${s.lng}`}
+              className="flex w-full items-start gap-2 px-4 py-2.5 text-left transition-colors hover:bg-secondary"
+            >
+              <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
+              <span className="text-foreground text-xs leading-snug">
+                {s.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

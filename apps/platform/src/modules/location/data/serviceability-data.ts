@@ -1,119 +1,22 @@
-export interface ServiceArea {
-  pincode: string;
-  area: string;
-  /** Express (10-min) zone, vs scheduled-only outer zone. */
-  express: boolean;
-  etaMins: number;
-  /** Approximate centroid — used to match a geolocated coordinate to the
-   * nearest mock dark-store zone (the real serviceable-area boundary isn't
-   * modeled yet; this is a placeholder radius/zone system). */
-  lat: number;
-  lng: number;
-}
+import { useQuery } from "@tanstack/react-query";
+import { fetchServiceAreas, type ServiceAreaApiResult } from "../api/places";
 
-/**
- * Mock dark-store coverage for Hyderabad. Express zones sit near a hub;
- * outer zones are serviceable but scheduled-only.
- */
-export const serviceAreas: ServiceArea[] = [
-  {
-    pincode: "500034",
-    area: "Banjara Hills",
-    express: true,
-    etaMins: 10,
-    lat: 17.4156,
-    lng: 78.4347,
-  },
-  {
-    pincode: "500033",
-    area: "Jubilee Hills",
-    express: true,
-    etaMins: 12,
-    lat: 17.4325,
-    lng: 78.4071,
-  },
-  {
-    pincode: "500081",
-    area: "Madhapur",
-    express: true,
-    etaMins: 12,
-    lat: 17.4483,
-    lng: 78.3915,
-  },
-  {
-    pincode: "500032",
-    area: "Gachibowli",
-    express: true,
-    etaMins: 15,
-    lat: 17.4401,
-    lng: 78.3489,
-  },
-  {
-    pincode: "500084",
-    area: "Kondapur",
-    express: true,
-    etaMins: 15,
-    lat: 17.4615,
-    lng: 78.3634,
-  },
-  {
-    pincode: "500016",
-    area: "Begumpet",
-    express: true,
-    etaMins: 14,
-    lat: 17.4436,
-    lng: 78.4645,
-  },
-  {
-    pincode: "500003",
-    area: "Secunderabad",
-    express: false,
-    etaMins: 90,
-    lat: 17.4399,
-    lng: 78.4983,
-  },
-  {
-    pincode: "500072",
-    area: "Kukatpally",
-    express: false,
-    etaMins: 90,
-    lat: 17.4849,
-    lng: 78.4108,
-  },
-];
-
-export type ServiceabilityStatus = "express" | "scheduled" | "unserviceable";
-
-export interface ServiceabilityResult {
-  status: ServiceabilityStatus;
-  area: ServiceArea | null;
-}
+export type ServiceArea = ServiceAreaApiResult;
 
 const PINCODE_RE = /^\d{6}$/;
 
 export const isPincode = (value: string): boolean =>
   PINCODE_RE.test(value.trim());
 
-export function findServiceArea(query: string): ServiceArea | null {
-  const q = query.trim().toLowerCase();
-  if (!q) return null;
-  return (
-    serviceAreas.find((a) => a.pincode === q || a.area.toLowerCase() === q) ??
-    null
-  );
+/** Every active service area, backed by the admin-managed `service_area`
+ * table — cached for the session since coverage changes rarely. */
+export function useServiceAreas() {
+  return useQuery({
+    queryKey: ["location", "service-areas"],
+    queryFn: fetchServiceAreas,
+    staleTime: 5 * 60 * 1000,
+  });
 }
-
-/**
- * Resolve a pincode or area name to coverage. Anything we don't recognise is
- * treated as outside our zone.
- */
-export function checkServiceability(query: string): ServiceabilityResult {
-  const area = findServiceArea(query);
-  if (!area) return { status: "unserviceable", area: null };
-  return { status: area.express ? "express" : "scheduled", area };
-}
-
-export const expressAreas = serviceAreas.filter((a) => a.express);
 
 function haversineKm(
   a: { lat: number; lng: number },
@@ -130,23 +33,28 @@ function haversineKm(
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/**
- * Nearest-area lookup by raw distance — maps a real geocoded coordinate
- * (from the server's OpenStreetMap Nominatim proxy) onto our mock dark-store
- * zones until real serviceability polygons/radii are modeled.
- */
-export function findNearestServiceArea(coords: {
-  lat: number;
-  lng: number;
-}): ServiceArea | null {
+/** Areas farther than this from a coordinate are treated as outside coverage
+ * entirely, rather than snapped to whichever area happens to be
+ * least-far-away (e.g. a Guwahati address must never resolve to a Hyderabad
+ * pincode just because it's "nearest"). */
+const MAX_MATCH_KM = 25;
+
+/** Nearest-area lookup by raw distance over the real service areas (using
+ * each area's serving hub coordinates) — maps a real geocoded coordinate
+ * (from the server's OpenStreetMap Nominatim proxy) onto actual coverage. */
+export function findNearestServiceArea(
+  areas: ServiceArea[],
+  coords: { lat: number; lng: number },
+): ServiceArea | null {
   let nearest: ServiceArea | null = null;
   let nearestKm = Number.POSITIVE_INFINITY;
-  for (const area of serviceAreas) {
-    const km = haversineKm(coords, area);
+  for (const area of areas) {
+    if (area.lat == null || area.lng == null) continue;
+    const km = haversineKm(coords, { lat: area.lat, lng: area.lng });
     if (km < nearestKm) {
       nearest = area;
       nearestKm = km;
     }
   }
-  return nearest;
+  return nearest && nearestKm <= MAX_MATCH_KM ? nearest : null;
 }

@@ -12,12 +12,7 @@ import { checkPincodeServiceability } from "../api/places";
 
 export type ServiceabilityStatus = "serviceable" | "unserviceable";
 
-/**
- * There's no express/scheduled tier or ETA in the real service-area model
- * yet (just serviceable/not) — every serviceable pincode is treated as
- * express, at Mumzo's standard promise, so the existing checkout/selector UI
- * (which does branch on a tier) keeps working unchanged.
- */
+/** Fallback ETA shown only before the first real server check resolves. */
 const DEFAULT_ETA_MINS = 10;
 
 interface ServiceabilityContextValue {
@@ -34,7 +29,8 @@ interface ServiceabilityContextValue {
   status: ServiceabilityStatus;
   /** Convenience: can they order at all from this location? */
   serviceable: boolean;
-  /** Every serviceable area is express-only for now — see DEFAULT_ETA_MINS. */
+  /** True for `express`/`outer_express` zone tiers, from the real
+   * `service_area` row — scheduled-only zones report false. */
   expressAvailable: boolean;
   area: { etaMins: number } | null;
   /** True while a serviceability check is in flight. */
@@ -110,6 +106,8 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   );
   const [hubName, setHubName] = useState<string | null>(null);
   const [status, setStatus] = useState<ServiceabilityStatus>("serviceable");
+  const [expressAvailable, setExpressAvailable] = useState(true);
+  const [etaMinutes, setEtaMinutes] = useState<number | null>(DEFAULT_ETA_MINS);
   const [checking, setChecking] = useState(false);
   const [hasChosenLocation, setHasChosenLocation] =
     useState<boolean>(readChosen);
@@ -133,12 +131,16 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
       const result = await checkPincodeServiceability(nextPincode);
       setStatus(result.serviceable ? "serviceable" : "unserviceable");
       setHubName(result.hubName);
+      setExpressAvailable(result.expressAvailable);
+      setEtaMinutes(result.etaMinutes ?? DEFAULT_ETA_MINS);
     } catch {
       // A network hiccup shouldn't silently strand the visitor mid-checkout —
       // treat it as serviceable and let a real order attempt surface the
       // problem, rather than blocking browsing on a transient failure.
       setStatus("serviceable");
       setHubName(null);
+      setExpressAvailable(true);
+      setEtaMinutes(DEFAULT_ETA_MINS);
     } finally {
       setChecking(false);
     }
@@ -182,8 +184,8 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
       hubName,
       status,
       serviceable,
-      expressAvailable: serviceable,
-      area: serviceable ? { etaMins: DEFAULT_ETA_MINS } : null,
+      expressAvailable: serviceable && expressAvailable,
+      area: serviceable ? { etaMins: etaMinutes ?? DEFAULT_ETA_MINS } : null,
       checking,
       hasChosenLocation,
       setLocation,
@@ -197,6 +199,8 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
       hubName,
       status,
       serviceable,
+      expressAvailable,
+      etaMinutes,
       checking,
       hasChosenLocation,
       setLocation,
@@ -211,12 +215,26 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_SERVICEABILITY_VALUE: ServiceabilityContextValue = {
+  query: DEFAULT_QUERY,
+  pincode: DEFAULT_PINCODE,
+  lat: null,
+  lng: null,
+  hubName: null,
+  status: "serviceable",
+  serviceable: true,
+  expressAvailable: true,
+  area: { etaMins: DEFAULT_ETA_MINS },
+  checking: false,
+  hasChosenLocation: true,
+  setLocation: async () => {},
+  markChosen: () => {},
+};
+
 export function useServiceability(): ServiceabilityContextValue {
   const ctx = useContext(ServiceabilityContext);
   if (!ctx) {
-    throw new Error(
-      "useServiceability must be used inside <ServiceabilityProvider>",
-    );
+    return DEFAULT_SERVICEABILITY_VALUE;
   }
   return ctx;
 }

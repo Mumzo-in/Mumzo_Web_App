@@ -335,6 +335,11 @@ export const hub = pgTable(
     operatingHoursStart: text("operating_hours_start"),
     operatingHoursEnd: text("operating_hours_end"),
     avgPickPackMins: integer("avg_pick_pack_mins").default(3).notNull(),
+    /** Per-hub override of the global `SERVICE_RADIUS_KM` fallback in
+     * `shared/hub-resolution.ts` — how far this hub is willing to deliver
+     * when a customer's pincode isn't in `service_area`. Drives the admin
+     * map's coverage circle. */
+    serviceRadiusKm: integer("service_radius_km").default(5).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     /** The hub order placement/stock checks use until real pincode-based
      * routing exists (docs/order-checkout-flow.md's single-hub-launch note).

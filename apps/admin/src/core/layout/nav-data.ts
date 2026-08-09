@@ -86,7 +86,6 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             label: "Service Areas",
             to: "/operations/service-areas",
-            comingSoon: true,
           },
         ],
       },

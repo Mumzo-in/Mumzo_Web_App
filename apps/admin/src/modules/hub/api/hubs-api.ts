@@ -1,33 +1,68 @@
-import type { Paginated } from "@/core/api/client";
-import {
-  mockCreate,
-  mockDelete,
-  mockDetail,
-  mockId,
-  mockList,
-  mockUpdate,
-} from "@/core/api/mock";
+import { apiRequest, type Paginated } from "@/core/api/client";
 import type { ListParams } from "@/core/api/query-keys";
-import type { Hub, HubType } from "../data/hub-data";
-import { hubs } from "../data/hub-data";
+import type { HubType } from "../data/hub-data";
 
-export type { Hub, HubType } from "../data/hub-data";
+export type { HubType } from "../data/hub-data";
 
-export function listHubs(params: ListParams): Promise<Paginated<Hub>> {
-  return mockList({
-    rows: hubs,
-    params,
-    searchFields: ["name", "city"],
-  });
+export type Hub = {
+  id: string;
+  name: string;
+  type: HubType;
+  address: string;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  lat: number | null;
+  lng: number | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  capacity: number | null;
+  operatingHoursStart: string | null;
+  operatingHoursEnd: string | null;
+  avgPickPackMins: number;
+  serviceRadiusKm: number;
+  isActive: boolean;
+  isDefault: boolean;
+  createdAt: string;
+};
+
+function fetchAllHubs(): Promise<Hub[]> {
+  return apiRequest<Hub[]>("/hubs");
+}
+
+/** The list endpoint returns every hub in one call (dark-store counts stay
+ * small) — search/sort/paginate happen here instead of round-tripping. */
+export async function listHubs(params: ListParams): Promise<Paginated<Hub>> {
+  const rows = await fetchAllHubs();
+
+  let result = rows;
+  const search =
+    typeof params.search === "string" ? params.search.trim().toLowerCase() : "";
+  if (search) {
+    result = result.filter(
+      (hub) =>
+        hub.name.toLowerCase().includes(search) ||
+        (hub.city ?? "").toLowerCase().includes(search),
+    );
+  }
+
+  const page = Number(params.page ?? 1);
+  const limit = Number(params.limit ?? 20);
+  const total = result.length;
+  const start = (page - 1) * limit;
+
+  return {
+    data: result.slice(start, start + limit),
+    meta: { page, limit, total, hasNext: start + limit < total },
+  };
 }
 
 export async function listAllHubs(): Promise<Hub[]> {
-  const { data } = await mockList<Hub>({ rows: hubs, params: { limit: 100 } });
-  return data;
+  return fetchAllHubs();
 }
 
 export function getHub(id: string): Promise<Hub> {
-  return mockDetail(hubs.find((hub) => hub.id === id));
+  return apiRequest<Hub>(`/hubs/${encodeURIComponent(id)}`);
 }
 
 export type HubInput = {
@@ -50,35 +85,25 @@ export type HubInput = {
   isDefault: boolean;
 };
 
-export async function createHub(input: HubInput): Promise<{ id: string }> {
-  const id = mockId("hub");
-  if (input.isDefault) {
-    for (const hub of hubs) {
-      hub.isDefault = false;
-    }
-  }
-  await mockCreate(hubs, {
-    ...input,
-    id,
-    createdAt: new Date().toISOString(),
+export function createHub(input: HubInput): Promise<{ id: string }> {
+  return apiRequest<{ id: string }>("/hubs", {
+    method: "POST",
+    body: input,
   });
-  return { id };
 }
 
-export async function updateHub(
+export function updateHub(
   id: string,
   input: Partial<HubInput>,
-): Promise<Hub> {
-  if (input.isDefault) {
-    for (const hub of hubs) {
-      if (hub.id !== id) {
-        hub.isDefault = false;
-      }
-    }
-  }
-  return mockUpdate(hubs, id, input);
+): Promise<{ ok: true }> {
+  return apiRequest<{ ok: true }>(`/hubs/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: input,
+  });
 }
 
 export function deleteHub(id: string): Promise<{ ok: true }> {
-  return mockDelete(hubs, id);
+  return apiRequest<{ ok: true }>(`/hubs/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }

@@ -15,9 +15,20 @@ export async function findById(id: string) {
 
 export async function insert(input: {
   name: string;
+  type: string;
   address: string;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
   lat?: number | null;
   lng?: number | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  capacity?: number | null;
+  operatingHoursStart?: string | null;
+  operatingHoursEnd?: string | null;
+  avgPickPackMins: number;
+  serviceRadiusKm: number;
   isActive: boolean;
   isDefault?: boolean;
 }) {
@@ -40,9 +51,20 @@ export async function update(
   id: string,
   input: Partial<{
     name: string;
+    type: string;
     address: string;
+    city: string | null;
+    state: string | null;
+    pincode: string | null;
     lat: number | null;
     lng: number | null;
+    contactName: string | null;
+    contactPhone: string | null;
+    capacity: number | null;
+    operatingHoursStart: string | null;
+    operatingHoursEnd: string | null;
+    avgPickPackMins: number;
+    serviceRadiusKm: number;
     isActive: boolean;
     isDefault: boolean;
   }>,

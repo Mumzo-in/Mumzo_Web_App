@@ -1,6 +1,7 @@
 import { Button } from "@mumzo/ui/components/button";
 import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
+import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { authClient } from "@/modules/auth";
@@ -26,7 +27,7 @@ interface AddressFormProps {
   initial?: Address;
   /** Other saved addresses — used to block a second Home/Work label. */
   existing?: Address[];
-  onSubmit: (draft: AddressDraft) => void;
+  onSubmit: (draft: AddressDraft) => void | Promise<void>;
   onCancel?: () => void;
 }
 
@@ -43,6 +44,7 @@ export default function AddressForm({
       ? formatAccountPhone(user.phoneNumber)
       : undefined;
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState(() => ({
     ...emptyAddress(),
     ...initial,
@@ -55,15 +57,21 @@ export default function AddressForm({
       .filter((a) => a.id !== initial?.id && a.label !== "Other")
       .map((a) => a.label),
   );
-  const isLabelDisabled = (label: AddressLabel) => takenLabels.has(label);
+  const isLabelDisabled = (label: AddressLabel) =>
+    takenLabels.has(label) || isSubmitting;
 
   const set = <K extends keyof AddressDraft>(key: K, val: AddressDraft[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (isLabelDisabled(form.label)) return;
-    onSubmit(form as AddressDraft);
+    if (isLabelDisabled(form.label) || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(form as AddressDraft);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,7 +101,7 @@ export default function AddressForm({
           );
         })}
       </div>
-      {isLabelDisabled(form.label) && (
+      {isLabelDisabled(form.label) && !isSubmitting && (
         <p className="text-destructive text-xs">
           You already have a {form.label} address — save this one under "Other"
           instead.
@@ -108,6 +116,7 @@ export default function AddressForm({
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="Ananya Reddy"
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -118,8 +127,9 @@ export default function AddressForm({
               <button
                 type="button"
                 onClick={() => set("phone", accountPhone)}
+                disabled={isSubmitting}
                 data-testid="web-use-account-phone"
-                className="cursor-pointer font-semibold text-primary text-xs hover:text-primary/80"
+                className="cursor-pointer font-semibold text-primary text-xs hover:text-primary/80 disabled:opacity-50"
               >
                 Use my number
               </button>
@@ -130,6 +140,7 @@ export default function AddressForm({
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
             placeholder="98480 12345"
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -142,6 +153,7 @@ export default function AddressForm({
           value={form.line1}
           onChange={(e) => set("line1", e.target.value)}
           placeholder="Flat 402, Lotus Residency"
+          disabled={isSubmitting}
           required
         />
       </div>
@@ -153,6 +165,7 @@ export default function AddressForm({
           value={form.line2}
           onChange={(e) => set("line2", e.target.value)}
           placeholder="Road No. 12, Banjara Hills"
+          disabled={isSubmitting}
           required
         />
       </div>
@@ -164,6 +177,7 @@ export default function AddressForm({
           value={form.landmark}
           onChange={(e) => set("landmark", e.target.value)}
           placeholder="Opp. GVK One Mall"
+          disabled={isSubmitting}
         />
       </div>
 
@@ -174,6 +188,7 @@ export default function AddressForm({
             id="city"
             value={form.city}
             onChange={(e) => set("city", e.target.value)}
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -184,6 +199,7 @@ export default function AddressForm({
             value={form.pincode}
             onChange={(e) => set("pincode", e.target.value)}
             placeholder="500034"
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -194,20 +210,33 @@ export default function AddressForm({
           type="checkbox"
           checked={form.isDefault}
           onChange={(e) => set("isDefault", e.target.checked)}
+          disabled={isSubmitting}
           className="size-4 accent-primary"
         />
         Make this my default address
       </label>
 
       <div className="flex gap-3 pt-2">
-        <Button type="submit" className="flex-1 rounded-full">
-          Save address
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 rounded-full"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              Saving…
+            </span>
+          ) : (
+            "Save address"
+          )}
         </Button>
         {onCancel && (
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
+            disabled={isSubmitting}
             className="rounded-full"
           >
             Cancel

@@ -21,7 +21,7 @@ export const Route = createFileRoute("/(store)/(protected)/checkout/payment")({
 
 function CheckoutPaymentPage() {
   const navigate = useNavigate();
-  const { items, clear } = useCart();
+  const { items, totals, clear } = useCart();
   const { addresses } = useAddresses();
   const { addressId, slotLabel, mode, slotWindowId, paymentMethod } =
     useCheckout();
@@ -30,6 +30,7 @@ function CheckoutPaymentPage() {
   const SlotIcon = mode === "express" ? Zap : CalendarClock;
   const slotFee =
     mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
+  const total = totals.total + slotFee;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
 
@@ -77,15 +78,15 @@ function CheckoutPaymentPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 px-4 sm:px-0">
+    <div className="flex flex-col gap-6 sm:gap-8">
       <CheckoutSteps current="payment" />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-        <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12 lg:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-6 md:col-span-7 xl:col-span-8">
           {/* Deliver Address Recap Card */}
-          <section className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-white p-5 shadow-warm">
+          <section className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-editorial font-medium text-ink text-lg">
+              <h2 className="font-editorial font-medium text-base text-ink sm:text-lg">
                 Delivering to
               </h2>
               <button
@@ -122,16 +123,16 @@ function CheckoutPaymentPage() {
           </section>
 
           {/* Payment Method Selector Card */}
-          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-5 shadow-warm sm:p-6">
-            <h2 className="font-editorial font-medium text-ink text-lg">
+          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6">
+            <h2 className="font-editorial font-medium text-base text-ink sm:text-lg">
               Payment method
             </h2>
             <PaymentMethodSelector />
           </section>
 
           {/* Items Recap Card */}
-          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-5 shadow-warm sm:p-6">
-            <h2 className="font-editorial font-medium text-ink text-lg">
+          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6">
+            <h2 className="font-editorial font-medium text-base text-ink sm:text-lg">
               Order Summary ({items.length}{" "}
               {items.length === 1 ? "item" : "items"})
             </h2>
@@ -139,12 +140,12 @@ function CheckoutPaymentPage() {
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
+                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 sm:gap-4"
                 >
                   <img
                     src={item.img ?? ""}
                     alt={item.name}
-                    className="size-12 shrink-0 rounded-xl border border-border/55 object-cover"
+                    className="size-10 shrink-0 rounded-xl border border-border/55 object-cover sm:size-12"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-ink text-xs">
@@ -156,7 +157,7 @@ function CheckoutPaymentPage() {
                       {item.qty}
                     </p>
                   </div>
-                  <p className="font-semibold text-ink text-xs">
+                  <p className="font-semibold text-ink text-xs sm:text-sm">
                     {rupee(item.price * item.qty)}
                   </p>
                 </div>
@@ -165,12 +166,34 @@ function CheckoutPaymentPage() {
           </section>
         </div>
 
-        <CartSummary
-          onPlaceOrder={() => void placeOrder()}
-          ctaLabel={placing ? "Placing order…" : "Place order"}
-          slotFee={slotFee}
+        <div className="flex flex-col gap-5 sm:gap-6 md:col-span-5 xl:col-span-4">
+          <CartSummary
+            onPlaceOrder={() => void placeOrder()}
+            ctaLabel={placing ? "Placing order…" : "Place order"}
+            slotFee={slotFee}
+            disabled={placing}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed right-0 bottom-0 left-0 z-40 flex items-center justify-between gap-3 border-border/80 border-t bg-white/95 p-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden">
+        <div className="flex flex-col">
+          <span className="font-semibold text-[10px] text-foreground/50 uppercase tracking-wider">
+            To Pay
+          </span>
+          <span className="font-bold font-editorial text-ink text-xl">
+            {rupee(total)}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => void placeOrder()}
           disabled={placing}
-        />
+          className="inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground text-sm shadow-md transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {placing ? "Placing order…" : "Place order"}
+        </button>
       </div>
     </div>
   );

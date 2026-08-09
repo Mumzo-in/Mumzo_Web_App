@@ -152,15 +152,15 @@ export async function placeOrder(
   });
   console.log(`[order-placement] resolved hub id: ${hubRow.id}`);
   const lines = await loadCartLinesForOrder(cartRow.id, hubRow.id);
-  console.log(
-    "[order-placement] cart lines with stock at resolved hub:",
-    lines.map((l) => ({
-      name: l.nameSnapshot,
-      qty: l.qty,
-      stock: l.stock,
-      outOfStock: l.qty > l.stock,
-    })),
-  );
+  // console.log(
+  //   "[order-placement] cart lines with stock at resolved hub:",
+  //   lines.map((l) => ({
+  //     name: l.nameSnapshot,
+  //     qty: l.qty,
+  //     stock: l.stock,
+  //     outOfStock: l.qty > l.stock,
+  //   })),
+  // );
   if (lines.length === 0) {
     throw badRequest("Your cart is empty.");
   }

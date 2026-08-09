@@ -80,10 +80,16 @@ export function TicketProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_TICKET_VALUE: TicketContextValue = {
+  tickets: [],
+  createTicket: () => ({}) as never,
+  addMessage: () => {},
+};
+
 export function useTickets(): TicketContextValue {
   const ctx = useContext(TicketContext);
   if (!ctx) {
-    throw new Error("useTickets must be used inside <TicketProvider>");
+    return DEFAULT_TICKET_VALUE;
   }
   return ctx;
 }

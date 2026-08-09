@@ -103,14 +103,23 @@ export interface ServiceabilityResult {
   serviceable: boolean;
   areaName: string | null;
   hubName: string | null;
+  expressAvailable: boolean;
+  etaMinutes: number | null;
 }
+
+const EXPRESS_ZONE_TIERS = new Set(["express", "outer_express"]);
 
 /** Real pincode → hub lookup, backed by the admin-managed `service_area` table. */
 export async function checkServiceability(
   pincode: string,
 ): Promise<ServiceabilityResult> {
   const [row] = await db
-    .select({ areaName: serviceArea.name, hubName: hub.name })
+    .select({
+      areaName: serviceArea.name,
+      hubName: hub.name,
+      zoneTier: serviceArea.zoneTier,
+      etaMinutes: serviceArea.etaMinutes,
+    })
     .from(serviceArea)
     .innerJoin(hub, eq(hub.id, serviceArea.hubId))
     .where(
@@ -119,8 +128,56 @@ export async function checkServiceability(
     .limit(1);
 
   if (!row) {
-    return { serviceable: false, areaName: null, hubName: null };
+    return {
+      serviceable: false,
+      areaName: null,
+      hubName: null,
+      expressAvailable: false,
+      etaMinutes: null,
+    };
   }
 
-  return { serviceable: true, areaName: row.areaName, hubName: row.hubName };
+  return {
+    serviceable: true,
+    areaName: row.areaName,
+    hubName: row.hubName,
+    expressAvailable: EXPRESS_ZONE_TIERS.has(row.zoneTier),
+    etaMinutes: row.etaMinutes,
+  };
+}
+
+export interface ServiceAreaResult {
+  pincode: string;
+  name: string;
+  expressAvailable: boolean;
+  etaMinutes: number;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** Every active service area, with its serving hub's coordinates — used
+ * client-side to match a geolocated coordinate to the nearest covered area
+ * without hardcoding a mock zone list. */
+export async function listServiceAreas(): Promise<ServiceAreaResult[]> {
+  const rows = await db
+    .select({
+      pincode: serviceArea.pincode,
+      name: serviceArea.name,
+      zoneTier: serviceArea.zoneTier,
+      etaMinutes: serviceArea.etaMinutes,
+      lat: hub.lat,
+      lng: hub.lng,
+    })
+    .from(serviceArea)
+    .innerJoin(hub, eq(hub.id, serviceArea.hubId))
+    .where(and(eq(serviceArea.isActive, true), eq(hub.isActive, true)));
+
+  return rows.map((row) => ({
+    pincode: row.pincode,
+    name: row.name,
+    expressAvailable: EXPRESS_ZONE_TIERS.has(row.zoneTier),
+    etaMinutes: row.etaMinutes,
+    lat: row.lat,
+    lng: row.lng,
+  }));
 }

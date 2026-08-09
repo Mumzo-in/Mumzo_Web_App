@@ -16,7 +16,7 @@ export default function CheckoutSteps({
   const currentIdx = STEPS.findIndex((s) => s.key === current);
 
   return (
-    <ol className="mx-auto flex w-full max-w-2xl items-center justify-center py-4 font-semibold text-xs tracking-widest sm:text-sm">
+    <ol className="mx-auto flex w-full max-w-xl items-center justify-center px-2 py-3 font-semibold text-[11px] tracking-wider sm:py-4 sm:text-xs sm:tracking-widest md:text-sm">
       {STEPS.map((step, i) => {
         const done = i < currentIdx;
         const active = i === currentIdx;
@@ -31,10 +31,7 @@ export default function CheckoutSteps({
         }`;
 
         return (
-          <li
-            key={step.key}
-            className="flex flex-1 items-center last:flex-none"
-          >
+          <li key={step.key} className="flex items-center last:flex-none">
             {reachable && !active ? (
               <Link className={labelClassName} to={step.to}>
                 {step.label}
@@ -43,7 +40,7 @@ export default function CheckoutSteps({
               <span className={labelClassName}>{step.label}</span>
             )}
             {i < STEPS.length - 1 && (
-              <span className="mx-4 h-0 flex-1 border-border/80 border-t border-dashed" />
+              <span className="mx-2 h-0 w-8 flex-1 border-border/80 border-t border-dashed sm:mx-4 sm:w-16" />
             )}
           </li>
         );

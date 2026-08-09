@@ -4,7 +4,10 @@ import { useModalStore } from "@/core/hooks/use-modal-store";
 import { type Address, useAddresses } from "@/modules/account";
 import { useRequireAuth } from "@/modules/auth";
 import { reverseGeocode } from "../api/places";
-import { findNearestServiceArea } from "../data/serviceability-data";
+import {
+  findNearestServiceArea,
+  useServiceAreas,
+} from "../data/serviceability-data";
 import { useServiceability } from "../store/serviceability-provider";
 
 export type LocationStep = "list" | "ask" | "manual" | "save";
@@ -27,6 +30,7 @@ export function useLocationFlow() {
   const { activeModal, closeModal } = useModalStore();
   const { setLocation, markChosen, pincode, lat, lng } = useServiceability();
   const { addAddress, addresses } = useAddresses();
+  const { data: serviceAreas } = useServiceAreas();
 
   const selectedAddressId =
     addresses.find((address) => {
@@ -84,22 +88,26 @@ export function useLocationFlow() {
 
   const resolveFromCoords = async (coords: { lat: number; lng: number }) => {
     setResolvingLocation(true);
-    const nearest = findNearestServiceArea(coords);
-    if (!nearest) {
-      setResolvingLocation(false);
-      markChosen();
-      closeModal();
-      return;
-    }
+    const nearest = findNearestServiceArea(serviceAreas ?? [], coords);
     const details = await reverseGeocode(coords.lat, coords.lng).catch(
       () => null,
     );
     setResolvingLocation(false);
+    // Real coverage only spans whatever's in `service_area` — outside it
+    // `nearest` is null. Never fall back to it in that case (it would
+    // silently report an unrelated area/pincode as if it were the visitor's
+    // real location); use the actual reverse-geocoded address instead so an
+    // out-of-coverage visitor is told the truth rather than lied to.
+    if (!nearest && !details) {
+      markChosen();
+      closeModal();
+      return;
+    }
     handleLocationResolved({
-      area: nearest.area,
-      pincode: details?.pincode || nearest.pincode,
-      city: details?.city || "Hyderabad",
-      line2: details?.formattedAddress || nearest.area,
+      area: nearest?.name ?? details?.city ?? "",
+      pincode: details?.pincode || nearest?.pincode || "",
+      city: details?.city || (nearest ? "Hyderabad" : ""),
+      line2: details?.formattedAddress || nearest?.name || "",
       lat: coords.lat,
       lng: coords.lng,
     });

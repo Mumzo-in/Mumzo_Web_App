@@ -29,9 +29,6 @@ export async function requireActiveHub() {
   return row;
 }
 
-/** Radius fallback kicks in only within this distance — beyond it, a hub is
- * not considered to serve the customer even if it's the nearest one. */
-const SERVICE_RADIUS_KM = 10;
 const EARTH_RADIUS_KM = 6371;
 
 /** Great-circle distance between two lat/lng points, in km. */
@@ -58,10 +55,10 @@ export interface CustomerLocation {
 /**
  * Resolves the hub that actually serves a customer, in order:
  * 1. Exact pincode match via the admin-managed `service_area` table.
- * 2. Nearest active hub within `SERVICE_RADIUS_KM` of the customer's
- *    coordinates (e.g. a Guwahati/Dispur pincode not yet mapped, but within
- *    10km of the Guwahati/Jalukbari hub) — a soft radius, no `service_area`
- *    row needed.
+ * 2. Nearest active hub within that hub's own `serviceRadiusKm` of the
+ *    customer's coordinates (e.g. a Guwahati/Dispur pincode not yet mapped,
+ *    but within the Guwahati hub's radius) — a soft radius, no
+ *    `service_area` row needed.
  * 3. `requireActiveHub()` (global default) when neither resolves anything.
  */
 export async function resolveHubForLocation(location: CustomerLocation) {
@@ -102,7 +99,13 @@ export async function resolveHubForLocation(location: CustomerLocation) {
 
   if (lat != null && lng != null) {
     const hubs = await db
-      .select({ id: hub.id, name: hub.name, lat: hub.lat, lng: hub.lng })
+      .select({
+        id: hub.id,
+        name: hub.name,
+        lat: hub.lat,
+        lng: hub.lng,
+        serviceRadiusKm: hub.serviceRadiusKm,
+      })
       .from(hub)
       .where(eq(hub.isActive, true));
 
@@ -119,9 +122,9 @@ export async function resolveHubForLocation(location: CustomerLocation) {
         { lat: h.lat, lng: h.lng },
       );
       console.log(
-        `[hub-resolution] hub "${h.name}" (${h.id}) at [${h.lat}, ${h.lng}] is ${distanceKm.toFixed(2)}km away (radius limit ${SERVICE_RADIUS_KM}km)`,
+        `[hub-resolution] hub "${h.name}" (${h.id}) at [${h.lat}, ${h.lng}] is ${distanceKm.toFixed(2)}km away (radius limit ${h.serviceRadiusKm}km)`,
       );
-      if (distanceKm <= SERVICE_RADIUS_KM) {
+      if (distanceKm <= h.serviceRadiusKm) {
         if (!nearest || distanceKm < nearest.distanceKm) {
           nearest = { id: h.id, name: h.name, distanceKm };
         }

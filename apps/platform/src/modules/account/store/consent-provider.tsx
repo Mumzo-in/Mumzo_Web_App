@@ -123,10 +123,18 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_CONSENT_VALUE: ConsentContextValue = {
+  consents: DEFAULT_CONSENTS,
+  decided: true,
+  setConsent: () => {},
+  acceptAll: () => {},
+  rejectAll: () => {},
+};
+
 export function useConsent(): ConsentContextValue {
   const ctx = useContext(ConsentContext);
   if (!ctx) {
-    throw new Error("useConsent must be used inside <ConsentProvider>");
+    return DEFAULT_CONSENT_VALUE;
   }
   return ctx;
 }

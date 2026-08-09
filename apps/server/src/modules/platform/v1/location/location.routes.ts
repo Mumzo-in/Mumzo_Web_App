@@ -6,6 +6,7 @@ import {
   placeDetailsSchema,
   placeSuggestionSchema,
   reverseQuerySchema,
+  serviceAreaSchema,
   serviceabilityQuerySchema,
   serviceabilityResultSchema,
 } from "./location.schema";
@@ -49,6 +50,20 @@ export const serviceabilityRoute = createRoute({
     200: jsonContent(
       successSchema(serviceabilityResultSchema),
       "Serviceability result",
+    ),
+    ...commonErrorResponses,
+  },
+});
+
+export const serviceAreasRoute = createRoute({
+  method: "get",
+  path: "/service-areas",
+  tags: [TAG],
+  summary: "List every active serviceable area",
+  responses: {
+    200: jsonContent(
+      successSchema(serviceAreaSchema.array()),
+      "Active service areas",
     ),
     ...commonErrorResponses,
   },

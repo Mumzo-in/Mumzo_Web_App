@@ -100,12 +100,17 @@ export function PaymentMethodsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_PAYMENT_METHODS_VALUE: PaymentMethodsContextValue = {
+  methods: [],
+  addMethod: () => {},
+  removeMethod: () => {},
+  setDefault: () => {},
+};
+
 export function usePaymentMethods(): PaymentMethodsContextValue {
   const ctx = useContext(PaymentMethodsContext);
   if (!ctx) {
-    throw new Error(
-      "usePaymentMethods must be used inside <PaymentMethodsProvider>",
-    );
+    return DEFAULT_PAYMENT_METHODS_VALUE;
   }
   return ctx;
 }

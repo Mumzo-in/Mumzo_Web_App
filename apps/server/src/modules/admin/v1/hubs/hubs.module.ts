@@ -2,10 +2,17 @@ import { createRouter, requirePermission } from "@/core";
 import {
   createRouteDef,
   deleteRouteDef,
+  getRoute,
   listRoute,
   updateRouteDef,
 } from "./hubs.routes";
-import { createHub, deleteHub, listHubs, updateHub } from "./hubs.service";
+import {
+  createHub,
+  deleteHub,
+  getHub,
+  listHubs,
+  updateHub,
+} from "./hubs.service";
 
 /** Dark-store hubs. Every route is guarded on `hub:*`. */
 
@@ -20,6 +27,10 @@ const hubs = app
   .openapi(listRoute, async (c) =>
     c.json({ success: true as const, data: await listHubs() }, 200),
   )
+  .openapi(getRoute, async (c) => {
+    const hub = await getHub(c.req.valid("param").id);
+    return c.json({ success: true as const, data: hub }, 200);
+  })
   .openapi(createRouteDef, async (c) => {
     const id = await createHub(c.req.valid("json"));
     return c.json({ success: true as const, data: { id } }, 201);

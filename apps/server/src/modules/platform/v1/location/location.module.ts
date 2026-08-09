@@ -2,10 +2,12 @@ import { createRouter } from "@/core";
 import {
   autocompleteRoute,
   reverseRoute,
+  serviceAreasRoute,
   serviceabilityRoute,
 } from "./location.routes";
 import {
   checkServiceability,
+  listServiceAreas,
   reverseGeocode,
   searchPlaces,
 } from "./location.service";
@@ -33,6 +35,10 @@ const location = app
     const { pincode } = c.req.valid("query");
     const result = await checkServiceability(pincode);
     return c.json({ success: true as const, data: result }, 200);
+  })
+  .openapi(serviceAreasRoute, async (c) => {
+    const results = await listServiceAreas();
+    return c.json({ success: true as const, data: results }, 200);
   });
 
 export default location;

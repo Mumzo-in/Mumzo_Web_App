@@ -505,6 +505,7 @@ const SERVICE_AREA_SEEDS: ServiceAreaSeed[] = [
   { name: "Kondapur", pincode: "500084", hubName: "Kukatpally Hub" },
   { name: "Kukatpally", pincode: "500072", hubName: "Kukatpally Hub" },
   { name: "Guwahati", pincode: "781001", hubName: "Guwahati Hub" },
+  { name: "Dispur", pincode: "781005", hubName: "Guwahati Hub" },
 ];
 
 export async function seedServiceAreas() {

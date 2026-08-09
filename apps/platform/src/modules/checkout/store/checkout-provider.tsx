@@ -154,10 +154,25 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_CHECKOUT_VALUE: CheckoutContextValue = {
+  addressId: null,
+  setAddressId: () => {},
+  mode: "express",
+  setMode: () => {},
+  slotDate: null,
+  setSlotDate: () => {},
+  slotWindowId: null,
+  setSlotWindowId: () => {},
+  slotReady: true,
+  slotLabel: "Express (10 min)",
+  paymentMethod: "cod",
+  setPaymentMethod: () => {},
+};
+
 export function useCheckout(): CheckoutContextValue {
   const ctx = useContext(CheckoutContext);
   if (!ctx) {
-    throw new Error("useCheckout must be used inside <CheckoutProvider>");
+    return DEFAULT_CHECKOUT_VALUE;
   }
   return ctx;
 }

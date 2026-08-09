@@ -90,10 +90,15 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_PREFERENCES_VALUE: PreferencesContextValue = {
+  prefs: DEFAULT_PREFS,
+  toggle: () => {},
+};
+
 export function usePreferences(): PreferencesContextValue {
   const ctx = useContext(PreferencesContext);
   if (!ctx) {
-    throw new Error("usePreferences must be used inside <PreferencesProvider>");
+    return DEFAULT_PREFERENCES_VALUE;
   }
   return ctx;
 }

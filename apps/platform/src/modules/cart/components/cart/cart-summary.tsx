@@ -51,7 +51,7 @@ export default function CartSummary({
   const savings = Math.max(0, mrpTotal - totals.subtotal);
 
   return (
-    <aside className="h-fit lg:sticky lg:top-24">
+    <aside className="h-fit md:sticky md:top-24">
       <div className="rounded-3xl border border-border/60 bg-white p-6">
         <p className="mb-4 font-semibold text-[11px] text-foreground/55 uppercase tracking-widest">
           Bill details

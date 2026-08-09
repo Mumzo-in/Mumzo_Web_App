@@ -4,9 +4,9 @@ export const Route = createFileRoute("/(store)/(protected)/checkout")({
   component: CheckoutLayout,
 });
 
-function CheckoutLayout() {
+export function CheckoutLayout() {
   return (
-    <div className="mx-auto max-w-[1280px] pt-8 pb-16">
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-24 sm:px-6 sm:pt-6 lg:px-8 lg:pb-16">
       <Outlet />
     </div>
   );

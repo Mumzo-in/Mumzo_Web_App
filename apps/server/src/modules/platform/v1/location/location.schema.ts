@@ -64,5 +64,22 @@ export const serviceabilityResultSchema = z
     serviceable: z.boolean(),
     areaName: z.string().nullable(),
     hubName: z.string().nullable(),
+    /** True for `express`/`outer_express` zone tiers — everything else
+     * (`standard`, `national_fallback`) is scheduled-delivery-only. */
+    expressAvailable: z.boolean(),
+    etaMinutes: z.number().nullable(),
   })
   .openapi("ServiceabilityResult");
+
+export const serviceAreaSchema = z
+  .object({
+    pincode: z.string(),
+    name: z.string(),
+    expressAvailable: z.boolean(),
+    etaMinutes: z.number(),
+    /** The serving hub's coordinates — used client-side to match a
+     * geolocated coordinate to the nearest covered area. */
+    lat: z.number().nullable(),
+    lng: z.number().nullable(),
+  })
+  .openapi("ServiceArea");

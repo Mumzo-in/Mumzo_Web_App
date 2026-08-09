@@ -69,10 +69,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_PROFILE_VALUE: ProfileContextValue = {
+  profile: DEFAULT_PROFILE,
+  updateProfile: () => {},
+};
+
 export function useProfile(): ProfileContextValue {
   const ctx = useContext(ProfileContext);
   if (!ctx) {
-    throw new Error("useProfile must be used inside <ProfileProvider>");
+    return DEFAULT_PROFILE_VALUE;
   }
   return ctx;
 }

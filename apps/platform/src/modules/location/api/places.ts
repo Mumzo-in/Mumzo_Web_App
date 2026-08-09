@@ -42,6 +42,8 @@ export interface ServiceabilityApiResult {
   serviceable: boolean;
   areaName: string | null;
   hubName: string | null;
+  expressAvailable: boolean;
+  etaMinutes: number | null;
 }
 
 /** Real pincode → hub lookup, backed by the admin-managed service areas. */
@@ -51,4 +53,19 @@ export function checkPincodeServiceability(
   return apiRequest<ServiceabilityApiResult>("/location/serviceability", {
     query: { pincode },
   });
+}
+
+export interface ServiceAreaApiResult {
+  pincode: string;
+  name: string;
+  expressAvailable: boolean;
+  etaMinutes: number;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** Every active service area — backs the "we currently deliver in" list and
+ * the nearest-area match used for browser-geolocation resolution. */
+export function fetchServiceAreas(): Promise<ServiceAreaApiResult[]> {
+  return apiRequest<ServiceAreaApiResult[]>("/location/service-areas");
 }

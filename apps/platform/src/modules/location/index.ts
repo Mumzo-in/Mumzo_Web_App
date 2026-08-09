@@ -4,11 +4,9 @@ export { default as LocationModalHost } from "./components/location-modal-host";
 export { default as LocationSelector } from "./components/location-selector";
 export { default as NotServiceable } from "./components/not-serviceable";
 export {
-  expressAreas,
-  findServiceArea,
   isPincode,
   type ServiceArea,
-  serviceAreas,
+  useServiceAreas,
 } from "./data/serviceability-data";
 export {
   ServiceabilityProvider,

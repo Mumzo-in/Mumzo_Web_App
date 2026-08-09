@@ -63,10 +63,17 @@ export function BabiesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_BABIES_VALUE: BabiesContextValue = {
+  babies: [],
+  addBaby: () => ({}) as never,
+  updateBaby: () => {},
+  removeBaby: () => {},
+};
+
 export function useBabies(): BabiesContextValue {
   const ctx = useContext(BabiesContext);
   if (!ctx) {
-    throw new Error("useBabies must be used inside <BabiesProvider>");
+    return DEFAULT_BABIES_VALUE;
   }
   return ctx;
 }

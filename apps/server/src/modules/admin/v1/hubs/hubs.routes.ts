@@ -22,6 +22,19 @@ export const listRoute = createRoute({
   },
 });
 
+export const getRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  tags: [TAG],
+  summary: "Get a hub by id",
+  security: [{ cookieAuth: [] }],
+  request: { params: hubIdParamSchema },
+  responses: {
+    200: jsonContent(successSchema(hubSchema), "Hub"),
+    ...authErrorResponses,
+  },
+});
+
 export const createRouteDef = createRoute({
   method: "post",
   path: "/",

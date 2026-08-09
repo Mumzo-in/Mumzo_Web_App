@@ -116,10 +116,20 @@ export function AddressProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_ADDRESS_VALUE: AddressContextValue = {
+  addresses: [],
+  defaultAddress: null,
+  isLoading: false,
+  addAddress: async () => ({}) as never,
+  updateAddress: async () => ({}) as never,
+  removeAddress: async () => {},
+  setDefault: async () => {},
+};
+
 export function useAddresses(): AddressContextValue {
   const ctx = useContext(AddressContext);
   if (!ctx) {
-    throw new Error("useAddresses must be used inside <AddressProvider>");
+    return DEFAULT_ADDRESS_VALUE;
   }
   return ctx;
 }
