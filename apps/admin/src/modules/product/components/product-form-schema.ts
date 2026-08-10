@@ -16,7 +16,7 @@ const variantSchema = z
     price: z.number().positive("Set a selling price."),
     mrp: z.number().positive("Set an MRP."),
     costPrice: z.number().positive().nullable(),
-    weightGrams: z.number().min(0, "Weight can't be negative."),
+    weightGrams: z.number().min(0, "Weight can't be negative.").optional(),
     qty: z.string().min(1, "Describe the pack size."),
   })
   .refine((data) => data.mrp >= data.price, {
