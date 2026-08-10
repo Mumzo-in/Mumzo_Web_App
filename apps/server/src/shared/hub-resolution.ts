@@ -1,32 +1,47 @@
+import { cache } from "@mumzo/cache";
 import { db } from "@mumzo/db";
 import { hub, serviceArea } from "@mumzo/db/schema/catalog";
 import { and, eq } from "drizzle-orm";
 
 import { badRequest } from "@/core/errors";
 
+/** The default/fallback active hub changes only when an admin flips a hub's
+ * active/default flag, so a short TTL avoids two extra round trips to a
+ * cross-region DB on every cart operation. */
+const ACTIVE_HUB_CACHE_KEY = "hub-resolution:active-hub";
+const ACTIVE_HUB_CACHE_TTL_MS = 60_000;
+
 /** Fallback when no pincode is known (guest browsing without a location yet)
  * or the pincode isn't mapped to any `serviceArea` row: resolves to the hub
  * flagged `isDefault` (set from the admin Hubs panel), falling back to "any
  * active hub" only if no default has been chosen yet. */
 export async function requireActiveHub() {
-  const [defaultRow] = await db
-    .select({ id: hub.id })
-    .from(hub)
-    .where(and(eq(hub.isActive, true), eq(hub.isDefault, true)))
-    .limit(1);
-  if (defaultRow) {
-    return defaultRow;
-  }
+  return cache.getOrSet(
+    ACTIVE_HUB_CACHE_KEY,
+    ACTIVE_HUB_CACHE_TTL_MS,
+    async () => {
+      const [defaultRow] = await db
+        .select({ id: hub.id })
+        .from(hub)
+        .where(and(eq(hub.isActive, true), eq(hub.isDefault, true)))
+        .limit(1);
 
-  const [row] = await db
-    .select({ id: hub.id })
-    .from(hub)
-    .where(eq(hub.isActive, true))
-    .limit(1);
-  if (!row) {
-    throw badRequest("No hub is currently serviceable.");
-  }
-  return row;
+      const row =
+        defaultRow ??
+        (
+          await db
+            .select({ id: hub.id })
+            .from(hub)
+            .where(eq(hub.isActive, true))
+            .limit(1)
+        )[0];
+
+      if (!row) {
+        throw badRequest("No hub is currently serviceable.");
+      }
+      return row;
+    },
+  );
 }
 
 const EARTH_RADIUS_KM = 6371;
@@ -63,11 +78,6 @@ export interface CustomerLocation {
  */
 export async function resolveHubForLocation(location: CustomerLocation) {
   const { pincode, lat, lng } = location;
-  console.log("[hub-resolution] resolving for location:", {
-    pincode,
-    lat,
-    lng,
-  });
 
   if (pincode) {
     const [row] = await db
@@ -83,18 +93,8 @@ export async function resolveHubForLocation(location: CustomerLocation) {
       )
       .limit(1);
     if (row) {
-      console.log(
-        `[hub-resolution] pincode "${pincode}" matched service_area -> hub "${row.name}" (${row.id})`,
-      );
       return row;
     }
-    console.log(
-      `[hub-resolution] pincode "${pincode}" has no active service_area row — falling through to radius check`,
-    );
-  } else {
-    console.log(
-      "[hub-resolution] no pincode provided — skipping pincode match",
-    );
   }
 
   if (lat != null && lng != null) {
@@ -112,17 +112,11 @@ export async function resolveHubForLocation(location: CustomerLocation) {
     let nearest: { id: string; name: string; distanceKm: number } | null = null;
     for (const h of hubs) {
       if (h.lat == null || h.lng == null) {
-        console.log(
-          `[hub-resolution] hub "${h.name}" (${h.id}) has no lat/lng — skipped in radius check`,
-        );
         continue;
       }
       const distanceKm = haversineDistanceKm(
         { lat, lng },
         { lat: h.lat, lng: h.lng },
-      );
-      console.log(
-        `[hub-resolution] hub "${h.name}" (${h.id}) at [${h.lat}, ${h.lng}] is ${distanceKm.toFixed(2)}km away (radius limit ${h.serviceRadiusKm}km)`,
       );
       if (distanceKm <= h.serviceRadiusKm) {
         if (!nearest || distanceKm < nearest.distanceKm) {
@@ -131,16 +125,8 @@ export async function resolveHubForLocation(location: CustomerLocation) {
       }
     }
     if (nearest) {
-      console.log(
-        `[hub-resolution] nearest hub within radius -> "${nearest.name}" (${nearest.id}), ${nearest.distanceKm.toFixed(2)}km`,
-      );
       return { id: nearest.id };
     }
-    console.log(
-      "[hub-resolution] no hub within radius — falling back to default/active hub",
-    );
-  } else {
-    console.log("[hub-resolution] no lat/lng provided — skipping radius check");
   }
 
   const fallback = await requireActiveHub();

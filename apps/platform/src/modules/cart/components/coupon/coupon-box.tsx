@@ -22,12 +22,13 @@ export default function CouponBox() {
   const [applying, setApplying] = useState(false);
   const [selectedCode, setSelectedCode] = useState<string | null>(couponCode);
 
-  // Celebration state
+  // Celebration / Error popup state
   const [modalOpen, setModalOpen] = useState(false);
   const [successData, setSuccessData] = useState<{
     code: string;
     discountAmount: number;
   } | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ["coupons", "public-list"],
@@ -60,9 +61,13 @@ export default function CouponBox() {
     // Check if the typed code is in the coupons list and locked
     const foundCoupon = coupons.find((c) => c.code === trimmedCode);
     if (foundCoupon && subtotal < foundCoupon.minAmt) {
-      toast.error(
+      setSelectedCode(couponCode);
+      setSuccessData(null);
+      setErrorText(
         `This coupon requires a minimum purchase of ${rupee(foundCoupon.minAmt)}`,
       );
+      setDialogOpen(false);
+      setModalOpen(true);
       return;
     }
 
@@ -73,13 +78,18 @@ export default function CouponBox() {
         code: trimmedCode,
         discountAmount: nextCart.totals.discount,
       });
+      setErrorText(null);
       setDialogOpen(false);
       setModalOpen(true);
       setCode("");
     } catch (error) {
       const text =
         error instanceof ApiError ? error.message : "Couldn't apply this code.";
-      toast.error(text);
+      setSelectedCode(couponCode);
+      setSuccessData(null);
+      setErrorText(text);
+      setDialogOpen(false);
+      setModalOpen(true);
     } finally {
       setApplying(false);
     }
@@ -107,12 +117,17 @@ export default function CouponBox() {
         code: selectedCode,
         discountAmount: nextCart.totals.discount,
       });
+      setErrorText(null);
       setDialogOpen(false);
       setModalOpen(true);
     } catch (error) {
       const text =
         error instanceof ApiError ? error.message : "Couldn't apply this code.";
-      toast.error(text);
+      setSelectedCode(couponCode);
+      setSuccessData(null);
+      setErrorText(text);
+      setDialogOpen(false);
+      setModalOpen(true);
     } finally {
       setApplying(false);
     }
@@ -129,7 +144,10 @@ export default function CouponBox() {
       {/* Sleek inline trigger card */}
       <button
         type="button"
-        onClick={() => setDialogOpen(true)}
+        onClick={() => {
+          setSelectedCode(couponCode);
+          setDialogOpen(true);
+        }}
         className="flex w-full cursor-pointer items-center justify-between rounded-3xl border border-border/60 bg-white p-5 text-left shadow-warm transition-colors hover:bg-secondary/15 sm:p-6"
       >
         <div className="flex items-center gap-3">
@@ -149,7 +167,15 @@ export default function CouponBox() {
       </button>
 
       {/* Upgraded Myntra-style dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (open) {
+            setSelectedCode(couponCode);
+          }
+        }}
+      >
         <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-3xl p-0 sm:max-w-md">
           <DialogHeader className="flex flex-row items-center justify-between border-border/50 border-b p-5">
             <DialogTitle className="font-bold font-editorial text-ink text-lg">
@@ -311,7 +337,7 @@ export default function CouponBox() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         successData={successData}
-        errorText={null}
+        errorText={errorText}
       />
     </>
   );

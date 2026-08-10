@@ -46,22 +46,32 @@ type VendorInput = {
   notes: string | null;
 } | null;
 
-/** Total stock across variants, or 0 for an unsized product — DB is the source. */
-function rollUpStock(sizes: Size[]): number {
-  return sizes.reduce((sum, size) => sum + size.stock, 0);
-}
-
 type ProductRow = Awaited<ReturnType<typeof productsRepo.findById>>;
 
 function toRupeeVariant<
-  T extends { price: number; mrp: number; costPrice: number | null },
->(variant: T): T {
+  T extends {
+    id: string;
+    price: number;
+    mrp: number;
+    costPrice: number | null;
+  },
+>(
+  variant: T,
+  productId: string,
+  axis: "size" | "color",
+  stockByKey: Map<string, number>,
+): T {
+  const key =
+    axis === "size"
+      ? `${productId}:${variant.id}:`
+      : `${productId}::${variant.id}`;
   return {
     ...variant,
     price: toWholeRupees(variant.price),
     mrp: toWholeRupees(variant.mrp),
     costPrice:
       variant.costPrice === null ? null : toWholeRupees(variant.costPrice),
+    stock: stockByKey.get(key) ?? 0,
   };
 }
 
@@ -69,9 +79,16 @@ function serialize(
   row: NonNullable<ProductRow>,
   sizesInPaise: Size[],
   colorsInPaise: Color[],
+  stockByKey: Map<string, number>,
 ) {
-  const sizes = sizesInPaise.map(toRupeeVariant);
-  const colors = colorsInPaise.map(toRupeeVariant);
+  const sizes = sizesInPaise.map((s) =>
+    toRupeeVariant(s, row.id, "size", stockByKey),
+  );
+  const colors = colorsInPaise.map((c) =>
+    toRupeeVariant(c, row.id, "color", stockByKey),
+  );
+  // No variants at all — stock lives on the product-less inventory row.
+  const noVariantStock = stockByKey.get(`${row.id}::`) ?? 0;
   return {
     id: row.id,
     slug: row.slug,
@@ -112,7 +129,12 @@ function serialize(
     ages: row.ages,
     type: row.type,
     tags: row.tags,
-    stock: sizes.length > 0 ? rollUpStock(sizes) : 0,
+    stock:
+      sizes.length > 0
+        ? sizes.reduce((sum, s) => sum + s.stock, 0)
+        : colors.length > 0
+          ? colors.reduce((sum, c) => sum + c.stock, 0)
+          : noVariantStock,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
     status: row.status as "draft" | "active" | "inactive" | "archived",
@@ -131,9 +153,10 @@ export async function listProducts(filters: {
 }) {
   const { rows, total } = await productsRepo.findPage(filters);
   const productIds = rows.map((row) => row.id);
-  const [sizesByProduct, colorsByProduct] = await Promise.all([
+  const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     productsRepo.sizesByProductId(productIds),
     productsRepo.colorsByProductId(productIds),
+    productsRepo.inventoryStockByProductIds(productIds),
   ]);
 
   return {
@@ -142,6 +165,7 @@ export async function listProducts(filters: {
         row,
         sizesByProduct.get(row.id) ?? [],
         colorsByProduct.get(row.id) ?? [],
+        stockByKey,
       ),
     ),
     meta: {
@@ -159,14 +183,16 @@ export async function getProduct(id: string) {
     throw notFound("Product");
   }
 
-  const [sizesByProduct, colorsByProduct] = await Promise.all([
+  const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     productsRepo.sizesByProductId([id]),
     productsRepo.colorsByProductId([id]),
+    productsRepo.inventoryStockByProductIds([id]),
   ]);
   return serialize(
     row,
     sizesByProduct.get(id) ?? [],
     colorsByProduct.get(id) ?? [],
+    stockByKey,
   );
 }
 

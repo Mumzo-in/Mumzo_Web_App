@@ -2,6 +2,7 @@ import { notFound } from "@/core/errors";
 import { toPaise, toWholeRupees } from "@/lib/money";
 import {
   colorsByProductId,
+  inventoryStockByProductIds,
   sizesByProductId,
 } from "@/modules/admin/v1/products/products.repo";
 import type { PublicSort } from "./products.repo";
@@ -138,7 +139,7 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
   const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     sizesByProductId(productIds),
     colorsByProductId(productIds),
-    productsRepo.inventoryStockByProductIds(productIds),
+    inventoryStockByProductIds(productIds),
   ]);
 
   let data = rows.map((row) =>
@@ -187,7 +188,7 @@ export async function getPublicProduct(id: string) {
   const [sizesByProduct, colorsByProduct, stockByKey] = await Promise.all([
     sizesByProductId([id]),
     colorsByProductId([id]),
-    productsRepo.inventoryStockByProductIds([id]),
+    inventoryStockByProductIds([id]),
   ]);
   return serialize(
     row,

@@ -1,23 +1,33 @@
 import { Checkbox } from "@mumzo/ui/components/checkbox";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Heart, MapPin, ShoppingBag } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAddresses } from "@/modules/account";
 import { useRequireAuth } from "@/modules/auth";
 import {
+  CartBlockingOverlay,
   CartLineItem,
   CartSummary,
   CouponBox,
   rupee,
   useCart,
 } from "@/modules/cart";
+import {
+  type Product,
+  ProductVariantDialog,
+  productsQueryOptions,
+  toProduct,
+} from "@/modules/catalog";
 import { CheckoutSteps, useCheckout } from "@/modules/checkout";
 import {
   NotServiceable,
   useModalStore,
   useServiceability,
 } from "@/modules/location";
+import { useWishlist } from "@/modules/wishlist";
 
 export const Route = createFileRoute("/(store)/cart")({
   component: CartPage,
@@ -25,19 +35,46 @@ export const Route = createFileRoute("/(store)/cart")({
 
 function CartPage() {
   const navigate = useNavigate();
-  const { items, totals, clear, isLoading } = useCart();
+  const {
+    items,
+    totals,
+    clear,
+    isLoading,
+    toggleSelectAll,
+    isMutating,
+    addItemBlocking,
+    moveToWishlist,
+  } = useCart();
   const { serviceable, query, pincode } = useServiceability();
   const { openModal } = useModalStore();
   const { run } = useRequireAuth();
   const { addresses, defaultAddress } = useAddresses();
   const { setAddressId } = useCheckout();
+  const { ids: wishlistIds } = useWishlist();
+  const [selectingVariantProduct, setSelectingVariantProduct] =
+    useState<Product | null>(null);
+
+  // Resolve wishlisted product IDs into full Product objects for the
+  // "From your wishlist" strip at the bottom of the cart items column.
+  const { data: allProductsPage } = useQuery({
+    ...productsQueryOptions({ limit: 100 }),
+    enabled: wishlistIds.length > 0,
+  });
+  const wishedProducts = (allProductsPage?.data ?? [])
+    .map(toProduct)
+    .filter((p) => wishlistIds.includes(p.id));
 
   // const [donationChecked, setDonationChecked] = useState(false);
   // const [donationAmount, setDonationAmount] = useState(10);
   // const donation = donationChecked ? donationAmount : 0;
 
-  const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
-  const hasOutOfStock = items.some((item) => item.isOutOfStock);
+  const selectedCount = items.filter((item) => item.selected).length;
+  const allSelected = items.length > 0 && selectedCount === items.length;
+  // Only a selected line blocks checkout — a deselected out-of-stock item
+  // isn't part of this order.
+  const hasOutOfStock = items.some(
+    (item) => item.selected && item.isOutOfStock,
+  );
 
   const goToCheckout = () => {
     if (defaultAddress) {
@@ -50,6 +87,11 @@ function CartPage() {
 
   const placeOrder = () => {
     if (items.length === 0) return;
+    if (isMutating) return;
+    if (selectedCount === 0) {
+      toast.error("Select at least one item to check out");
+      return;
+    }
     if (!serviceable) {
       toast.error("We don't deliver to your location yet");
       return;
@@ -68,6 +110,7 @@ function CartPage() {
       data-testid="web-cart-page"
       className="mx-auto w-full max-w-7xl px-3 pt-3 pb-24 sm:px-6 sm:pt-6 lg:pb-16"
     >
+      <CartBlockingOverlay active={isMutating} />
       <div className="mb-4">
         <CheckoutSteps current="bag" />
       </div>
@@ -91,24 +134,6 @@ function CartPage() {
             ))}
           </div>
           <Skeleton className="h-64 rounded-3xl md:col-span-5 xl:col-span-4" />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="rounded-3xl border border-border/60 bg-white py-16 text-center sm:py-20">
-          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
-            <ShoppingBag size={28} className="text-primary" />
-          </div>
-          <p className="font-editorial text-2xl text-ink sm:text-3xl">
-            Your cart is empty
-          </p>
-          <p className="mt-2 text-foreground/60 text-sm">
-            Head back and fill it with love.
-          </p>
-          <Link
-            to="/"
-            className="mt-6 inline-block cursor-pointer rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/95"
-          >
-            Continue shopping
-          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12 lg:gap-8">
@@ -153,92 +178,177 @@ function CartPage() {
               </span>
             </button>
 
-            {/* Bank Offers Carousel Card */}
-            {/* <div className="rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6">
-              <div className="mb-3 flex items-center gap-2 font-semibold text-foreground/75 text-xs uppercase tracking-wider sm:mb-4">
-                <Percent size={15} className="text-primary" />
-                <span>Available Offers</span>
-              </div>
-              <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1 sm:gap-4">
-                <div className="flex min-w-[210px] max-w-[240px] flex-1 flex-col justify-between rounded-2xl border border-border/60 bg-secondary/35 p-3.5 sm:p-4">
-                  <div>
-                    <span className="inline-block rounded-full bg-accent/40 px-2 py-0.5 font-bold text-[9px] text-primary uppercase">
-                      Bank Offer
-                    </span>
-                    <p className="mt-2 font-semibold text-ink text-xs leading-relaxed">
-                      10% Instant Discount on SBI Credit Card on min spend of
-                      ₹3,500
-                    </p>
-                  </div>
+            {items.length === 0 ? (
+              /* Inline Empty Cart Card */
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-border/60 bg-white p-8 text-center shadow-warm sm:p-12">
+                <div className="mb-4 flex size-16 items-center justify-center rounded-full border border-primary/10 bg-accent/20">
+                  <ShoppingBag size={24} className="text-primary" />
                 </div>
-                <div className="flex min-w-[210px] max-w-[240px] flex-1 flex-col justify-between rounded-2xl border border-border/60 bg-secondary/35 p-3.5 sm:p-4">
-                  <div>
-                    <span className="inline-block rounded-full bg-accent/40 px-2 py-0.5 font-bold text-[9px] text-primary uppercase">
-                      Promo Code
-                    </span>
-                    <p className="mt-2 font-semibold text-ink text-xs leading-relaxed">
-                      Flat ₹50 OFF on first purchase with coupon MUMZO50
-                    </p>
-                  </div>
-                </div>
-                <div className="flex min-w-[210px] max-w-[240px] flex-1 flex-col justify-between rounded-2xl border border-border/60 bg-secondary/35 p-3.5 sm:p-4">
-                  <div>
-                    <span className="inline-block rounded-full bg-accent/40 px-2 py-0.5 font-bold text-[9px] text-primary uppercase">
-                      Shipping
-                    </span>
-                    <p className="mt-2 font-semibold text-ink text-xs leading-relaxed">
-                      Free Delivery automatically applied on orders above ₹499
-                    </p>
-                  </div>
+                <p className="font-editorial text-ink text-xl sm:text-2xl">
+                  Your cart is empty
+                </p>
+                <p className="mt-1.5 text-foreground/60 text-xs sm:text-sm">
+                  There are no items in your cart. Add items from your wishlist
+                  or explore our collection.
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                  {wishedProducts.length > 0 && (
+                    <Link
+                      to="/wishlist"
+                      className="inline-block rounded-full border border-primary px-5 py-2.5 font-semibold text-primary text-xs transition-colors hover:bg-primary/5"
+                    >
+                      Add items from wishlist
+                    </Link>
+                  )}
+                  <Link
+                    to="/"
+                    className="inline-block rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground text-xs transition-colors hover:bg-primary/95"
+                  >
+                    Shop products
+                  </Link>
                 </div>
               </div>
-            </div> */}
+            ) : (
+              <>
+                {/* Selected Items Header & Actions */}
+                <div className="mt-1 flex items-center justify-between border-border/50 border-b px-1 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleSelectAll}
+                      disabled={isMutating}
+                      aria-label="Select all items"
+                      data-testid="web-cart-select-all"
+                    />
+                    <span className="font-bold text-ink text-xs tracking-wider sm:text-sm">
+                      {selectedCount}/{items.length} ITEMS SELECTED
+                    </span>
+                  </div>
+                  <div className="flex gap-3 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={clear}
+                      className="cursor-pointer font-bold text-[11px] text-foreground/50 hover:text-ink hover:underline sm:text-xs"
+                    >
+                      REMOVE
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedCount === 0}
+                      onClick={() => {
+                        run(async () => {
+                          const selected = items.filter((i) => i.selected);
+                          if (selected.length === 0) return;
+                          await moveToWishlist(selected.map((i) => i.id));
+                          toast.success(
+                            `Moved ${selected.length} ${selected.length === 1 ? "item" : "items"} to wishlist`,
+                          );
+                          await navigate({ to: "/wishlist" });
+                        }, "Sign in to move items to your wishlist.");
+                      }}
+                      className="cursor-pointer font-bold text-[11px] text-foreground/50 hover:text-ink hover:underline disabled:cursor-not-allowed disabled:opacity-40 sm:text-xs"
+                    >
+                      MOVE TO WISHLIST
+                    </button>
+                  </div>
+                </div>
 
-            {/* Selected Items Header & Actions */}
-            <div className="mt-1 flex items-center justify-between border-border/50 border-b px-1 pb-3">
-              <div className="flex items-center gap-2">
-                <Checkbox checked={true} disabled aria-label="Selected count" />
-                <span className="font-bold text-ink text-xs tracking-wider sm:text-sm">
-                  {itemCount}/{itemCount} ITEMS SELECTED
-                </span>
-              </div>
-              <div className="flex gap-3 sm:gap-4">
-                <button
-                  type="button"
-                  onClick={clear}
-                  className="cursor-pointer font-bold text-[11px] text-foreground/50 hover:text-ink hover:underline sm:text-xs"
-                >
-                  REMOVE
-                </button>
-                <Link
-                  to="/profile"
-                  className="cursor-pointer font-bold text-[11px] text-foreground/50 hover:text-ink hover:underline sm:text-xs"
-                >
-                  MOVE TO WISHLIST
-                </Link>
-              </div>
-            </div>
+                {/* Cart Items List */}
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  {items.map((item) => (
+                    <CartLineItem key={item.id} item={item} />
+                  ))}
+                </div>
+              </>
+            )}
 
-            {/* Cart Items List */}
-            <div className="flex flex-col gap-3 sm:gap-4">
-              {items.map((item) => (
-                <CartLineItem key={item.id} item={item} />
-              ))}
-            </div>
-
-            {/* Add More From Wishlist Card */}
-            <Link
-              to="/profile"
-              className="flex items-center justify-between rounded-3xl border border-border/60 bg-white p-4 shadow-warm transition-colors hover:bg-secondary/10 sm:p-5"
-            >
-              <div className="flex items-center gap-3">
-                <Heart size={18} className="text-primary" />
-                <span className="font-semibold text-ink text-sm">
-                  Add More From Wishlist
-                </span>
+            {/* Add More From Wishlist */}
+            {wishedProducts.length > 0 && (
+              <div className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Heart size={16} className="text-primary" />
+                    <span className="font-semibold text-ink text-sm">
+                      From your wishlist
+                    </span>
+                  </div>
+                  <Link
+                    to="/wishlist"
+                    className="font-bold text-[11px] text-primary uppercase tracking-wider hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+                  {wishedProducts.map((product) => {
+                    const pInCart = items.find(
+                      (i) => i.productId === product.id,
+                    );
+                    const hasVariants =
+                      product.sizes.length + product.colors.length > 1;
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex w-28 shrink-0 flex-col gap-2 sm:w-32"
+                      >
+                        <Link
+                          to="/product/$productId"
+                          params={{ productId: product.id }}
+                          className="relative overflow-hidden rounded-xl"
+                        >
+                          <img
+                            src={product.images[0] ?? ""}
+                            alt={product.name}
+                            className="aspect-square w-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                        </Link>
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="truncate font-semibold text-[11px] text-ink">
+                            {product.name}
+                          </p>
+                          <p className="font-bold text-ink text-xs">
+                            {rupee(product.price)}
+                          </p>
+                        </div>
+                        {pInCart ? (
+                          <span className="rounded-lg bg-accent/40 px-2 py-1.5 text-center font-semibold text-[10px] text-ink">
+                            In cart
+                          </span>
+                        ) : hasVariants ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectingVariantProduct(product)}
+                            className="cursor-pointer rounded-lg border border-primary/40 px-2 py-1.5 font-semibold text-[10px] text-primary transition-colors hover:bg-primary/5"
+                          >
+                            Choose options
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              addItemBlocking(product);
+                              toast.success(`${product.name} added to cart`);
+                            }}
+                            className="cursor-pointer rounded-lg border border-primary/40 px-2 py-1.5 font-semibold text-[10px] text-primary transition-colors hover:bg-primary/5"
+                          >
+                            Add to cart
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <span className="text-foreground/45">&rarr;</span>
-            </Link>
+            )}
+
+            <ProductVariantDialog
+              product={selectingVariantProduct}
+              onClose={() => setSelectingVariantProduct(null)}
+              onConfirm={(p, variantLabel) => {
+                addItemBlocking(p, variantLabel);
+                toast.success(`${p.name} (${variantLabel}) added to cart`);
+              }}
+            />
           </div>
 
           {/* Right Column (Coupons, Donation, Price Details) */}
@@ -299,7 +409,12 @@ function CartPage() {
             <CartSummary
               onPlaceOrder={placeOrder}
               // donation={donation}
-              disabled={hasOutOfStock || !serviceable}
+              disabled={
+                hasOutOfStock ||
+                !serviceable ||
+                selectedCount === 0 ||
+                isMutating
+              }
             />
           </div>
         </div>
@@ -320,7 +435,9 @@ function CartPage() {
           <button
             type="button"
             onClick={placeOrder}
-            disabled={hasOutOfStock || !serviceable}
+            disabled={
+              hasOutOfStock || !serviceable || selectedCount === 0 || isMutating
+            }
             className="inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground text-sm shadow-md transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Checkout &rarr;

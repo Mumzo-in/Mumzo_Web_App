@@ -1,4 +1,5 @@
 import { db } from "@mumzo/db";
+import { wishlist } from "@mumzo/db/schema/account";
 import {
   brand,
   inventory,
@@ -7,10 +8,10 @@ import {
   productSize,
 } from "@mumzo/db/schema/catalog";
 import { cart, cartItem } from "@mumzo/db/schema/commerce";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { logCustomerEvent } from "@/core/customer-event";
-import { badRequest, notFound } from "@/core/errors";
+import { badRequest, notFound, unauthorized } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import {
   type ValidateCouponInput,
@@ -89,7 +90,8 @@ async function loadLines(cartId: string, location: CustomerLocation = {}) {
         sql`${inventory.productColorId} is not distinct from ${cartItem.productColorId}`,
       ),
     )
-    .where(eq(cartItem.cartId, cartId));
+    .where(eq(cartItem.cartId, cartId))
+    .orderBy(desc(cartItem.createdAt));
 
   return rows.map(({ item, product: p, brandName, size, color, stock }) => {
     const resolved = resolveLine(p, size, color);
@@ -108,6 +110,7 @@ async function loadLines(cartId: string, location: CustomerLocation = {}) {
       qty: item.qty,
       stock: resolvedStock,
       isOutOfStock: item.qty > resolvedStock,
+      selected: item.selected,
       gstRate: resolved.gstRate,
     };
   });
@@ -122,7 +125,12 @@ function toPublicCart(
   couponCode: string | null,
   discount: number,
 ) {
-  const totals = computeCartTotals(lines, discount);
+  // Only checked-off lines count toward totals/checkout — a deselected line
+  // stays visible in the cart but contributes nothing to the order.
+  const totals = computeCartTotals(
+    lines.filter((l) => l.selected),
+    discount,
+  );
   return {
     id: cartRow.id,
     items: lines.map(({ gstRate: _gstRate, price, mrp, ...line }) => ({
@@ -144,25 +152,27 @@ function toPublicCart(
 
 /** Re-validates the applied coupon against current cart contents on every
  * read — a mutation elsewhere in the cart (removing the qualifying item,
- * the coupon expiring) must not leave a stale discount applied. */
+ * the coupon expiring) must not leave a stale discount applied.
+ *
+ * Takes the coupon row (already fetched in parallel with `loadLines` by the
+ * caller) rather than fetching it itself, so the two independent reads
+ * aren't serialized. */
 async function resolveAppliedDiscount(
   cartRow: { id: string; couponId: string | null },
+  couponRow: { code: string } | null,
   lines: Awaited<ReturnType<typeof loadLines>>,
   userId: string | null,
 ) {
-  if (!cartRow.couponId) return { code: null, discount: 0 };
+  if (!cartRow.couponId || !couponRow) return { code: null, discount: 0 };
 
-  const couponRow = await db.query.coupon.findFirst({
-    where: (c, { eq: eqOp }) => eqOp(c.id, cartRow.couponId as string),
-  });
-
-  if (!couponRow) return { code: null, discount: 0 };
-
-  const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
+  // A deselected line isn't part of this checkout — it shouldn't count
+  // toward the coupon's minimum spend or its product-scope check.
+  const selectedLines = lines.filter((l) => l.selected);
+  const subtotal = selectedLines.reduce((sum, l) => sum + l.price * l.qty, 0);
   const input: ValidateCouponInput = {
     code: couponRow.code,
     cartTotal: subtotal,
-    productIds: lines.map((l) => l.productId),
+    productIds: selectedLines.map((l) => l.productId),
     userId: userId ?? undefined,
   };
 
@@ -180,18 +190,39 @@ async function resolveAppliedDiscount(
   }
 }
 
+/** Shared tail of every cart operation: load lines and the applied coupon
+ * in parallel (they don't depend on each other), then fold into the public
+ * shape. Callers that already hold `cartRow` (most mutations) should pass
+ * it straight through instead of re-fetching via `getCart`. */
+async function buildCartResponse(
+  owner: CartOwner,
+  cartRow: { id: string; couponId: string | null },
+  location: CustomerLocation = {},
+) {
+  const [lines, couponRow] = await Promise.all([
+    loadLines(cartRow.id, location),
+    cartRow.couponId
+      ? db.query.coupon.findFirst({
+          where: (c, { eq: eqOp }) => eqOp(c.id, cartRow.couponId as string),
+        })
+      : Promise.resolve(null),
+  ]);
+
+  const { code, discount } = await resolveAppliedDiscount(
+    cartRow,
+    couponRow ?? null,
+    lines,
+    owner.userId,
+  );
+  return toPublicCart(cartRow, lines, code, discount);
+}
+
 export async function getCart(
   owner: CartOwner,
   location: CustomerLocation = {},
 ) {
   const cartRow = await getOrCreateCartRow(owner);
-  const lines = await loadLines(cartRow.id, location);
-  const { code, discount } = await resolveAppliedDiscount(
-    cartRow,
-    lines,
-    owner.userId,
-  );
-  return toPublicCart(cartRow, lines, code, discount);
+  return buildCartResponse(owner, cartRow, location);
 }
 
 export async function addItem(
@@ -253,7 +284,7 @@ export async function addItem(
     });
   }
 
-  return getCart(owner);
+  return buildCartResponse(owner, cartRow);
 }
 
 async function assertOwnedItem(owner: CartOwner, itemId: string) {
@@ -270,18 +301,32 @@ async function assertOwnedItem(owner: CartOwner, itemId: string) {
   return cartRow;
 }
 
-export async function updateItemQty(
+export async function updateItem(
   owner: CartOwner,
   itemId: string,
-  qty: number,
+  patch: { qty?: number; selected?: boolean },
 ) {
-  await assertOwnedItem(owner, itemId);
-  await db.update(cartItem).set({ qty }).where(eq(cartItem.id, itemId));
-  return getCart(owner);
+  const cartRow = await assertOwnedItem(owner, itemId);
+  if (patch.qty === undefined && patch.selected === undefined) {
+    throw badRequest("Nothing to update — send qty and/or selected.");
+  }
+  await db.update(cartItem).set(patch).where(eq(cartItem.id, itemId));
+  return buildCartResponse(owner, cartRow);
+}
+
+/** Selects/deselects every line in one statement — the "select all" header
+ * checkbox sends one request instead of one PATCH per line. */
+export async function setAllSelected(owner: CartOwner, selected: boolean) {
+  const cartRow = await getOrCreateCartRow(owner);
+  await db
+    .update(cartItem)
+    .set({ selected })
+    .where(eq(cartItem.cartId, cartRow.id));
+  return buildCartResponse(owner, cartRow);
 }
 
 export async function removeItem(owner: CartOwner, itemId: string) {
-  await assertOwnedItem(owner, itemId);
+  const cartRow = await assertOwnedItem(owner, itemId);
 
   const [removed] = await db
     .select({ productId: cartItem.productId })
@@ -303,19 +348,49 @@ export async function removeItem(owner: CartOwner, itemId: string) {
     });
   }
 
-  return getCart(owner);
+  return buildCartResponse(owner, cartRow);
+}
+
+/** Moves the given lines to the wishlist in one DB round trip: wishlists
+ * each line's product, then deletes the lines — instead of the client
+ * looping a wishlist-add + cart-delete call per item. Wishlist is
+ * user-only, so a guest owner can't call this (the client already gates the
+ * action behind sign-in). */
+export async function moveItemsToWishlist(owner: CartOwner, itemIds: string[]) {
+  if (!owner.userId) throw unauthorized();
+  const userId = owner.userId;
+
+  const cartRow = await getOrCreateCartRow(owner);
+  if (itemIds.length === 0) return buildCartResponse(owner, cartRow);
+
+  const lines = await db
+    .select({ id: cartItem.id, productId: cartItem.productId })
+    .from(cartItem)
+    .where(and(eq(cartItem.cartId, cartRow.id), inArray(cartItem.id, itemIds)));
+
+  if (lines.length === 0) return buildCartResponse(owner, cartRow);
+
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(wishlist)
+      .values(lines.map((line) => ({ userId, productId: line.productId })))
+      .onConflictDoNothing();
+    await tx.delete(cartItem).where(
+      inArray(
+        cartItem.id,
+        lines.map((line) => line.id),
+      ),
+    );
+  });
+
+  return buildCartResponse(owner, cartRow);
 }
 
 export async function clearCart(owner: CartOwner) {
-  const cartRow = await findCartRow(owner);
-  if (cartRow) {
-    await db.delete(cartItem).where(eq(cartItem.cartId, cartRow.id));
-    await db
-      .update(cart)
-      .set({ couponId: null })
-      .where(eq(cart.id, cartRow.id));
-  }
-  return getCart(owner);
+  const cartRow = await getOrCreateCartRow(owner);
+  await db.delete(cartItem).where(eq(cartItem.cartId, cartRow.id));
+  await db.update(cart).set({ couponId: null }).where(eq(cart.id, cartRow.id));
+  return buildCartResponse(owner, { ...cartRow, couponId: null });
 }
 
 export async function applyCoupon(owner: CartOwner, code: string) {
@@ -341,13 +416,13 @@ export async function applyCoupon(owner: CartOwner, code: string) {
     .set({ couponId: couponRow.id })
     .where(eq(cart.id, cartRow.id));
 
-  return getCart(owner);
+  return buildCartResponse(owner, { ...cartRow, couponId: couponRow.id });
 }
 
 export async function removeCoupon(owner: CartOwner) {
   const cartRow = await getOrCreateCartRow(owner);
   await db.update(cart).set({ couponId: null }).where(eq(cart.id, cartRow.id));
-  return getCart(owner);
+  return buildCartResponse(owner, { ...cartRow, couponId: null });
 }
 
 /** Guest → user merge on login. Sums quantities for shared productSize/

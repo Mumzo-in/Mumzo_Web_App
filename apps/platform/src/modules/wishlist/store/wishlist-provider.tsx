@@ -15,25 +15,15 @@ import { wishlistQueryOptions } from "../queries/wishlist";
 interface WishlistContextValue {
   ids: string[];
   has: (id: string) => boolean;
-  /** Signed out → opens the login modal (prompt included) and resumes this
-   * exact toggle once sign-in succeeds, instead of silently no-op'ing. */
-  toggle: (id: string) => void;
-  remove: (id: string) => void;
+  toggle: (id: string) => Promise<void>;
+  add: (id: string) => Promise<void>;
+  remove: (id: string) => Promise<void>;
   count: number;
   isLoading: boolean;
 }
 
 const WishlistContext = createContext<WishlistContextValue | null>(null);
 
-/**
- * Backed by `GET/POST/DELETE /api/v1/wishlist` — requires a signed-in
- * session (`requireAuth` server-side). Unlike `AddressProvider`, auth is
- * gated *inside* `toggle` itself (via `useRequireAuth`) rather than pushed
- * out to each call site — the heart icon on `ProductCard`/PDP has always
- * called `toggle(id)` unconditionally, and there are multiple such call
- * sites, so centralizing the "prompt login" behavior here means none of
- * them need to change.
- */
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
@@ -50,34 +40,65 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const has = useCallback((id: string) => ids.includes(id), [ids]);
 
-  const remove = useCallback(
-    (id: string) => {
-      void removeFromWishlistApi(id).then(() => invalidate());
+  const add = useCallback(
+    async (id: string) => {
+      if (ids.includes(id)) return;
+      queryClient.setQueryData<string[]>(["wishlist"], (old = []) =>
+        old.includes(id) ? old : [...old, id],
+      );
+      try {
+        await addToWishlistApi(id);
+      } finally {
+        await invalidate();
+      }
     },
-    [invalidate],
+    [ids, queryClient, invalidate],
+  );
+
+  const remove = useCallback(
+    async (id: string) => {
+      queryClient.setQueryData<string[]>(["wishlist"], (old = []) =>
+        old.filter((i) => i !== id),
+      );
+      try {
+        await removeFromWishlistApi(id);
+      } finally {
+        await invalidate();
+      }
+    },
+    [queryClient, invalidate],
   );
 
   const toggle = useCallback(
-    (id: string) => {
-      runIfAuthed(() => {
-        const wasWished = has(id);
-        const action = wasWished
-          ? removeFromWishlistApi(id)
-          : addToWishlistApi(id);
-        void action.then(async () => {
-          await invalidate();
-          toast.success(
-            wasWished ? "Removed from wishlist" : "Saved to wishlist",
+    (id: string): Promise<void> => {
+      return new Promise((resolve) => {
+        runIfAuthed(async () => {
+          const wasWished = has(id);
+          queryClient.setQueryData<string[]>(["wishlist"], (old = []) =>
+            wasWished ? old.filter((i) => i !== id) : [...old, id],
           );
-        });
-      }, "Sign in to save items to your wishlist.");
+          try {
+            if (wasWished) {
+              await removeFromWishlistApi(id);
+            } else {
+              await addToWishlistApi(id);
+            }
+            toast.success(
+              wasWished ? "Removed from wishlist" : "Saved to wishlist",
+            );
+          } finally {
+            await invalidate();
+          }
+          resolve();
+        }, "Sign in to save items to your wishlist.");
+      });
     },
-    [runIfAuthed, has, invalidate],
+    [runIfAuthed, has, queryClient, invalidate],
   );
 
   const value = useMemo<WishlistContextValue>(
-    () => ({ ids, has, toggle, remove, count: ids.length, isLoading }),
-    [ids, has, toggle, remove, isLoading],
+    () => ({ ids, has, toggle, add, remove, count: ids.length, isLoading }),
+    [ids, has, toggle, add, remove, isLoading],
   );
 
   return (
@@ -90,8 +111,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 const DEFAULT_WISHLIST_VALUE: WishlistContextValue = {
   ids: [],
   has: () => false,
-  toggle: () => {},
-  remove: () => {},
+  toggle: async () => {},
+  add: async () => {},
+  remove: async () => {},
   count: 0,
   isLoading: false,
 };

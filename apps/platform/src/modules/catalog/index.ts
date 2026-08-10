@@ -48,6 +48,7 @@ export { default as ProductImageCarousel } from "./components/product/product-im
 export { default as ProductQuantitySelector } from "./components/product/product-quantity-selector";
 export { default as ProductRail } from "./components/product/product-rail";
 export { default as ProductSizeSelector } from "./components/product/product-size-selector";
+export { default as ProductVariantDialog } from "./components/product/product-variant-dialog";
 export { default as RecommendationCard } from "./components/product/recommendation-card";
 export { default as RelatedProducts } from "./components/product/related-products";
 export { brandSlug, productsByBrand } from "./data/brand-data";

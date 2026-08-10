@@ -225,7 +225,7 @@ export default function CouponCelebration({
                     initial={{ scale: 0, rotate: 45 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", delay: 0.1 }}
-                    className="flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-inner"
+                    className="flex size-16 items-center justify-center rounded-full bg-destructive/10 text-destructive shadow-inner"
                   >
                     <AlertCircle size={36} />
                   </motion.div>
@@ -236,19 +236,18 @@ export default function CouponCelebration({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h3 className="mb-2 font-editorial text-2xl text-foreground">
+                  <h3 className="mb-2 font-editorial text-2xl text-ink">
                     Couldn't Apply Coupon
                   </h3>
 
-                  <div className="my-4 rounded-2xl border border-red-100 bg-red-50/50 p-4 text-left">
-                    <p className="font-medium text-red-800 text-sm leading-relaxed">
+                  <div className="my-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-left">
+                    <p className="font-semibold text-destructive text-sm leading-relaxed">
                       {errorText}
                     </p>
                   </div>
 
-                  <p className="px-2 text-foreground/50 text-xs">
-                    Please check the details above or try another promo code
-                    from the list below.
+                  <p className="px-2 text-foreground/60 text-xs">
+                    Please check the details above or try another promo code.
                   </p>
                 </motion.div>
 
@@ -256,7 +255,7 @@ export default function CouponCelebration({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="mt-6 w-full rounded-full bg-foreground py-3.5 font-semibold text-sm text-white shadow-md transition-transform hover:opacity-90 active:scale-[0.98]"
+                  className="mt-6 w-full rounded-full bg-primary py-3.5 font-semibold text-primary-foreground text-sm shadow-md transition-all hover:bg-primary/95 active:scale-[0.98]"
                 >
                   Okay, understood
                 </button>

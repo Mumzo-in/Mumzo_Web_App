@@ -1,0 +1,3 @@
+{
+  "extends": "@mumzo/config/tsconfig.base.json"
+}

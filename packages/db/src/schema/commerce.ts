@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -69,6 +70,10 @@ export const cartItem = pgTable(
       onDelete: "cascade",
     }),
     qty: integer("qty").default(1).notNull(),
+    /** Whether this line is included in totals/checkout — the cart's
+     * "select items to buy now" checkbox. Deselected lines stay in the
+     * cart but are skipped when placing an order. */
+    selected: boolean("selected").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

@@ -74,8 +74,12 @@ export function computeCartTotals(
     (sum, l) => sum + percentOf(l.price * l.qty, l.gstRate),
     0,
   );
+  // Nothing to deliver (empty cart, or everything deselected) shouldn't
+  // carry a delivery charge — only a real, non-empty order does.
   const deliveryFee =
-    subtotal >= FREE_DELIVERY_THRESHOLD_PAISE ? 0 : DELIVERY_FEE_PAISE;
+    lines.length === 0 || subtotal >= FREE_DELIVERY_THRESHOLD_PAISE
+      ? 0
+      : DELIVERY_FEE_PAISE;
   const total = subtotal + gstAmount + deliveryFee - discount;
   return { subtotal, gstAmount, deliveryFee, discount, total };
 }

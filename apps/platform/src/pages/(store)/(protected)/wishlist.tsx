@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
+import { CartBlockingOverlay, useCart } from "@/modules/cart";
 import {
   ProductCard,
   productsQueryOptions,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/(store)/(protected)/wishlist")({
 });
 
 function WishlistPage() {
+  const { isMutating } = useCart();
   const { ids, isLoading: wishlistLoading } = useWishlist();
   // A wishlisted id is a real product uuid (`ProductCard` toggles
   // `product.id`, and products are live now) — pull a generous live page and
@@ -30,6 +32,7 @@ function WishlistPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] pt-8 pb-16">
+      <CartBlockingOverlay active={isMutating} />
       <Breadcrumbs
         items={[{ label: "Home", to: "/" }, { label: "Wishlist" }]}
       />
@@ -72,7 +75,7 @@ function WishlistPage() {
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
           {wished.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} blocking />
           ))}
         </div>
       )}

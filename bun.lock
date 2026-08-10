@@ -101,6 +101,7 @@
       "dependencies": {
         "@hono/zod-openapi": "^1.5.1",
         "@mumzo/auth": "workspace:*",
+        "@mumzo/cache": "workspace:*",
         "@mumzo/db": "workspace:*",
         "@mumzo/env": "workspace:*",
         "@mumzo/notifications": "workspace:*",
@@ -135,6 +136,15 @@
       },
       "devDependencies": {
         "@mumzo/config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/cache": {
+      "name": "@mumzo/cache",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@mumzo/config": "workspace:*",
+        "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
     },
@@ -652,6 +662,8 @@
     "@mumzo/admin": ["@mumzo/admin@workspace:apps/admin"],
 
     "@mumzo/auth": ["@mumzo/auth@workspace:packages/auth"],
+
+    "@mumzo/cache": ["@mumzo/cache@workspace:packages/cache"],
 
     "@mumzo/config": ["@mumzo/config@workspace:packages/config"],
 

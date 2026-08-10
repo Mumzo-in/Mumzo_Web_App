@@ -23,7 +23,7 @@ interface CartLineItemProps {
 }
 
 export default function CartLineItem({ item }: CartLineItemProps) {
-  const { updateQty, removeItem, addItem } = useCart();
+  const { updateQty, removeItem, addItem, toggleSelected } = useCart();
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
   const discountAmount = (item.mrp - item.price) * item.qty;
 
@@ -59,19 +59,26 @@ export default function CartLineItem({ item }: CartLineItemProps) {
       className="relative flex gap-3 rounded-3xl border border-border/60 bg-white p-4 sm:gap-4 sm:p-5"
     >
       {/* Checkbox and image container */}
-      <div className="flex items-start gap-2.5">
-        <div className="mt-2.5">
-          <Checkbox checked={true} disabled aria-label="Select item" />
+      <div className="flex items-start gap-3">
+        <div className="mt-1.5">
+          <Checkbox
+            checked={item.selected}
+            onCheckedChange={(checked) =>
+              toggleSelected(item.id, checked === true)
+            }
+            aria-label="Select item"
+            data-testid={`web-cart-item-select-${item.id}`}
+          />
         </div>
         <Link
           to="/product/$productId"
           params={{ productId: item.productId }}
-          className="shrink-0"
+          className="relative shrink-0 overflow-hidden rounded-2xl"
         >
           <img
             src={item.img ?? ""}
             alt={item.name}
-            className="size-20 rounded-2xl bg-secondary/40 object-cover sm:size-24"
+            className="size-24 object-cover transition-transform duration-300 hover:scale-105 sm:size-28 md:size-32"
           />
         </Link>
       </div>

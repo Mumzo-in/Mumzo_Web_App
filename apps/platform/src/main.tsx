@@ -22,6 +22,10 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 60_000,
       retry: 1,
+      // Quick-commerce cart/product data is covered by staleTime; a native
+      // <select> or any modal blurring the tab shouldn't trigger a refetch
+      // storm on every mounted query.
+      refetchOnWindowFocus: false,
     },
   },
 });

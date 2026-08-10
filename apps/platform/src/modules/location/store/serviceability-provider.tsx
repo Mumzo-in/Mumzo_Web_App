@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
@@ -104,13 +105,24 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
   const [lng, setLng] = useState<number | null>(() =>
     readStoredNumber(LNG_KEY),
   );
-  const [hubName, setHubName] = useState<string | null>(null);
-  const [status, setStatus] = useState<ServiceabilityStatus>("serviceable");
-  const [expressAvailable, setExpressAvailable] = useState(true);
-  const [etaMinutes, setEtaMinutes] = useState<number | null>(DEFAULT_ETA_MINS);
-  const [checking, setChecking] = useState(false);
+  const queryClient = useQueryClient();
   const [hasChosenLocation, setHasChosenLocation] =
     useState<boolean>(readChosen);
+
+  const { data: serviceabilityResult, isFetching: checking } = useQuery({
+    queryKey: ["serviceability", pincode],
+    queryFn: () => checkPincodeServiceability(pincode),
+    staleTime: 60_000,
+  });
+
+  const status: ServiceabilityStatus = serviceabilityResult
+    ? serviceabilityResult.serviceable
+      ? "serviceable"
+      : "unserviceable"
+    : "serviceable";
+  const hubName = serviceabilityResult?.hubName ?? null;
+  const expressAvailable = serviceabilityResult?.expressAvailable ?? true;
+  const etaMinutes = serviceabilityResult?.etaMinutes ?? DEFAULT_ETA_MINS;
 
   useEffect(() => {
     localStorage.setItem(QUERY_KEY, query);
@@ -125,34 +137,6 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
     }
   }, [hasChosenLocation]);
 
-  const runCheck = useCallback(async (nextPincode: string) => {
-    setChecking(true);
-    try {
-      const result = await checkPincodeServiceability(nextPincode);
-      setStatus(result.serviceable ? "serviceable" : "unserviceable");
-      setHubName(result.hubName);
-      setExpressAvailable(result.expressAvailable);
-      setEtaMinutes(result.etaMinutes ?? DEFAULT_ETA_MINS);
-    } catch {
-      // A network hiccup shouldn't silently strand the visitor mid-checkout —
-      // treat it as serviceable and let a real order attempt surface the
-      // problem, rather than blocking browsing on a transient failure.
-      setStatus("serviceable");
-      setHubName(null);
-      setExpressAvailable(true);
-      setEtaMinutes(DEFAULT_ETA_MINS);
-    } finally {
-      setChecking(false);
-    }
-  }, []);
-
-  // Re-validate the stored pincode once on mount — it may have been set by a
-  // previous session before an area's service status changed.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: only re-run when the stored pincode itself changes, not on every runCheck identity
-  useEffect(() => {
-    void runCheck(pincode);
-  }, [pincode]);
-
   const setLocation = useCallback(
     async (
       nextPincode: string,
@@ -164,9 +148,11 @@ export function ServiceabilityProvider({ children }: { children: ReactNode }) {
       setLat(coords?.lat ?? null);
       setLng(coords?.lng ?? null);
       setHasChosenLocation(true);
-      await runCheck(nextPincode);
+      await queryClient.invalidateQueries({
+        queryKey: ["serviceability", nextPincode],
+      });
     },
-    [runCheck],
+    [queryClient],
   );
 
   const markChosen = useCallback(() => {

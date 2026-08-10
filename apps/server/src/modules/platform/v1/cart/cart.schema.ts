@@ -30,9 +30,22 @@ export const addCartItemSchema = z
 
 export const updateCartItemSchema = z
   .object({
-    qty: z.number().int().min(1),
+    qty: z.number().int().min(1).optional(),
+    selected: z.boolean().optional(),
   })
   .openapi("UpdateCartItemInput");
+
+export const setAllSelectedSchema = z
+  .object({
+    selected: z.boolean(),
+  })
+  .openapi("SetAllSelectedInput");
+
+export const moveToWishlistSchema = z
+  .object({
+    itemIds: z.uuid().array().min(1),
+  })
+  .openapi("MoveToWishlistInput");
 
 export const applyCouponSchema = z
   .object({
@@ -55,6 +68,9 @@ export const cartLineSchema = z
     qty: z.number().int(),
     stock: z.number().int(),
     isOutOfStock: z.boolean(),
+    /** Whether this line counts toward totals/checkout — the cart's
+     * "select items to buy" checkbox. */
+    selected: z.boolean(),
   })
   .openapi("CartLine");
 

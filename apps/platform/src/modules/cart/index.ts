@@ -1,5 +1,6 @@
 export { mergeCartApi, type PublicCart } from "./api/cart-api";
 export { listPublicCoupons, type PublicCoupon } from "./api/coupons-api";
+export { default as CartBlockingOverlay } from "./components/cart/cart-blocking-overlay";
 export { default as CartLineItem } from "./components/cart/cart-line-item";
 export { default as CartSummary } from "./components/cart/cart-summary";
 export { default as CouponBox } from "./components/coupon/coupon-box";

@@ -13,4 +13,6 @@ export const cartQueryOptions = (location: CartLocation = {}) =>
   queryOptions({
     queryKey: cartQueryKey(location),
     queryFn: () => fetchCart(location),
+    staleTime: 30_000,
+    placeholderData: (previousData) => previousData,
   });

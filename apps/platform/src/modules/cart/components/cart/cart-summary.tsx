@@ -47,7 +47,11 @@ export default function CartSummary({
   const { items, totals, couponCode } = useCart();
   const total = totals.total + slotFee + donation;
 
-  const mrpTotal = items.reduce((sum, item) => sum + item.mrp * item.qty, 0);
+  // `totals` (server-computed) only counts selected lines — match that here
+  // so "you save" doesn't include a deselected item's MRP gap.
+  const mrpTotal = items
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + item.mrp * item.qty, 0);
   const savings = Math.max(0, mrpTotal - totals.subtotal);
 
   return (

@@ -75,7 +75,8 @@ async function loadCartLinesForOrder(cartId: string, hubId: string) {
         sql`${inventory.productColorId} is not distinct from ${cartItem.productColorId}`,
       ),
     )
-    .where(eq(cartItem.cartId, cartId));
+    // A deselected line stays in the cart but isn't part of this order.
+    .where(and(eq(cartItem.cartId, cartId), eq(cartItem.selected, true)));
 
   return rows.map(({ item, product: p, size, color, stock }) => {
     const resolved = resolveLine(p, size, color);
@@ -275,7 +276,14 @@ export async function placeOrder(
         .where(eq(coupon.id, couponId));
     }
 
-    await tx.delete(cartItem).where(eq(cartItem.cartId, cartRow.id));
+    // Only the lines that were actually ordered — a deselected line was
+    // never included in `lines` and must survive checkout in the cart.
+    await tx.delete(cartItem).where(
+      inArray(
+        cartItem.id,
+        lines.map((line) => line.cartItemId),
+      ),
+    );
     await tx
       .update(cart)
       .set({ couponId: null })

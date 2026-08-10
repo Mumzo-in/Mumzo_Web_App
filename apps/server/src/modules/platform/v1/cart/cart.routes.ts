@@ -7,6 +7,8 @@ import {
   cartItemIdParamSchema,
   cartSchema,
   getCartQuerySchema,
+  moveToWishlistSchema,
+  setAllSelectedSchema,
   updateCartItemSchema,
 } from "./cart.schema";
 
@@ -42,11 +44,45 @@ export const updateItemRoute = createRoute({
   method: "patch",
   path: "/items/{id}",
   tags: [TAG],
-  summary: "Update a cart line's quantity",
+  summary: "Update a cart line's quantity and/or selected flag",
   request: {
     params: cartItemIdParamSchema,
     body: {
       content: { "application/json": { schema: updateCartItemSchema } },
+    },
+  },
+  responses: {
+    200: jsonContent(successSchema(cartSchema), "Updated cart"),
+    ...commonErrorResponses,
+  },
+});
+
+export const setAllSelectedRoute = createRoute({
+  method: "patch",
+  path: "/items",
+  tags: [TAG],
+  summary: "Select or deselect every line in the cart in one call",
+  request: {
+    body: {
+      content: { "application/json": { schema: setAllSelectedSchema } },
+    },
+  },
+  responses: {
+    200: jsonContent(successSchema(cartSchema), "Updated cart"),
+    ...commonErrorResponses,
+  },
+});
+
+export const moveToWishlistRoute = createRoute({
+  method: "post",
+  path: "/items/move-to-wishlist",
+  tags: [TAG],
+  summary:
+    "Move the given lines to the wishlist in one call — wishlists each " +
+    "line's product and removes it from the cart. Signed-in only.",
+  request: {
+    body: {
+      content: { "application/json": { schema: moveToWishlistSchema } },
     },
   },
   responses: {

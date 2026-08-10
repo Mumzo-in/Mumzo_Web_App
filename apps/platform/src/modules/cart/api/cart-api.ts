@@ -14,6 +14,9 @@ export interface CartLine {
   qty: number;
   stock: number;
   isOutOfStock: boolean;
+  /** Whether this line counts toward totals/checkout — the cart's "select
+   * items to buy" checkbox. */
+  selected: boolean;
 }
 
 export interface CartTotals {
@@ -58,15 +61,41 @@ export function addCartItem(input: AddCartItemInput): Promise<PublicCart> {
   return apiRequest<PublicCart>("/cart/items", { method: "POST", body: input });
 }
 
-export function updateCartItem(id: string, qty: number): Promise<PublicCart> {
+export function updateCartItem(
+  id: string,
+  patch: { qty?: number; selected?: boolean },
+): Promise<PublicCart> {
   return apiRequest<PublicCart>(`/cart/items/${id}`, {
     method: "PATCH",
-    body: { qty },
+    body: patch,
+  });
+}
+
+/** Selects/deselects every line in one call — used by the "select all"
+ * header checkbox instead of one PATCH per line. */
+export function setAllCartItemsSelected(
+  selected: boolean,
+): Promise<PublicCart> {
+  return apiRequest<PublicCart>("/cart/items", {
+    method: "PATCH",
+    body: { selected },
   });
 }
 
 export function removeCartItem(id: string): Promise<PublicCart> {
   return apiRequest<PublicCart>(`/cart/items/${id}`, { method: "DELETE" });
+}
+
+/** Wishlists each line's product and removes it from the cart, in one
+ * request — used by "Move to wishlist" instead of looping a wishlist-add +
+ * cart-delete call per item. Signed-in only. */
+export function moveCartItemsToWishlist(
+  itemIds: string[],
+): Promise<PublicCart> {
+  return apiRequest<PublicCart>("/cart/items/move-to-wishlist", {
+    method: "POST",
+    body: { itemIds },
+  });
 }
 
 export function applyCartCoupon(code: string): Promise<PublicCart> {

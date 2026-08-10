@@ -6,8 +6,10 @@ import {
   clearCartRoute,
   getCartRoute,
   mergeCartRoute,
+  moveToWishlistRoute,
   removeCouponRoute,
   removeItemRoute,
+  setAllSelectedRoute,
   updateItemRoute,
 } from "./cart.routes";
 import * as cartService from "./cart.service";
@@ -35,16 +37,32 @@ const cart = app
   })
   .openapi(updateItemRoute, async (c) => {
     const owner = resolveCartOwner(c);
-    const data = await cartService.updateItemQty(
+    const data = await cartService.updateItem(
       owner,
       c.req.valid("param").id,
-      c.req.valid("json").qty,
+      c.req.valid("json"),
+    );
+    return c.json({ success: true as const, data }, 200);
+  })
+  .openapi(setAllSelectedRoute, async (c) => {
+    const owner = resolveCartOwner(c);
+    const data = await cartService.setAllSelected(
+      owner,
+      c.req.valid("json").selected,
     );
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(removeItemRoute, async (c) => {
     const owner = resolveCartOwner(c);
     const data = await cartService.removeItem(owner, c.req.valid("param").id);
+    return c.json({ success: true as const, data }, 200);
+  })
+  .openapi(moveToWishlistRoute, async (c) => {
+    const owner = resolveCartOwner(c);
+    const data = await cartService.moveItemsToWishlist(
+      owner,
+      c.req.valid("json").itemIds,
+    );
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(applyCouponRoute, async (c) => {
