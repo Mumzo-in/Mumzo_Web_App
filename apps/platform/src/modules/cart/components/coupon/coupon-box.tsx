@@ -11,24 +11,41 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { ApiError } from "@/core/api/client";
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { listPublicCoupons, type PublicCoupon } from "../../api/coupons-api";
 import { rupee, useCart } from "../../store/cart-provider";
-import CouponCelebration from "./coupon-celebration";
 
 export default function CouponBox() {
   const { couponCode, applyCoupon, removeCoupon, totals } = useCart();
+  const showPopup = usePopupStore((s) => s.showPopup);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [code, setCode] = useState("");
   const [applying, setApplying] = useState(false);
   const [selectedCode, setSelectedCode] = useState<string | null>(couponCode);
 
-  // Celebration / Error popup state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [successData, setSuccessData] = useState<{
-    code: string;
-    discountAmount: number;
-  } | null>(null);
-  const [errorText, setErrorText] = useState<string | null>(null);
+  const showSuccess = (appliedCode: string, discountAmount: number) => {
+    showPopup({
+      variant: "success",
+      title: (
+        <>
+          Code{" "}
+          <span className="font-semibold text-pinkDeep">
+            {appliedCode.toUpperCase()}
+          </span>{" "}
+          Applied!
+        </>
+      ),
+      description: `Saved ${rupee(discountAmount)} — your cart has been updated with this discount. Let's finish checking out!`,
+    });
+  };
+
+  const showError = (message: string) => {
+    showPopup({
+      variant: "error",
+      title: "Couldn't Apply Coupon",
+      description: message,
+    });
+  };
 
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ["coupons", "public-list"],
@@ -62,34 +79,25 @@ export default function CouponBox() {
     const foundCoupon = coupons.find((c) => c.code === trimmedCode);
     if (foundCoupon && subtotal < foundCoupon.minAmt) {
       setSelectedCode(couponCode);
-      setSuccessData(null);
-      setErrorText(
+      setDialogOpen(false);
+      showError(
         `This coupon requires a minimum purchase of ${rupee(foundCoupon.minAmt)}`,
       );
-      setDialogOpen(false);
-      setModalOpen(true);
       return;
     }
 
     setApplying(true);
     try {
       const nextCart = await applyCoupon(trimmedCode);
-      setSuccessData({
-        code: trimmedCode,
-        discountAmount: nextCart.totals.discount,
-      });
-      setErrorText(null);
       setDialogOpen(false);
-      setModalOpen(true);
+      showSuccess(trimmedCode, nextCart.totals.discount);
       setCode("");
     } catch (error) {
       const text =
         error instanceof ApiError ? error.message : "Couldn't apply this code.";
       setSelectedCode(couponCode);
-      setSuccessData(null);
-      setErrorText(text);
       setDialogOpen(false);
-      setModalOpen(true);
+      showError(text);
     } finally {
       setApplying(false);
     }
@@ -113,21 +121,14 @@ export default function CouponBox() {
       }
 
       const nextCart = await applyCoupon(selectedCode);
-      setSuccessData({
-        code: selectedCode,
-        discountAmount: nextCart.totals.discount,
-      });
-      setErrorText(null);
       setDialogOpen(false);
-      setModalOpen(true);
+      showSuccess(selectedCode, nextCart.totals.discount);
     } catch (error) {
       const text =
         error instanceof ApiError ? error.message : "Couldn't apply this code.";
       setSelectedCode(couponCode);
-      setSuccessData(null);
-      setErrorText(text);
       setDialogOpen(false);
-      setModalOpen(true);
+      showError(text);
     } finally {
       setApplying(false);
     }
@@ -332,13 +333,6 @@ export default function CouponBox() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <CouponCelebration
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        successData={successData}
-        errorText={errorText}
-      />
     </>
   );
 }

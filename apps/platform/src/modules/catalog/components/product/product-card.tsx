@@ -3,7 +3,6 @@ import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Heart, Minus, Plus, Star } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useCart } from "@/modules/cart";
 import { useWishlist } from "@/modules/wishlist";
 import type { Product } from "../../index";
@@ -55,7 +54,6 @@ export default function ProductCard({
     e.preventDefault();
     if (isOutOfStock || !canQuickAdd) return;
     add(product, soleVariant?.label ?? null);
-    toast.success(`${product.name} added to cart!`);
   };
 
   const handleWish = (e: React.MouseEvent) => {
@@ -208,7 +206,6 @@ export default function ProductCard({
         onClose={() => setVariantDialogOpen(false)}
         onConfirm={(p, variantLabel) => {
           add(p, variantLabel);
-          toast.success(`${p.name} (${variantLabel}) added to cart`);
         }}
       />
     </>

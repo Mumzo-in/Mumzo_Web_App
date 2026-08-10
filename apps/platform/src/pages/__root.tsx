@@ -7,6 +7,7 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import GlobalPopup from "@/core/components/global-popup";
 import { ThemeProvider } from "@/core/components/theme-provider";
 import {
   AddressProvider,
@@ -96,6 +97,7 @@ function RootComponent() {
                               <ConsentBanner />
                               <LocationModalHost />
                               <RequireAuthModalHost />
+                              <GlobalPopup />
                             </TicketProvider>
                           </BabiesProvider>
                         </AddressProvider>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { OrderFormSkeleton, orderQueryOptions } from "@/modules/orders";
 
 export const Route = createFileRoute(
@@ -57,6 +58,7 @@ function OrderReviewPage() {
     isError,
   } = useQuery(orderQueryOptions(orderId));
   const navigate = useNavigate();
+  const showPopup = usePopupStore((s) => s.showPopup);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -67,7 +69,11 @@ function OrderReviewPage() {
       toast.error("Please rate at least one item");
       return;
     }
-    toast.success("Thanks for your review!");
+    showPopup({
+      variant: "success",
+      title: "Thanks for your review!",
+      description: "Your feedback helps other parents shop with confidence.",
+    });
     navigate({ to: "/orders/$orderId", params: { orderId } });
   };
 

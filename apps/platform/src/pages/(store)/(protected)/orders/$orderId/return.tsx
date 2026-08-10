@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { rupee } from "@/modules/cart";
 import { OrderFormSkeleton, orderQueryOptions } from "@/modules/orders";
 
@@ -31,6 +32,7 @@ function OrderReturnPage() {
     isError,
   } = useQuery(orderQueryOptions(orderId));
   const navigate = useNavigate();
+  const showPopup = usePopupStore((s) => s.showPopup);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -52,7 +54,11 @@ function OrderReturnPage() {
       toast.error("Please choose a reason");
       return;
     }
-    toast.success("Return request submitted");
+    showPopup({
+      variant: "success",
+      title: "Return request submitted",
+      description: "We'll review your request and get back to you shortly.",
+    });
     navigate({ to: "/orders/$orderId", params: { orderId } });
   };
 

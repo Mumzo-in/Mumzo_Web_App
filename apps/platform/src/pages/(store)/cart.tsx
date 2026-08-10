@@ -87,6 +87,10 @@ function CartPage() {
   const goToCheckout = () => {
     if (defaultAddress) {
       setAddressId(defaultAddress.id);
+      if (!needsAddressAttention) {
+        navigate({ to: "/checkout/payment" });
+        return;
+      }
     }
     navigate({ to: "/checkout/address" });
   };
@@ -356,10 +360,7 @@ function CartPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => {
-                              addItemBlocking(product);
-                              toast.success(`${product.name} added to cart`);
-                            }}
+                            onClick={() => addItemBlocking(product)}
                             className="cursor-pointer rounded-lg border border-primary/40 px-2 py-1.5 font-semibold text-[10px] text-primary transition-colors hover:bg-primary/5"
                           >
                             Add to cart
@@ -375,10 +376,7 @@ function CartPage() {
             <ProductVariantDialog
               product={selectingVariantProduct}
               onClose={() => setSelectingVariantProduct(null)}
-              onConfirm={(p, variantLabel) => {
-                addItemBlocking(p, variantLabel);
-                toast.success(`${p.name} (${variantLabel}) added to cart`);
-              }}
+              onConfirm={(p, variantLabel) => addItemBlocking(p, variantLabel)}
             />
           </div>
 

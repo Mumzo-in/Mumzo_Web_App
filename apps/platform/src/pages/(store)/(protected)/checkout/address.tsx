@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
+import { useScrollToHash } from "@/core/hooks/use-scroll-to-hash";
 import { AddressCard, AddressForm, useAddresses } from "@/modules/account";
 import { CartSummary, useCart } from "@/modules/cart";
 import {
@@ -28,6 +28,7 @@ function CheckoutAddressPage() {
   const slotFee =
     mode === "scheduled" ? (findWindow(slotWindowId ?? "")?.fee ?? 0) : 0;
   const [adding, setAdding] = useState(false);
+  useScrollToHash();
 
   const total = totals.total + slotFee;
 
@@ -67,12 +68,23 @@ function CheckoutAddressPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12 lg:gap-8">
         <div className="flex flex-col gap-4 sm:gap-6 md:col-span-7 xl:col-span-8">
-          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6">
-            <h2 className="font-editorial text-ink text-lg sm:text-xl">
-              Delivery address
-            </h2>
+          <section
+            id="address-section"
+            className="flex scroll-mt-24 flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="font-editorial text-ink text-lg sm:text-xl">
+                Delivery address
+              </h2>
+              <Link
+                to="/addresses"
+                className="font-semibold text-[10px] text-primary uppercase tracking-wider hover:underline"
+              >
+                Manage addresses
+              </Link>
+            </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-2.5">
               {addresses.map((address) => (
                 <AddressCard
                   key={address.id}
@@ -124,7 +136,10 @@ function CheckoutAddressPage() {
             )}
           </section>
 
-          <section className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6">
+          <section
+            id="slot-section"
+            className="flex scroll-mt-24 flex-col gap-4 rounded-3xl border border-border/60 bg-white p-4 shadow-warm sm:p-6"
+          >
             <h2 className="font-editorial text-ink text-lg sm:text-xl">
               Delivery slot
             </h2>

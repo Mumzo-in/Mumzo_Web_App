@@ -14,6 +14,7 @@ import {
   useRef,
 } from "react";
 
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { useServiceability } from "@/modules/location";
 import {
   addCartItem,
@@ -105,6 +106,7 @@ const EMPTY_TOTALS: PublicCart["totals"] = {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const showPopup = usePopupStore((s) => s.showPopup);
   const { pincode, lat, lng } = useServiceability();
   const location = useMemo(() => ({ pincode, lat, lng }), [pincode, lat, lng]);
   const queryKey = cartQueryKey(location);
@@ -224,18 +226,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (product: Product, variantLabel: string | null = null, qty = 1) => {
       const { previous, input } = prepareAddItem(product, variantLabel, qty);
+      showPopup({
+        variant: "cart",
+        title: "Added to cart",
+        description: product.name,
+      });
       addCartItem(input)
         .then(setCart)
         .catch(() => {
           if (previous) setCart(previous);
         });
     },
-    [setCart, prepareAddItem],
+    [setCart, prepareAddItem, showPopup],
   );
 
   const addItemBlocking = useCallback(
     (product: Product, variantLabel: string | null = null, qty = 1) => {
       const { previous, input } = prepareAddItem(product, variantLabel, qty);
+      showPopup({
+        variant: "cart",
+        title: "Added to cart",
+        description: product.name,
+      });
       addItemMutation.mutate(input, {
         onSuccess: setCart,
         onError: () => {
@@ -243,7 +255,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
       });
     },
-    [setCart, prepareAddItem, addItemMutation],
+    [setCart, prepareAddItem, addItemMutation, showPopup],
   );
 
   const removeItemMutation = useMutation({

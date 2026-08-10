@@ -144,7 +144,6 @@ function ProductDetailPage() {
       return;
     }
     addItem(product, size ?? color, qty);
-    toast.success(`${product.name} added to cart!`);
     navigate({ to: "/cart" });
   };
 
@@ -215,6 +214,8 @@ function ProductDetailPage() {
           images={product.images}
           name={product.name}
           discount={discountPct(product)}
+          wished={wished}
+          onToggleWishlist={handleWishlist}
         />
 
         {/* Right column: info & selectors */}

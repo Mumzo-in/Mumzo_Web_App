@@ -91,14 +91,22 @@ function CheckoutPaymentPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => navigate({ to: "/checkout/address" })}
+                onClick={() =>
+                  navigate({ to: "/checkout/address", hash: "address-section" })
+                }
                 className="cursor-pointer rounded-full border border-primary px-3 py-1 font-semibold text-[10px] text-primary uppercase tracking-wider transition-colors hover:bg-primary/5"
               >
                 Change
               </button>
             </div>
             {address && (
-              <div className="flex items-start gap-2.5 text-foreground/75 text-xs sm:text-sm">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({ to: "/checkout/address", hash: "address-section" })
+                }
+                className="flex cursor-pointer items-start gap-2.5 text-left text-foreground/75 text-xs transition-colors hover:text-ink sm:text-sm"
+              >
                 <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
                 <div>
                   <span className="font-bold text-ink">
@@ -114,12 +122,18 @@ function CheckoutPaymentPage() {
                     Phone: {address.phone}
                   </span>
                 </div>
-              </div>
+              </button>
             )}
-            <p className="mt-1 inline-flex items-center gap-1.5 self-start rounded-full bg-accent/40 px-2.5 py-1 font-semibold text-[10px] text-ink uppercase tracking-wider">
+            <button
+              type="button"
+              onClick={() =>
+                navigate({ to: "/checkout/address", hash: "slot-section" })
+              }
+              className="mt-1 inline-flex cursor-pointer items-center gap-1.5 self-start rounded-full bg-accent/40 px-2.5 py-1 font-semibold text-[10px] text-ink uppercase tracking-wider transition-colors hover:bg-accent/60"
+            >
               <SlotIcon size={12} className="text-primary" />
               {slotLabel}
-            </p>
+            </button>
           </section>
 
           {/* Payment Method Selector Card */}

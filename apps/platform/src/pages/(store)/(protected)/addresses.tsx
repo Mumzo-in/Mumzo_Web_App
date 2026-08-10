@@ -1,4 +1,14 @@
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@mumzo/ui/components/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogTitle,
@@ -40,6 +50,7 @@ function AddressesPage() {
   } = useAddresses();
   const [editing, setEditing] = useState<Address | null>(null);
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Address | null>(null);
 
   const openAdd = () => {
     setEditing(null);
@@ -110,16 +121,13 @@ function AddressesPage() {
           </EmptyContent>
         </Empty>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2.5">
           {addresses.map((address) => (
             <AddressCard
               key={address.id}
               address={address}
               onEdit={() => openEdit(address)}
-              onDelete={async () => {
-                await removeAddress(address.id);
-                toast.success("Address removed");
-              }}
+              onDelete={() => setDeleting(address)}
               onSetDefault={async () => {
                 await setDefault(address.id);
                 toast.success("Default address updated");
@@ -151,6 +159,37 @@ function AddressesPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(deleting)}
+        onOpenChange={(next) => {
+          if (!next) setDeleting(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this address?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleting
+                ? `${deleting.label} · ${deleting.line1} will be removed permanently.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!deleting) return;
+                await removeAddress(deleting.id);
+                toast.success("Address removed");
+                setDeleting(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

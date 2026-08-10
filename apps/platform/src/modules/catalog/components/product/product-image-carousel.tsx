@@ -6,6 +6,8 @@ interface ProductImageCarouselProps {
   images: string[];
   name: string;
   discount: number;
+  wished: boolean;
+  onToggleWishlist: () => void;
 }
 
 /** Neutral wash shown when a product has no imagery yet. */
@@ -15,18 +17,14 @@ export default function ProductImageCarousel({
   images,
   name,
   discount,
+  wished,
+  onToggleWishlist,
 }: ProductImageCarouselProps) {
   const [activeThumb, setActiveThumb] = useState(0);
-  const [saved, setSaved] = useState(false);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Link copied to clipboard!");
-  };
-
-  const handleWishlist = () => {
-    setSaved(!saved);
-    toast.success(saved ? "Removed from wishlist" : "Added to wishlist");
   };
 
   const activeImage = images[activeThumb] ?? images[0] ?? null;
@@ -51,14 +49,15 @@ export default function ProductImageCarousel({
         <div className="absolute top-4 right-4 flex gap-2">
           <button
             type="button"
-            onClick={handleWishlist}
+            onClick={onToggleWishlist}
             data-testid="web-wishlist"
+            aria-pressed={wished}
             className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border/60 bg-white/95 transition-transform hover:border-primary active:scale-95"
           >
             <Heart
               size={16}
-              fill={saved ? "var(--primary)" : "none"}
-              color={saved ? "var(--primary)" : "currentColor"}
+              fill={wished ? "var(--primary)" : "none"}
+              color={wished ? "var(--primary)" : "currentColor"}
             />
           </button>
           <button
