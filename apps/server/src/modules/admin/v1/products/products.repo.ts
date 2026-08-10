@@ -51,6 +51,7 @@ const selection = {
   type: product.type,
   tags: product.tags,
   isBestseller: product.isBestseller,
+  isTopDeal: product.isTopDeal,
   status: product.status,
   rating: product.rating,
   createdAt: product.createdAt,

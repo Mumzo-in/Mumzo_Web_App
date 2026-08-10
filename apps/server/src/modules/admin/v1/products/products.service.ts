@@ -137,6 +137,7 @@ function serialize(
           : noVariantStock,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
+    isTopDeal: row.isTopDeal,
     status: row.status as "draft" | "active" | "inactive" | "archived",
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -224,6 +225,7 @@ type ProductInput = {
   type: string;
   tags: string[];
   isBestseller: boolean;
+  isTopDeal: boolean;
 };
 
 async function resolveCategoryId(categorySlug: string) {

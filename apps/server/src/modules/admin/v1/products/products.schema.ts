@@ -131,6 +131,7 @@ export const productSchema = z
     rating: z.number(),
 
     isBestseller: z.boolean(),
+    isTopDeal: z.boolean(),
     status: z.enum(["draft", "active", "inactive", "archived"]),
     updatedAt: z.string(),
   })
@@ -193,6 +194,7 @@ export const productWriteSchema = z
     tags: z.array(z.string().min(1)).max(20).default([]),
 
     isBestseller: z.boolean().default(false),
+    isTopDeal: z.boolean().default(false),
   })
   .refine(
     (data) => {
