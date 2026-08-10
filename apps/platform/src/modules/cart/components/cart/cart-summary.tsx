@@ -89,15 +89,26 @@ export default function CartSummary({
               highlight
             />
           )}
-          <Row
-            label="Delivery fee"
-            value={
-              totals.deliveryFee === 0 ? "FREE" : rupee(totals.deliveryFee)
-            }
-            highlight={totals.deliveryFee === 0}
-          />
-          {slotFee > 0 && (
-            <Row label="Scheduled delivery fee" value={rupee(slotFee)} />
+          {slotFee > 0 ? (
+            <Row
+              label="Delivery fee (scheduled)"
+              value={rupee(totals.deliveryFee + slotFee)}
+            />
+          ) : (
+            <Row
+              label="Delivery fee"
+              value={
+                totals.deliveryFee === 0 ? "FREE" : rupee(totals.deliveryFee)
+              }
+              highlight={totals.deliveryFee === 0}
+            />
+          )}
+          {totals.subtotal < totals.freeDeliveryThreshold && (
+            <p className="-mt-1 text-[11px] text-foreground/50 italic">
+              Add items worth{" "}
+              {rupee(totals.freeDeliveryThreshold - totals.subtotal)} more for
+              free delivery over {rupee(totals.freeDeliveryThreshold)}.
+            </p>
           )}
           {donation > 0 && (
             <Row label="Social donation" value={rupee(donation)} />
@@ -132,18 +143,6 @@ export default function CartSummary({
           policy.
         </p>
       </div>
-
-      {totals.subtotal < totals.freeDeliveryThreshold && (
-        <div className="mt-4 rounded-2xl border border-border/50 bg-secondary/50 p-4 text-foreground/70 text-xs">
-          <p className="mb-1 font-semibold text-foreground">
-            Free delivery over {rupee(totals.freeDeliveryThreshold)}
-          </p>
-          <p>
-            Add {rupee(totals.freeDeliveryThreshold - totals.subtotal)} more to
-            unlock free delivery.
-          </p>
-        </div>
-      )}
     </aside>
   );
 }
