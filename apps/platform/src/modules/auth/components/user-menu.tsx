@@ -12,10 +12,12 @@ import { Skeleton } from "@mumzo/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "../api/auth-client";
+import { useSignOut } from "../hooks/use-sign-out";
 
 export default function UserMenu() {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
+  const { signOut } = useSignOut();
 
   if (isPending) {
     return <Skeleton className="h-9 w-24" />;
@@ -44,16 +46,9 @@ export default function UserMenu() {
             )}
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    navigate({
-                      to: "/",
-                    });
-                  },
-                },
-              });
+            onClick={async () => {
+              await signOut();
+              navigate({ to: "/" });
             }}
           >
             Sign Out

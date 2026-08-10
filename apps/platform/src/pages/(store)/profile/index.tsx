@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import Loader from "@/core/components/loader";
 import { useBabies } from "@/modules/account";
-import { authClient } from "@/modules/auth";
+import { authClient, useSignOut } from "@/modules/auth";
 
 export const Route = createFileRoute("/(store)/profile/")({
   component: ProfilePage,
@@ -24,10 +24,11 @@ function ProfilePage() {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
   const { babies } = useBabies();
+  const { signOut } = useSignOut();
 
   const handleSignOut = async () => {
-    const res = await authClient.signOut();
-    if (res.data?.success) {
+    const ok = await signOut();
+    if (ok) {
       toast.success("Signed out successfully");
       navigate({ to: "/" });
     } else {
