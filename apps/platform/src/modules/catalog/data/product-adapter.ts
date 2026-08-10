@@ -62,6 +62,7 @@ export function toProduct(p: PublicProduct): Product {
     stock: p.stock,
     rating: p.rating,
     isBestseller: p.isBestseller,
+    isTopDeal: p.isTopDeal,
     status: "active",
     updatedAt: p.updatedAt,
   };

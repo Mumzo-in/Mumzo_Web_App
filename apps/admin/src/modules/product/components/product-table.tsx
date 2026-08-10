@@ -18,7 +18,7 @@ import { Input } from "@mumzo/ui/components/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Star, Tag, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
@@ -69,7 +69,21 @@ export function ProductTable({ stockFilter }: { stockFilter?: string }) {
               <AvatarFallback>{row.original.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-medium">{row.original.name}</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-medium">{row.original.name}</span>
+                {row.original.isBestseller ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-50 px-2 py-0.5 font-semibold text-[10px] text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                    <Star className="size-2.5 fill-amber-500 text-amber-500" />
+                    Bestseller
+                  </span>
+                ) : null}
+                {row.original.isTopDeal ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 font-semibold text-[10px] text-primary">
+                    <Tag className="size-2.5" />
+                    Top deal
+                  </span>
+                ) : null}
+              </div>
               <span className="text-muted-foreground text-xs">
                 {row.original.sizes[0]?.sku ?? "—"}
               </span>

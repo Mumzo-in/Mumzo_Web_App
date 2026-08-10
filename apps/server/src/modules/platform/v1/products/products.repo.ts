@@ -40,6 +40,7 @@ const selection = {
   type: product.type,
   tags: product.tags,
   isBestseller: product.isBestseller,
+  isTopDeal: product.isTopDeal,
   rating: product.rating,
   updatedAt: product.updatedAt,
 };
@@ -150,6 +151,8 @@ export async function findPublicPage(filters: {
   minPrice?: number;
   maxPrice?: number;
   sort: PublicSort;
+  bestseller?: boolean;
+  topDeal?: boolean;
 }) {
   const conditions: SQL[] = [eq(product.status, "active")];
 
@@ -170,6 +173,12 @@ export async function findPublicPage(filters: {
   }
   if (filters.maxPrice !== undefined) {
     conditions.push(lte(product.price, filters.maxPrice));
+  }
+  if (filters.bestseller) {
+    conditions.push(eq(product.isBestseller, true));
+  }
+  if (filters.topDeal) {
+    conditions.push(eq(product.isTopDeal, true));
   }
 
   const where = and(...conditions);

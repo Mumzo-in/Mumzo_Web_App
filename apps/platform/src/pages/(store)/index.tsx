@@ -1,4 +1,3 @@
-import { discountPct } from "@mumzo/schema";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -53,22 +52,33 @@ function HomePage() {
   );
   const { data: brands = [], isLoading: brandsLoading } =
     useQuery(brandsQueryOptions);
-  // One generous live page backs all three rails below — the catalog is
-  // small enough today that a single fetch beats three separate ones.
-  const { data: productsPage, isLoading: productsLoading } = useQuery(
-    productsQueryOptions({ limit: 60 }),
+
+  // Each rail is its own small, targeted server-side query — filtered in SQL
+  // (see products.repo.ts `topDeal`/`bestseller` filters, both admin-curated
+  // flags) rather than over-fetching a big page and computing rails
+  // client-side.
+  const { data: topDealsPage, isLoading: topDealsLoading } = useQuery(
+    productsQueryOptions({ limit: 10, topDeal: true, sort: "discount" }),
   );
-  const products = useMemo(
-    () => (productsPage?.data ?? []).map(toProduct),
-    [productsPage],
+  const { data: bestsellersPage, isLoading: bestsellersLoading } = useQuery(
+    productsQueryOptions({ limit: 10, bestseller: true }),
   );
-  const bestsellers = products.filter((p) => p.isBestseller).slice(0, 10);
-  const topDeals = [...products]
-    .filter((p) => discountPct(p) > 0)
-    .sort((a, b) => discountPct(b) - discountPct(a))
-    .slice(0, 10);
-  // Two rows of the responsive grid (5 per row at lg).
-  const picks = products.slice(0, 10);
+  const { data: picksPage, isLoading: picksLoading } = useQuery(
+    productsQueryOptions({ limit: 10 }),
+  );
+
+  const topDeals = useMemo(
+    () => (topDealsPage?.data ?? []).map(toProduct),
+    [topDealsPage],
+  );
+  const bestsellers = useMemo(
+    () => (bestsellersPage?.data ?? []).map(toProduct),
+    [bestsellersPage],
+  );
+  const picks = useMemo(
+    () => (picksPage?.data ?? []).map(toProduct),
+    [picksPage],
+  );
 
   return (
     <div className="pb-16">
@@ -127,7 +137,7 @@ function HomePage() {
           title="Top deals today"
           action={<SeeAll />}
         />
-        {productsLoading ? (
+        {topDealsLoading ? (
           <ProductRailSkeleton />
         ) : (
           <ProductRail products={topDeals} />
@@ -158,7 +168,7 @@ function HomePage() {
           title="Bestsellers this week"
           action={<SeeAll />}
         />
-        {productsLoading ? (
+        {bestsellersLoading ? (
           <ProductRailSkeleton />
         ) : (
           <ProductRail products={bestsellers} />
@@ -214,7 +224,7 @@ function HomePage() {
       {/* Closing product grid — two rows + view more */}
       <section className="mt-12">
         <SectionHeader kicker="Just for you" title="More to explore" />
-        {productsLoading ? (
+        {picksLoading ? (
           <ProductGridSkeleton />
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">

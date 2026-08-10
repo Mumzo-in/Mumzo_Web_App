@@ -53,6 +53,7 @@ export const publicProductSchema = z
     rating: z.number(),
 
     isBestseller: z.boolean(),
+    isTopDeal: z.boolean(),
     updatedAt: z.string(),
   })
   .openapi("PublicProduct");
@@ -111,6 +112,17 @@ export const listProductsQuerySchema = z.object({
         : undefined,
     ),
   inStock: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === "true")),
+  bestseller: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === "true")),
+  /** Admin-curated "Top deals" flag (`product.isTopDeal`) — same pattern as
+   * `bestseller`. Combine with `sort=discount` to rank the pinned set by
+   * discount size. */
+  topDeal: z
     .enum(["true", "false"])
     .optional()
     .transform((value) => (value === undefined ? undefined : value === "true")),

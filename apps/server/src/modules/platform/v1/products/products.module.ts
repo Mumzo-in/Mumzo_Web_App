@@ -50,6 +50,8 @@ const products = app
       maxPrice: query.maxPrice,
       sizes: query.sizes,
       inStock: query.inStock,
+      bestseller: query.bestseller,
+      topDeal: query.topDeal,
     });
     c.header("Cache-Control", LIST_CACHE_CONTROL);
     return c.json({ success: true as const, data: { data, meta } }, 200);

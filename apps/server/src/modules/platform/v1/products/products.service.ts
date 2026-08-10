@@ -94,6 +94,7 @@ function serialize(
           : noVariantStock,
     rating: Number(row.rating),
     isBestseller: row.isBestseller,
+    isTopDeal: row.isTopDeal,
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -109,6 +110,8 @@ export type ListPublicProductsFilters = {
   maxPrice?: number;
   sizes?: string[];
   inStock?: boolean;
+  bestseller?: boolean;
+  topDeal?: boolean;
 };
 
 /**
@@ -133,6 +136,8 @@ export async function listPublicProducts(filters: ListPublicProductsFilters) {
     maxPrice:
       filters.maxPrice === undefined ? undefined : toPaise(filters.maxPrice),
     sort: filters.sort,
+    bestseller: filters.bestseller,
+    topDeal: filters.topDeal,
   });
 
   const productIds = rows.map((row) => row.id);

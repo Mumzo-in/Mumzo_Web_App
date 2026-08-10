@@ -47,6 +47,7 @@ export type PublicProduct = {
   stock: number;
   rating: number;
   isBestseller: boolean;
+  isTopDeal: boolean;
   updatedAt: string;
 };
 
@@ -68,6 +69,10 @@ export type ListProductsFilters = {
   maxPrice?: number;
   sizes?: string[];
   inStock?: boolean;
+  bestseller?: boolean;
+  /** Admin-curated "Top deals" flag (`product.isTopDeal`) — filtered/sorted
+   * in SQL, not by fetching a big page and filtering client-side. */
+  topDeal?: boolean;
 };
 
 /** Live products API — real endpoint under `/api/v1/products`. */
@@ -85,6 +90,8 @@ export function listProducts(
     maxPrice: filters.maxPrice,
     sizes: filters.sizes?.join(","),
     inStock: filters.inStock,
+    bestseller: filters.bestseller,
+    topDeal: filters.topDeal,
   });
 }
 

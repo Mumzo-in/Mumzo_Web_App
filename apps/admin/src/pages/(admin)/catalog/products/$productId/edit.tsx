@@ -48,11 +48,13 @@ function EditProductPage() {
 
   const [status, setStatus] = useState<ProductFormValues["status"]>("draft");
   const [isBestseller, setIsBestseller] = useState(false);
+  const [isTopDeal, setIsTopDeal] = useState(false);
 
   useEffect(() => {
     if (product) {
       setStatus(product.status);
       setIsBestseller(product.isBestseller);
+      setIsTopDeal(product.isTopDeal);
     }
   }, [product]);
 
@@ -99,6 +101,7 @@ function EditProductPage() {
         colors: product.colors,
         status,
         isBestseller,
+        isTopDeal,
       });
       await queryClient.invalidateQueries({
         queryKey: queryKeys.products.all,
@@ -121,8 +124,10 @@ function EditProductPage() {
           <>
             <ProductSettingsMenu
               isBestseller={isBestseller}
+              isTopDeal={isTopDeal}
               onBestsellerChange={setIsBestseller}
               onStatusChange={setStatus}
+              onTopDealChange={setIsTopDeal}
               status={status}
             />
             {canDelete ? (
@@ -183,11 +188,15 @@ function EditProductPage() {
           tags: product.tags,
           status: product.status,
           isBestseller: product.isBestseller,
+          isTopDeal: product.isTopDeal,
         }}
+        isBestseller={isBestseller}
+        isTopDeal={isTopDeal}
         onPendingChange={setPending}
         onSubmit={handleUpdate}
         productId={productId}
         ref={formRef}
+        status={status}
       />
 
       <AlertDialog

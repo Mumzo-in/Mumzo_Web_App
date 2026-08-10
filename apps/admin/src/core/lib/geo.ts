@@ -1,4 +1,7 @@
-import type * as GeoJSON from "geojson";
+type GeoJsonPolygon = {
+  type: "Polygon";
+  coordinates: [number, number][][];
+};
 
 /** Pure geo math — no map library dependency, so it's cheap to unit-test/reuse. */
 
@@ -34,7 +37,7 @@ export function circlePolygon(
   center: { lat: number; lng: number },
   radiusKm: number,
   points = 64,
-): GeoJSON.Polygon {
+): GeoJsonPolygon {
   const coordinates: [number, number][] = [];
   const latRad = toRadians(center.lat);
   const kmPerDegreeLat = 110.574;

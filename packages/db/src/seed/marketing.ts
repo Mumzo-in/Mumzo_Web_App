@@ -53,10 +53,10 @@ const COUPON_SEEDS: CouponSeed[] = [
   },
   {
     code: "FIRSTBABY",
-    type: "pct",
-    value: 20,
-    minAmt: 299,
-    cap: 250,
+    type: "flat",
+    value: 1,
+    minAmt: 1,
+    cap: null,
     categorySlug: null,
     expiresAt: new Date("2026-12-31T23:59:59.000Z"),
     maxUses: null,
@@ -136,6 +136,7 @@ export async function seedCoupons() {
     await db
       .update(coupon)
       .set({
+        type: seed.type,
         isGlobal: seed.isGlobal,
         isActive: seed.isActive,
         expiresAt: seed.expiresAt,

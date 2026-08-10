@@ -161,6 +161,9 @@ export const product = pgTable(
     tags: text("tags").array().default([]).notNull(),
 
     isBestseller: boolean("is_bestseller").default(false).notNull(),
+    /** Manually pinned to the storefront "Top deals" rail — independent of
+     * whether the product actually has a price < mrp discount. */
+    isTopDeal: boolean("is_top_deal").default(false).notNull(),
     /** ProductStatus: "draft" | "active" | "inactive" | "archived". */
     status: text("status").default("draft").notNull(),
     /** Derived from reviews; written only by the (future) reviews module. */

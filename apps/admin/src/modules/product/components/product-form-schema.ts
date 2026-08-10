@@ -26,7 +26,17 @@ const variantSchema = z
 
 /** Mirrors the server's `productWriteSchema` for the fields the form owns —
  * gives every field its own red/error-text state via TanStack Form's
- * onSubmit validator, instead of the old page-level toast pre-checks. */
+ * onSubmit validator, instead of the old page-level toast pre-checks.
+ *
+ * `status`/`isBestseller`/`isTopDeal` are deliberately NOT validated here —
+ * they're driven by page-level `useState` + `ProductSettingsMenu`, outside
+ * the form tree entirely (no `<Field>`, no error UI), and the page's submit
+ * handler overwrites them onto the network payload after `form.handleSubmit`
+ * resolves. Validating them against the form's `value` here would check a
+ * stale snapshot from mount, not the live toggle state — exactly the bug
+ * that made the settings-menu switches appear not to "take": the form's
+ * onSubmit validator rejected the (accurate, but frozen-at-mount) snapshot
+ * before the page's live state ever got a chance to override it. */
 export const productFormSchema = z.object({
   name: z.string().min(2, "Give the product a name.").max(120),
   brandId: z.string().min(1, "Pick a brand."),
@@ -53,6 +63,7 @@ export const productFormSchema = z.object({
   tags: z.array(z.string()),
   status: z.enum(PRODUCT_STATUSES),
   isBestseller: z.boolean(),
+  isTopDeal: z.boolean(),
 });
 
 /** Section-wise sidebar, mirroring the category form's nav pattern. */
@@ -112,6 +123,7 @@ export type ProductFormValues = {
   tags: string[];
   status: ProductStatus;
   isBestseller: boolean;
+  isTopDeal: boolean;
 };
 
 /** Maps each top-level form field to the section nav tab it's rendered in, so
@@ -134,6 +146,7 @@ export const FIELD_SECTIONS: Record<keyof ProductFormValues, SectionId> = {
   sizes: "stock",
   status: "basic",
   isBestseller: "basic",
+  isTopDeal: "basic",
   images: "images",
   uploadSessionId: "images",
 };
@@ -169,6 +182,7 @@ export function emptyValues(): ProductFormValues {
     tags: [],
     status: "draft",
     isBestseller: false,
+    isTopDeal: false,
   };
 }
 

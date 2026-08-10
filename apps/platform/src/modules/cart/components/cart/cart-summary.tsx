@@ -6,20 +6,29 @@ function Row({
   label,
   value,
   highlight,
+  strikeValue,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
+  /** Original (pre-discount) amount, shown struck-through in muted grey
+   * right before `value` — e.g. the MRP next to the payable item total. */
+  strikeValue?: string;
 }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-foreground/70">{label}</span>
-      <span
-        className={cn(
-          highlight ? "font-semibold text-[#4F7E6B]" : "text-foreground",
+      <span className="flex items-center gap-1.5">
+        {strikeValue && (
+          <span className="text-foreground/40 line-through">{strikeValue}</span>
         )}
-      >
-        {value}
+        <span
+          className={cn(
+            highlight ? "font-semibold text-[#4F7E6B]" : "text-foreground",
+          )}
+        >
+          {value}
+        </span>
       </span>
     </div>
   );
@@ -53,6 +62,13 @@ export default function CartSummary({
     .filter((item) => item.selected)
     .reduce((sum, item) => sum + item.mrp * item.qty, 0);
   const savings = Math.max(0, mrpTotal - totals.subtotal);
+  // Blended effective rate for display — `gstAmount` is summed across lines
+  // that can each carry a different `gstRate`, so there's no single "the"
+  // percentage from the server; this is the closest single number to show.
+  const gstPct =
+    totals.subtotal > 0
+      ? Math.round((totals.gstAmount / totals.subtotal) * 100)
+      : 0;
 
   return (
     <aside className="h-fit md:sticky md:top-24">
@@ -61,14 +77,11 @@ export default function CartSummary({
           Bill details
         </p>
         <div className="flex flex-col gap-2.5 text-sm">
-          <Row label="Item total (MRP)" value={rupee(mrpTotal)} />
-          {savings > 0 && (
-            <Row
-              label="Product discount"
-              value={`− ${rupee(savings)}`}
-              highlight
-            />
-          )}
+          <Row
+            label="Item total"
+            value={rupee(totals.subtotal)}
+            strikeValue={savings > 0 ? rupee(mrpTotal) : undefined}
+          />
           {totals.discount > 0 && (
             <Row
               label={`Coupon (${couponCode})`}
@@ -89,7 +102,7 @@ export default function CartSummary({
           {donation > 0 && (
             <Row label="Social donation" value={rupee(donation)} />
           )}
-          <Row label="GST & taxes" value={rupee(totals.gstAmount)} />
+          <Row label={`GST (${gstPct}%)`} value={rupee(totals.gstAmount)} />
           <div className="mt-3 flex items-center justify-between border-border/50 border-t pt-3">
             <span className="font-semibold">To pay</span>
             <span
@@ -112,7 +125,7 @@ export default function CartSummary({
           data-testid="web-place-order"
           className="mt-6 w-full cursor-pointer rounded-full bg-primary py-4 font-semibold text-primary-foreground text-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {ctaLabel ?? `Place order · ${rupee(total)}`}
+          {ctaLabel ?? "Select Address →"}
         </button>
         <p className="mt-3 text-center text-[11px] text-foreground/50">
           By placing your order, you agree to our terms of service and refund

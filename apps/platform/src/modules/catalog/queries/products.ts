@@ -21,6 +21,8 @@ function filtersKey(filters: ListProductsFilters) {
     maxPrice: filters.maxPrice ?? null,
     sizes: filters.sizes ?? [],
     inStock: filters.inStock ?? null,
+    bestseller: filters.bestseller ?? null,
+    topDeal: filters.topDeal ?? null,
   };
 }
 

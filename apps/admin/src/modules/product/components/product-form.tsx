@@ -1,8 +1,9 @@
+import type { ProductStatus } from "@mumzo/schema";
 import { Card, CardContent } from "@mumzo/ui/components/card";
 import { cn } from "@mumzo/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
 import { listAllBrands } from "@/modules/brand";
 import { listAllVendors } from "@/modules/vendor";
@@ -38,11 +39,31 @@ export const ProductForm = forwardRef<
     initialValues?: ProductFormValues;
     /** Present when editing — enables the Availability tab's inventory lookup. */
     productId?: string;
+    /** `status`/`isBestseller`/`isTopDeal` are controlled from the page
+     * (driven by `ProductSettingsMenu`, outside the form's own field tree)
+     * rather than living in `initialValues` alone — `useForm`'s
+     * `defaultValues` only snapshots once at mount, so without this the
+     * settings-menu switches would update page state but never reach the
+     * form's own `value` at submit time, and the required `productFormSchema`
+     * fields would validate against a stale (or, on first mount before data
+     * loads, `undefined`) snapshot. Synced into the form via `setFieldValue`
+     * below on every change. */
+    status: ProductStatus;
+    isBestseller: boolean;
+    isTopDeal: boolean;
     onSubmit: (values: ProductFormValues) => Promise<void>;
     onPendingChange?: (pending: boolean) => void;
   }
 >(function ProductForm(
-  { initialValues, productId, onSubmit, onPendingChange },
+  {
+    initialValues,
+    productId,
+    status,
+    isBestseller,
+    isTopDeal,
+    onSubmit,
+    onPendingChange,
+  },
   ref,
 ) {
   const [activeSection, setActiveSection] = useState<SectionId>("basic");
@@ -77,6 +98,19 @@ export const ProductForm = forwardRef<
       }
     },
   });
+
+  // Keep the form's own `status`/`isBestseller`/`isTopDeal` in lock-step
+  // with the page-level state the settings-menu switches actually control —
+  // see the prop doc comment above for why this is needed.
+  useEffect(() => {
+    form.setFieldValue("status", status);
+  }, [form, status]);
+  useEffect(() => {
+    form.setFieldValue("isBestseller", isBestseller);
+  }, [form, isBestseller]);
+  useEffect(() => {
+    form.setFieldValue("isTopDeal", isTopDeal);
+  }, [form, isTopDeal]);
 
   async function submitAndReportErrors() {
     await form.handleSubmit();

@@ -53,6 +53,7 @@ export type Product = {
   stock: number;
   rating: number;
   isBestseller: boolean;
+  isTopDeal: boolean;
   status: ProductStatus;
   updatedAt: string;
 };
@@ -100,6 +101,7 @@ export type ProductInput = {
   type: string;
   tags: string[];
   isBestseller: boolean;
+  isTopDeal: boolean;
 };
 
 export function createProduct(input: ProductInput): Promise<{ id: string }> {

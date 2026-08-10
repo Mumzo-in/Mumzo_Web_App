@@ -38,18 +38,26 @@ function CartPage() {
   const {
     items,
     totals,
-    clear,
+    // clear,
     isLoading,
     toggleSelectAll,
     isMutating,
     addItemBlocking,
-    moveToWishlist,
+    // moveToWishlist,
   } = useCart();
-  const { serviceable, query, pincode } = useServiceability();
+  const { serviceable, pincode: activePincode } = useServiceability();
   const { openModal } = useModalStore();
   const { run } = useRequireAuth();
-  const { addresses, defaultAddress } = useAddresses();
+  const { defaultAddress } = useAddresses();
   const { setAddressId } = useCheckout();
+  // A default address that doesn't match the pincode currently being
+  // delivered to — the address on file is "far" from where checkout would
+  // actually ship. Surfaced as a prompt, not shown by default.
+  const addressMismatch = Boolean(
+    defaultAddress && defaultAddress.pincode !== activePincode,
+  );
+  const needsAddressAttention =
+    !serviceable || !defaultAddress || addressMismatch;
   const { ids: wishlistIds } = useWishlist();
   const [selectingVariantProduct, setSelectingVariantProduct] =
     useState<Product | null>(null);
@@ -79,10 +87,8 @@ function CartPage() {
   const goToCheckout = () => {
     if (defaultAddress) {
       setAddressId(defaultAddress.id);
-      navigate({ to: "/checkout/payment" });
-    } else {
-      navigate({ to: "/checkout/address" });
     }
+    navigate({ to: "/checkout/address" });
   };
 
   const placeOrder = () => {
@@ -102,8 +108,6 @@ function CartPage() {
     }
     run(goToCheckout, "Sign in to complete your order.");
   };
-
-  const selectedAddress = defaultAddress || addresses[0] || null;
 
   return (
     <div
@@ -138,45 +142,72 @@ function CartPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12 lg:gap-8">
           <div className="flex flex-col gap-4 sm:gap-5 md:col-span-7 xl:col-span-8">
-            {!serviceable && <NotServiceable compact />}
-
-            {/* Address Pincode / Deliver To Card Trigger */}
-            <button
-              type="button"
-              onClick={() => openModal("location")}
-              data-testid="web-cart-location-trigger"
-              className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-3xl border border-border/60 bg-white p-4 text-left shadow-warm transition-colors hover:border-primary/40 sm:p-6"
-            >
-              <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3">
-                <MapPin size={18} className="mt-1 shrink-0 text-primary" />
-                <div className="min-w-0 flex-1">
-                  {selectedAddress ? (
-                    <>
-                      <p className="text-foreground/50 text-xs">Deliver to:</p>
-                      <p className="mt-0.5 truncate font-semibold text-ink text-sm">
-                        {selectedAddress.name} · {selectedAddress.pincode}
-                      </p>
-                      <p className="mt-0.5 line-clamp-1 text-foreground/60 text-xs">
-                        {selectedAddress.line1}, {selectedAddress.line2},{" "}
-                        {selectedAddress.city}
-                      </p>
-                    </>
-                  ) : (
-                    <>
+            {!serviceable ? (
+              <NotServiceable compact />
+            ) : (
+              !defaultAddress && (
+                <div
+                  data-testid="web-cart-no-address"
+                  className="flex items-center justify-between gap-3 rounded-3xl border border-primary/30 bg-accent/20 p-4 shadow-warm sm:p-5"
+                >
+                  <div className="flex min-w-0 items-start gap-2.5">
+                    <MapPin
+                      size={18}
+                      className="mt-0.5 shrink-0 text-primary"
+                    />
+                    <div className="min-w-0">
                       <p className="font-semibold text-ink text-sm">
-                        Delivering to {query} ({pincode})
+                        Add a delivery address
                       </p>
                       <p className="mt-0.5 text-foreground/60 text-xs">
-                        Click to enter pincode or change location
+                        You'll need one to check out.
                       </p>
-                    </>
-                  )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      run(
+                        () => navigate({ to: "/checkout/address" }),
+                        "Sign in to add a delivery address.",
+                      )
+                    }
+                    data-testid="web-cart-add-address"
+                    className="shrink-0 cursor-pointer rounded-full border border-primary px-3 py-1.5 font-semibold text-[11px] text-primary uppercase tracking-wider transition-colors hover:bg-primary/5 sm:px-4 sm:py-2 sm:text-xs"
+                  >
+                    Add address
+                  </button>
                 </div>
+              )
+            )}
+
+            {serviceable && defaultAddress && addressMismatch && (
+              <div
+                data-testid="web-cart-address-mismatch"
+                className="flex items-center justify-between gap-3 rounded-3xl border border-primary/30 bg-accent/20 p-4 shadow-warm sm:p-5"
+              >
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <MapPin size={18} className="mt-0.5 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink text-sm">
+                      Your saved address is in a different area
+                    </p>
+                    <p className="mt-0.5 text-foreground/60 text-xs">
+                      We're currently delivering to {activePincode}. Update your
+                      location or address before checking out.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openModal("location")}
+                  data-testid="web-cart-fix-address"
+                  className="shrink-0 cursor-pointer rounded-full border border-primary px-3 py-1.5 font-semibold text-[11px] text-primary uppercase tracking-wider transition-colors hover:bg-primary/5 sm:px-4 sm:py-2 sm:text-xs"
+                >
+                  Change location
+                </button>
               </div>
-              <span className="shrink-0 rounded-full border border-primary px-3 py-1.5 font-semibold text-[11px] text-primary uppercase tracking-wider transition-colors hover:bg-primary/5 sm:px-4 sm:py-2 sm:text-xs">
-                {selectedAddress ? "Change" : "Enter Pin Code"}
-              </span>
-            </button>
+            )}
 
             {items.length === 0 ? (
               /* Inline Empty Cart Card */
@@ -224,7 +255,7 @@ function CartPage() {
                       {selectedCount}/{items.length} ITEMS SELECTED
                     </span>
                   </div>
-                  <div className="flex gap-3 sm:gap-4">
+                  {/* <div className="flex gap-3 sm:gap-4">
                     <button
                       type="button"
                       onClick={clear}
@@ -250,7 +281,7 @@ function CartPage() {
                     >
                       MOVE TO WISHLIST
                     </button>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Cart Items List */}
@@ -408,6 +439,11 @@ function CartPage() {
 
             <CartSummary
               onPlaceOrder={placeOrder}
+              ctaLabel={
+                defaultAddress && !needsAddressAttention
+                  ? "Proceed to pay →"
+                  : "Select Address →"
+              }
               // donation={donation}
               disabled={
                 hasOutOfStock ||
@@ -440,7 +476,9 @@ function CartPage() {
             }
             className="inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground text-sm shadow-md transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Checkout &rarr;
+            {defaultAddress && !needsAddressAttention
+              ? "Proceed to pay →"
+              : "Select Address →"}
           </button>
         </div>
       )}

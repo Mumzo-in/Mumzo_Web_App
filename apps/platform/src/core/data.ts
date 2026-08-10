@@ -104,6 +104,7 @@ const P = (
   stock,
   rating,
   isBestseller: rating >= 4.6,
+  isTopDeal: false,
   status: "active",
   updatedAt: "2026-07-01T00:00:00.000Z",
 });

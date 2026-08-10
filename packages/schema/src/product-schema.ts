@@ -70,6 +70,7 @@ export const productFormSchema = z
     tags: z.array(z.string().min(1)).max(20).default([]),
 
     isBestseller: z.boolean().default(false),
+    isTopDeal: z.boolean().default(false),
   })
   // MRP is the pre-discount price — below `price` it would render a negative
   // discount next to a struck-through number lower than what you pay.

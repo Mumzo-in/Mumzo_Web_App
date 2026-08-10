@@ -17,13 +17,17 @@ import { Settings2 } from "lucide-react";
 export function ProductSettingsMenu({
   status,
   isBestseller,
+  isTopDeal,
   onStatusChange,
   onBestsellerChange,
+  onTopDealChange,
 }: {
   status: ProductStatus;
   isBestseller: boolean;
+  isTopDeal: boolean;
   onStatusChange: (status: ProductStatus) => void;
   onBestsellerChange: (value: boolean) => void;
+  onTopDealChange: (value: boolean) => void;
 }) {
   return (
     <Popover>
@@ -72,6 +76,20 @@ export function ProductSettingsMenu({
               checked={isBestseller}
               id="product-bestseller"
               onCheckedChange={onBestsellerChange}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-0.5">
+              <FieldLabel htmlFor="product-top-deal">Top deal</FieldLabel>
+              <p className="text-muted-foreground text-xs">
+                Pins it to the storefront "Top deals" rail.
+              </p>
+            </div>
+            <Switch
+              checked={isTopDeal}
+              id="product-top-deal"
+              onCheckedChange={onTopDealChange}
             />
           </div>
         </div>

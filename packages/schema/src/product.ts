@@ -163,6 +163,9 @@ export type Product = {
   rating: number;
 
   isBestseller: boolean;
+  /** Manual, same as `isBestseller` — pins the product to the storefront
+   * "Top deals" rail independent of whether it actually has a discount. */
+  isTopDeal: boolean;
   status: ProductStatus;
   updatedAt: string;
 };

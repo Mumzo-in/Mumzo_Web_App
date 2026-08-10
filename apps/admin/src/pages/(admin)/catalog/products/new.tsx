@@ -25,6 +25,7 @@ function NewProductPage() {
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<ProductFormValues["status"]>("draft");
   const [isBestseller, setIsBestseller] = useState(false);
+  const [isTopDeal, setIsTopDeal] = useState(false);
 
   async function handleCreate(values: ProductFormValues) {
     if (!values.categorySlug) {
@@ -50,6 +51,7 @@ function NewProductPage() {
         colors: [],
         status,
         isBestseller,
+        isTopDeal,
       });
       await queryClient.invalidateQueries({
         queryKey: queryKeys.products.all,
@@ -75,8 +77,10 @@ function NewProductPage() {
           <>
             <ProductSettingsMenu
               isBestseller={isBestseller}
+              isTopDeal={isTopDeal}
               onBestsellerChange={setIsBestseller}
               onStatusChange={setStatus}
+              onTopDealChange={setIsTopDeal}
               status={status}
             />
             <Button
@@ -120,10 +124,14 @@ function NewProductPage() {
           tags: [],
           status,
           isBestseller,
+          isTopDeal,
         }}
+        isBestseller={isBestseller}
+        isTopDeal={isTopDeal}
         onPendingChange={setPending}
         onSubmit={handleCreate}
         ref={formRef}
+        status={status}
       />
     </>
   );

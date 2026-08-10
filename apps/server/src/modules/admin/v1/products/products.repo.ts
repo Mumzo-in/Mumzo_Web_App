@@ -107,7 +107,7 @@ export async function findPage(filters: {
   const [rows, countRows] = await Promise.all([
     baseQuery()
       .where(where)
-      .orderBy(desc(product.updatedAt))
+      .orderBy(desc(product.createdAt))
       .limit(filters.limit)
       .offset((filters.page - 1) * filters.limit),
     db
