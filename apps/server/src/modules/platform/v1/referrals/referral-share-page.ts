@@ -24,11 +24,13 @@ function sharePageHtml(options: {
   title: string;
   description: string;
   image: string;
+  squareImage: string;
   redirectTo: string;
 }) {
   const title = escapeHtml(options.title);
   const description = escapeHtml(options.description);
   const image = escapeHtml(options.image);
+  const squareImage = escapeHtml(options.squareImage);
   const redirectTo = escapeHtml(options.redirectTo);
 
   return `<!doctype html>
@@ -42,6 +44,13 @@ function sharePageHtml(options: {
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
 <meta property="og:image" content="${image}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image" content="${squareImage}" />
+<meta property="og:image:width" content="400" />
+<meta property="og:image:height" content="400" />
+<meta property="og:image:type" content="image/jpeg" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${description}" />
@@ -62,8 +71,10 @@ app.get("/:code", async (c) => {
   const redirectTo = `${env.PLATFORM_URL}/r/${encodeURIComponent(code)}`;
   // The PNG renderer lives on this same server (og.module.ts) — build the
   // image URL off the incoming request's own origin rather than assuming
-  // PLATFORM_URL proxies /api, since it may not in every deployment.
+  // PLATFORM_URL proxies /api, since it may not in every deployment. The
+  // square variant is a static platform asset, not server-rendered.
   const serverOrigin = new URL(c.req.url).origin;
+  const squareImage = `${env.PLATFORM_URL}/mumzo-og-square.jpg`;
 
   try {
     const { referrerName, refereeReward } = await validateCode(code);
@@ -71,6 +82,7 @@ app.get("/:code", async (c) => {
       title: `${referrerName} invited you to Mumzo`,
       description: `Mumzo delivers baby & mom essentials in 10 minutes. Sign up with code ${code} and get ₹${refereeReward} off your first order.`,
       image: `${serverOrigin}/api/v1/og/referral/${code}`,
+      squareImage,
       redirectTo,
     });
     return c.html(html);
@@ -82,6 +94,7 @@ app.get("/:code", async (c) => {
       description:
         "Mumzo delivers baby & mom essentials in 10 minutes — the stuff you need, right when you need it.",
       image: `${serverOrigin}/api/v1/og/default`,
+      squareImage,
       redirectTo,
     });
     return c.html(html);

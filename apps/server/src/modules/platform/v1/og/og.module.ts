@@ -16,11 +16,16 @@ import { renderOgImage } from "./og-render";
 /** `c.body()`'s TS overloads want a `Uint8Array<ArrayBuffer>`; resvg/satori's
  * output is typed over the wider `ArrayBufferLike`. A plain `Response`
  * sidesteps that mismatch instead of fighting it with casts. */
-function pngResponse(png: Uint8Array, maxAge: number, sMaxAge: number) {
-  return new Response(png, {
+function imageResponse(
+  bytes: Uint8Array,
+  contentType: "image/png" | "image/jpeg",
+  maxAge: number,
+  sMaxAge: number,
+) {
+  return new Response(bytes, {
     status: 200,
     headers: {
-      "Content-Type": "image/png",
+      "Content-Type": contentType,
       "Cache-Control": `public, max-age=${maxAge}, s-maxage=${sMaxAge}`,
     },
   });
@@ -38,7 +43,7 @@ const og = app
       price: `₹${product.price}`,
       image: product.images[0] ?? null,
     });
-    return pngResponse(png, 3600, 86400);
+    return imageResponse(png, "image/png", 3600, 86400);
   })
   .get("/category/:slug", async (c) => {
     const category = await getPublicCategory(c.req.param("slug"));
@@ -48,7 +53,7 @@ const og = app
       subtitle: category.tagline ?? undefined,
       image: category.img,
     });
-    return pngResponse(png, 3600, 86400);
+    return imageResponse(png, "image/png", 3600, 86400);
   })
   .get("/default", async () => {
     const png = await renderOgImage({
@@ -56,11 +61,11 @@ const og = app
       title: "The deepest shelf for the tiniest humans",
       subtitle: "10-minute delivery in Hyderabad",
     });
-    return pngResponse(png, 86400, 86400);
+    return imageResponse(png, "image/png", 86400, 86400);
   })
   .get("/referral/:code", async () => {
-    const png = await loadReferralOgCard();
-    return pngResponse(png, 3600, 86400);
+    const jpg = await loadReferralOgCard();
+    return imageResponse(jpg, "image/jpeg", 3600, 86400);
   });
 
 export default og;
