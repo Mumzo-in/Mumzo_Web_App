@@ -10,6 +10,7 @@ import {
   mountOpenAPI,
   successSchema,
 } from "./core";
+import referralSharePage from "./modules/platform/v1/referrals/referral-share-page";
 import { startReferralSettlementSweep } from "./modules/platform/v1/referrals/referrals.sweep";
 import { startReviewPromptSweep } from "./modules/platform/v1/reviews/reviews.sweep";
 import router from "./router";
@@ -77,6 +78,11 @@ app.openapi(healthRoute, async (c) => {
     200,
   );
 });
+
+// Crawler-facing share page — see referral-share-page.ts for why this can't
+// just live in the SPA. Mounted outside /api/v1 to match the public
+// `/r/:code` path real users and link previews actually hit.
+app.route("/r", referralSharePage);
 
 app.route("/", router);
 

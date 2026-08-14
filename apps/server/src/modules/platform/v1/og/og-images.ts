@@ -5,16 +5,15 @@ const IMAGES_DIR = fileURLToPath(
   new URL("../../../../assets/images", import.meta.url),
 );
 
-let cachedReferralHero: string | null = null;
+let cachedReferralOgCard: Buffer | null = null;
 
-/** The mom + baby brand photo used on the referral share card — loaded once
- * per process and returned as a data URI, since satori's `img.src` needs a
- * directly resolvable source, not a relative path into this app's own
- * filesystem. */
-export async function loadReferralHeroImage(): Promise<string> {
-  if (cachedReferralHero) return cachedReferralHero;
+/** The finished, pre-designed 1200x630 referral share card — served as-is
+ * for `/og/referral/:code` rather than composited via satori, since it's
+ * already a complete card (branding, headline, CTA), not a raw photo that
+ * needs per-referrer text overlaid on it. Loaded once per process. */
+export async function loadReferralOgCard(): Promise<Buffer> {
+  if (cachedReferralOgCard) return cachedReferralOgCard;
 
-  const buffer = await readFile(`${IMAGES_DIR}/referral-hero.png`);
-  cachedReferralHero = `data:image/png;base64,${buffer.toString("base64")}`;
-  return cachedReferralHero;
+  cachedReferralOgCard = await readFile(`${IMAGES_DIR}/og-refer-image.png`);
+  return cachedReferralOgCard;
 }

@@ -2,6 +2,17 @@ server {
     listen ${PORT};
     server_name localhost;
 
+    # Link-preview crawlers (WhatsApp, iMessage, Slack, Twitter/X) never run
+    # this SPA's JS, so they never see the og:* tags injected client-side.
+    # The API server renders real HTML with real OG tags at the same path
+    # and bounces human visitors straight back into the SPA — proxy to it
+    # instead of falling through to index.html.
+    location /r/ {
+        proxy_pass ${API_ORIGIN}/r/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
     location / {
         root /usr/share/nginx/html;
         index index.html index.htm;

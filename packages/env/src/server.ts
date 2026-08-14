@@ -39,6 +39,13 @@ export const env = createEnv({
       .transform((value) => value === "true"),
     /** Port the Hono server listens on. */
     PORT: intFromEnv(3000),
+    /**
+     * Public URL of the storefront SPA — used to redirect real browsers away
+     * from the server-rendered crawler share pages (e.g. `/r/:code`), which
+     * exist only so link-preview bots see OG tags a client-rendered SPA
+     * can't serve them.
+     */
+    PLATFORM_URL: z.url(),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     /**
