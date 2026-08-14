@@ -53,6 +53,7 @@ export default function RequireAuthModal() {
         </DialogHeader>
 
         <SignInForm
+          showModeLinks={false}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["auth-session"] });
             closeModal();

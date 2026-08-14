@@ -3,10 +3,10 @@ import { Input } from "@mumzo/ui/components/input";
 import { Label } from "@mumzo/ui/components/label";
 import { cn } from "@mumzo/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { cartQueryKey, mergeCartApi } from "@/modules/cart";
 import { useServiceability } from "@/modules/location";
 import { authClient } from "../../api/auth-client";
@@ -14,12 +14,19 @@ import { completeOnboarding } from "../../api/onboarding-api";
 
 const RESEND_SECONDS = 30;
 
-/** Referral → details → OTP, in that order — a friend's code (if any) is
- * asked before the account exists so it's never an afterthought squeezed
- * into a later step. */
-type Step = "referral-choice" | "referral-code" | "details" | "otp";
+/** Mode → referral → details → OTP, in that order — the visitor picks
+ * login-vs-signup first (so the rest of the form reads correctly), then a
+ * friend's code (if any) is asked before the account exists so it's never
+ * an afterthought squeezed into a later step. */
+type Step = "mode" | "referral-choice" | "referral-code" | "details" | "otp";
 
-const STEP_ORDER: Step[] = ["referral-choice", "details", "otp"];
+/** Login skips the referral question entirely (a code only ever applies to
+ * a brand-new account) — the progress dots reflect each mode's actual path
+ * rather than a step neither flow visits. */
+const _STEP_ORDER_BY_MODE: Record<"login" | "register", Step[]> = {
+  login: ["mode", "details", "otp"],
+  register: ["mode", "referral-choice", "details", "otp"],
+};
 
 function toE164(phone: string) {
   return `+91${phone}`;
@@ -37,10 +44,20 @@ function safeRedirectTarget(redirect: string | undefined) {
 
 export default function SignInForm({
   onSuccess,
+  initialMode = "login",
+  showModeLinks = true,
 }: {
   /** Called instead of navigating home once verification succeeds — used
    * when the form is embedded in a modal opened from an arbitrary page. */
   onSuccess?: () => void;
+  /** Which tab the login/signup picker opens on — `/auth/login` opens on
+   * "Log in", `/register` opens on "Sign up". Either can still be switched;
+   * this only decides what's highlighted first. */
+  initialMode?: "login" | "register";
+  /** Renders "New here? Sign up" / "Already have an account? Log in" links
+   * to the sibling page below the picker. Off inside the require-auth
+   * modal, which has no page to link to and would rather stay put. */
+  showModeLinks?: boolean;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -54,12 +71,11 @@ export default function SignInForm({
     select: (s: { ref?: string }) => s.ref,
   });
 
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
+  const [step, setStep] = useState<Step>("mode");
   // A code arriving via `/r/$code` → `?ref=` skips straight past the "do you
   // have a code?" choice — the friend already told us, asking again is
   // redundant friction.
-  const [step, setStep] = useState<Step>(
-    refParam ? "referral-code" : "referral-choice",
-  );
   const [hasReferral, setHasReferral] = useState<boolean | null>(
     refParam ? true : null,
   );
@@ -72,6 +88,21 @@ export default function SignInForm({
   const [timer, setTimer] = useState(RESEND_SECONDS);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const showPopup = usePopupStore((s) => s.showPopup);
+
+  const chooseMode = (next: "login" | "register") => {
+    setFormError(null);
+    setMode(next);
+    if (next === "login") {
+      // Login never asks about a referral code — codes only ever apply to
+      // a brand-new account, so this goes straight to phone + OTP.
+      setHasReferral(false);
+      setStep("details");
+      return;
+    }
+    setStep(refParam ? "referral-code" : "referral-choice");
+  };
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -84,6 +115,7 @@ export default function SignInForm({
   }, [step, timer]);
 
   const chooseReferral = (has: boolean) => {
+    setFormError(null);
     setHasReferral(has);
     setStep(has ? "referral-code" : "details");
   };
@@ -91,31 +123,32 @@ export default function SignInForm({
   const confirmReferralCode = (e: React.FormEvent) => {
     e.preventDefault();
     if (!referralCode.trim()) {
-      toast.error("Enter a referral code, or go back and skip it");
+      setFormError("Enter a referral code, or go back and skip it");
       return;
     }
+    setFormError(null);
     setStep("details");
   };
 
   const sendOtp = async () => {
-    if (!name.trim()) {
-      toast.error("Please enter your name");
+    if (mode === "register" && !name.trim()) {
+      setFormError("Please enter your name");
       return;
     }
     if (phone.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
+      setFormError("Please enter a valid 10-digit phone number");
       return;
     }
+    setFormError(null);
     setSending(true);
     const { error } = await authClient.phoneNumber.sendOtp({
       phoneNumber: toE164(phone),
     });
     setSending(false);
     if (error) {
-      toast.error(error.message ?? "Could not send the OTP. Try again.");
+      setFormError(error.message ?? "Could not send the OTP. Try again.");
       return;
     }
-    toast.success(`OTP sent to ${toE164(phone)}`);
     setStep("otp");
     setTimer(RESEND_SECONDS);
   };
@@ -125,46 +158,37 @@ export default function SignInForm({
     void sendOtp();
   };
 
+  const finishSignIn = (destination: () => void) => {
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      destination();
+    }
+  };
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length !== 6) {
-      toast.error("Please enter a 6-digit OTP");
+      setFormError("Please enter a 6-digit OTP");
       return;
     }
     setVerifying(true);
+    setFormError(null);
     const { error } = await authClient.phoneNumber.verify({
       phoneNumber: toE164(phone),
       code: otp,
     });
     if (error) {
       setVerifying(false);
-      toast.error(error.message ?? "That code didn't work. Try again.");
+      setFormError(error.message ?? "That code didn't work. Try again.");
       return;
     }
 
-    // Name (and referral code, once redemption exists server-side — see
-    // `completeOnboardingSchema`) is saved right here, as part of signing
-    // in, rather than via a later "complete your profile" popup.
-    try {
-      await completeOnboarding({
-        name: name.trim(),
-        referralCode:
-          hasReferral && referralCode.trim()
-            ? referralCode.trim().toUpperCase()
-            : undefined,
-      });
-    } catch {
-      // Best-effort — a signed-in session with a still-placeholder name is
-      // recoverable from the profile page; it must not block sign-in.
-    }
-
-    toast.success("Welcome to Mumzo!");
-
     // Re-fetch rather than trust a stale cookie-cached session.
-    const { data } = await authClient.getSession({
+    const { data: freshSession } = await authClient.getSession({
       query: { disableCookieCache: true },
     });
-    queryClient.setQueryData(["auth-session"], data);
+    queryClient.setQueryData(["auth-session"], freshSession);
 
     // Folds any guest-cart lines into the now-signed-in user's cart — without
     // this, items added before sign-in become invisible/unreachable (the
@@ -177,12 +201,62 @@ export default function SignInForm({
       // fetch just resolves to the user's own (possibly empty) cart.
     }
 
-    setVerifying(false);
+    // `signUpOnVerification` (packages/auth/src/platform.ts) means the
+    // account is created transparently on first verify — there's no
+    // separate signup step. `onboardedAt` is the only reliable signal that
+    // distinguishes "just created" from "logging back in": a brand new
+    // user has never completed onboarding yet. A referral code only ever
+    // applies to the former — an existing account logging back in through
+    // a referral link must not silently pick up a fresh welcome coupon.
+    const isNewAccount = !freshSession?.user?.onboardedAt;
+    const code =
+      hasReferral && referralCode.trim()
+        ? referralCode.trim().toUpperCase()
+        : undefined;
 
-    if (onSuccess) {
-      onSuccess();
+    if (isNewAccount) {
+      try {
+        await completeOnboarding({
+          name: name.trim() || toE164(phone),
+          referralCode: code,
+        });
+      } catch {
+        // Best-effort — a signed-in session with a still-placeholder name is
+        // recoverable from the profile page; it must not block sign-in.
+      }
+
+      setVerifying(false);
+      showPopup({
+        variant: "success",
+        title: "Welcome to Mumzo!",
+        description: code
+          ? "Your account is ready and the referral code has been applied."
+          : "Your account is ready.",
+        actionLabel: "Continue",
+        onAction: () =>
+          finishSignIn(() =>
+            navigate({ href: safeRedirectTarget(redirectParam) }),
+          ),
+      });
     } else {
-      navigate({ href: safeRedirectTarget(redirectParam) });
+      setVerifying(false);
+      if (code) {
+        showPopup({
+          variant: "info",
+          title: "Welcome back!",
+          description:
+            "You're already a Mumzo member, so this referral code wasn't applied — it's only for new accounts.",
+          actionLabel: "Continue",
+          onAction: () =>
+            finishSignIn(() =>
+              navigate({ href: safeRedirectTarget(redirectParam) }),
+            ),
+        });
+      } else {
+        finishSignIn(() =>
+          navigate({ href: safeRedirectTarget(redirectParam) }),
+        );
+      }
     }
   };
 
@@ -192,23 +266,28 @@ export default function SignInForm({
   };
 
   const currentStepIndex =
-    step === "referral-code"
-      ? 0
-      : STEP_ORDER.indexOf(
-          step === "referral-choice" ? "referral-choice" : step,
-        );
+    step === "referral-code" ? 1 : STEP_ORDER.indexOf(step);
+
+  const goBack = () => {
+    setFormError(null);
+    if (step === "referral-code") {
+      setStep("referral-choice");
+    } else if (step === "details") {
+      if (mode === "login") setStep("mode");
+      else setStep(hasReferral ? "referral-code" : "referral-choice");
+    } else if (step === "otp") {
+      setStep("details");
+    } else if (step === "referral-choice") {
+      setStep("mode");
+    }
+  };
 
   return (
     <div className="w-full p-8 sm:p-10">
-      {step !== "referral-choice" && (
+      {step !== "mode" && (
         <button
           type="button"
-          onClick={() => {
-            if (step === "referral-code") setStep("referral-choice");
-            else if (step === "details")
-              setStep(hasReferral ? "referral-code" : "referral-choice");
-            else setStep("details");
-          }}
+          onClick={goBack}
           className="mb-4 flex cursor-pointer items-center gap-1.5 font-semibold text-foreground/60 text-xs transition-colors hover:text-primary"
         >
           <ArrowLeft size={14} /> Back
@@ -230,6 +309,66 @@ export default function SignInForm({
           </div>
         ))}
       </div>
+
+      {formError && (
+        <p className="-mt-2 mb-4 text-center text-destructive text-xs">
+          {formError}
+        </p>
+      )}
+
+      {step === "mode" && (
+        <div>
+          <h1 className="mb-2 text-center font-editorial text-3xl text-ink">
+            Welcome to Mumzo
+          </h1>
+          <p className="mb-6 text-center text-foreground/60 text-xs leading-relaxed">
+            Log in to your account, or create a new one
+          </p>
+
+          <div className="mb-6 flex rounded-full bg-secondary p-1">
+            <button
+              type="button"
+              onClick={() => chooseMode("login")}
+              data-testid="web-signin-mode-login"
+              className={cn(
+                "h-10 flex-1 cursor-pointer rounded-full font-semibold text-sm transition-colors",
+                mode === "login"
+                  ? "bg-ink text-white"
+                  : "text-foreground/60 hover:text-ink",
+              )}
+            >
+              Log in
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseMode("register")}
+              data-testid="web-signin-mode-register"
+              className={cn(
+                "h-10 flex-1 cursor-pointer rounded-full font-semibold text-sm transition-colors",
+                mode === "register"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground/60 hover:text-ink",
+              )}
+            >
+              Sign up
+            </button>
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => chooseMode(mode)}
+            data-testid="web-signin-mode-continue"
+            className={cn(
+              "h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
+              mode === "login"
+                ? "bg-ink text-white hover:bg-ink/90"
+                : "bg-primary text-primary-foreground hover:bg-primary/95",
+            )}
+          >
+            Continue →
+          </Button>
+        </div>
+      )}
 
       {step === "referral-choice" && (
         <div>
@@ -298,25 +437,29 @@ export default function SignInForm({
       {step === "details" && (
         <form onSubmit={handleSendOtp} className="space-y-5">
           <h1 className="mb-2 font-editorial text-3xl text-ink">
-            Tell us about you
+            {mode === "login" ? "Log in" : "Tell us about you"}
           </h1>
           <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
-            Your name and mobile number
+            {mode === "login"
+              ? "Enter your mobile number to continue"
+              : "Your name and mobile number"}
           </p>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">Your name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter your full name"
-              className="h-11 rounded-xl"
-              data-testid="web-signin-name-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </div>
+          {mode === "register" && (
+            <div className="space-y-2">
+              <Label htmlFor="name">Your name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                className="h-11 rounded-xl"
+                data-testid="web-signin-name-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
@@ -334,6 +477,7 @@ export default function SignInForm({
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
+                autoFocus={mode === "login"}
               />
             </div>
           </div>
@@ -342,7 +486,12 @@ export default function SignInForm({
             type="submit"
             disabled={sending}
             data-testid="web-signin-send-otp-button"
-            className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
+            className={cn(
+              "mt-2 h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
+              mode === "login"
+                ? "bg-ink text-white hover:bg-ink/90"
+                : "bg-primary text-primary-foreground hover:bg-primary/95",
+            )}
           >
             {sending ? "Sending…" : "Continue →"}
           </Button>
@@ -379,9 +528,18 @@ export default function SignInForm({
               type="submit"
               disabled={verifying}
               data-testid="web-signin-verify-button"
-              className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
+              className={cn(
+                "mt-2 h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
+                mode === "login"
+                  ? "bg-ink text-white hover:bg-ink/90"
+                  : "bg-primary text-primary-foreground hover:bg-primary/95",
+              )}
             >
-              {verifying ? "Verifying…" : "Verify & Log In →"}
+              {verifying
+                ? "Verifying…"
+                : mode === "login"
+                  ? "Verify & Log In →"
+                  : "Verify & Sign Up →"}
             </Button>
           </form>
 
@@ -401,6 +559,32 @@ export default function SignInForm({
             )}
           </div>
         </>
+      )}
+
+      {step === "mode" && showModeLinks && (
+        <p className="mt-6 text-center text-foreground/60 text-xs">
+          {mode === "login" ? (
+            <>
+              New here?{" "}
+              <Link
+                to="/register"
+                className="font-semibold text-primary hover:underline"
+              >
+                Sign up
+              </Link>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <Link
+                to="/auth/login"
+                className="font-semibold text-primary hover:underline"
+              >
+                Log in
+              </Link>
+            </>
+          )}
+        </p>
       )}
     </div>
   );

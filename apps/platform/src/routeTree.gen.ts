@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
+import { Route as RegisterRouteImport } from './pages/register'
 import { Route as AuthLayoutRouteImport } from './pages/auth/_layout'
 import { Route as storeLayoutRouteImport } from './pages/(store)/_layout'
 import { Route as storeIndexRouteImport } from './pages/(store)/index'
@@ -56,6 +57,11 @@ import { Route as storeprotectedOrdersOrderIdReviewRouteImport } from './pages/(
 import { Route as storeprotectedOrdersOrderIdReturnRouteImport } from './pages/(store)/(protected)/orders/$orderId/return'
 import { Route as storeprotectedOrdersOrderIdHelpRouteImport } from './pages/(store)/(protected)/orders/$orderId/help'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -307,6 +313,7 @@ const storeprotectedOrdersOrderIdHelpRoute =
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthLayoutRouteWithChildren
+  '/register': typeof RegisterRoute
   '/about': typeof storeAboutRoute
   '/cart': typeof storeCartRoute
   '/contact': typeof storeContactRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthLayoutRouteWithChildren
+  '/register': typeof RegisterRoute
   '/about': typeof storeAboutRoute
   '/cart': typeof storeCartRoute
   '/contact': typeof storeContactRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(store)': typeof storeLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRouteWithChildren
+  '/register': typeof RegisterRoute
   '/(store)/(protected)': typeof storeprotectedLayoutRouteWithChildren
   '/(store)/about': typeof storeAboutRoute
   '/(store)/cart': typeof storeCartRoute
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
+    | '/register'
     | '/about'
     | '/cart'
     | '/contact'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/register'
     | '/about'
     | '/cart'
     | '/contact'
@@ -541,6 +552,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(store)'
     | '/auth'
+    | '/register'
     | '/(store)/(protected)'
     | '/(store)/about'
     | '/(store)/cart'
@@ -590,10 +602,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   storeLayoutRoute: typeof storeLayoutRouteWithChildren
   AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -1057,6 +1077,7 @@ const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   storeLayoutRoute: storeLayoutRouteWithChildren,
   AuthLayoutRoute: AuthLayoutRouteWithChildren,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

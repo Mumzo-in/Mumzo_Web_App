@@ -11,7 +11,14 @@ function AuthLayout() {
       {/* Left Column - Brand Imagery & Headline (hidden on mobile) */}
       <div className="relative hidden animate-fade-in flex-col justify-between overflow-hidden bg-gradient-to-br from-[#FEF1EC] via-[#FCE1E6] to-[#A93F63]/10 p-12 md:flex">
         {/* Grain overlay */}
-        <div className="xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.28%22/%3E%3C/svg%3E')] pointer-events-none absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg bg-repeat opacity-30 mix-blend-multiply" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-repeat opacity-30 mix-blend-multiply"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E\")",
+          }}
+        />
 
         {/* Brand Logo Header (Links to homepage) */}
         <div className="relative z-10">
