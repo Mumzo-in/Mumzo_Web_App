@@ -23,6 +23,7 @@ import productsRoutes, {
 } from "./products/products.module";
 import profileRoutes from "./profile/profile.module";
 import referralsRoutes from "./referrals/referrals.module";
+import reviewsRoutes from "./reviews/reviews.module";
 import wishlistRoutes from "./wishlist/wishlist.module";
 
 /**
@@ -81,6 +82,7 @@ app.route("/location", locationRoutes);
 app.route("/orders", ordersRoutes);
 app.route("/profile", profileRoutes);
 app.route("/referrals", referralsRoutes);
+app.route("/reviews", reviewsRoutes);
 app.route("/wishlist", wishlistRoutes);
 app.route("/og", ogRoutes);
 

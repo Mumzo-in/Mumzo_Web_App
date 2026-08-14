@@ -7,7 +7,8 @@ import {
   couponAssignment,
   couponProduct,
 } from "@mumzo/db/schema/marketing";
-import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { referral } from "@mumzo/db/schema/referrals";
+import { and, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 
 /** Pure data access — no business rules. `service.ts` owns those. */
 
@@ -67,34 +68,66 @@ export async function findPage(filters: {
   return { rows, total: countRows[0]?.total ?? 0 };
 }
 
+const couponRowSelection = {
+  id: coupon.id,
+  code: coupon.code,
+  description: coupon.description,
+  type: coupon.type,
+  value: coupon.value,
+  cap: coupon.cap,
+  minAmt: coupon.minAmt,
+  categorySlug: coupon.categorySlug,
+  brandId: coupon.brandId,
+  productScope: coupon.productScope,
+  visibility: coupon.visibility,
+  segment: coupon.segment,
+  firstOrderOnly: coupon.firstOrderOnly,
+  maxUses: coupon.maxUses,
+  maxUsesPerUser: coupon.maxUsesPerUser,
+  usedCount: sql<number>`count(${order.id})::int`,
+  isStackable: coupon.isStackable,
+  priority: coupon.priority,
+  expiresAt: coupon.expiresAt,
+  startsAt: coupon.startsAt,
+  isActive: coupon.isActive,
+  isGlobal: coupon.isGlobal,
+  claimedAt: coupon.claimedAt,
+  createdAt: coupon.createdAt,
+  updatedAt: coupon.updatedAt,
+};
+
+type MinimalCouponRow = {
+  id: string;
+  productScope: string;
+  visibility: string;
+};
+
+async function withProductsAndAssignments<T extends MinimalCouponRow>(row: T) {
+  const [products, assignments] = await Promise.all([
+    row.productScope === "specific"
+      ? db
+          .select({ productId: couponProduct.productId })
+          .from(couponProduct)
+          .where(eq(couponProduct.couponId, row.id))
+      : Promise.resolve([]),
+    row.visibility === "assigned"
+      ? db
+          .select({ userId: couponAssignment.userId })
+          .from(couponAssignment)
+          .where(eq(couponAssignment.couponId, row.id))
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    ...row,
+    productIds: products.map((p) => p.productId),
+    assignedUserIds: assignments.map((a) => a.userId),
+  };
+}
+
 export async function findById(id: string) {
   const [row] = await db
-    .select({
-      id: coupon.id,
-      code: coupon.code,
-      description: coupon.description,
-      type: coupon.type,
-      value: coupon.value,
-      cap: coupon.cap,
-      minAmt: coupon.minAmt,
-      categorySlug: coupon.categorySlug,
-      brandId: coupon.brandId,
-      productScope: coupon.productScope,
-      visibility: coupon.visibility,
-      segment: coupon.segment,
-      firstOrderOnly: coupon.firstOrderOnly,
-      maxUses: coupon.maxUses,
-      maxUsesPerUser: coupon.maxUsesPerUser,
-      usedCount: sql<number>`count(${order.id})::int`,
-      isStackable: coupon.isStackable,
-      priority: coupon.priority,
-      expiresAt: coupon.expiresAt,
-      startsAt: coupon.startsAt,
-      isActive: coupon.isActive,
-      isGlobal: coupon.isGlobal,
-      createdAt: coupon.createdAt,
-      updatedAt: coupon.updatedAt,
-    })
+    .select(couponRowSelection)
     .from(coupon)
     .leftJoin(order, eq(coupon.id, order.couponId))
     .where(eq(coupon.id, id))
@@ -105,26 +138,26 @@ export async function findById(id: string) {
     return undefined;
   }
 
-  const [products, assignments] = await Promise.all([
-    row.productScope === "specific"
-      ? db
-          .select({ productId: couponProduct.productId })
-          .from(couponProduct)
-          .where(eq(couponProduct.couponId, id))
-      : Promise.resolve([]),
-    row.visibility === "assigned"
-      ? db
-          .select({ userId: couponAssignment.userId })
-          .from(couponAssignment)
-          .where(eq(couponAssignment.couponId, id))
-      : Promise.resolve([]),
-  ]);
+  return withProductsAndAssignments(row);
+}
 
-  return {
-    ...row,
-    productIds: products.map((p) => p.productId),
-    assignedUserIds: assignments.map((a) => a.userId),
-  };
+/** Full coupon row by code in one query — used by `validateCoupon`, which
+ * only has the code the user typed, so it can skip the extra code->id hop
+ * `findByCode` + `findById` would otherwise cost. */
+export async function findByCodeFull(code: string) {
+  const [row] = await db
+    .select(couponRowSelection)
+    .from(coupon)
+    .leftJoin(order, eq(coupon.id, order.couponId))
+    .where(eq(coupon.code, code))
+    .groupBy(coupon.id)
+    .limit(1);
+
+  if (!row) {
+    return undefined;
+  }
+
+  return withProductsAndAssignments(row);
 }
 
 export async function findByCode(code: string) {
@@ -253,6 +286,59 @@ export async function update(
 
 export async function remove(id: string) {
   await db.delete(coupon).where(eq(coupon.id, id));
+}
+
+/**
+ * Is this coupon referral-issued, and if so who's the referrer? Checks both
+ * `referral.couponId` (referrer tier coupons) and `referral.refereeCouponId`
+ * (referee welcome coupons) — the discriminator `validateCoupon` uses to
+ * give a referral-aware "this isn't your coupon" message instead of the
+ * generic assigned-coupon rejection.
+ */
+export async function findReferralByCouponId(couponId: string) {
+  const [row] = await db
+    .select({
+      referrerUserId: referral.referrerUserId,
+      referrerName: user.name,
+    })
+    .from(referral)
+    .innerJoin(user, eq(referral.referrerUserId, user.id))
+    .where(
+      or(
+        eq(referral.couponId, couponId),
+        eq(referral.refereeCouponId, couponId),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+/** Count of this user's non-cancelled orders — used for `firstOrderOnly`. */
+export async function countUserOrders(userId: string) {
+  const [row] = await db
+    .select({ value: count() })
+    .from(order)
+    .where(and(eq(order.userId, userId), ne(order.status, "cancelled")));
+  return row?.value ?? 0;
+}
+
+/** Count of this user's non-cancelled orders that used this coupon — used
+ * for `maxUsesPerUser`. */
+export async function countUserOrdersWithCoupon(
+  userId: string,
+  couponId: string,
+) {
+  const [row] = await db
+    .select({ value: count() })
+    .from(order)
+    .where(
+      and(
+        eq(order.userId, userId),
+        eq(order.couponId, couponId),
+        ne(order.status, "cancelled"),
+      ),
+    );
+  return row?.value ?? 0;
 }
 
 export async function findCouponUsage(couponId: string) {

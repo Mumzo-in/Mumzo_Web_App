@@ -11,4 +11,4 @@ export type {
   SendResult,
 } from "./core/types";
 export { startNotificationWorker } from "./core/worker";
-export { defineTemplate, getTemplate } from "./templates";
+export { defineTemplate, getTemplate, renderTemplate } from "./templates";

@@ -22,6 +22,40 @@ import { coupon } from "./marketing";
  * which coupon a given milestone produced.
  */
 
+/**
+ * Programme-wide rules — a single-row table, managed by SuperAdmin, read by
+ * the settlement engine and the storefront. `id` is always the fixed
+ * singleton value `"default"` — the repo upserts against that constant
+ * rather than tracking a real primary key, since there is exactly one
+ * configuration for the whole programme (no per-tenant/per-region rules).
+ */
+export const referralRules = pgTable("referral_rules", {
+  id: text("id").primaryKey().default("default"),
+  /** Hours a friend's order stays returnable before a referral can settle. */
+  returnWindowHours: integer("return_window_hours").notNull(),
+  /** Days an issued coupon (tier or referee) stays redeemable. */
+  couponValidityDays: integer("coupon_validity_days").notNull(),
+  /** Max tier coupons a single referrer can earn per calendar month. 0 = no cap. */
+  monthlyCapPerUser: integer("monthly_cap_per_user").notNull(),
+  /** Rupees off the referee's first order when they sign up with a code. */
+  refereeRewardRupees: integer("referee_reward_rupees").notNull(),
+  /** Block referrer/referee sharing phone, email, or device fingerprint. */
+  selfReferralBlock: boolean("self_referral_block").notNull(),
+  /** Documents how `userReferralCode.code` is generated — display-only, the
+   * generator itself is code, not driven by this string. */
+  codePattern: text("code_pattern").notNull(),
+  /** When true, a referral settles (tier count increments, coupon issued)
+   * as soon as the referred order is delivered instead of waiting for the
+   * return window to pass — trades the return-window fraud protection for
+   * a faster reward. Coupons issued this way still require the referrer to
+   * claim them before the validity clock starts (see `coupon.claimedAt`). */
+  settleOnDelivery: boolean("settle_on_delivery").default(false).notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 /** Reward-tier configuration — managed by SuperAdmin, read by the storefront. */
 export const referralTier = pgTable(
   "referral_tier",
@@ -93,6 +127,17 @@ export const referral = pgTable(
     couponId: uuid("coupon_id").references(() => coupon.id, {
       onDelete: "set null",
     }),
+    /**
+     * The referee's one-time first-order welcome coupon, issued at signup
+     * (`applyCodeOnSignup`) — separate from `couponId` above, which is the
+     * *referrer's* tier-milestone coupon issued much later at settlement.
+     * Also doubles as the discriminator `validateCoupon` uses to tell a
+     * referral-issued coupon apart from an ordinary assigned marketing
+     * coupon when rejecting a not-mine "assigned" apply attempt.
+     */
+    refereeCouponId: uuid("referee_coupon_id").references(() => coupon.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -104,6 +149,8 @@ export const referral = pgTable(
     index("referral_refereeUserId_idx").on(table.refereeUserId),
     index("referral_status_idx").on(table.status),
     index("referral_returnWindowEnd_idx").on(table.returnWindowEnd),
+    index("referral_couponId_idx").on(table.couponId),
+    index("referral_refereeCouponId_idx").on(table.refereeCouponId),
   ],
 );
 
@@ -137,5 +184,11 @@ export const referralRelations = relations(referral, ({ one }) => ({
   coupon: one(coupon, {
     fields: [referral.couponId],
     references: [coupon.id],
+    relationName: "referralTierCoupon",
+  }),
+  refereeCoupon: one(coupon, {
+    fields: [referral.refereeCouponId],
+    references: [coupon.id],
+    relationName: "referralRefereeCoupon",
   }),
 }));

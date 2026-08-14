@@ -27,6 +27,7 @@ import {
   onOrderDelivered,
   onOrderReturned,
 } from "@/modules/platform/v1/referrals/referrals.service";
+import { onOrderDelivered as onOrderDeliveredForReview } from "@/modules/platform/v1/reviews/reviews.service";
 import { computeCartTotals, resolveLine } from "@/shared/pricing";
 import type { createOrderSchema } from "./orders.schema";
 
@@ -503,17 +504,19 @@ export async function updateOrderStatus(
       );
     });
 
-  // Best-effort referral funnel hooks — a referral write must never fail an
-  // order-status update that already committed. Most orders aren't from a
-  // referred user, so each of these is a no-op on the common path.
+  // Best-effort side effects (referral funnel + review prompts) — neither
+  // must ever fail an order-status update that already committed.
   if (row.userId) {
-    void handleReferralStatusHook(row.userId, orderId, input.status);
+    void handleOrderStatusSideEffects(row.userId, orderId, input.status);
   }
 
   return getOrder(orderId);
 }
 
-async function handleReferralStatusHook(
+/** Best-effort side effects fired after an order status transition commits.
+ * Each hook gets its own try/catch — referrals and review prompts are
+ * unrelated concerns, so one failing must never block the other. */
+async function handleOrderStatusSideEffects(
   userId: string,
   orderId: string,
   status: string,
@@ -531,5 +534,13 @@ async function handleReferralStatusHook(
       `Referral status hook failed for order ${orderId} (${status}):`,
       error,
     );
+  }
+
+  if (status === "delivered") {
+    try {
+      await onOrderDeliveredForReview(orderId, userId);
+    } catch (error) {
+      console.error(`Review prompt hook failed for order ${orderId}:`, error);
+    }
   }
 }

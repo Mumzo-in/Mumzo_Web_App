@@ -141,6 +141,7 @@ export const order = pgTable(
     index("order_userId_idx").on(table.userId),
     index("order_hubId_idx").on(table.hubId),
     index("order_status_idx").on(table.status),
+    index("order_couponId_idx").on(table.couponId),
   ],
 );
 

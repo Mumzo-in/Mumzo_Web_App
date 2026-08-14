@@ -68,32 +68,21 @@ export async function completeOnboarding(
     );
   }
 
-  // Best-effort: an invalid code, a self-referral, or "already used a code"
-  // must never fail onboarding — the profile write above already committed.
+  // Best-effort and fire-and-forget: an invalid code, a self-referral, or
+  // "already used a code" must never fail — or slow down — onboarding. The
+  // profile write above already committed, so this runs after the response
+  // instead of blocking it (issuing the welcome coupon is several sequential
+  // DB round trips).
   if (input.referralCode) {
-    await applyCodeOnSignup(userId, input.referralCode).catch((error) => {
+    applyCodeOnSignup(userId, input.referralCode).catch((error) => {
       console.error(`Failed to apply referral code for user ${userId}:`, error);
     });
   }
 
-  const [row] = await db
-    .select({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      onboardedAt: user.onboardedAt,
-    })
-    .from(user)
-    .where(eq(user.id, userId));
-
-  if (!row?.onboardedAt) {
-    throw badRequest("Could not update your profile. Try again.");
-  }
-
   return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    onboardedAt: row.onboardedAt.toISOString(),
+    id: userId,
+    name: input.name,
+    email: input.email,
+    onboardedAt: now.toISOString(),
   };
 }

@@ -1,20 +1,21 @@
 import { conflict, notFound } from "@/core/errors";
 import { toPaise, toWholeRupees } from "@/lib/money";
+import * as referralsRepo from "@/modules/platform/v1/referrals/referrals.repo";
 import * as repo from "./referrals.repo";
 
-/** Programme-wide rules are hardcoded to the settlement engine's constants
- * today (see platform/v1/referrals/referrals.service.ts) — no DB-backed
- * config table exists yet for return window / coupon validity / monthly
- * cap, so this surfaces the effective values as read-only. Making these
- * editable needs a `referral_rules` table, tracked as a follow-up. */
-const EFFECTIVE_RULES = {
-  returnWindowDays: 7,
-  couponValidityDays: 90,
-  monthlyCapPerUser: 0, // Not enforced yet.
-  refereeReward: 150,
-  selfReferralBlock: true,
-  codePattern: "{NAME}{RANDOM3}",
-};
+function serializeRules(
+  row: Awaited<ReturnType<typeof referralsRepo.getRules>>,
+) {
+  return {
+    returnWindowHours: row.returnWindowHours,
+    couponValidityDays: row.couponValidityDays,
+    monthlyCapPerUser: row.monthlyCapPerUser,
+    refereeReward: row.refereeRewardRupees,
+    selfReferralBlock: row.selfReferralBlock,
+    codePattern: row.codePattern,
+    settleOnDelivery: row.settleOnDelivery,
+  };
+}
 
 function serializeTier(
   row: Awaited<ReturnType<typeof repo.findTierById>>,
@@ -34,7 +35,8 @@ function serializeTier(
 }
 
 export async function getConfig() {
-  const [tiers, memberCounts] = await Promise.all([
+  const [rules, tiers, memberCounts] = await Promise.all([
+    referralsRepo.getRules(),
     repo.findAllTiers(),
     repo.tierMemberCounts(),
   ]);
@@ -45,12 +47,33 @@ export async function getConfig() {
 
   return {
     isEnabled: true,
-    codePattern: EFFECTIVE_RULES.codePattern,
-    rules: EFFECTIVE_RULES,
+    codePattern: rules.codePattern,
+    rules: serializeRules(rules),
     tiers: tiers.map((tier) =>
       serializeTier(tier, countByThreshold.get(tier.threshold) ?? 0),
     ),
   };
+}
+
+export async function updateRules(input: {
+  returnWindowHours?: number;
+  couponValidityDays?: number;
+  monthlyCapPerUser?: number;
+  refereeReward?: number;
+  selfReferralBlock?: boolean;
+  codePattern?: string;
+  settleOnDelivery?: boolean;
+}) {
+  const row = await referralsRepo.updateRules({
+    returnWindowHours: input.returnWindowHours,
+    couponValidityDays: input.couponValidityDays,
+    monthlyCapPerUser: input.monthlyCapPerUser,
+    refereeRewardRupees: input.refereeReward,
+    selfReferralBlock: input.selfReferralBlock,
+    codePattern: input.codePattern,
+    settleOnDelivery: input.settleOnDelivery,
+  });
+  return serializeRules(row);
 }
 
 export async function getStats() {
@@ -235,11 +258,13 @@ export async function listCoupons(filters: {
   const data = rows.map((row) => {
     const status = !row.isActive
       ? ("revoked" as const)
-      : row.expiresAt < now
-        ? ("expired" as const)
-        : row.usedCount >= (row.maxUses ?? 1)
-          ? ("used" as const)
-          : ("active" as const);
+      : row.claimedAt === null
+        ? ("claimable" as const)
+        : row.expiresAt < now
+          ? ("expired" as const)
+          : row.usedCount >= (row.maxUses ?? 1)
+            ? ("used" as const)
+            : ("active" as const);
 
     return {
       id: row.id,
@@ -248,7 +273,7 @@ export async function listCoupons(filters: {
       amount: toWholeRupees(row.value),
       status,
       issuedAt: row.createdAt.toISOString(),
-      expiresAt: row.expiresAt.toISOString(),
+      expiresAt: row.claimedAt === null ? null : row.expiresAt.toISOString(),
       usedInOrderId: row.usedInOrderId,
     };
   });

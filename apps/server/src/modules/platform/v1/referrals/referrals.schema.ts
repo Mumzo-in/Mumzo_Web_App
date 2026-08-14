@@ -12,6 +12,8 @@ export const referralTierSchema = z
 export const referralProgramSchema = z
   .object({
     tiers: z.array(referralTierSchema),
+    /** Reward the referred friend gets on their first order, in rupees. */
+    refereeReward: z.number(),
   })
   .openapi("ReferralProgram");
 
@@ -30,6 +32,11 @@ export const validateCodeResultSchema = z
   .object({
     valid: z.literal(true),
     code: z.string(),
+    referrerName: z.string(),
+    /** Reward the referred friend gets on their first order, in rupees. */
+    refereeReward: z.number(),
+    /** True when the signed-in viewer owns this code — their own link. */
+    isSelf: z.boolean(),
   })
   .openapi("ValidateReferralCodeResult");
 
@@ -56,7 +63,13 @@ export const referralInviteSchema = z
   })
   .openapi("ReferralInvite");
 
-const couponStatusSchema = z.enum(["active", "used", "expired", "revoked"]);
+const couponStatusSchema = z.enum([
+  "active",
+  "used",
+  "expired",
+  "revoked",
+  "claimable",
+]);
 
 export const referralCouponSchema = z
   .object({
@@ -64,15 +77,26 @@ export const referralCouponSchema = z
     code: z.string(),
     discountAmount: z.number(),
     status: couponStatusSchema,
-    expiresAt: z.string(),
+    /** Null while the coupon is still `claimable` — the validity window
+     * hasn't started yet. */
+    expiresAt: z.string().nullable(),
   })
   .openapi("ReferralCoupon");
 
 export const myReferralsSchema = z
   .object({
     code: z.string(),
+    /** Whether the user has placed at least one order themselves — the
+     * referral programme only activates for them after their first order. */
+    hasOrdered: z.boolean(),
     successfulReferrals: z.number(),
     invites: z.array(referralInviteSchema),
     coupons: z.array(referralCouponSchema),
   })
   .openapi("MyReferrals");
+
+export const claimCouponResultSchema = z
+  .object({
+    expiresAt: z.string(),
+  })
+  .openapi("ClaimCouponResult");

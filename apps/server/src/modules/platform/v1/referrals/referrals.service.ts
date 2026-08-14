@@ -2,20 +2,17 @@ import { randomUUID } from "node:crypto";
 
 import { ERROR_CODES } from "@/core/constants";
 import { badRequest, conflict } from "@/core/errors";
-import { toWholeRupees } from "@/lib/money";
+import { toPaise, toWholeRupees } from "@/lib/money";
 import * as repo from "./referrals.repo";
-
-/** Days a friend's order stays returnable — settlement waits this long
- * before a `order_placed` referral can become `completed`. Matches
- * docs/platform/referral_system_architecture.md §4. */
-const RETURN_WINDOW_DAYS = 7;
-/** Days an issued coupon stays redeemable. */
-const COUPON_VALIDITY_DAYS = 90;
 
 function addDays(base: Date, days: number): Date {
   const next = new Date(base);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function addHours(base: Date, hours: number): Date {
+  return new Date(base.getTime() + hours * 60 * 60 * 1000);
 }
 
 /** "Ananya" → "ANANYA150" style code — first name, cleaned, plus a random
@@ -55,7 +52,10 @@ export async function getOrCreateMyCode(userId: string, userName: string) {
 }
 
 export async function getProgram() {
-  const tiers = await repo.findActiveTiers();
+  const [tiers, rules] = await Promise.all([
+    repo.findActiveTiers(),
+    repo.getRules(),
+  ]);
   return {
     tiers: tiers.map((tier) => ({
       id: tier.id,
@@ -63,10 +63,11 @@ export async function getProgram() {
       threshold: tier.threshold,
       couponAmount: toWholeRupees(tier.couponAmount),
     })),
+    refereeReward: rules.refereeRewardRupees,
   };
 }
 
-export async function validateCode(code: string) {
+export async function validateCode(code: string, viewerUserId?: string) {
   const row = await repo.findByCode(code.toUpperCase());
   if (!row) {
     throw badRequest(
@@ -74,38 +75,25 @@ export async function validateCode(code: string) {
       ERROR_CODES.REFERRAL_CODE_INVALID,
     );
   }
-  return { valid: true as const, code: row.code };
+  const [referrerName, rules] = await Promise.all([
+    repo.findUserName(row.userId),
+    repo.getRules(),
+  ]);
+  return {
+    valid: true as const,
+    code: row.code,
+    referrerName: referrerName ?? "A friend",
+    refereeReward: rules.refereeRewardRupees,
+    isSelf: viewerUserId !== undefined && viewerUserId === row.userId,
+  };
 }
 
 /**
- * Records a `link_shared` referral row when a friend clicks `/r/:code`,
- * before any account exists on their side. Anonymous — `refereeUserId` is
- * null until they sign up. Idempotent per (code, no identity yet) is not
- * meaningful without a device/session concept, so every click inserts a new
- * row; harmless, since `link_shared` rows with no signup never settle.
- */
-export async function trackClick(code: string) {
-  const owner = await repo.findByCode(code.toUpperCase());
-  if (!owner) {
-    throw badRequest(
-      "This referral code doesn't exist.",
-      ERROR_CODES.REFERRAL_CODE_INVALID,
-    );
-  }
-
-  await repo.insertReferral({
-    referrerUserId: owner.userId,
-    refereeUserId: null,
-    codeUsed: owner.code,
-    status: "link_shared",
-  });
-}
-
-/**
- * Applies a referral code at signup — the friend now has an account.
- * Promotes an existing `link_shared` row for this code if one exists
- * (linking it to the new account), otherwise creates a fresh `signed_up`
- * row. Self-referral is blocked; a person can only ever be referred once.
+ * Applies a referral code at signup — the friend now has an account. This is
+ * the *only* place a referral row is created: landing on `/r/:code` without
+ * signing up leaves no trace, so a referrer's invite feed only ever shows
+ * people who actually joined. Self-referral is blocked; a person can only
+ * ever be referred once.
  */
 export async function applyCodeOnSignup(refereeUserId: string, code: string) {
   const owner = await repo.findByCode(code.toUpperCase());
@@ -128,11 +116,24 @@ export async function applyCodeOnSignup(refereeUserId: string, code: string) {
     throw conflict("You've already used a referral code.");
   }
 
+  const rules = await repo.getRules();
+  const now = new Date();
+  const welcomeCouponCode = `WELCOME${rules.refereeRewardRupees}-${randomUUID()
+    .slice(0, 5)
+    .toUpperCase()}`;
+  const refereeCouponId = await repo.issueRefereeCoupon({
+    refereeUserId,
+    code: welcomeCouponCode,
+    amountPaise: toPaise(rules.refereeRewardRupees),
+    expiresAt: addDays(now, rules.couponValidityDays),
+  });
+
   await repo.insertReferral({
     referrerUserId: owner.userId,
     refereeUserId,
     codeUsed: owner.code,
     status: "signed_up",
+    refereeCouponId,
   });
 }
 
@@ -163,7 +164,10 @@ export async function onFirstOrderPlaced(
 
 /**
  * Called from the order-status hook on `delivered` — starts the return-
- * window timer the settlement sweep watches.
+ * window timer the settlement sweep watches. When the admin has enabled
+ * `settleOnDelivery`, this also settles the referral immediately instead of
+ * waiting for the sweep — the reward is available sooner, at the cost of
+ * the return-window fraud protection.
  */
 export async function onOrderDelivered(orderId: string) {
   const row = await repo.findReferralByOrderId(orderId);
@@ -171,11 +175,16 @@ export async function onOrderDelivered(orderId: string) {
     return;
   }
 
+  const rules = await repo.getRules();
   const deliveredAt = new Date();
   await repo.updateReferral(row.id, {
     deliveredAt,
-    returnWindowEnd: addDays(deliveredAt, RETURN_WINDOW_DAYS),
+    returnWindowEnd: addHours(deliveredAt, rules.returnWindowHours),
   });
+
+  if (rules.settleOnDelivery) {
+    await settleReferral(row.id);
+  }
 }
 
 /**
@@ -230,6 +239,26 @@ export async function settleReferral(referralId: string) {
     return { referralId: row.id, couponId: null };
   }
 
+  const rules = await repo.getRules();
+
+  // Monthly earn cap: the referral itself still counts (status/tally above
+  // already committed) — only the *reward* is withheld once a referrer has
+  // hit their cap for the current calendar month. 0 = uncapped.
+  if (rules.monthlyCapPerUser > 0) {
+    const monthStart = new Date(
+      completedAt.getFullYear(),
+      completedAt.getMonth(),
+      1,
+    );
+    const issuedThisMonth = await repo.countReferralCouponsIssuedSince(
+      row.referrerUserId,
+      monthStart,
+    );
+    if (issuedThisMonth >= rules.monthlyCapPerUser) {
+      return { referralId: row.id, couponId: null, capped: true as const };
+    }
+  }
+
   const referrerName = await repo.findUserName(row.referrerUserId);
   const couponCode = `REF${toWholeRupees(justUnlocked.couponAmount)}-${randomUUID()
     .slice(0, 5)
@@ -239,7 +268,11 @@ export async function settleReferral(referralId: string) {
     referrerUserId: row.referrerUserId,
     code: couponCode,
     amountPaise: justUnlocked.couponAmount,
-    expiresAt: addDays(completedAt, COUPON_VALIDITY_DAYS),
+    expiresAt: addDays(completedAt, rules.couponValidityDays),
+    // `settleOnDelivery` trades the return-window wait for a claim step —
+    // the reward exists immediately but doesn't start its validity clock
+    // until the referrer actually claims it.
+    claimed: !rules.settleOnDelivery,
   });
 
   await repo.updateReferral(row.id, { couponId });
@@ -256,15 +289,17 @@ export async function settleReferral(referralId: string) {
 /** The customer-facing "my referrals" payload. */
 export async function getMyReferrals(userId: string, userName: string) {
   const codeRow = await getOrCreateMyCode(userId, userName);
-  const [invites, coupons] = await Promise.all([
+  const [invites, coupons, orderCount] = await Promise.all([
     repo.listInvitesForReferrer(userId),
     repo.listCouponsForReferrer(userId),
+    repo.countUserOrders(userId),
   ]);
 
   const now = new Date();
 
   return {
     code: codeRow.code,
+    hasOrdered: orderCount > 0,
     successfulReferrals: codeRow.successfulReferrals,
     invites: invites.map((invite) => ({
       id: invite.id,
@@ -283,12 +318,32 @@ export async function getMyReferrals(userId: string, userName: string) {
       discountAmount: toWholeRupees(c.value),
       status: !c.isActive
         ? ("revoked" as const)
-        : c.expiresAt < now
-          ? ("expired" as const)
-          : c.usedCount >= (c.maxUses ?? 1)
-            ? ("used" as const)
-            : ("active" as const),
-      expiresAt: c.expiresAt.toISOString(),
+        : c.claimedAt === null
+          ? ("claimable" as const)
+          : c.expiresAt < now
+            ? ("expired" as const)
+            : c.usedCount >= (c.maxUses ?? 1)
+              ? ("used" as const)
+              : ("active" as const),
+      expiresAt: c.claimedAt === null ? null : c.expiresAt.toISOString(),
     })),
   };
+}
+
+/** Claims a previously-issued, unclaimed tier coupon — starts its 90-day
+ * (admin-configurable) validity window now. Throws if the coupon doesn't
+ * exist, isn't the caller's, or was already claimed. */
+export async function claimCoupon(userId: string, couponId: string) {
+  const rules = await repo.getRules();
+  const result = await repo.claimCoupon({
+    couponId,
+    userId,
+    validityDays: rules.couponValidityDays,
+  });
+
+  if (!result) {
+    throw badRequest("This coupon isn't waiting to be claimed.");
+  }
+
+  return { expiresAt: result.expiresAt.toISOString() };
 }

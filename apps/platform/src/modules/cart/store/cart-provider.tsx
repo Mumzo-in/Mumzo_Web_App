@@ -10,6 +10,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
 } from "react";
@@ -116,6 +117,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Pending debounce timers per cart-item-id, so each line's clicks debounce
   // independently — updating one item's qty never delays another's.
   const qtyTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  // The server silently drops a coupon that stopped validating (already
+  // used, expired) on every cart read and reports why via `couponError` —
+  // surface that once as a popup instead of leaving the user to notice the
+  // discount vanished on their own. Keyed by message so a genuinely new
+  // drop still shows even if the previous one was for the same reason.
+  const lastCouponErrorShown = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cart?.couponError) {
+      lastCouponErrorShown.current = null;
+      return;
+    }
+    if (lastCouponErrorShown.current === cart.couponError) return;
+    lastCouponErrorShown.current = cart.couponError;
+    showPopup({
+      variant: "error",
+      title: "Coupon Removed",
+      description: cart.couponError,
+    });
+  }, [cart?.couponError, showPopup]);
 
   const setCart = useCallback(
     (next: PublicCart) => {

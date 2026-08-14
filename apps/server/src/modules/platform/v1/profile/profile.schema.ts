@@ -29,7 +29,7 @@ export const onboardingResultSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    email: z.string(),
+    email: z.string().optional(),
     onboardedAt: z.string(),
   })
   .openapi("OnboardingResult");

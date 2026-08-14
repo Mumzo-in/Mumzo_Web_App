@@ -49,10 +49,23 @@ export default function SignInForm({
     strict: false,
     select: (s: { redirect?: string }) => s.redirect,
   });
+  const refParam = useSearch({
+    strict: false,
+    select: (s: { ref?: string }) => s.ref,
+  });
 
-  const [step, setStep] = useState<Step>("referral-choice");
-  const [hasReferral, setHasReferral] = useState<boolean | null>(null);
-  const [referralCode, setReferralCode] = useState("");
+  // A code arriving via `/r/$code` → `?ref=` skips straight past the "do you
+  // have a code?" choice — the friend already told us, asking again is
+  // redundant friction.
+  const [step, setStep] = useState<Step>(
+    refParam ? "referral-code" : "referral-choice",
+  );
+  const [hasReferral, setHasReferral] = useState<boolean | null>(
+    refParam ? true : null,
+  );
+  const [referralCode, setReferralCode] = useState(
+    refParam?.toUpperCase() ?? "",
+  );
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");

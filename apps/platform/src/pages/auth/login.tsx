@@ -4,6 +4,9 @@ import { SignInForm } from "@/modules/auth";
 
 const loginSearchSchema = z.object({
   redirect: z.string().optional(),
+  /** A referral code carried over from `/r/$code` — pre-fills the
+   * referral-code step instead of asking the user to type it again. */
+  ref: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth/login")({

@@ -46,9 +46,10 @@ export type ReferralCoupon = {
   /** e.g. "REF150-8X92K" */
   code: string;
   discountAmount: number;
-  status: "active" | "used" | "expired" | "revoked";
-  /** ISO date */
-  expiresAt: string;
+  status: "active" | "used" | "expired" | "revoked" | "claimable";
+  /** ISO date — null while `status === "claimable"`, the validity window
+   * hasn't started yet. */
+  expiresAt: string | null;
   usedAt?: string;
 };
 
@@ -76,12 +77,18 @@ export type ReferralInvite = {
 export type ReferralProgram = {
   /** The signed-in customer's own code. */
   code: string;
+  /** Whether the user has placed at least one order themselves — referring
+   * only activates after their first order. Always `true` for the guest
+   * (logged-out) preview, since the gate only applies once signed in. */
+  hasOrdered: boolean;
   /** Successful referrals so far — drives tier progress. */
   successfulReferrals: number;
   tiers: ReferralTier[];
   offers: ReferralOffer[];
   coupons: ReferralCoupon[];
   invites: ReferralInvite[];
+  /** Reward the referred friend gets on their first order, in whole rupees. */
+  refereeReward: number;
 };
 
 export const INVITE_STATUS_META: Record<
@@ -109,6 +116,7 @@ export const COUPON_STATUS_META: Record<
   used: { label: "Used", variant: "secondary" },
   expired: { label: "Expired", variant: "outline" },
   revoked: { label: "Revoked", variant: "destructive" },
+  claimable: { label: "Ready to claim", variant: "default" },
 };
 
 /** FAQ entries for the referrals page accordion. */
@@ -146,82 +154,15 @@ export const referralFaqs: { id: string; question: string; answer: string }[] =
     },
   ];
 
-/** Mock programme for the signed-in user. Backend-driven later. */
-export const referralProgram: ReferralProgram = {
-  code: "ANANYA150",
-  successfulReferrals: 3,
-  tiers: [
-    {
-      id: "t1",
-      name: "First invite",
-      threshold: 1,
-      reward: { kind: "coupon", amount: 150 },
-      blurb: "₹150 off your next order.",
-    },
-    {
-      id: "t2",
-      name: "Getting the word out",
-      threshold: 3,
-      reward: { kind: "coupon", amount: 400 },
-      blurb: "₹400 off — three friends onboard.",
-    },
-    {
-      id: "t3",
-      name: "Mumzo champion",
-      threshold: 5,
-      reward: { kind: "coupon", amount: 600 },
-      blurb: "₹600 off — you're a proper champion now.",
-    },
-    {
-      id: "t4",
-      name: "Community builder",
-      threshold: 10,
-      reward: { kind: "coupon", amount: 2000 },
-      blurb: "₹2,000 off — community builder unlocked.",
-    },
-  ],
-  offers: [
-    {
-      id: "o1",
-      code: "FRIEND150",
-      headline: "₹150 off for your friend",
-      detail: "Your friend's first order, no minimum.",
-      discount: 150,
-    },
-    {
-      id: "o2",
-      code: "DUO20",
-      headline: "20% off when you both shop",
-      detail: "Up to ₹300 off, on orders above ₹599.",
-      pct: 20,
-      minAmt: 599,
-    },
-  ],
-  coupons: [
-    {
-      id: "c1",
-      code: "REF150-8X92K",
-      discountAmount: 150,
-      status: "used",
-      expiresAt: "2026-08-12",
-      usedAt: "2026-06-02",
-    },
-    {
-      id: "c2",
-      code: "REF400-K2M9Q",
-      discountAmount: 400,
-      status: "active",
-      expiresAt: "2026-10-01",
-    },
-  ],
-  invites: [
-    { id: "i1", name: "Meera", status: "completed" },
-    { id: "i2", name: "Kavya", status: "signed_up" },
-    { id: "i3", name: "Ritu", status: "completed" },
-    { id: "i4", name: "Divya", status: "link_shared" },
-    { id: "i5", name: "Priya", status: "returned" },
-  ],
-};
+/** "2026-11-11T17:34:39.411Z" → "11 Nov 2026" — the format coupon dates
+ * (expiry, used-on) render in throughout the referrals module. */
+export function formatCouponDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 /**
  * Personalizes a referral code from the signed-in user's name — "Bikram" →

@@ -29,6 +29,48 @@
       "when": 1786215200000,
       "tag": "0003_product_top_deal",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786564562254,
+      "tag": "0004_yummy_genesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786593494934,
+      "tag": "0005_fast_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786636625039,
+      "tag": "0006_public_gunslinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786638301770,
+      "tag": "0007_famous_magik",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786640000000,
+      "tag": "0008_return_window_hours",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786720345883,
+      "tag": "0009_safe_jasper_sitwell",
+      "breakpoints": true
     }
   ]
 }

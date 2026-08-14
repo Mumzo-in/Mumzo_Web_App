@@ -124,6 +124,7 @@ function toPublicCart(
   lines: Awaited<ReturnType<typeof loadLines>>,
   couponCode: string | null,
   discount: number,
+  couponError: string | null = null,
 ) {
   // Only checked-off lines count toward totals/checkout — a deselected line
   // stays visible in the cart but contributes nothing to the order.
@@ -139,6 +140,11 @@ function toPublicCart(
       mrp: toWholeRupees(mrp),
     })),
     couponCode,
+    // Set only when a previously-applied coupon just got dropped because it
+    // stopped validating (e.g. already used, expired) — lets the cart show
+    // why the discount disappeared instead of the user finding out at
+    // checkout with no explanation.
+    couponError,
     totals: {
       subtotal: toWholeRupees(totals.subtotal),
       gstAmount: toWholeRupees(totals.gstAmount),
@@ -163,7 +169,9 @@ async function resolveAppliedDiscount(
   lines: Awaited<ReturnType<typeof loadLines>>,
   userId: string | null,
 ) {
-  if (!cartRow.couponId || !couponRow) return { code: null, discount: 0 };
+  if (!cartRow.couponId || !couponRow) {
+    return { code: null, discount: 0, error: null };
+  }
 
   // A deselected line isn't part of this checkout — it shouldn't count
   // toward the coupon's minimum spend or its product-scope check.
@@ -178,15 +186,20 @@ async function resolveAppliedDiscount(
 
   try {
     const result = await validateCoupon(input);
-    return { code: result.code, discount: result.discount };
-  } catch {
-    // Coupon no longer valid against the current cart — silently drop it
-    // rather than surface a stale-discount error on a plain cart read.
+    return { code: result.code, discount: result.discount, error: null };
+  } catch (error) {
+    // Coupon no longer valid against the current cart — drop it (a stale
+    // discount can't stay applied) but report why, instead of silently
+    // vanishing and only surfacing at payment time.
     await db
       .update(cart)
       .set({ couponId: null })
       .where(eq(cart.id, cartRow.id));
-    return { code: null, discount: 0 };
+    const message =
+      error instanceof Error
+        ? error.message
+        : "This coupon is no longer valid.";
+    return { code: null, discount: 0, error: message };
   }
 }
 
@@ -208,13 +221,13 @@ async function buildCartResponse(
       : Promise.resolve(null),
   ]);
 
-  const { code, discount } = await resolveAppliedDiscount(
+  const { code, discount, error } = await resolveAppliedDiscount(
     cartRow,
     couponRow ?? null,
     lines,
     owner.userId,
   );
-  return toPublicCart(cartRow, lines, code, discount);
+  return toPublicCart(cartRow, lines, code, discount, error);
 }
 
 export async function getCart(
@@ -396,27 +409,31 @@ export async function clearCart(owner: CartOwner) {
 export async function applyCoupon(owner: CartOwner, code: string) {
   const cartRow = await getOrCreateCartRow(owner);
   const lines = await loadLines(cartRow.id);
-  const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const selectedLines = lines.filter((l) => l.selected);
+  const subtotal = selectedLines.reduce((sum, l) => sum + l.price * l.qty, 0);
 
   const result = await validateCoupon({
     code,
     cartTotal: subtotal,
-    productIds: lines.map((l) => l.productId),
+    productIds: selectedLines.map((l) => l.productId),
     userId: owner.userId ?? undefined,
   });
 
-  const couponRow = await db.query.coupon.findFirst({
-    where: (c, { eq: eqOp }) => eqOp(c.code, result.code),
-  });
-
-  if (!couponRow) throw notFound("Coupon");
-
   await db
     .update(cart)
-    .set({ couponId: couponRow.id })
+    .set({ couponId: result.couponId })
     .where(eq(cart.id, cartRow.id));
 
-  return buildCartResponse(owner, { ...cartRow, couponId: couponRow.id });
+  // `validateCoupon` above already confirms this exact coupon is valid for
+  // these exact lines — building the response directly from that result
+  // instead of going through `buildCartResponse` avoids re-running
+  // `loadLines` and `validateCoupon` a second time for the same answer.
+  return toPublicCart(
+    { ...cartRow, couponId: result.couponId },
+    lines,
+    result.code,
+    result.discount,
+  );
 }
 
 export async function removeCoupon(owner: CartOwner) {

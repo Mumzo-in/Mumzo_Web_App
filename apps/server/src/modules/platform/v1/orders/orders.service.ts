@@ -18,12 +18,13 @@ import {
 import { coupon } from "@mumzo/db/schema/marketing";
 import { notify } from "@mumzo/notifications";
 import { ROOMS, realtime } from "@mumzo/realtime";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { logCustomerEvent } from "@/core/customer-event";
 import { badRequest, notFound } from "@/core/errors";
 import { toWholeRupees } from "@/lib/money";
 import { validateCoupon } from "@/modules/admin/v1/coupons/coupons.service";
+import { onFirstOrderPlaced } from "@/modules/platform/v1/referrals/referrals.service";
 import { resolveHubForLocation } from "@/shared/hub-resolution";
 import { computeCartTotals, resolveLine } from "@/shared/pricing";
 
@@ -175,9 +176,11 @@ export async function placeOrder(
 
   let couponId: string | null = null;
   let discount = 0;
+  let couponMaxUsesPerUser: number | null = null;
   if (cartRow.couponId) {
     const couponRow = await db.query.coupon.findFirst({
       where: (c, { eq: eqOp }) => eqOp(c.id, cartRow.couponId as string),
+      columns: { code: true },
     });
     if (couponRow) {
       const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
@@ -188,8 +191,9 @@ export async function placeOrder(
           productIds: lines.map((l) => l.productId),
           userId,
         });
-        couponId = couponRow.id;
+        couponId = result.couponId;
         discount = result.discount;
+        couponMaxUsesPerUser = result.maxUsesPerUser;
       } catch {
         // Coupon stopped applying between cart and checkout — place the
         // order without it rather than block placement (§8 edge case).
@@ -199,98 +203,138 @@ export async function placeOrder(
 
   const totals = computeCartTotals(lines, discount);
 
-  const orderId = await db.transaction(async (tx) => {
-    const [orderRow] = await tx
-      .insert(order)
-      .values({
-        userId,
-        hubId: hubRow.id,
-        couponId,
-        status: "confirmed", // COD only for now — no payment gateway step.
-        addressLabel: addressRow.label,
-        addressName: addressRow.name,
-        addressPhone: addressRow.phone,
-        addressLine1: addressRow.line1,
-        addressLine2: addressRow.line2,
-        addressLandmark: addressRow.landmark,
-        addressPincode: addressRow.pincode,
-        addressCity: addressRow.city,
-        subtotal: totals.subtotal,
-        gstAmount: totals.gstAmount,
-        deliveryFee: totals.deliveryFee,
-        discount: totals.discount,
-        total: totals.total,
-        idempotencyKey: input.idempotencyKey,
-      })
-      .returning({ id: order.id });
+  const { orderId, placedAt, orderItemRows, statusLogRows } =
+    await db.transaction(async (tx) => {
+      const [orderRow] = await tx
+        .insert(order)
+        .values({
+          userId,
+          hubId: hubRow.id,
+          couponId,
+          status: "confirmed", // COD only for now — no payment gateway step.
+          addressLabel: addressRow.label,
+          addressName: addressRow.name,
+          addressPhone: addressRow.phone,
+          addressLine1: addressRow.line1,
+          addressLine2: addressRow.line2,
+          addressLandmark: addressRow.landmark,
+          addressPincode: addressRow.pincode,
+          addressCity: addressRow.city,
+          subtotal: totals.subtotal,
+          gstAmount: totals.gstAmount,
+          deliveryFee: totals.deliveryFee,
+          discount: totals.discount,
+          total: totals.total,
+          idempotencyKey: input.idempotencyKey,
+        })
+        .returning({ id: order.id, placedAt: order.placedAt });
 
-    if (!orderRow) {
-      throw new Error("Insert into order returned no row.");
-    }
+      if (!orderRow) {
+        throw new Error("Insert into order returned no row.");
+      }
 
-    await tx.insert(orderItem).values(
-      lines.map((line) => ({
+      // Independent writes, all only depending on `orderRow.id` — running
+      // them together instead of sequentially keeps the transaction (and
+      // its lock on the just-inserted `order` row) open for less time.
+      const [itemRows, logRows] = await Promise.all([
+        tx
+          .insert(orderItem)
+          .values(
+            lines.map((line) => ({
+              orderId: orderRow.id,
+              productId: line.productId,
+              productSizeId: line.productSizeId,
+              productColorId: line.productColorId,
+              nameSnapshot: line.nameSnapshot,
+              variantLabelSnapshot: line.variantLabel,
+              priceSnapshot: line.price,
+              gstRateSnapshot: line.gstRate,
+              hsnSnapshot: line.hsn ?? "",
+              weightGramsSnapshot: line.weightGrams,
+              qty: line.qty,
+            })),
+          )
+          .returning(),
+        tx
+          .insert(orderStatusLog)
+          .values([
+            {
+              orderId: orderRow.id,
+              fromStatus: null,
+              toStatus: "pending_payment",
+              actor: "system",
+              note: "Order placed (COD).",
+            },
+            {
+              orderId: orderRow.id,
+              fromStatus: "pending_payment",
+              toStatus: "confirmed",
+              actor: "system",
+              note: "COD orders confirm immediately — no payment gateway step.",
+            },
+          ])
+          .returning(),
+        tx.insert(payment).values({
+          orderId: orderRow.id,
+          provider: "cod",
+          status: "cod_pending",
+          amount: totals.total,
+          method: "cod",
+        }),
+      ]);
+
+      if (couponId) {
+        // Final re-check inside the transaction, closing the race window
+        // between the pre-transaction `validateCoupon` call above and this
+        // write — two concurrent "last unit" redemptions can't both land.
+        // Only `usedCount` (which changes) needs a fresh read; the static
+        // fields already came back from the pre-transaction `validateCoupon`
+        // call, so this re-fetch is scoped to just what can have changed.
+        if (couponMaxUsesPerUser !== null) {
+          const [priorUses] = await tx
+            .select({ value: count() })
+            .from(order)
+            .where(
+              and(
+                eq(order.userId, userId),
+                eq(order.couponId, couponId),
+                ne(order.status, "cancelled"),
+                // The order row for *this* placement was already inserted
+                // above (with this coupon attached) — exclude it, or every
+                // first-ever use miscounts itself as a prior use and throws.
+                ne(order.id, orderRow.id),
+              ),
+            );
+          if ((priorUses?.value ?? 0) >= couponMaxUsesPerUser) {
+            throw badRequest("You've already used this coupon.");
+          }
+        }
+
+        await tx
+          .update(coupon)
+          .set({ usedCount: sql`${coupon.usedCount} + 1` })
+          .where(eq(coupon.id, couponId));
+      }
+
+      // Only the lines that were actually ordered — a deselected line was
+      // never included in `lines` and must survive checkout in the cart.
+      await Promise.all([
+        tx.delete(cartItem).where(
+          inArray(
+            cartItem.id,
+            lines.map((line) => line.cartItemId),
+          ),
+        ),
+        tx.update(cart).set({ couponId: null }).where(eq(cart.id, cartRow.id)),
+      ]);
+
+      return {
         orderId: orderRow.id,
-        productId: line.productId,
-        productSizeId: line.productSizeId,
-        productColorId: line.productColorId,
-        nameSnapshot: line.nameSnapshot,
-        variantLabelSnapshot: line.variantLabel,
-        priceSnapshot: line.price,
-        gstRateSnapshot: line.gstRate,
-        hsnSnapshot: line.hsn ?? "",
-        weightGramsSnapshot: line.weightGrams,
-        qty: line.qty,
-      })),
-    );
-
-    await tx.insert(orderStatusLog).values([
-      {
-        orderId: orderRow.id,
-        fromStatus: null,
-        toStatus: "pending_payment",
-        actor: "system",
-        note: "Order placed (COD).",
-      },
-      {
-        orderId: orderRow.id,
-        fromStatus: "pending_payment",
-        toStatus: "confirmed",
-        actor: "system",
-        note: "COD orders confirm immediately — no payment gateway step.",
-      },
-    ]);
-
-    await tx.insert(payment).values({
-      orderId: orderRow.id,
-      provider: "cod",
-      status: "cod_pending",
-      amount: totals.total,
-      method: "cod",
+        placedAt: orderRow.placedAt,
+        orderItemRows: itemRows,
+        statusLogRows: logRows,
+      };
     });
-
-    if (couponId) {
-      await tx
-        .update(coupon)
-        .set({ usedCount: sql`${coupon.usedCount} + 1` })
-        .where(eq(coupon.id, couponId));
-    }
-
-    // Only the lines that were actually ordered — a deselected line was
-    // never included in `lines` and must survive checkout in the cart.
-    await tx.delete(cartItem).where(
-      inArray(
-        cartItem.id,
-        lines.map((line) => line.cartItemId),
-      ),
-    );
-    await tx
-      .update(cart)
-      .set({ couponId: null })
-      .where(eq(cart.id, cartRow.id));
-
-    return orderRow.id;
-  });
 
   // Best-effort — neither call must fail an order that already committed.
   // realtime.publish() is the live in-app feed for staff with the dashboard
@@ -330,7 +374,44 @@ export async function placeOrder(
       );
     });
 
-  return getOrder(userId, orderId);
+  // COD orders are created already `confirmed` (no payment-gateway step),
+  // so they never pass through the admin `updateOrderStatus` transition
+  // that would otherwise fire this — this is the only place a referee's
+  // first order actually gets reported to the referral funnel.
+  onFirstOrderPlaced(userId, orderId).catch((error) => {
+    console.error(`Referral first-order hook failed for ${orderId}:`, error);
+  });
+
+  // Built from what the transaction just wrote, already sitting in local
+  // variables — skips re-`SELECT`ing the order/items/status-log the request
+  // itself just inserted (same shape as `getOrder`, without the round trips).
+  return {
+    id: orderId,
+    status: "confirmed" as const,
+    addressLabel: addressRow.label,
+    addressName: addressRow.name,
+    addressPhone: addressRow.phone,
+    addressLine1: addressRow.line1,
+    addressLine2: addressRow.line2,
+    addressLandmark: addressRow.landmark,
+    addressPincode: addressRow.pincode,
+    addressCity: addressRow.city,
+    subtotal: toWholeRupees(totals.subtotal),
+    gstAmount: toWholeRupees(totals.gstAmount),
+    deliveryFee: toWholeRupees(totals.deliveryFee),
+    discount: toWholeRupees(totals.discount),
+    total: toWholeRupees(totals.total),
+    items: orderItemRows.map(toPublicOrderItem),
+    statusLog: statusLogRows.map((log) => ({
+      id: log.id,
+      fromStatus: log.fromStatus,
+      toStatus: log.toStatus,
+      actor: log.actor,
+      note: log.note,
+      createdAt: log.createdAt.toISOString(),
+    })),
+    placedAt: placedAt.toISOString(),
+  };
 }
 
 export async function listOrders(

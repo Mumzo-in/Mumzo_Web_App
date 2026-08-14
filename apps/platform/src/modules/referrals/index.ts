@@ -1,4 +1,5 @@
 export { default as CouponList } from "./components/coupon-list";
+export { default as HowItWorks } from "./components/how-it-works";
 export { default as InviteTracker } from "./components/invite-tracker";
 export { default as ReferralFaq } from "./components/referral-faq";
 export { default as ReferralHero } from "./components/referral-hero";
@@ -19,6 +20,6 @@ export {
   type ReferralReward,
   type ReferralTier,
   referralFaqs,
-  referralProgram,
   referralsToNext,
 } from "./data/referral-data";
+export { referralOgImage } from "./lib/share-invite";

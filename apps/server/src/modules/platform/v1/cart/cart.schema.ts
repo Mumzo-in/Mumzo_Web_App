@@ -90,6 +90,9 @@ export const cartSchema = z
     id: z.string(),
     items: cartLineSchema.array(),
     couponCode: z.string().nullable(),
+    /** Set only when a previously-applied coupon was just dropped because
+     * it stopped validating (already used, expired, etc). */
+    couponError: z.string().nullable(),
     totals: cartTotalsSchema,
   })
   .openapi("Cart");

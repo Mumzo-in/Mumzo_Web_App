@@ -16,8 +16,10 @@ import {
   referralCouponSchema,
   referralInviteSchema,
   referralParticipantSchema,
+  referralRulesSchema,
   referralStatsSchema,
   tierIdParamSchema,
+  updateRulesSchema,
   updateTierSchema,
 } from "./referrals.schema";
 
@@ -58,6 +60,21 @@ export const getActivityRoute = createRoute({
       successSchema(z.array(referralActivityEventSchema)),
       "Recent activity",
     ),
+    ...authErrorResponses,
+  },
+});
+
+export const updateRulesRoute = createRoute({
+  method: "patch",
+  path: "/rules",
+  tags: [TAG],
+  summary: "Update referral programme rules",
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: { content: { "application/json": { schema: updateRulesSchema } } },
+  },
+  responses: {
+    200: jsonContent(successSchema(referralRulesSchema), "Updated rules"),
     ...authErrorResponses,
   },
 });

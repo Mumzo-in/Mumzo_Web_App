@@ -6,18 +6,28 @@ import {
   DialogTitle,
 } from "@mumzo/ui/components/dialog";
 import { useQuery } from "@tanstack/react-query";
-import { Tag } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Gift, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { ApiError } from "@/core/api/client";
 import { usePopupStore } from "@/core/hooks/use-popup-store";
-import { listPublicCoupons, type PublicCoupon } from "../../api/coupons-api";
+import {
+  listMyAssignedCoupons,
+  listPublicCoupons,
+  type PublicCoupon,
+} from "../../api/coupons-api";
 import { rupee, useCart } from "../../store/cart-provider";
+
+/** Merges the public coupon list with the signed-in user's assigned coupons
+ * (referral welcome rewards, etc.) into one shape the picker can render. */
+type PickableCoupon = PublicCoupon & { referrerName?: string | null };
 
 export default function CouponBox() {
   const { couponCode, applyCoupon, removeCoupon, totals } = useCart();
   const showPopup = usePopupStore((s) => s.showPopup);
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [code, setCode] = useState("");
   const [applying, setApplying] = useState(false);
@@ -47,10 +57,52 @@ export default function CouponBox() {
     });
   };
 
-  const { data: coupons = [], isLoading } = useQuery({
+  const showReferralPrompt = (message: string) => {
+    showPopup({
+      variant: "info",
+      title: "That's a Referral Reward",
+      description: message,
+      actionLabel: "Refer a Friend",
+      onAction: () => navigate({ to: "/referrals" }),
+    });
+  };
+
+  const { data: publicCoupons = [], isLoading: isLoadingPublic } = useQuery({
     queryKey: ["coupons", "public-list"],
     queryFn: listPublicCoupons,
   });
+
+  // Anonymous carts have no assigned coupons — a 401 here just means "none",
+  // not a real error, so it's swallowed rather than surfaced.
+  const { data: assignedCoupons = [], isLoading: isLoadingAssigned } = useQuery(
+    {
+      queryKey: ["coupons", "me"],
+      queryFn: listMyAssignedCoupons,
+      retry: false,
+      throwOnError: false,
+    },
+  );
+
+  const isLoading = isLoadingPublic || isLoadingAssigned;
+
+  const referralCoupon = assignedCoupons.find(
+    (c) => c.referrerName && c.status === "active",
+  );
+
+  const coupons: PickableCoupon[] = [
+    ...assignedCoupons
+      .filter((c) => c.status === "active")
+      .map((c) => ({
+        code: c.code,
+        description: c.description,
+        type: c.type,
+        value: c.discountAmount,
+        cap: null,
+        minAmt: c.minAmt,
+        referrerName: c.referrerName,
+      })),
+    ...publicCoupons,
+  ];
 
   // Sync selectedCode when couponCode changes from store
   useEffect(() => {
@@ -93,11 +145,20 @@ export default function CouponBox() {
       showSuccess(trimmedCode, nextCart.totals.discount);
       setCode("");
     } catch (error) {
-      const text =
-        error instanceof ApiError ? error.message : "Couldn't apply this code.";
       setSelectedCode(couponCode);
       setDialogOpen(false);
-      showError(text);
+      if (
+        error instanceof ApiError &&
+        error.code === "REFERRAL_COUPON_NOT_YOURS"
+      ) {
+        showReferralPrompt(error.message);
+      } else {
+        const text =
+          error instanceof ApiError
+            ? error.message
+            : "Couldn't apply this code.";
+        showError(text);
+      }
     } finally {
       setApplying(false);
     }
@@ -124,11 +185,20 @@ export default function CouponBox() {
       setDialogOpen(false);
       showSuccess(selectedCode, nextCart.totals.discount);
     } catch (error) {
-      const text =
-        error instanceof ApiError ? error.message : "Couldn't apply this code.";
       setSelectedCode(couponCode);
       setDialogOpen(false);
-      showError(text);
+      if (
+        error instanceof ApiError &&
+        error.code === "REFERRAL_COUPON_NOT_YOURS"
+      ) {
+        showReferralPrompt(error.message);
+      } else {
+        const text =
+          error instanceof ApiError
+            ? error.message
+            : "Couldn't apply this code.";
+        showError(text);
+      }
     } finally {
       setApplying(false);
     }
@@ -166,6 +236,58 @@ export default function CouponBox() {
           {couponCode ? "Edit" : "Apply"}
         </span>
       </button>
+
+      {/* Referral coupon nudge — visible whenever the user has an unused
+       * referral welcome reward, so it isn't buried inside the dialog. */}
+      {referralCoupon && couponCode !== referralCoupon.code && (
+        <div className="flex flex-col gap-3 rounded-3xl border border-primary/25 border-dashed bg-accent/20 p-4 sm:p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Gift size={16} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-editorial text-ink text-sm">
+                🎉 You have a referral coupon worth{" "}
+                {rupee(referralCoupon.discountAmount)}!
+              </p>
+              <p className="mt-0.5 text-[11px] text-foreground/60">
+                From {referralCoupon.referrerName}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pl-12">
+            <button
+              type="button"
+              disabled={applying}
+              onClick={async () => {
+                setApplying(true);
+                try {
+                  const nextCart = await applyCoupon(referralCoupon.code);
+                  showSuccess(referralCoupon.code, nextCart.totals.discount);
+                } catch (error) {
+                  const text =
+                    error instanceof ApiError
+                      ? error.message
+                      : "Couldn't apply this code.";
+                  showError(text);
+                } finally {
+                  setApplying(false);
+                }
+              }}
+              className="cursor-pointer rounded-full bg-primary px-4 py-1.5 font-bold text-[11px] text-primary-foreground uppercase tracking-wider transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              {applying ? "Applying…" : "Apply Coupon"}
+            </button>
+            <Link
+              to="/referrals"
+              className="font-bold text-[11px] text-primary uppercase tracking-wider hover:underline"
+            >
+              Refer &amp; earn
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Upgraded Myntra-style dialog */}
       <Dialog
@@ -248,6 +370,11 @@ export default function CouponBox() {
                             />
                           </div>
                           <div className="flex-1 space-y-1">
+                            {c.referrerName && (
+                              <p className="font-accent text-primary text-sm leading-none">
+                                Referred by {c.referrerName} 💛
+                              </p>
+                            )}
                             <div className="inline-block rounded-lg border border-primary/45 border-dashed bg-accent/15 px-2.5 py-0.5 font-bold text-primary text-xs tracking-wide">
                               {c.code}
                             </div>

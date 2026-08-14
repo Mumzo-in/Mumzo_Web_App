@@ -21,6 +21,11 @@ export async function runSettlementSweep() {
   for (const row of due) {
     try {
       const result = await settleReferral(row.id);
+      if (result?.capped) {
+        console.warn(
+          `Referral ${row.id} settled for ${row.referrerUserId} but hit the monthly reward cap — no coupon issued.`,
+        );
+      }
       if (result?.couponId && result.referrerName) {
         await notify
           .send({

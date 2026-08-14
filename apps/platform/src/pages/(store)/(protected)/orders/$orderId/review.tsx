@@ -1,13 +1,24 @@
 import { Button } from "@mumzo/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@mumzo/ui/components/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Camera, Star } from "lucide-react";
+import { Camera, CheckCircle2, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
-import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { OrderFormSkeleton, orderQueryOptions } from "@/modules/orders";
+import {
+  getReviewForOrder,
+  ReferralNudge,
+  submitReview,
+} from "@/modules/reviews";
 
 export const Route = createFileRoute(
   "/(store)/(protected)/orders/$orderId/review",
@@ -57,27 +68,64 @@ function OrderReviewPage() {
     isLoading,
     isError,
   } = useQuery(orderQueryOptions(orderId));
+  const {
+    data: existingReview,
+    isLoading: isReviewLoading,
+    refetch: refetchReview,
+  } = useQuery({
+    queryKey: ["reviews", "order", orderId],
+    queryFn: () => getReviewForOrder(orderId),
+  });
   const navigate = useNavigate();
-  const showPopup = usePopupStore((s) => s.showPopup);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showReferralNudge, setShowReferralNudge] = useState(false);
+  // Set the instant a submit succeeds, so the "already reviewed" view shows
+  // immediately without waiting on `existingReview` to refetch.
+  const [justSubmitted, setJustSubmitted] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const closeToOrder = () =>
+    navigate({ to: "/orders/$orderId", params: { orderId } });
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (Object.keys(ratings).length === 0) {
+    const values = Object.values(ratings);
+    if (values.length === 0) {
       toast.error("Please rate at least one item");
       return;
     }
-    showPopup({
-      variant: "success",
-      title: "Thanks for your review!",
-      description: "Your feedback helps other parents shop with confidence.",
-    });
-    navigate({ to: "/orders/$orderId", params: { orderId } });
+
+    // No single "order rating" field exists in this per-product form — the
+    // average across rated items is what the order-level review row (and
+    // the referral gate that reads it) uses as the overall rating.
+    const overallRating = Math.round(
+      values.reduce((sum, v) => sum + v, 0) / values.length,
+    );
+    const comment = [title.trim(), body.trim()].filter(Boolean).join(" — ");
+
+    setSubmitting(true);
+    try {
+      const result = await submitReview(orderId, {
+        rating: overallRating,
+        comment: comment || undefined,
+      });
+      setJustSubmitted(true);
+      refetchReview();
+      if (result.showReferralPrompt) {
+        setShowReferralNudge(true);
+      } else {
+        toast.success("Thanks for your review!");
+      }
+    } catch {
+      toast.error("Couldn't save your review — try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (isLoading) {
+  if (isLoading || isReviewLoading) {
     return <OrderFormSkeleton />;
   }
 
@@ -96,6 +144,77 @@ function OrderReviewPage() {
   }
 
   const shortId = order.id.slice(0, 8).toUpperCase();
+  const alreadyReviewed = justSubmitted || Boolean(existingReview?.respondedAt);
+
+  if (alreadyReviewed) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
+        <Breadcrumbs
+          items={[
+            { label: "Home", to: "/" },
+            { label: "Orders", to: "/orders" },
+            {
+              label: `#${shortId}`,
+              to: "/orders/$orderId",
+              params: { orderId: order.id },
+            },
+            { label: "Review" },
+          ]}
+        />
+
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-3 rounded-3xl border border-border/60 bg-white p-10 text-center">
+          <CheckCircle2 className="text-primary" size={36} />
+          <h1 className="font-editorial text-2xl text-ink tracking-tight">
+            You've already reviewed this order
+          </h1>
+          {existingReview?.rating !== undefined &&
+            existingReview?.rating !== null && (
+              <div className="flex gap-1" data-testid="review-existing-rating">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Star
+                    className={
+                      n <= (existingReview.rating ?? 0)
+                        ? "fill-primary text-primary"
+                        : "fill-border text-border"
+                    }
+                    key={n}
+                    size={22}
+                    strokeWidth={0}
+                  />
+                ))}
+              </div>
+            )}
+          {existingReview?.comment && (
+            <p className="text-foreground/60 text-sm">
+              "{existingReview.comment}"
+            </p>
+          )}
+          <Button
+            className="mt-3 rounded-full"
+            onClick={closeToOrder}
+            variant="outline"
+          >
+            Back to order
+          </Button>
+        </div>
+
+        <Dialog
+          onOpenChange={(open) => !open && closeToOrder()}
+          open={showReferralNudge}
+        >
+          <DialogContent className="rounded-3xl border border-border/60 bg-background p-6 text-center sm:max-w-sm">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Refer a friend</DialogTitle>
+              <DialogDescription>
+                Invite another parent to Mumzo and you both earn rewards.
+              </DialogDescription>
+            </DialogHeader>
+            <ReferralNudge onDone={closeToOrder} orderId={orderId} />
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16">
@@ -163,8 +282,12 @@ function OrderReviewPage() {
           </button>
         </div>
 
-        <Button type="submit" className="self-start rounded-full">
-          Submit review
+        <Button
+          className="self-start rounded-full"
+          disabled={submitting}
+          type="submit"
+        >
+          {submitting ? "Saving…" : "Submit review"}
         </Button>
       </form>
     </div>

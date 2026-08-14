@@ -287,6 +287,7 @@ export async function findCouponsPage(filters: {
         usedCount: coupon.usedCount,
         maxUses: coupon.maxUses,
         expiresAt: coupon.expiresAt,
+        claimedAt: coupon.claimedAt,
         createdAt: coupon.createdAt,
         usedInOrderId: order.id,
       })

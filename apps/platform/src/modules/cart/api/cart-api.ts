@@ -32,6 +32,9 @@ export interface PublicCart {
   id: string;
   items: CartLine[];
   couponCode: string | null;
+  /** Set only when a previously-applied coupon was just dropped because it
+   * stopped validating (already used, expired, etc). */
+  couponError: string | null;
   totals: CartTotals;
 }
 

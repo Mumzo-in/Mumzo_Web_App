@@ -25,6 +25,7 @@ import { Route as storeProfileIndexRouteImport } from './pages/(store)/profile/i
 import { Route as storeProductIndexRouteImport } from './pages/(store)/product/index'
 import { Route as storeCollectionIndexRouteImport } from './pages/(store)/collection/index'
 import { Route as storeBrandIndexRouteImport } from './pages/(store)/brand/index'
+import { Route as storeRCodeRouteImport } from './pages/(store)/r/$code'
 import { Route as storeProfileBabyRouteImport } from './pages/(store)/profile/baby'
 import { Route as storeLegalTermsRouteImport } from './pages/(store)/legal/terms'
 import { Route as storeLegalShippingRouteImport } from './pages/(store)/legal/shipping'
@@ -131,6 +132,11 @@ const storeCollectionIndexRoute = storeCollectionIndexRouteImport.update({
 const storeBrandIndexRoute = storeBrandIndexRouteImport.update({
   id: '/brand/',
   path: '/brand/',
+  getParentRoute: () => storeLayoutRoute,
+} as any)
+const storeRCodeRoute = storeRCodeRouteImport.update({
+  id: '/r/$code',
+  path: '/r/$code',
   getParentRoute: () => storeLayoutRoute,
 } as any)
 const storeProfileBabyRoute = storeProfileBabyRouteImport.update({
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
   '/profile/baby': typeof storeProfileBabyRoute
+  '/r/$code': typeof storeRCodeRoute
   '/brand/': typeof storeBrandIndexRoute
   '/collection/': typeof storeCollectionIndexRoute
   '/product/': typeof storeProductIndexRoute
@@ -365,6 +372,7 @@ export interface FileRoutesByTo {
   '/legal/shipping': typeof storeLegalShippingRoute
   '/legal/terms': typeof storeLegalTermsRoute
   '/profile/baby': typeof storeProfileBabyRoute
+  '/r/$code': typeof storeRCodeRoute
   '/brand': typeof storeBrandIndexRoute
   '/collection': typeof storeCollectionIndexRoute
   '/product': typeof storeProductIndexRoute
@@ -413,6 +421,7 @@ export interface FileRoutesById {
   '/(store)/legal/shipping': typeof storeLegalShippingRoute
   '/(store)/legal/terms': typeof storeLegalTermsRoute
   '/(store)/profile/baby': typeof storeProfileBabyRoute
+  '/(store)/r/$code': typeof storeRCodeRoute
   '/(store)/brand/': typeof storeBrandIndexRoute
   '/(store)/collection/': typeof storeCollectionIndexRoute
   '/(store)/product/': typeof storeProductIndexRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/legal/shipping'
     | '/legal/terms'
     | '/profile/baby'
+    | '/r/$code'
     | '/brand/'
     | '/collection/'
     | '/product/'
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/legal/shipping'
     | '/legal/terms'
     | '/profile/baby'
+    | '/r/$code'
     | '/brand'
     | '/collection'
     | '/product'
@@ -551,6 +562,7 @@ export interface FileRouteTypes {
     | '/(store)/legal/shipping'
     | '/(store)/legal/terms'
     | '/(store)/profile/baby'
+    | '/(store)/r/$code'
     | '/(store)/brand/'
     | '/(store)/collection/'
     | '/(store)/product/'
@@ -692,6 +704,13 @@ declare module '@tanstack/react-router' {
       path: '/brand'
       fullPath: '/brand/'
       preLoaderRoute: typeof storeBrandIndexRouteImport
+      parentRoute: typeof storeLayoutRoute
+    }
+    '/(store)/r/$code': {
+      id: '/(store)/r/$code'
+      path: '/r/$code'
+      fullPath: '/r/$code'
+      preLoaderRoute: typeof storeRCodeRouteImport
       parentRoute: typeof storeLayoutRoute
     }
     '/(store)/profile/baby': {
@@ -984,6 +1003,7 @@ interface storeLayoutRouteChildren {
   storeLegalShippingRoute: typeof storeLegalShippingRoute
   storeLegalTermsRoute: typeof storeLegalTermsRoute
   storeProfileBabyRoute: typeof storeProfileBabyRoute
+  storeRCodeRoute: typeof storeRCodeRoute
   storeBrandIndexRoute: typeof storeBrandIndexRoute
   storeCollectionIndexRoute: typeof storeCollectionIndexRoute
   storeProductIndexRoute: typeof storeProductIndexRoute
@@ -1009,6 +1029,7 @@ const storeLayoutRouteChildren: storeLayoutRouteChildren = {
   storeLegalShippingRoute: storeLegalShippingRoute,
   storeLegalTermsRoute: storeLegalTermsRoute,
   storeProfileBabyRoute: storeProfileBabyRoute,
+  storeRCodeRoute: storeRCodeRoute,
   storeBrandIndexRoute: storeBrandIndexRoute,
   storeCollectionIndexRoute: storeCollectionIndexRoute,
   storeProductIndexRoute: storeProductIndexRoute,

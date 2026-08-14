@@ -316,26 +316,31 @@ export type ValidateCouponInput = {
 
 /**
  * Ports the discount math that today only lives client-side in the
- * storefront's cart-provider. Preview-only: does not increment `usedCount`
- * (that requires a real "this was redeemed on a completed order" event,
- * which needs an `order` table that doesn't exist yet). `maxUsesPerUser`
- * is intentionally not checked here for the same reason.
+ * storefront's cart-provider. Preview-only here: `usedCount` is incremented,
+ * and `maxUsesPerUser`/`firstOrderOnly` are given a final re-check, at order
+ * placement (`placeOrder` in platform/v1/orders/orders.service.ts) — this
+ * function only tells the caller whether the coupon *would* be accepted.
  */
 export async function validateCoupon(input: ValidateCouponInput) {
-  const id = await couponsRepo.findByCode(input.code.toUpperCase());
-  if (!id) {
+  const row = await couponsRepo.findByCodeFull(input.code.toUpperCase());
+  if (!row) {
     throw badRequest(
       "This coupon code doesn't exist.",
       ERROR_CODES.COUPON_INVALID,
     );
   }
 
-  const row = await requireCoupon(id.id);
-
   if (!row.isActive) {
     throw badRequest(
       "This coupon is no longer active.",
       ERROR_CODES.COUPON_INVALID,
+    );
+  }
+
+  if (row.claimedAt === null) {
+    throw badRequest(
+      "Claim this reward before using it.",
+      ERROR_CODES.COUPON_NOT_CLAIMED,
     );
   }
 
@@ -355,6 +360,13 @@ export async function validateCoupon(input: ValidateCouponInput) {
   }
   if (row.visibility === "assigned") {
     if (!input.userId || !row.assignedUserIds.includes(input.userId)) {
+      const referralMatch = await couponsRepo.findReferralByCouponId(row.id);
+      if (referralMatch) {
+        throw badRequest(
+          `This is ${referralMatch.referrerName}'s referral reward — refer a friend to earn your own!`,
+          ERROR_CODES.REFERRAL_COUPON_NOT_YOURS,
+        );
+      }
       throw badRequest(
         "This coupon isn't available to you.",
         ERROR_CODES.COUPON_INVALID,
@@ -390,6 +402,28 @@ export async function validateCoupon(input: ValidateCouponInput) {
       ERROR_CODES.COUPON_MIN_AMOUNT,
     );
   }
+  if (input.userId) {
+    const [priorOrders, priorUses] = await Promise.all([
+      row.firstOrderOnly
+        ? couponsRepo.countUserOrders(input.userId)
+        : Promise.resolve(0),
+      row.maxUsesPerUser !== null
+        ? couponsRepo.countUserOrdersWithCoupon(input.userId, row.id)
+        : Promise.resolve(0),
+    ]);
+    if (row.firstOrderOnly && priorOrders > 0) {
+      throw badRequest(
+        "This coupon is only valid on your first order.",
+        ERROR_CODES.COUPON_FIRST_ORDER_ONLY,
+      );
+    }
+    if (row.maxUsesPerUser !== null && priorUses >= row.maxUsesPerUser) {
+      throw badRequest(
+        "You've already used this coupon.",
+        ERROR_CODES.COUPON_ALREADY_USED_BY_YOU,
+      );
+    }
+  }
 
   const discount =
     row.type === "flat"
@@ -401,9 +435,11 @@ export async function validateCoupon(input: ValidateCouponInput) {
 
   return {
     valid: true as const,
+    couponId: row.id,
     code: row.code,
     discount,
     finalTotal: input.cartTotal - discount,
+    maxUsesPerUser: row.maxUsesPerUser,
   };
 }
 

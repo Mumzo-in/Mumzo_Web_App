@@ -91,7 +91,9 @@ export function CouponsTable() {
         enableSorting: false,
         cell: ({ row }) => (
           <span className="numeric text-muted-foreground text-sm">
-            {formatDate(row.original.expiresAt)}
+            {row.original.expiresAt
+              ? formatDate(row.original.expiresAt)
+              : "Not claimed"}
           </span>
         ),
       },
@@ -110,7 +112,10 @@ export function CouponsTable() {
   );
 
   const filters = useMemo(
-    () => ({ search: search.q || undefined, status: search.status }),
+    () => ({
+      search: search.q || undefined,
+      status: search.status === "all" ? undefined : search.status,
+    }),
     [search.q, search.status],
   );
 

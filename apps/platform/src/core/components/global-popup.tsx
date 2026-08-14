@@ -53,7 +53,7 @@ const DEFAULT_ICON = {
 const OVERLAY_TONE = {
   success: "bg-pinkSoft text-pinkDeep",
   error: "bg-destructive/10 text-destructive",
-  info: "bg-secondary/60 text-ink",
+  info: "bg-accent/50 text-primary",
 };
 
 export default function GlobalPopup() {
@@ -77,7 +77,7 @@ export default function GlobalPopup() {
     return () => clearTimeout(timer);
   }, [popup, hidePopup]);
 
-  if (popup?.variant === "cart" || popup?.variant === "info") {
+  if (popup?.variant === "cart") {
     return (
       <AnimatePresence>
         {popup && (
@@ -117,7 +117,7 @@ export default function GlobalPopup() {
     );
   }
 
-  const variant = popup?.variant as "success" | "error" | undefined;
+  const variant = popup?.variant as "success" | "error" | "info" | undefined;
 
   return (
     <AnimatePresence>
@@ -235,7 +235,10 @@ export default function GlobalPopup() {
 
             <button
               type="button"
-              onClick={hidePopup}
+              onClick={() => {
+                popup.onAction?.();
+                hidePopup();
+              }}
               className={`mt-6 w-full rounded-full py-3.5 font-semibold text-sm shadow-md transition-transform active:scale-[0.98] ${
                 variant === "success"
                   ? "bg-pinkDeep text-white hover:bg-[#A93F63]"

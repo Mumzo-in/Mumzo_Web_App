@@ -9,6 +9,7 @@ import {
   getStatsRoute,
   listCouponsRoute,
   listParticipantsRoute,
+  updateRulesRoute,
   updateTierRoute,
 } from "./referrals.routes";
 import {
@@ -21,6 +22,7 @@ import {
   getStats,
   listCoupons,
   listParticipants,
+  updateRules,
   updateTier,
 } from "./referrals.service";
 
@@ -29,6 +31,7 @@ import {
 const app = createRouter();
 
 app.use("/*", requirePermission("referral", "read"));
+app.patch("/rules", requirePermission("referral", "update"));
 app.post("/tiers", requirePermission("referral", "create"));
 app.patch("/tiers/:id", requirePermission("referral", "update"));
 app.delete("/tiers/:id", requirePermission("referral", "delete"));
@@ -36,6 +39,10 @@ app.delete("/tiers/:id", requirePermission("referral", "delete"));
 const referrals = app
   .openapi(getConfigRoute, async (c) => {
     const data = await getConfig();
+    return c.json({ success: true as const, data }, 200);
+  })
+  .openapi(updateRulesRoute, async (c) => {
+    const data = await updateRules(c.req.valid("json"));
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(getStatsRoute, async (c) => {

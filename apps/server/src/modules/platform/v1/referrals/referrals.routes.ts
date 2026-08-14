@@ -1,7 +1,8 @@
-import { createRoute } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
 
 import { commonErrorResponses, jsonContent, successSchema } from "@/core";
 import {
+  claimCouponResultSchema,
   myReferralsSchema,
   referralProgramSchema,
   trackClickSchema,
@@ -38,7 +39,7 @@ export const trackClickRoute = createRoute({
   method: "post",
   path: "/track-click",
   tags: [TAG],
-  summary: "Record a link_shared referral row when a friend clicks /r/:code",
+  summary: "Validate a code when a friend lands on /r/:code (no row recorded)",
   request: {
     body: { content: { "application/json": { schema: trackClickSchema } } },
   },
@@ -56,6 +57,22 @@ export const getMyReferralsRoute = createRoute({
   security: [{ cookieAuth: [] }],
   responses: {
     200: jsonContent(successSchema(myReferralsSchema), "Your referrals"),
+    ...commonErrorResponses,
+  },
+});
+
+export const claimCouponRoute = createRoute({
+  method: "post",
+  path: "/coupons/{id}/claim",
+  tags: [TAG],
+  summary:
+    "Claim a tier coupon issued at delivery — starts its validity window",
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    200: jsonContent(successSchema(claimCouponResultSchema), "Coupon claimed"),
     ...commonErrorResponses,
   },
 });

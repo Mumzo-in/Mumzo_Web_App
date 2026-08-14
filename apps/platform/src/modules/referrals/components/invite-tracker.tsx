@@ -1,4 +1,12 @@
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@mumzo/ui/components/empty";
 import { cn } from "@mumzo/ui/lib/utils";
+import { Check, Users } from "lucide-react";
 
 import {
   INVITE_FUNNEL_STAGES,
@@ -6,6 +14,7 @@ import {
   inviteStageIndex,
   type ReferralInvite,
 } from "../data/referral-data";
+import ConfettiBurst from "./confetti-burst";
 
 const STAGE_LABELS: Record<number, string> = {
   0: "Shared",
@@ -23,11 +32,27 @@ export default function InviteTracker({
     <div className="rounded-3xl border border-border/60 bg-card p-6">
       <h2 className="font-editorial text-ink text-xl">Your invites</h2>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {invites.map((invite) => (
-          <InviteRow key={invite.id} invite={invite} />
-        ))}
-      </div>
+      {invites.length === 0 ? (
+        <Empty className="mt-2">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users />
+            </EmptyMedia>
+            <EmptyTitle className="font-editorial text-base text-ink">
+              No invites yet
+            </EmptyTitle>
+            <EmptyDescription>
+              Share your referral link to see friends show up here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {invites.map((invite) => (
+            <InviteRow key={invite.id} invite={invite} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -64,18 +89,23 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
           const isDone = index < reached || (index === reached && !returned);
           const isCurrent = index === reached && !returned;
           const isLast = index === INVITE_FUNNEL_STAGES.length - 1;
+          const celebrate = isCurrent && reached > 0;
 
           return (
             <div className="flex gap-3" key={stage}>
               <div className="flex flex-col items-center">
                 <span
                   className={cn(
-                    "size-3 shrink-0 rounded-full",
-                    isDone && !isCurrent && "bg-primary",
-                    isCurrent && "bg-accent ring-2 ring-primary/30",
-                    !isDone && !isCurrent && "bg-secondary",
+                    "relative flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
+                    isDone ? "bg-primary" : "bg-secondary",
+                    isCurrent && "ring-2 ring-primary/30",
                   )}
-                />
+                >
+                  {celebrate && <ConfettiBurst />}
+                  {isDone && (
+                    <Check className="text-primary-foreground" size={10} />
+                  )}
+                </span>
                 {!isLast && (
                   <span
                     className={cn(
@@ -89,7 +119,7 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
                 className={cn(
                   "pb-3 text-xs",
                   isLast && "pb-0",
-                  isDone ? "text-ink" : "text-foreground/50",
+                  isDone ? "font-semibold text-ink" : "text-foreground/50",
                 )}
               >
                 {STAGE_LABELS[index]}
@@ -98,6 +128,12 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
           );
         })}
       </div>
+
+      {invite.status === "order_placed" && (
+        <p className="mt-1 pl-7 text-[11px] text-foreground/45 leading-snug">
+          Your coupon unlocks once their order clears the return window.
+        </p>
+      )}
     </div>
   );
 }

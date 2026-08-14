@@ -11,6 +11,7 @@ import {
   successSchema,
 } from "./core";
 import { startReferralSettlementSweep } from "./modules/platform/v1/referrals/referrals.sweep";
+import { startReviewPromptSweep } from "./modules/platform/v1/reviews/reviews.sweep";
 import router from "./router";
 
 const app = createApp();
@@ -25,10 +26,14 @@ const notificationWorker = startNotificationWorker();
 // sweep isn't abandoned mid-batch.
 const referralSweep = startReferralSettlementSweep();
 
+// In-process review-prompt sweep — see reviews.sweep.ts. Same lifecycle.
+const reviewPromptSweep = startReviewPromptSweep();
+
 async function shutdown(signal: string) {
   console.log(`[server] ${signal} received, shutting down...`);
   await notificationWorker.close();
   referralSweep.close();
+  reviewPromptSweep.close();
   await pool.end();
   process.exit(0);
 }

@@ -68,6 +68,17 @@ export const coupon = pgTable(
     startsAt: timestamp("starts_at"),
     isActive: boolean("is_active").default(true).notNull(),
     isGlobal: boolean("is_global").default(false).notNull(),
+    /**
+     * Null = issued but not yet claimed — unusable at checkout until the
+     * owner claims it (referral tier coupons issued at delivery, before
+     * the return window has passed). `expiresAt` is a placeholder far-future
+     * date while unclaimed; claiming sets this to now and recomputes
+     * `expiresAt` as `now + couponValidityDays`, so the validity window
+     * starts when the reward is actually claimed, not when it was minted.
+     * Coupons that don't go through a claim step (everything issued today)
+     * are created with this already set to `createdAt`.
+     */
+    claimedAt: timestamp("claimed_at"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

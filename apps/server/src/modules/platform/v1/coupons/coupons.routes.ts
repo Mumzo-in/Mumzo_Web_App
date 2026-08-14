@@ -49,3 +49,34 @@ export const validateRoute = createRoute({
     ...commonErrorResponses,
   },
 });
+
+export const myAssignedCouponSchema = z
+  .object({
+    id: z.string(),
+    code: z.string(),
+    description: z.string().nullable(),
+    type: z.enum(["flat", "pct"]),
+    discountAmount: z.number(),
+    minAmt: z.number(),
+    status: z.enum(["active", "used", "expired", "revoked"]),
+    expiresAt: z.string(),
+    /** The friend who referred this user, when this coupon is their
+     * referral welcome reward — null for any other assigned coupon. */
+    referrerName: z.string().nullable(),
+  })
+  .openapi("MyAssignedCoupon");
+
+export const listMyCouponsRoute = createRoute({
+  method: "get",
+  path: "/me",
+  tags: [TAG],
+  summary: "Coupons assigned to the signed-in customer",
+  security: [{ cookieAuth: [] }],
+  responses: {
+    200: jsonContent(
+      successSchema(z.array(myAssignedCouponSchema)),
+      "Your assigned coupons",
+    ),
+    ...commonErrorResponses,
+  },
+});

@@ -1,6 +1,8 @@
 import { createRouter } from "@/core";
 import { getPublicCategory } from "../categories/categories.service";
 import { getPublicProduct } from "../products/products.service";
+import { validateCode } from "../referrals/referrals.service";
+import { loadReferralHeroImage } from "./og-images";
 import { renderOgImage } from "./og-render";
 
 /**
@@ -56,6 +58,19 @@ const og = app
       subtitle: "10-minute delivery in Hyderabad",
     });
     return pngResponse(png, 86400, 86400);
+  })
+  .get("/referral/:code", async (c) => {
+    const [{ referrerName, refereeReward }, image] = await Promise.all([
+      validateCode(c.req.param("code")),
+      loadReferralHeroImage(),
+    ]);
+    const png = await renderOgImage({
+      kicker: "You're invited to Mumzo",
+      title: `${referrerName} sent you ₹${refereeReward} off`,
+      subtitle: "Mom & baby essentials, delivered in 10 minutes.",
+      image,
+    });
+    return pngResponse(png, 3600, 86400);
   });
 
 export default og;

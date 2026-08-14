@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@mumzo/ui/components/alert-dialog";
 import { Badge } from "@mumzo/ui/components/badge";
 import { Button } from "@mumzo/ui/components/button";
 import {
@@ -7,10 +17,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@mumzo/ui/components/card";
-import { Field, FieldGroup, FieldLabel } from "@mumzo/ui/components/field";
-import { Input } from "@mumzo/ui/components/input";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@mumzo/ui/components/empty";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
-import { Switch } from "@mumzo/ui/components/switch";
 import {
   Table,
   TableBody,
@@ -19,101 +33,132 @@ import {
   TableHeader,
   TableRow,
 } from "@mumzo/ui/components/table";
-import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Layers, Pencil, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import { formatNumber } from "@/core/components/format";
-import { getReferralConfig } from "../api/referrals-api";
+import { usePermission } from "@/modules/roles";
+import {
+  createReferralTier,
+  deleteReferralTier,
+  getReferralConfig,
+  updateReferralRules,
+  updateReferralTier,
+} from "../api/referrals-api";
+import type { ReferralTier } from "../data/referral-data";
+import RulesForm, { type RulesFormHandle } from "./rules-form";
+import TierForm, { type TierFormHandle } from "./tier-form";
+
+/** A compact label/value pair for the rules summary card. */
+function RuleStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="numeric font-medium text-sm">{value}</span>
+    </div>
+  );
+}
 
 /**
- * Programme rules + the tier ladder. Read-only base UI for now — the write
- * actions (save rules, add tier) land with the API.
+ * Programme rules + the tier ladder — a read-only rules summary with an Edit
+ * dialog, and a tier table with Add/Edit/Delete actions. Both write paths
+ * are Dialogs (`RulesForm`/`TierForm`), not inline forms, so this page stays
+ * scannable instead of an always-open wall of fields.
  */
 export function TierRulesManager() {
+  const queryClient = useQueryClient();
+  const canWrite = usePermission("referral", "update");
+  const canCreate = usePermission("referral", "create");
+  const canDelete = usePermission("referral", "delete");
+
   const configQuery = useQuery({
     queryKey: queryKeys.referrals.config(),
     queryFn: getReferralConfig,
   });
-
   const config = configQuery.data;
+
+  const [pendingDelete, setPendingDelete] = useState<ReferralTier | null>(null);
+  const tierFormRef = useRef<TierFormHandle>(null);
+  const rulesFormRef = useRef<RulesFormHandle>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteReferralTier(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.referrals.config(),
+      });
+      setPendingDelete(null);
+      toast.success("Tier deleted.");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not delete the tier.");
+      setPendingDelete(null);
+    },
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <Card className="shadow-warm">
-        <CardHeader>
-          <CardTitle>Programme rules</CardTitle>
-          <CardDescription>
-            The settlement engine's knobs — how coupons get issued and revoked.
-          </CardDescription>
+        <CardHeader className="flex-row items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <CardTitle>Programme rules</CardTitle>
+            <CardDescription>
+              The settlement engine's knobs — how coupons get issued and
+              revoked.
+            </CardDescription>
+          </div>
+          {config && canWrite && (
+            <Button
+              data-testid="referral-edit-rules"
+              onClick={() => rulesFormRef.current?.open()}
+              size="sm"
+              variant="outline"
+            >
+              <SlidersHorizontal
+                className="size-3.5"
+                data-icon="inline-start"
+              />
+              Edit rules
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {!config ? (
-            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
           ) : (
-            <FieldGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Field>
-                <FieldLabel htmlFor="return-window">
-                  Return window (days)
-                </FieldLabel>
-                <Input
-                  data-testid="referral-return-window"
-                  defaultValue={config.rules.returnWindowDays}
-                  id="return-window"
-                  type="number"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="coupon-validity">
-                  Coupon validity (days)
-                </FieldLabel>
-                <Input
-                  data-testid="referral-coupon-validity"
-                  defaultValue={config.rules.couponValidityDays}
-                  id="coupon-validity"
-                  type="number"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="monthly-cap">
-                  Monthly cap / user
-                </FieldLabel>
-                <Input
-                  data-testid="referral-monthly-cap"
-                  defaultValue={config.rules.monthlyCapPerUser}
-                  id="monthly-cap"
-                  type="number"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="referee-reward">
-                  Friend's first-order reward (₹)
-                </FieldLabel>
-                <Input
-                  data-testid="referral-referee-reward"
-                  defaultValue={config.rules.refereeReward}
-                  id="referee-reward"
-                  type="number"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="code-pattern">Code pattern</FieldLabel>
-                <Input
-                  data-testid="referral-code-pattern"
-                  defaultValue={config.codePattern}
-                  id="code-pattern"
-                />
-              </Field>
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="self-referral-block">
-                  Block self-referral
-                </FieldLabel>
-                <Switch
-                  checked={config.rules.selfReferralBlock}
-                  data-testid="referral-self-block"
-                  id="self-referral-block"
-                />
-              </Field>
-            </FieldGroup>
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              <RuleStat
+                label="Return window"
+                value={`${config.rules.returnWindowHours} hr${config.rules.returnWindowHours === 1 ? "" : "s"}`}
+              />
+              <RuleStat
+                label="Coupon validity"
+                value={`${config.rules.couponValidityDays} days`}
+              />
+              <RuleStat
+                label="Monthly cap / user"
+                value={
+                  config.rules.monthlyCapPerUser === 0
+                    ? "No cap"
+                    : String(config.rules.monthlyCapPerUser)
+                }
+              />
+              <RuleStat
+                label="Friend's first-order reward"
+                value={`₹${config.rules.refereeReward}`}
+              />
+              <RuleStat label="Code pattern" value={config.codePattern} />
+              <RuleStat
+                label="Self-referral block"
+                value={config.rules.selfReferralBlock ? "On" : "Off"}
+              />
+              <RuleStat
+                label="Claim on delivery"
+                value={config.rules.settleOnDelivery ? "On" : "Off"}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -127,19 +172,34 @@ export function TierRulesManager() {
               coupon.
             </CardDescription>
           </div>
-          <Button
-            data-testid="referral-add-tier"
-            disabled
-            size="sm"
-            variant="outline"
-          >
-            <Plus data-icon="inline-start" />
-            Add tier
-          </Button>
+          {canCreate && (
+            <Button
+              data-testid="referral-add-tier"
+              onClick={() => tierFormRef.current?.open()}
+              size="sm"
+              variant="outline"
+            >
+              <Plus data-icon="inline-start" />
+              Add tier
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {!config ? (
             <Skeleton className="h-40 rounded-2xl" />
+          ) : config.tiers.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Layers />
+                </EmptyMedia>
+                <EmptyTitle>No tiers yet</EmptyTitle>
+                <EmptyDescription>
+                  Add a tier to start the reward ladder — the storefront shows
+                  nothing until at least one active tier exists.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="overflow-x-auto border">
               <Table>
@@ -150,6 +210,7 @@ export function TierRulesManager() {
                     <TableHead>Coupon</TableHead>
                     <TableHead>Members</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -172,6 +233,40 @@ export function TierRulesManager() {
                           {tier.isActive ? "Active" : "Draft"}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          {canWrite && (
+                            <Button
+                              data-testid={`referral-tier-edit-${tier.id}`}
+                              onClick={() => tierFormRef.current?.open(tier)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Pencil
+                                className="size-3.5"
+                                data-icon="inline-start"
+                              />
+                              Edit
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              className="hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
+                              data-testid={`referral-tier-delete-${tier.id}`}
+                              disabled={deleteMutation.isPending}
+                              onClick={() => setPendingDelete(tier)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Trash2
+                                className="size-3.5"
+                                data-icon="inline-start"
+                              />
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -180,6 +275,79 @@ export function TierRulesManager() {
           )}
         </CardContent>
       </Card>
+
+      {config && (
+        <RulesForm
+          codePattern={config.codePattern}
+          onSubmit={async (values) => {
+            const saved = await updateReferralRules(values);
+            queryClient.setQueryData(queryKeys.referrals.config(), (prev) =>
+              prev
+                ? {
+                    ...prev,
+                    codePattern: saved.codePattern,
+                    rules: saved,
+                  }
+                : prev,
+            );
+            await queryClient.invalidateQueries({
+              queryKey: queryKeys.referrals.config(),
+            });
+            toast.success("Programme rules saved.");
+          }}
+          ref={rulesFormRef}
+          rules={config.rules}
+        />
+      )}
+
+      <TierForm
+        nextSortOrder={config?.tiers.length ?? 0}
+        onSubmit={async (editing, values) => {
+          if (editing) {
+            await updateReferralTier(editing.id, values);
+            toast.success(`Saved "${values.name}".`);
+          } else {
+            await createReferralTier(values);
+            toast.success(`Created "${values.name}".`);
+          }
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.referrals.config(),
+          });
+        }}
+        ref={tierFormRef}
+      />
+
+      <AlertDialog
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        open={pendingDelete !== null}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this tier?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.name} will be removed from the ladder. This cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (pendingDelete) {
+                  deleteMutation.mutate(pendingDelete.id);
+                }
+              }}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete tier"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

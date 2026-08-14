@@ -80,6 +80,6 @@ export function computeCartTotals(
     lines.length === 0 || subtotal >= FREE_DELIVERY_THRESHOLD_PAISE
       ? 0
       : DELIVERY_FEE_PAISE;
-  const total = subtotal + gstAmount + deliveryFee - discount;
+  const total = Math.max(0, subtotal + gstAmount + deliveryFee - discount);
   return { subtotal, gstAmount, deliveryFee, discount, total };
 }

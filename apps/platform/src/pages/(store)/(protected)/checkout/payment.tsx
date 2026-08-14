@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { ApiError } from "@/core/api/client";
+import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { useAddresses } from "@/modules/account";
 import { CartSummary, rupee, useCart } from "@/modules/cart";
 import {
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/(store)/(protected)/checkout/payment")({
 
 function CheckoutPaymentPage() {
   const navigate = useNavigate();
+  const showPopup = usePopupStore((s) => s.showPopup);
   const { items, totals, clear } = useCart();
   const { addresses } = useAddresses();
   const { addressId, slotLabel, mode, slotWindowId, paymentMethod } =
@@ -72,7 +74,11 @@ function CheckoutPaymentPage() {
         error instanceof ApiError
           ? error.message
           : "Couldn't place your order.";
-      toast.error(message);
+      showPopup({
+        variant: "error",
+        title: "Couldn't Place Order",
+        description: message,
+      });
       setPlacing(false);
     }
   };

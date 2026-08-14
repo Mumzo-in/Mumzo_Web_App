@@ -8,4 +8,5 @@ export * from "./media";
 export * from "./notifications";
 export * from "./procurement";
 export * from "./referrals";
+export * from "./reviews";
 export * from "./staff";

@@ -23,6 +23,7 @@ import { CartProvider } from "@/modules/cart";
 import { defaultOgImage } from "@/modules/catalog";
 import { CheckoutProvider } from "@/modules/checkout";
 import { LocationModalHost, ServiceabilityProvider } from "@/modules/location";
+import { ReviewPromptHost } from "@/modules/reviews";
 import { TicketProvider } from "@/modules/support";
 import { WishlistProvider } from "@/modules/wishlist";
 
@@ -97,6 +98,7 @@ function RootComponent() {
                               <ConsentBanner />
                               <LocationModalHost />
                               <RequireAuthModalHost />
+                              <ReviewPromptHost />
                               <GlobalPopup />
                             </TicketProvider>
                           </BabiesProvider>
