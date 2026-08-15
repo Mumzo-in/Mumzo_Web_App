@@ -319,7 +319,7 @@ export default function SignInForm({
 
       {step === "mode" && (
         <div>
-          <h1 className="mb-2 text-center font-editorial text-3xl text-ink">
+          <h1 className="mb-2 text-center font-editorial text-3xl text-foreground">
             Welcome to Mumzo
           </h1>
           <p className="mb-6 text-center text-foreground/60 text-xs leading-relaxed">
@@ -334,8 +334,8 @@ export default function SignInForm({
               className={cn(
                 "h-10 flex-1 cursor-pointer rounded-full font-semibold text-sm transition-colors",
                 mode === "login"
-                  ? "bg-ink text-white"
-                  : "text-foreground/60 hover:text-ink",
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground/60 hover:text-foreground",
               )}
             >
               Log in
@@ -348,7 +348,7 @@ export default function SignInForm({
                 "h-10 flex-1 cursor-pointer rounded-full font-semibold text-sm transition-colors",
                 mode === "register"
                   ? "bg-primary text-primary-foreground"
-                  : "text-foreground/60 hover:text-ink",
+                  : "text-foreground/60 hover:text-foreground",
               )}
             >
               Sign up
@@ -359,12 +359,7 @@ export default function SignInForm({
             type="button"
             onClick={() => chooseMode(mode)}
             data-testid="web-signin-mode-continue"
-            className={cn(
-              "h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
-              mode === "login"
-                ? "bg-ink text-white hover:bg-ink/90"
-                : "bg-primary text-primary-foreground hover:bg-primary/95",
-            )}
+            className="h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
           >
             Continue →
           </Button>
@@ -373,7 +368,7 @@ export default function SignInForm({
 
       {step === "referral-choice" && (
         <div>
-          <h1 className="mb-2 text-center font-editorial text-3xl text-ink">
+          <h1 className="mb-2 text-center font-editorial text-3xl text-foreground">
             Welcome to Mumzo
           </h1>
           <p className="mb-6 text-center text-foreground/60 text-xs leading-relaxed">
@@ -405,7 +400,7 @@ export default function SignInForm({
 
       {step === "referral-code" && (
         <form onSubmit={confirmReferralCode} className="space-y-5">
-          <h1 className="mb-2 font-editorial text-3xl text-ink">
+          <h1 className="mb-2 font-editorial text-3xl text-foreground">
             Enter your code
           </h1>
           <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
@@ -437,7 +432,7 @@ export default function SignInForm({
 
       {step === "details" && (
         <form onSubmit={handleSendOtp} className="space-y-5">
-          <h1 className="mb-2 font-editorial text-3xl text-ink">
+          <h1 className="mb-2 font-editorial text-3xl text-foreground">
             {mode === "login" ? "Log in" : "Tell us about you"}
           </h1>
           <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
@@ -487,12 +482,7 @@ export default function SignInForm({
             type="submit"
             disabled={sending}
             data-testid="web-signin-send-otp-button"
-            className={cn(
-              "mt-2 h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
-              mode === "login"
-                ? "bg-ink text-white hover:bg-ink/90"
-                : "bg-primary text-primary-foreground hover:bg-primary/95",
-            )}
+            className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
           >
             {sending ? "Sending…" : "Continue →"}
           </Button>
@@ -501,7 +491,9 @@ export default function SignInForm({
 
       {step === "otp" && (
         <>
-          <h1 className="mb-2 font-editorial text-3xl text-ink">Verify OTP</h1>
+          <h1 className="mb-2 font-editorial text-3xl text-foreground">
+            Verify OTP
+          </h1>
           <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
             Sent to {toE164(phone)}
           </p>
@@ -529,12 +521,7 @@ export default function SignInForm({
               type="submit"
               disabled={verifying}
               data-testid="web-signin-verify-button"
-              className={cn(
-                "mt-2 h-11 w-full cursor-pointer rounded-full font-semibold transition-colors",
-                mode === "login"
-                  ? "bg-ink text-white hover:bg-ink/90"
-                  : "bg-primary text-primary-foreground hover:bg-primary/95",
-              )}
+              className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
             >
               {verifying
                 ? "Verifying…"
