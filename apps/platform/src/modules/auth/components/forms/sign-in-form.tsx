@@ -23,7 +23,7 @@ type Step = "mode" | "referral-choice" | "referral-code" | "details" | "otp";
 /** Login skips the referral question entirely (a code only ever applies to
  * a brand-new account) — the progress dots reflect each mode's actual path
  * rather than a step neither flow visits. */
-const _STEP_ORDER_BY_MODE: Record<"login" | "register", Step[]> = {
+const STEP_ORDER_BY_MODE: Record<"login" | "register", Step[]> = {
   login: ["mode", "details", "otp"],
   register: ["mode", "referral-choice", "details", "otp"],
 };
@@ -265,8 +265,9 @@ export default function SignInForm({
     void sendOtp();
   };
 
+  const stepOrder = STEP_ORDER_BY_MODE[mode];
   const currentStepIndex =
-    step === "referral-code" ? 1 : STEP_ORDER.indexOf(step);
+    step === "referral-code" ? 1 : stepOrder.indexOf(step);
 
   const goBack = () => {
     setFormError(null);
@@ -295,7 +296,7 @@ export default function SignInForm({
       )}
 
       <div className="mb-6 flex items-center justify-center gap-2">
-        {STEP_ORDER.map((s, index) => (
+        {stepOrder.map((s, index) => (
           <div className="flex items-center gap-2" key={s}>
             <span
               className={cn(
@@ -303,7 +304,7 @@ export default function SignInForm({
                 index <= currentStepIndex ? "bg-primary" : "bg-secondary",
               )}
             />
-            {index < STEP_ORDER.length - 1 && (
+            {index < stepOrder.length - 1 && (
               <span className="h-px w-6 bg-border" />
             )}
           </div>
