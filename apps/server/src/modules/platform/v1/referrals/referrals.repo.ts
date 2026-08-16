@@ -435,6 +435,13 @@ export async function issueRefereeCoupon(input: {
         isStackable: false,
         priority: 0,
         expiresAt: input.expiresAt,
+        // Unlike a referrer's tier coupon, there is no "claim" step in the
+        // referee's UX — the welcome reward must be usable the moment it's
+        // issued at signup, so it's inserted already claimed. Leaving this
+        // null (the tier-coupon default) makes `validateCoupon` reject it
+        // with "Claim this reward before using it," which the referee has
+        // no UI to act on.
+        claimedAt: /* @__PURE__ */ new Date(),
         isActive: true,
         isGlobal: false,
       })
