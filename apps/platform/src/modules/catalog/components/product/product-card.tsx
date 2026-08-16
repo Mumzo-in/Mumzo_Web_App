@@ -49,6 +49,12 @@ export default function ProductCard({
       (i.productColorId ?? null) ===
         (isSoleSize ? null : (soleVariant?.id ?? null)),
   );
+  // A multi-variant product can have several different variants in the cart
+  // at once (e.g. Small AND Large) — one stepper can't represent "the" qty
+  // for a single line, so it shows the total across every variant of this
+  // product, and +/- reopen the variant dialog to pick which one to adjust.
+  const variantLines = items.filter((i) => i.productId === product.id);
+  const variantCartQty = variantLines.reduce((sum, i) => sum + i.qty, 0);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -167,6 +173,47 @@ export default function ProductCard({
                   }}
                   data-testid={`web-qty-plus-${product.id}`}
                   aria-label="Increase quantity"
+                  className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+                >
+                  <Plus size={14} strokeWidth={3} />
+                </button>
+              </span>
+            ) : hasMultipleVariants && variantLines.length > 0 ? (
+              /* 2+ real variants, at least one already in cart — same
+               stepper look as the simple case, but +/- reopen the variant
+               dialog since there's no single line to bump directly. */
+              <span
+                role="none"
+                className="inline-flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setVariantDialogOpen(true);
+                  }}
+                  data-testid={`web-qty-minus-${product.id}`}
+                  aria-label="Change quantity"
+                  className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
+                >
+                  <Minus size={14} strokeWidth={3} />
+                </button>
+                <span
+                  data-testid={`web-qty-${product.id}`}
+                  className="min-w-5.5 text-center font-semibold text-[11px] md:text-xs"
+                >
+                  {variantCartQty}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setVariantDialogOpen(true);
+                  }}
+                  data-testid={`web-qty-plus-${product.id}`}
+                  aria-label="Change quantity"
                   className="cursor-pointer px-2.5 py-1.5 transition-colors hover:bg-primary/85 md:px-3"
                 >
                   <Plus size={14} strokeWidth={3} />

@@ -5,13 +5,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { sessionQueryOptions } from "@/modules/auth";
 import { listMyAssignedCoupons } from "@/modules/cart";
+import { fetchOrderSavings } from "@/modules/orders/api/orders-api";
 import {
-  CouponList,
+  AllCoupons,
   HowItWorks,
   InviteTracker,
   ReferralHero,
   ReferralOffers,
+  RewardsSummary,
   TierLadder,
+  totalEarnings,
 } from "@/modules/referrals";
 import {
   getMyReferralProgram,
@@ -41,24 +44,11 @@ function ReferralsPage() {
     queryFn: listMyAssignedCoupons,
     enabled: isAuthed,
   });
-  const referrerCouponIds = new Set(
-    (myQuery.data?.coupons ?? []).map((c) => c.id),
-  );
-  // `/coupons/me` returns every coupon assigned to the user, which includes
-  // tier coupons already shown above via `program.coupons` — exclude those
-  // so a referrer who's also referred doesn't see the same coupon twice.
-  const welcomeCoupons = (assignedQuery.data ?? [])
-    .filter((c) => !referrerCouponIds.has(c.id))
-    .map((c) => ({
-      id: c.id,
-      code: c.code,
-      discountAmount: c.discountAmount,
-      status: c.status,
-      expiresAt: c.expiresAt,
-    }));
-  const referralWelcomeCoupon = (assignedQuery.data ?? []).find(
-    (c) => c.referrerName,
-  );
+  const savingsQuery = useQuery({
+    queryKey: ["orders", "savings"],
+    queryFn: fetchOrderSavings,
+    enabled: isAuthed,
+  });
 
   const program = isAuthed
     ? myQuery.data
@@ -92,51 +82,48 @@ function ReferralsPage() {
         items={[{ label: "Home", to: "/" }, { label: "Refer & earn" }]}
       />
 
-      <ReferralHero
-        isAuthed={isAuthed}
-        program={program}
-        referrerName={session?.user.name?.split(" ")[0]}
-      />
+      {isAuthed && (
+        <section className="mt-6">
+          <RewardsSummary
+            orderSavings={savingsQuery.data?.totalSaved ?? 0}
+            referralEarnings={totalEarnings(program.coupons)}
+          />
+        </section>
+      )}
 
       <section className="mt-6">
+        <ReferralHero
+          isAuthed={isAuthed}
+          program={program}
+          referrerName={session?.user.name?.split(" ")[0]}
+        />
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <TierLadder
           locked={!isAuthed || !program.hasOrdered}
           lockedReason={isAuthed ? "no-first-order" : "signed-out"}
           program={program}
         />
+        <HowItWorks refereeReward={program.refereeReward} />
       </section>
 
-      <section className="mt-6">
-        <HowItWorks />
-      </section>
-
-      {isAuthed && welcomeCoupons.length > 0 && (
+      {isAuthed && program.hasOrdered && program.invites.length > 0 && (
         <section className="mt-6">
-          <CouponList
-            coupons={welcomeCoupons}
-            title={
-              referralWelcomeCoupon
-                ? `Referred by ${referralWelcomeCoupon.referrerName}`
-                : "Your welcome coupon"
-            }
-          />
+          <InviteTracker invites={program.invites} />
+        </section>
+      )}
+
+      {isAuthed && (assignedQuery.data?.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <AllCoupons coupons={assignedQuery.data ?? []} />
         </section>
       )}
 
       {isAuthed && program.hasOrdered && (
-        <>
-          <section className="mt-6">
-            <CouponList coupons={program.coupons} />
-          </section>
-
-          <section className="mt-6">
-            <ReferralOffers offers={program.offers} />
-          </section>
-
-          <section className="mt-8">
-            <InviteTracker invites={program.invites} />
-          </section>
-        </>
+        <section className="mt-6">
+          <ReferralOffers offers={program.offers} />
+        </section>
       )}
 
       {/* <section className="mt-8">
@@ -146,22 +133,25 @@ function ReferralsPage() {
   );
 }
 
-/** Mirrors the loaded layout's shape (hero + tier ladder, then coupons /
- * offers / invites for signed-in users) so the page doesn't jump on load. */
+/** Mirrors the loaded layout's shape (hero + tier ladder, then earnings /
+ * offers for signed-in users) so the page doesn't jump on load. */
 function ReferralsSkeleton({ isAuthed }: { isAuthed: boolean }) {
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      {isAuthed && (
+        <section className="mt-6">
+          <Skeleton className="h-56 rounded-3xl" />
+        </section>
+      )}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <Skeleton className="h-64 rounded-3xl" />
         <Skeleton className="h-64 rounded-3xl" />
       </div>
 
-      <section className="mt-6">
-        <Skeleton className="h-64 rounded-3xl" />
-      </section>
-
-      <section className="mt-6">
-        <Skeleton className="h-48 rounded-3xl" />
+      <section className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Skeleton className="h-96 rounded-3xl" />
+        <Skeleton className="h-96 rounded-3xl" />
       </section>
 
       {isAuthed && (
@@ -171,9 +161,6 @@ function ReferralsSkeleton({ isAuthed }: { isAuthed: boolean }) {
           </section>
           <section className="mt-6">
             <Skeleton className="h-40 rounded-3xl" />
-          </section>
-          <section className="mt-8">
-            <Skeleton className="h-48 rounded-3xl" />
           </section>
         </>
       )}

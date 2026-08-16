@@ -43,8 +43,17 @@ export default function ReferralHero({
       <div className="overflow-hidden rounded-3xl border border-border/60 bg-accent/40 p-8">
         <p className="kicker text-primary">Refer & earn</p>
         <h1 className="mt-3 font-editorial text-4xl text-ink leading-tight tracking-tight sm:text-5xl">
-          Invite friends, save money
+          Give ₹{program.refereeReward}. Get ₹{firstTierReward(program)}.
+          <br />
+          No fine print.
         </h1>
+        <p className="mt-3 max-w-md text-foreground/70 text-sm leading-relaxed">
+          Share Mumzo with another parent. When their first order lands, you
+          both get coupons instantly — not "after 90 days."
+        </p>
+        <p className="mt-2 font-accent text-lg text-primary">
+          Send it to a friend, or drop it in your parents' WhatsApp group.
+        </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <BenefitCard

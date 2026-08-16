@@ -71,6 +71,17 @@ export function placeOrder(input: PlaceOrderInput): Promise<OrderDetail> {
   return apiRequest<OrderDetail>("/orders", { method: "POST", body: input });
 }
 
+export interface OrderSavings {
+  totalSaved: number;
+  orderCount: number;
+}
+
+/** Lifetime total saved via coupons across every past (non-cancelled)
+ * order — feeds the rewards hub's "how much you've saved" summary. */
+export function fetchOrderSavings(): Promise<OrderSavings> {
+  return apiRequest<OrderSavings>("/orders/savings");
+}
+
 export function fetchOrders(
   params: { page?: number; limit?: number } = {},
 ): Promise<Paginated<OrderSummary>> {

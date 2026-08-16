@@ -4,11 +4,13 @@ import {
   cancelOrderRoute,
   getOrderRoute,
   listOrdersRoute,
+  orderSavingsRoute,
   placeOrderRoute,
 } from "./orders.routes";
 import {
   cancelOrder,
   getOrder,
+  getOrderSavings,
   listOrders,
   placeOrder,
 } from "./orders.service";
@@ -26,6 +28,12 @@ const orders = app
     if (!authUser) throw unauthorized();
     const data = await placeOrder(authUser.id, c.req.valid("json"));
     return c.json({ success: true as const, data }, 201);
+  })
+  .openapi(orderSavingsRoute, async (c) => {
+    const authUser = c.get("user");
+    if (!authUser) throw unauthorized();
+    const data = await getOrderSavings(authUser.id);
+    return c.json({ success: true as const, data }, 200);
   })
   .openapi(listOrdersRoute, async (c) => {
     const authUser = c.get("user");

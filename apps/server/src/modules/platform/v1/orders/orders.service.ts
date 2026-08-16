@@ -414,6 +414,21 @@ export async function placeOrder(
   };
 }
 
+export async function getOrderSavings(userId: string) {
+  const [row] = await db
+    .select({
+      totalSaved: sql<number>`coalesce(sum(${order.discount}), 0)::int`,
+      orderCount: sql<number>`count(*)::int`,
+    })
+    .from(order)
+    .where(and(eq(order.userId, userId), ne(order.status, "cancelled")));
+
+  return {
+    totalSaved: toWholeRupees(row?.totalSaved ?? 0),
+    orderCount: row?.orderCount ?? 0,
+  };
+}
+
 export async function listOrders(
   userId: string,
   filters: { page: number; limit: number },

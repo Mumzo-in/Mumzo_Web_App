@@ -22,6 +22,15 @@ export const cancelOrderSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
+export const orderSavingsSchema = z
+  .object({
+    /** Sum of `discount` across every non-cancelled order ever placed —
+     * whole rupees actually saved via coupons at checkout. */
+    totalSaved: z.number().int(),
+    orderCount: z.number().int(),
+  })
+  .openapi("OrderSavings");
+
 export const orderItemSchema = z
   .object({
     id: z.string(),

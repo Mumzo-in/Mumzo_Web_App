@@ -11,6 +11,7 @@ import {
   listOrdersQuerySchema,
   orderDetailSchema,
   orderIdParamSchema,
+  orderSavingsSchema,
   orderSummarySchema,
   placeOrderSchema,
 } from "./orders.schema";
@@ -27,6 +28,17 @@ export const placeOrderRoute = createRoute({
   },
   responses: {
     201: jsonContent(successSchema(orderDetailSchema), "Order placed"),
+    ...commonErrorResponses,
+  },
+});
+
+export const orderSavingsRoute = createRoute({
+  method: "get",
+  path: "/savings",
+  tags: [TAG],
+  summary: "Lifetime total saved via coupons across every past order",
+  responses: {
+    200: jsonContent(successSchema(orderSavingsSchema), "Savings"),
     ...commonErrorResponses,
   },
 });
