@@ -9,9 +9,13 @@ import {
   type ReferralProgram,
 } from "../data/referral-data";
 
-/** Total rupees earned across every used-or-active tier coupon — revoked/
- * expired coupons don't count toward what the referrer actually earned. */
-export function totalEarnings(coupons: ReferralCoupon[]): number {
+/** Total rupees earned across every used-or-active assigned coupon —
+ * revoked/expired coupons don't count toward what was actually earned.
+ * Works for both `ReferralProgram.coupons` (referrer tier rewards) and the
+ * unified `/coupons/me` list (which also includes referee welcome coupons). */
+export function totalEarnings(
+  coupons: { discountAmount: number; status: string }[],
+): number {
   return coupons
     .filter((c) => c.status === "active" || c.status === "used")
     .reduce((sum, c) => sum + c.discountAmount, 0);

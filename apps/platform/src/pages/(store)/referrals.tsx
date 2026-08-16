@@ -65,6 +65,16 @@ function ReferralsPage() {
         }
       : undefined;
 
+  const referrerCouponIds = new Set((program?.coupons ?? []).map((c) => c.id));
+  // `/coupons/me` returns every coupon assigned to the user, which includes
+  // the referrer's own tier coupons already counted via `program.coupons` —
+  // excluding those here isolates the referee's welcome coupon(s) so the
+  // two figures never double-count the same coupon.
+  const welcomeCouponAmount = (assignedQuery.data ?? [])
+    .filter((c) => !referrerCouponIds.has(c.id))
+    .filter((c) => c.status === "active" || c.status === "used")
+    .reduce((sum, c) => sum + c.discountAmount, 0);
+
   if (!program) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-10">
@@ -86,7 +96,8 @@ function ReferralsPage() {
         <section className="mt-6">
           <RewardsSummary
             orderSavings={savingsQuery.data?.totalSaved ?? 0}
-            referralEarnings={totalEarnings(program.coupons)}
+            referrerEarnings={totalEarnings(program.coupons)}
+            welcomeCouponAmount={welcomeCouponAmount}
           />
         </section>
       )}
