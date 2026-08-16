@@ -91,9 +91,7 @@ export function CouponsTable() {
         enableSorting: false,
         cell: ({ row }) => (
           <span className="numeric text-muted-foreground text-sm">
-            {row.original.expiresAt
-              ? formatDate(row.original.expiresAt)
-              : "Not claimed"}
+            {formatDate(row.original.expiresAt)}
           </span>
         ),
       },

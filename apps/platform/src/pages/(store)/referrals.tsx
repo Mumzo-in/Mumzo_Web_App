@@ -1,5 +1,5 @@
 import { Skeleton } from "@mumzo/ui/components/skeleton";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
@@ -14,7 +14,6 @@ import {
   TierLadder,
 } from "@/modules/referrals";
 import {
-  claimTierCoupon,
   getMyReferralProgram,
   getReferralProgram,
 } from "@/modules/referrals/api/referrals-api";
@@ -24,7 +23,6 @@ export const Route = createFileRoute("/(store)/referrals")({
 });
 
 function ReferralsPage() {
-  const queryClient = useQueryClient();
   const { data: session } = useQuery(sessionQueryOptions);
   const isAuthed = Boolean(session);
 
@@ -128,15 +126,7 @@ function ReferralsPage() {
       {isAuthed && program.hasOrdered && (
         <>
           <section className="mt-6">
-            <CouponList
-              coupons={program.coupons}
-              onClaim={async (couponId) => {
-                await claimTierCoupon(couponId);
-                await queryClient.invalidateQueries({
-                  queryKey: ["referrals", "me"],
-                });
-              }}
-            />
+            <CouponList coupons={program.coupons} />
           </section>
 
           <section className="mt-6">

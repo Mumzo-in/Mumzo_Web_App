@@ -176,10 +176,9 @@ export const RulesForm = forwardRef<
             </form.Field>
           </div>
           <p className="-mt-2 text-muted-foreground text-xs">
-            When on, a referrer's coupon becomes claimable as soon as the
-            friend's order is delivered instead of waiting for the return
-            window. They still have to claim it — the validity window starts at
-            claim, not at delivery.
+            When on, a referrer's coupon is issued — and immediately usable — as
+            soon as the friend's order is delivered, instead of waiting for the
+            return window to pass.
           </p>
 
           <DialogFooter>

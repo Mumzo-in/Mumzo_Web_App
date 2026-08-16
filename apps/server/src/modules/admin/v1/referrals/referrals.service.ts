@@ -258,13 +258,11 @@ export async function listCoupons(filters: {
   const data = rows.map((row) => {
     const status = !row.isActive
       ? ("revoked" as const)
-      : row.claimedAt === null
-        ? ("claimable" as const)
-        : row.expiresAt < now
-          ? ("expired" as const)
-          : row.usedCount >= (row.maxUses ?? 1)
-            ? ("used" as const)
-            : ("active" as const);
+      : row.expiresAt < now
+        ? ("expired" as const)
+        : row.usedCount >= (row.maxUses ?? 1)
+          ? ("used" as const)
+          : ("active" as const);
 
     return {
       id: row.id,
@@ -273,7 +271,7 @@ export async function listCoupons(filters: {
       amount: toWholeRupees(row.value),
       status,
       issuedAt: row.createdAt.toISOString(),
-      expiresAt: row.claimedAt === null ? null : row.expiresAt.toISOString(),
+      expiresAt: row.expiresAt.toISOString(),
       usedInOrderId: row.usedInOrderId,
     };
   });

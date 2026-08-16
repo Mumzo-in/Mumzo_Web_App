@@ -268,11 +268,10 @@ export async function settleReferral(referralId: string) {
     referrerUserId: row.referrerUserId,
     code: couponCode,
     amountPaise: justUnlocked.couponAmount,
+    // Usable immediately — no separate claim step. `settleOnDelivery` only
+    // decides *when* settlement (this function) runs, not whether the
+    // reward needs claiming afterward.
     expiresAt: addDays(completedAt, rules.couponValidityDays),
-    // `settleOnDelivery` trades the return-window wait for a claim step —
-    // the reward exists immediately but doesn't start its validity clock
-    // until the referrer actually claims it.
-    claimed: !rules.settleOnDelivery,
   });
 
   await repo.updateReferral(row.id, { couponId });
@@ -318,32 +317,12 @@ export async function getMyReferrals(userId: string, userName: string) {
       discountAmount: toWholeRupees(c.value),
       status: !c.isActive
         ? ("revoked" as const)
-        : c.claimedAt === null
-          ? ("claimable" as const)
-          : c.expiresAt < now
-            ? ("expired" as const)
-            : c.usedCount >= (c.maxUses ?? 1)
-              ? ("used" as const)
-              : ("active" as const),
-      expiresAt: c.claimedAt === null ? null : c.expiresAt.toISOString(),
+        : c.expiresAt < now
+          ? ("expired" as const)
+          : c.usedCount >= (c.maxUses ?? 1)
+            ? ("used" as const)
+            : ("active" as const),
+      expiresAt: c.expiresAt.toISOString(),
     })),
   };
-}
-
-/** Claims a previously-issued, unclaimed tier coupon — starts its 90-day
- * (admin-configurable) validity window now. Throws if the coupon doesn't
- * exist, isn't the caller's, or was already claimed. */
-export async function claimCoupon(userId: string, couponId: string) {
-  const rules = await repo.getRules();
-  const result = await repo.claimCoupon({
-    couponId,
-    userId,
-    validityDays: rules.couponValidityDays,
-  });
-
-  if (!result) {
-    throw badRequest("This coupon isn't waiting to be claimed.");
-  }
-
-  return { expiresAt: result.expiresAt.toISOString() };
 }

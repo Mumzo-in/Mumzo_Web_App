@@ -102,14 +102,10 @@ export type ReferralInvite = {
   updatedAt: string;
 };
 
-export type ReferralCouponStatus =
-  | "active"
-  | "used"
-  | "expired"
-  | "revoked"
-  | "claimable";
+export type ReferralCouponStatus = "active" | "used" | "expired" | "revoked";
 
-/** A coupon issued to a referrer for reaching a tier milestone. */
+/** A coupon issued to a referrer for reaching a tier milestone. Usable
+ * immediately upon issuance — there is no separate claim step. */
 export type ReferralCoupon = {
   id: string;
   code: string;
@@ -117,9 +113,7 @@ export type ReferralCoupon = {
   amount: number;
   status: ReferralCouponStatus;
   issuedAt: string;
-  /** Null while `status === "claimable"` — the validity window hasn't
-   * started yet. */
-  expiresAt: string | null;
+  expiresAt: string;
   usedInOrderId: string | null;
 };
 
@@ -148,7 +142,6 @@ export const COUPON_STATUS_META: Record<
     label: "Revoked",
     tint: "bg-destructive/10 text-destructive",
   },
-  claimable: { label: "Claimable", tint: "bg-accent/50 text-ink" },
 };
 
 /** The next tier still to reach for a given successful-referral count. */

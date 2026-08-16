@@ -1,0 +1,1 @@
+ALTER TABLE "coupon" DROP COLUMN "claimed_at";

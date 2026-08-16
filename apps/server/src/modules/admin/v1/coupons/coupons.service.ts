@@ -337,13 +337,6 @@ export async function validateCoupon(input: ValidateCouponInput) {
     );
   }
 
-  if (row.claimedAt === null) {
-    throw badRequest(
-      "Claim this reward before using it.",
-      ERROR_CODES.COUPON_NOT_CLAIMED,
-    );
-  }
-
   const now = new Date();
 
   if (row.startsAt && row.startsAt > now) {

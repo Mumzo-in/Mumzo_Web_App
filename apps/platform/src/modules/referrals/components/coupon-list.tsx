@@ -6,7 +6,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@mumzo/ui/components/empty";
-import { Check, Copy, Gift, Ticket } from "lucide-react";
+import { Check, Copy, Ticket } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -17,17 +17,13 @@ import {
 } from "../data/referral-data";
 
 /** The user's earned referral coupons — one per tier milestone reached.
- * `onClaim` is only relevant for tier coupons that can be issued unclaimed
- * (admin's "claim on delivery" setting) — omit it for coupon lists that
- * never contain a `claimable` entry. */
+ * Usable immediately upon issuance; there is no separate claim step. */
 export default function CouponList({
   coupons,
   title = "Your coupons",
-  onClaim,
 }: {
   coupons: ReferralCoupon[];
   title?: string;
-  onClaim?: (couponId: string) => Promise<void>;
 }) {
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6">
@@ -50,7 +46,7 @@ export default function CouponList({
       ) : (
         <div className="mt-4 flex flex-col gap-3">
           {coupons.map((coupon) => (
-            <CouponRow coupon={coupon} key={coupon.id} onClaim={onClaim} />
+            <CouponRow coupon={coupon} key={coupon.id} />
           ))}
         </div>
       )}
@@ -58,15 +54,8 @@ export default function CouponList({
   );
 }
 
-function CouponRow({
-  coupon,
-  onClaim,
-}: {
-  coupon: ReferralCoupon;
-  onClaim?: (couponId: string) => Promise<void>;
-}) {
+function CouponRow({ coupon }: { coupon: ReferralCoupon }) {
   const [copied, setCopied] = useState(false);
-  const [claiming, setClaiming] = useState(false);
   const meta = COUPON_STATUS_META[coupon.status];
 
   const copy = async () => {
@@ -78,21 +67,6 @@ function CouponRow({
     setCopied(true);
     toast.success(`Copied ${coupon.code}`);
     setTimeout(() => setCopied(false), 1500);
-  };
-
-  const claim = async () => {
-    if (!onClaim) return;
-    setClaiming(true);
-    try {
-      await onClaim(coupon.id);
-      toast.success("Coupon claimed — check its expiry above.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't claim this coupon.",
-      );
-    } finally {
-      setClaiming(false);
-    }
   };
 
   return (
@@ -113,13 +87,9 @@ function CouponRow({
             <Badge variant={meta.variant}>{meta.label}</Badge>
           </div>
           <p className="mt-0.5 text-foreground/55 text-xs">
-            {coupon.status === "claimable"
-              ? "Claim it to start its validity window."
-              : coupon.status === "used" && coupon.usedAt
-                ? `Used on ${formatCouponDate(coupon.usedAt)}`
-                : coupon.expiresAt
-                  ? `Expires ${formatCouponDate(coupon.expiresAt)}`
-                  : null}
+            {coupon.status === "used" && coupon.usedAt
+              ? `Used on ${formatCouponDate(coupon.usedAt)}`
+              : `Expires ${formatCouponDate(coupon.expiresAt)}`}
           </p>
         </div>
       </div>
@@ -133,19 +103,6 @@ function CouponRow({
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
           {copied ? "Copied" : "Copy"}
-        </button>
-      )}
-
-      {coupon.status === "claimable" && onClaim && (
-        <button
-          type="button"
-          onClick={claim}
-          disabled={claiming}
-          data-testid={`referral-coupon-claim-${coupon.id}`}
-          className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-        >
-          <Gift size={14} />
-          {claiming ? "Claiming…" : "Claim"}
         </button>
       )}
     </div>

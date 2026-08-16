@@ -46,10 +46,8 @@ export type ReferralCoupon = {
   /** e.g. "REF150-8X92K" */
   code: string;
   discountAmount: number;
-  status: "active" | "used" | "expired" | "revoked" | "claimable";
-  /** ISO date — null while `status === "claimable"`, the validity window
-   * hasn't started yet. */
-  expiresAt: string | null;
+  status: "active" | "used" | "expired" | "revoked";
+  expiresAt: string;
   usedAt?: string;
 };
 
@@ -116,7 +114,6 @@ export const COUPON_STATUS_META: Record<
   used: { label: "Used", variant: "secondary" },
   expired: { label: "Expired", variant: "outline" },
   revoked: { label: "Revoked", variant: "destructive" },
-  claimable: { label: "Ready to claim", variant: "default" },
 };
 
 /** FAQ entries for the referrals page accordion. */

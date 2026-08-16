@@ -63,13 +63,7 @@ export const referralInviteSchema = z
   })
   .openapi("ReferralInvite");
 
-const couponStatusSchema = z.enum([
-  "active",
-  "used",
-  "expired",
-  "revoked",
-  "claimable",
-]);
+const couponStatusSchema = z.enum(["active", "used", "expired", "revoked"]);
 
 export const referralCouponSchema = z
   .object({
@@ -77,9 +71,7 @@ export const referralCouponSchema = z
     code: z.string(),
     discountAmount: z.number(),
     status: couponStatusSchema,
-    /** Null while the coupon is still `claimable` — the validity window
-     * hasn't started yet. */
-    expiresAt: z.string().nullable(),
+    expiresAt: z.string(),
   })
   .openapi("ReferralCoupon");
 
@@ -94,9 +86,3 @@ export const myReferralsSchema = z
     coupons: z.array(referralCouponSchema),
   })
   .openapi("MyReferrals");
-
-export const claimCouponResultSchema = z
-  .object({
-    expiresAt: z.string(),
-  })
-  .openapi("ClaimCouponResult");

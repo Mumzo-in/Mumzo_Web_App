@@ -52,7 +52,7 @@ type ServerCoupon = {
   code: string;
   discountAmount: number;
   status: ReferralCoupon["status"];
-  expiresAt: string | null;
+  expiresAt: string;
 };
 
 type ServerMyReferrals = {
@@ -121,14 +121,4 @@ export function trackReferralClick(
     method: "POST",
     body: { code },
   });
-}
-
-/** Claims a tier coupon issued at delivery — starts its validity window. */
-export function claimTierCoupon(
-  couponId: string,
-): Promise<{ expiresAt: string }> {
-  return apiRequest<{ expiresAt: string }>(
-    `/referrals/coupons/${encodeURIComponent(couponId)}/claim`,
-    { method: "POST" },
-  );
 }

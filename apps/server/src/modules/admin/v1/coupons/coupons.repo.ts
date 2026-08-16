@@ -91,7 +91,6 @@ const couponRowSelection = {
   startsAt: coupon.startsAt,
   isActive: coupon.isActive,
   isGlobal: coupon.isGlobal,
-  claimedAt: coupon.claimedAt,
   createdAt: coupon.createdAt,
   updatedAt: coupon.updatedAt,
 };

@@ -19,10 +19,9 @@ export const referralRulesSchema = z
     refereeReward: z.number(),
     selfReferralBlock: z.boolean(),
     codePattern: z.string(),
-    /** When true, a referrer's tier coupon becomes claimable as soon as the
-     * friend's order is delivered, instead of waiting for the return
-     * window. The referrer must still claim it to start its validity
-     * clock (`couponValidityDays` from claim, not from issuance). */
+    /** When true, a referrer's tier coupon is issued (and immediately
+     * usable) as soon as the friend's order is delivered, instead of
+     * waiting for the return window to pass. */
     settleOnDelivery: z.boolean(),
   })
   .openapi("ReferralRules");
@@ -136,13 +135,7 @@ export const listCouponsQuerySchema = z.object({
   status: z.enum(["active", "used", "expired", "revoked"]).optional(),
 });
 
-const couponStatusSchema = z.enum([
-  "active",
-  "used",
-  "expired",
-  "revoked",
-  "claimable",
-]);
+const couponStatusSchema = z.enum(["active", "used", "expired", "revoked"]);
 
 export const referralCouponSchema = z
   .object({
@@ -152,7 +145,7 @@ export const referralCouponSchema = z
     amount: z.number(),
     status: couponStatusSchema,
     issuedAt: z.string(),
-    expiresAt: z.string().nullable(),
+    expiresAt: z.string(),
     usedInOrderId: z.string().nullable(),
   })
   .openapi("AdminReferralCoupon");

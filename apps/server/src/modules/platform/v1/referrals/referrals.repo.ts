@@ -272,7 +272,6 @@ export async function listCouponsForReferrer(referrerUserId: string) {
       value: coupon.value,
       isActive: coupon.isActive,
       expiresAt: coupon.expiresAt,
-      claimedAt: coupon.claimedAt,
       usedCount: coupon.usedCount,
       maxUses: coupon.maxUses,
       createdAt: coupon.createdAt,
@@ -297,29 +296,16 @@ export async function countUserOrders(userId: string) {
 /**
  * Issues one coupon for a tier milestone: inserts into the shared `coupon`
  * table and assigns it to the referrer. Single-use (`maxUses: 1`),
- * non-stackable, no minimum order.
+ * non-stackable, no minimum order. Usable immediately — there is no
+ * separate claim step; the validity window starts at issuance.
  */
-/** Far enough out that an unclaimed coupon can never accidentally expire —
- * `expiresAt` is meaningless until `claimCoupon` recomputes it from the
- * claim moment, but the column is `notNull()` so a placeholder is needed. */
-function unclaimedPlaceholderExpiry(): Date {
-  const far = new Date();
-  far.setFullYear(far.getFullYear() + 10);
-  return far;
-}
-
 export async function issueTierCoupon(input: {
   referrerUserId: string;
   code: string;
   amountPaise: number;
   expiresAt: Date;
-  /** False = issued but not yet claimed (see `coupon.claimedAt`) — the
-   * referrer must claim it before it's usable, and `expiresAt` is ignored
-   * in favor of a placeholder until they do. */
-  claimed: boolean;
 }) {
   return db.transaction(async (tx) => {
-    const now = new Date();
     const [row] = await tx
       .insert(coupon)
       .values({
@@ -336,10 +322,7 @@ export async function issueTierCoupon(input: {
         maxUsesPerUser: 1,
         isStackable: false,
         priority: 0,
-        expiresAt: input.claimed
-          ? input.expiresAt
-          : unclaimedPlaceholderExpiry(),
-        claimedAt: input.claimed ? now : null,
+        expiresAt: input.expiresAt,
         isActive: true,
         isGlobal: false,
       })
@@ -354,48 +337,6 @@ export async function issueTierCoupon(input: {
       .values({ couponId: row.id, userId: input.referrerUserId });
 
     return row.id;
-  });
-}
-
-/** Claims a previously-issued, unclaimed tier coupon — starts its validity
- * window now. No-op-safe: returns false if the coupon doesn't exist, isn't
- * assigned to this user, or was already claimed, so the caller can tell a
- * genuine claim from a repeat/invalid attempt. */
-export async function claimCoupon(input: {
-  couponId: string;
-  userId: string;
-  validityDays: number;
-}) {
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .select({
-        id: coupon.id,
-        claimedAt: coupon.claimedAt,
-      })
-      .from(coupon)
-      .innerJoin(couponAssignment, eq(couponAssignment.couponId, coupon.id))
-      .where(
-        and(
-          eq(coupon.id, input.couponId),
-          eq(couponAssignment.userId, input.userId),
-        ),
-      )
-      .limit(1);
-
-    if (!row || row.claimedAt !== null) {
-      return null;
-    }
-
-    const now = new Date();
-    const expiresAt = new Date(now);
-    expiresAt.setDate(expiresAt.getDate() + input.validityDays);
-
-    await tx
-      .update(coupon)
-      .set({ claimedAt: now, expiresAt })
-      .where(eq(coupon.id, input.couponId));
-
-    return { expiresAt };
   });
 }
 
@@ -435,13 +376,6 @@ export async function issueRefereeCoupon(input: {
         isStackable: false,
         priority: 0,
         expiresAt: input.expiresAt,
-        // Unlike a referrer's tier coupon, there is no "claim" step in the
-        // referee's UX — the welcome reward must be usable the moment it's
-        // issued at signup, so it's inserted already claimed. Leaving this
-        // null (the tier-coupon default) makes `validateCoupon` reject it
-        // with "Claim this reward before using it," which the referee has
-        // no UI to act on.
-        claimedAt: /* @__PURE__ */ new Date(),
         isActive: true,
         isGlobal: false,
       })

@@ -20,7 +20,7 @@ export function buildInviteMessage(
     : "You've been invited to Mumzo";
 
   return [
-    `${opener} 👶💛`,
+    `${opener} \u{1F476}\u{1F49B}`,
     "",
     "Mumzo delivers baby & mom essentials in 10 minutes — the stuff you need, right when you need it.",
     "",

@@ -1,18 +1,12 @@
 import { createRouter, optionalAuth, requireAuth } from "@/core";
 import { unauthorized } from "@/core/errors";
 import {
-  claimCouponRoute,
   getMyReferralsRoute,
   getProgramRoute,
   trackClickRoute,
   validateCodeRoute,
 } from "./referrals.routes";
-import {
-  claimCoupon,
-  getMyReferrals,
-  getProgram,
-  validateCode,
-} from "./referrals.service";
+import { getMyReferrals, getProgram, validateCode } from "./referrals.service";
 
 /**
  * Referral programme — public program info + click tracking, and the
@@ -56,17 +50,6 @@ app.openapi(getMyReferralsRoute, async (c) => {
   }
 
   const data = await getMyReferrals(authUser.id, authUser.name);
-  return c.json({ success: true as const, data }, 200);
-});
-
-app.openapi(claimCouponRoute, async (c) => {
-  const authUser = c.get("user");
-  if (!authUser) {
-    throw unauthorized();
-  }
-
-  const { id } = c.req.valid("param");
-  const data = await claimCoupon(authUser.id, id);
   return c.json({ success: true as const, data }, 200);
 });
 

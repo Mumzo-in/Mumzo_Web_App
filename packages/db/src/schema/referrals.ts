@@ -44,11 +44,10 @@ export const referralRules = pgTable("referral_rules", {
   /** Documents how `userReferralCode.code` is generated — display-only, the
    * generator itself is code, not driven by this string. */
   codePattern: text("code_pattern").notNull(),
-  /** When true, a referral settles (tier count increments, coupon issued)
-   * as soon as the referred order is delivered instead of waiting for the
-   * return window to pass — trades the return-window fraud protection for
-   * a faster reward. Coupons issued this way still require the referrer to
-   * claim them before the validity clock starts (see `coupon.claimedAt`). */
+  /** When true, a referral settles (tier count increments, coupon issued
+   * and immediately usable) as soon as the referred order is delivered,
+   * instead of waiting for the return window to pass — trades the
+   * return-window fraud protection for a faster reward. */
   settleOnDelivery: boolean("settle_on_delivery").default(false).notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

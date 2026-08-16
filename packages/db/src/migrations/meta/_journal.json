@@ -71,6 +71,13 @@
       "when": 1786720345883,
       "tag": "0009_safe_jasper_sitwell",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786858752812,
+      "tag": "0010_right_storm",
+      "breakpoints": true
     }
   ]
 }
