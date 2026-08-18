@@ -113,6 +113,8 @@ export type ReferralTierInput = {
   name: string;
   threshold: number;
   couponAmount: number;
+  minOrderAmount: number;
+  splitCount: number;
   isActive: boolean;
   sortOrder: number;
 };

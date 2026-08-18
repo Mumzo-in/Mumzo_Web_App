@@ -208,6 +208,8 @@ export function TierRulesManager() {
                     <TableHead>Tier</TableHead>
                     <TableHead>Referrals</TableHead>
                     <TableHead>Coupon</TableHead>
+                    <TableHead>Split</TableHead>
+                    <TableHead>Min. order</TableHead>
                     <TableHead>Members</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead />
@@ -222,6 +224,14 @@ export function TierRulesManager() {
                       </TableCell>
                       <TableCell className="numeric">
                         ₹{tier.couponAmount}
+                      </TableCell>
+                      <TableCell className="numeric">
+                        {tier.splitCount > 1
+                          ? `${tier.splitCount}× ₹${Math.round(tier.couponAmount / tier.splitCount)}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="numeric">
+                        ₹{tier.minOrderAmount}
                       </TableCell>
                       <TableCell className="numeric">
                         {formatNumber(tier.membersInTier)}

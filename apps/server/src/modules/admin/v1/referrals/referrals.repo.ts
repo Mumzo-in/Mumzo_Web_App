@@ -37,6 +37,8 @@ export async function insertTier(values: {
   name: string;
   threshold: number;
   couponAmount: number;
+  minOrderAmount: number;
+  splitCount: number;
   isActive: boolean;
   sortOrder: number;
 }) {
@@ -53,6 +55,8 @@ export async function updateTier(
     name: string;
     threshold: number;
     couponAmount: number;
+    minOrderAmount: number;
+    splitCount: number;
     isActive: boolean;
     sortOrder: number;
   }>,

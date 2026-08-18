@@ -23,6 +23,7 @@ const FALLBACK_RULES = {
   couponValidityDays: 90,
   monthlyCapPerUser: 5,
   refereeRewardRupees: 150,
+  refereeMinOrderRupees: 499,
   selfReferralBlock: true,
   codePattern: "{NAME}{RANDOM3}",
 };
@@ -67,6 +68,7 @@ export async function updateRules(
     couponValidityDays: number;
     monthlyCapPerUser: number;
     refereeRewardRupees: number;
+    refereeMinOrderRupees: number;
     selfReferralBlock: boolean;
     codePattern: string;
     settleOnDelivery: boolean;
@@ -303,6 +305,7 @@ export async function issueTierCoupon(input: {
   referrerUserId: string;
   code: string;
   amountPaise: number;
+  minAmtPaise: number;
   expiresAt: Date;
 }) {
   return db.transaction(async (tx) => {
@@ -314,7 +317,7 @@ export async function issueTierCoupon(input: {
         type: "flat",
         value: input.amountPaise,
         cap: null,
-        minAmt: 0,
+        minAmt: input.minAmtPaise,
         productScope: "all",
         visibility: "assigned",
         firstOrderOnly: false,
@@ -356,6 +359,7 @@ export async function issueRefereeCoupon(input: {
   refereeUserId: string;
   code: string;
   amountPaise: number;
+  minAmtPaise: number;
   expiresAt: Date;
 }) {
   return db.transaction(async (tx) => {
@@ -367,7 +371,7 @@ export async function issueRefereeCoupon(input: {
         type: "flat",
         value: input.amountPaise,
         cap: null,
-        minAmt: 0,
+        minAmt: input.minAmtPaise,
         productScope: "all",
         visibility: "assigned",
         firstOrderOnly: true,

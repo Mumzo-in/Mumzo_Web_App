@@ -6,6 +6,8 @@ export const referralTierSchema = z
     name: z.string(),
     threshold: z.number(),
     couponAmount: z.number(),
+    minOrderAmount: z.number(),
+    splitCount: z.number(),
     membersInTier: z.number(),
     isActive: z.boolean(),
   })
@@ -17,6 +19,7 @@ export const referralRulesSchema = z
     couponValidityDays: z.number(),
     monthlyCapPerUser: z.number(),
     refereeReward: z.number(),
+    refereeMinOrder: z.number(),
     selfReferralBlock: z.boolean(),
     codePattern: z.string(),
     /** When true, a referrer's tier coupon is issued (and immediately
@@ -64,6 +67,7 @@ export const updateRulesSchema = z.object({
   couponValidityDays: z.number().int().min(1).optional(),
   monthlyCapPerUser: z.number().int().min(0).optional(),
   refereeReward: z.number().int().min(0).optional(),
+  refereeMinOrder: z.number().int().min(0).optional(),
   selfReferralBlock: z.boolean().optional(),
   codePattern: z.string().trim().min(1).max(60).optional(),
   settleOnDelivery: z.boolean().optional(),
@@ -73,6 +77,12 @@ export const createTierSchema = z.object({
   name: z.string().min(1).max(120),
   threshold: z.number().int().positive(),
   couponAmount: z.number().int().positive(),
+  /** Minimum order value (whole rupees) required to redeem this tier's
+   * coupon(s). Defaults to the product-wide standard of ₹499. */
+  minOrderAmount: z.number().int().min(0).default(499),
+  /** How many separate coupons to split this tier's reward into — e.g.
+   * couponAmount 300 with splitCount 2 issues two ₹150 coupons. */
+  splitCount: z.number().int().positive().default(1),
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
 });

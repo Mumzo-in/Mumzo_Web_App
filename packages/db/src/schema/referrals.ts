@@ -39,6 +39,12 @@ export const referralRules = pgTable("referral_rules", {
   monthlyCapPerUser: integer("monthly_cap_per_user").notNull(),
   /** Rupees off the referee's first order when they sign up with a code. */
   refereeRewardRupees: integer("referee_reward_rupees").notNull(),
+  /** Minimum order value (rupees) required to redeem the referee's welcome
+   * coupon. Tier (referrer) coupons have their own per-tier minimum instead
+   * — see `referralTier.minOrderAmount`. */
+  refereeMinOrderRupees: integer("referee_min_order_rupees")
+    .default(499)
+    .notNull(),
   /** Block referrer/referee sharing phone, email, or device fingerprint. */
   selfReferralBlock: boolean("self_referral_block").notNull(),
   /** Documents how `userReferralCode.code` is generated — display-only, the
@@ -63,8 +69,15 @@ export const referralTier = pgTable(
     name: text("name").notNull(), // "First invite"
     /** Successful referrals required to unlock this tier. Unique — one tier per threshold. */
     threshold: integer("threshold").notNull().unique(),
-    /** Coupon face value in paise. */
+    /** Coupon face value in paise. When `splitCount` > 1, this is the total
+     * value split evenly across that many coupons, not each coupon's value. */
     couponAmount: integer("coupon_amount").notNull(),
+    /** Minimum order value (paise) required to redeem this tier's coupon(s). */
+    minOrderAmount: integer("min_order_amount").default(49900).notNull(),
+    /** Number of separate coupons to issue for this tier's reward — e.g. a
+     * ₹300 tier with splitCount 2 issues two ₹150 coupons instead of one
+     * ₹300 coupon. 1 = no split (default, current behaviour). */
+    splitCount: integer("split_count").default(1).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),

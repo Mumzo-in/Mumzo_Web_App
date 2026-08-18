@@ -21,6 +21,7 @@ const schema = z.object({
   couponValidityDays: z.number().int().min(1),
   monthlyCapPerUser: z.number().int().min(0),
   refereeReward: z.number().int().min(0),
+  refereeMinOrder: z.number().int().min(0),
   codePattern: z.string().trim().min(1).max(60),
   selfReferralBlock: z.boolean(),
   settleOnDelivery: z.boolean(),
@@ -131,6 +132,16 @@ export const RulesForm = forwardRef<
                   field={field}
                   label="Friend's first-order reward (₹)"
                   testId="referral-referee-reward"
+                />
+              )}
+            </form.Field>
+            <form.Field name="refereeMinOrder">
+              {(field) => (
+                <NumberField
+                  description="Minimum order value required to redeem the friend's welcome coupon."
+                  field={field}
+                  label="Friend's min. order value (₹)"
+                  testId="referral-referee-min-order"
                 />
               )}
             </form.Field>

@@ -20,6 +20,8 @@ const schema = z.object({
   name: z.string().min(1, "Name is required.").max(120),
   threshold: z.number().int().positive("Must be at least 1."),
   couponAmount: z.number().int().positive("Must be more than zero."),
+  minOrderAmount: z.number().int().min(0, "Can't be negative."),
+  splitCount: z.number().int().positive("Must be at least 1."),
   isActive: z.boolean(),
   sortOrder: z.number().int(),
 });
@@ -31,6 +33,8 @@ function emptyValues(nextSortOrder: number): FormValues {
     name: "",
     threshold: 1,
     couponAmount: 0,
+    minOrderAmount: 499,
+    splitCount: 1,
     isActive: true,
     sortOrder: nextSortOrder,
   };
@@ -41,6 +45,8 @@ function valuesFrom(tier: ReferralTier): FormValues {
     name: tier.name,
     threshold: tier.threshold,
     couponAmount: tier.couponAmount,
+    minOrderAmount: tier.minOrderAmount,
+    splitCount: tier.splitCount,
     isActive: tier.isActive,
     sortOrder: 0,
   };
@@ -141,10 +147,32 @@ export const TierForm = forwardRef<
           <form.Field name="couponAmount">
             {(field) => (
               <NumberField
-                description="Coupon face value in whole rupees."
+                description="Total reward value in whole rupees — split across splitCount coupons below."
                 field={field}
                 label="Coupon amount (₹)"
                 testId="admin-tier-amount"
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="splitCount">
+            {(field) => (
+              <NumberField
+                description="How many separate coupons to issue for this reward — e.g. 2 splits ₹300 into two ₹150 coupons."
+                field={field}
+                label="Split into coupons"
+                testId="admin-tier-split-count"
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="minOrderAmount">
+            {(field) => (
+              <NumberField
+                description="Minimum order value required to redeem this tier's coupon(s)."
+                field={field}
+                label="Min. order value (₹)"
+                testId="admin-tier-min-order"
               />
             )}
           </form.Field>

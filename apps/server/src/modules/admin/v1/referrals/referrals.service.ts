@@ -11,6 +11,7 @@ function serializeRules(
     couponValidityDays: row.couponValidityDays,
     monthlyCapPerUser: row.monthlyCapPerUser,
     refereeReward: row.refereeRewardRupees,
+    refereeMinOrder: row.refereeMinOrderRupees,
     selfReferralBlock: row.selfReferralBlock,
     codePattern: row.codePattern,
     settleOnDelivery: row.settleOnDelivery,
@@ -29,6 +30,8 @@ function serializeTier(
     name: row.name,
     threshold: row.threshold,
     couponAmount: toWholeRupees(row.couponAmount),
+    minOrderAmount: toWholeRupees(row.minOrderAmount),
+    splitCount: row.splitCount,
     membersInTier,
     isActive: row.isActive,
   };
@@ -60,6 +63,7 @@ export async function updateRules(input: {
   couponValidityDays?: number;
   monthlyCapPerUser?: number;
   refereeReward?: number;
+  refereeMinOrder?: number;
   selfReferralBlock?: boolean;
   codePattern?: string;
   settleOnDelivery?: boolean;
@@ -69,6 +73,7 @@ export async function updateRules(input: {
     couponValidityDays: input.couponValidityDays,
     monthlyCapPerUser: input.monthlyCapPerUser,
     refereeRewardRupees: input.refereeReward,
+    refereeMinOrderRupees: input.refereeMinOrder,
     selfReferralBlock: input.selfReferralBlock,
     codePattern: input.codePattern,
     settleOnDelivery: input.settleOnDelivery,
@@ -122,6 +127,8 @@ export async function createTier(input: {
   name: string;
   threshold: number;
   couponAmount: number;
+  minOrderAmount: number;
+  splitCount: number;
   isActive: boolean;
   sortOrder: number;
 }) {
@@ -133,6 +140,7 @@ export async function createTier(input: {
   return repo.insertTier({
     ...input,
     couponAmount: toPaise(input.couponAmount),
+    minOrderAmount: toPaise(input.minOrderAmount),
   });
 }
 
@@ -142,6 +150,8 @@ export async function updateTier(
     name: string;
     threshold: number;
     couponAmount: number;
+    minOrderAmount: number;
+    splitCount: number;
     isActive: boolean;
     sortOrder: number;
   }>,
@@ -163,6 +173,10 @@ export async function updateTier(
     couponAmount:
       input.couponAmount !== undefined
         ? toPaise(input.couponAmount)
+        : undefined,
+    minOrderAmount:
+      input.minOrderAmount !== undefined
+        ? toPaise(input.minOrderAmount)
         : undefined,
   });
 }

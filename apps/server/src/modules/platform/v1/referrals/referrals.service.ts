@@ -61,7 +61,10 @@ export async function getProgram() {
       id: tier.id,
       name: tier.name,
       threshold: tier.threshold,
-      couponAmount: toWholeRupees(tier.couponAmount),
+      // Per-coupon face value shown to the storefront — when a tier splits
+      // its reward across multiple coupons, this is what each one is worth,
+      // not the tier's total.
+      couponAmount: toWholeRupees(tier.couponAmount / tier.splitCount),
     })),
     refereeReward: rules.refereeRewardRupees,
   };
@@ -125,6 +128,7 @@ export async function applyCodeOnSignup(refereeUserId: string, code: string) {
     refereeUserId,
     code: welcomeCouponCode,
     amountPaise: toPaise(rules.refereeRewardRupees),
+    minAmtPaise: toPaise(rules.refereeMinOrderRupees),
     expiresAt: addDays(now, rules.couponValidityDays),
   });
 
@@ -264,25 +268,41 @@ export async function settleReferral(referralId: string) {
   }
 
   const referrerName = await repo.findUserName(row.referrerUserId);
-  const couponCode = `REF${toWholeRupees(currentTier.couponAmount)}-${randomUUID()
-    .slice(0, 5)
-    .toUpperCase()}`;
 
-  const couponId = await repo.issueTierCoupon({
-    referrerUserId: row.referrerUserId,
-    code: couponCode,
-    amountPaise: currentTier.couponAmount,
-    // Usable immediately — no separate claim step. `settleOnDelivery` only
-    // decides *when* settlement (this function) runs, not whether the
-    // reward needs claiming afterward.
-    expiresAt: addDays(completedAt, rules.couponValidityDays),
-  });
+  // A tier's reward may be split into several smaller coupons instead of one
+  // (admin-configured `splitCount`) — e.g. a ₹300 tier with splitCount 2
+  // issues two ₹150 coupons. `referral.couponId` only has room for one
+  // back-reference, so the first issued coupon is what gets linked there;
+  // the rest are still fully issued and assigned, just not back-referenced.
+  const perCouponAmount = Math.round(
+    currentTier.couponAmount / currentTier.splitCount,
+  );
+  const expiresAt = addDays(completedAt, rules.couponValidityDays);
 
+  const couponIds = await Promise.all(
+    Array.from({ length: currentTier.splitCount }, () =>
+      repo.issueTierCoupon({
+        referrerUserId: row.referrerUserId,
+        code: `REF${toWholeRupees(perCouponAmount)}-${randomUUID()
+          .slice(0, 5)
+          .toUpperCase()}`,
+        amountPaise: perCouponAmount,
+        minAmtPaise: currentTier.minOrderAmount,
+        // Usable immediately — no separate claim step. `settleOnDelivery`
+        // only decides *when* settlement (this function) runs, not whether
+        // the reward needs claiming afterward.
+        expiresAt,
+      }),
+    ),
+  );
+
+  const [couponId] = couponIds;
   await repo.updateReferral(row.id, { couponId });
 
   return {
     referralId: row.id,
     couponId,
+    couponIds,
     referrerName,
     tierName: currentTier.name,
     amount: toWholeRupees(currentTier.couponAmount),

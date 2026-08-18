@@ -16,8 +16,15 @@ export type ReferralTier = {
   name: string;
   /** Successful referrals required to unlock this tier. */
   threshold: number;
-  /** Coupon face value in whole rupees. */
+  /** Coupon face value in whole rupees — the tier's total reward, split
+   * across `splitCount` coupons when greater than 1. */
   couponAmount: number;
+  /** Minimum order value (whole rupees) required to redeem this tier's
+   * coupon(s). */
+  minOrderAmount: number;
+  /** Number of separate coupons this tier's reward is issued as — 1 means a
+   * single coupon for the full `couponAmount`. */
+  splitCount: number;
   /** How many customers currently sit in this tier — read-only stat. */
   membersInTier: number;
   isActive: boolean;
@@ -34,6 +41,9 @@ export type ReferralRules = {
   monthlyCapPerUser: number;
   /** Reward the referred friend gets on their first order, in whole rupees. */
   refereeReward: number;
+  /** Minimum order value (whole rupees) required to redeem the referee's
+   * welcome coupon. */
+  refereeMinOrder: number;
   /** Block referrer/referee sharing phone, email, or device fingerprint. */
   selfReferralBlock: boolean;
   /** Settle a referral (tier count + coupon) as soon as the order is
