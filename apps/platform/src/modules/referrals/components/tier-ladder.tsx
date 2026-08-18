@@ -29,8 +29,11 @@ export default function TierLadder({
 
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6">
-      <p className="kicker text-muted-foreground">
-        Measured in referrals, not months
+      <h2 className="font-editorial text-ink text-xl">
+        Share Mumzo, Earn Rewards.
+      </h2>
+      <p className="mt-1 text-muted-foreground text-xs">
+        Unlock more rewards at each level
       </p>
 
       <p className="mt-3 text-muted-foreground text-xs">
@@ -58,6 +61,7 @@ export default function TierLadder({
               isLast={isLast}
               isNext={isNext}
               key={tier.id}
+              levelNumber={index + 1}
               remaining={remaining}
               tier={tier}
               unlocked={unlocked}
@@ -76,6 +80,7 @@ function TierRung({
   isNext,
   isLast,
   remaining,
+  levelNumber,
 }: {
   tier: ReferralProgram["tiers"][number];
   unlocked: boolean;
@@ -83,14 +88,19 @@ function TierRung({
   isNext: boolean;
   isLast: boolean;
   remaining: number;
+  levelNumber: number;
 }) {
+  // Level 1 unlocks the moment you sign up — it's shown solid/unlocked even
+  // before the first referral, the rest stay blank until actually reached.
+  const filled = levelNumber === 1 || unlocked;
+
   return (
     <div className="flex gap-4" data-testid={`referral-tier-${tier.id}`}>
       <div className="flex flex-col items-center">
         <span
           className={cn(
             "relative mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-            unlocked
+            filled
               ? "border-primary bg-primary"
               : "border-muted-foreground/30 bg-card",
             isCurrent &&
@@ -101,7 +111,7 @@ function TierRung({
           <span
             className={cn(
               "my-1 flex-1 border-l-2",
-              unlocked
+              filled
                 ? "border-primary border-solid"
                 : "border-muted-foreground/30 border-dotted",
             )}
@@ -113,17 +123,27 @@ function TierRung({
         <p
           className={cn(
             "font-semibold text-xs uppercase tracking-wide",
-            unlocked ? "text-primary" : "text-muted-foreground",
+            filled ? "text-primary" : "text-muted-foreground",
           )}
         >
-          {tier.threshold} referral{tier.threshold === 1 ? "" : "s"}
+          Level {levelNumber}
         </p>
         <p className="mt-1 font-editorial text-ink text-lg tracking-tight">
-          ₹{tier.reward.amount} coupon
+          ₹{tier.reward.amount} coupon / referral
         </p>
-        <p className="mt-0.5 text-foreground/60 text-xs leading-relaxed">
-          {tier.blurb}
-        </p>
+        {levelNumber === 1 ? (
+          <p className="mt-0.5 text-foreground/60 text-xs leading-relaxed">
+            Refer 1 friend and earn ₹{tier.reward.amount} coupon / referral.
+          </p>
+        ) : (
+          <p className="mt-0.5 text-foreground/60 text-xs leading-relaxed">
+            <em className="font-semibold text-primary">
+              Complete {tier.threshold} referrals to unlock this level
+            </em>
+            <br />
+            Earn coupons worth ₹{tier.reward.amount} on each referral.
+          </p>
+        )}
 
         {(unlocked || isNext) && (
           <span

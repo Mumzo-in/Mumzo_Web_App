@@ -14,6 +14,7 @@ import {
   inviteStageIndex,
   type ReferralInvite,
 } from "../data/referral-data";
+import { buildReminderMessage, shareOnWhatsApp } from "../lib/share-invite";
 import ConfettiBurst from "./confetti-burst";
 
 const STAGE_LABELS: Record<number, string> = {
@@ -22,15 +23,22 @@ const STAGE_LABELS: Record<number, string> = {
   2: "Ordered",
 };
 
-/** Per-friend 3-stage progress feed: Link Shared → Signed Up → Order Placed. */
+/** Per-friend 3-stage progress feed: Link Shared → Signed Up → Order Placed.
+ * Completed referrals show what they earned; anything still in-flight gets a
+ * "Remind" action so a stalled friend can be nudged without re-sharing the
+ * whole invite link from scratch. */
 export default function InviteTracker({
   invites,
+  earnedByReferralId,
 }: {
   invites: ReferralInvite[];
+  /** Coupon amount earned for each completed referral, keyed by invite id —
+   * omitted entries render without an earnings line (still settling). */
+  earnedByReferralId?: Record<string, number>;
 }) {
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-6">
-      <h2 className="font-editorial text-ink text-xl">Your invites</h2>
+      <h2 className="font-editorial text-ink text-xl">Your referrals</h2>
 
       {invites.length === 0 ? (
         <Empty className="mt-2">
@@ -39,7 +47,7 @@ export default function InviteTracker({
               <Users />
             </EmptyMedia>
             <EmptyTitle className="font-editorial text-base text-ink">
-              No invites yet
+              No referrals yet
             </EmptyTitle>
             <EmptyDescription>
               Share your referral link to see friends show up here.
@@ -48,8 +56,13 @@ export default function InviteTracker({
         </Empty>
       ) : (
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {invites.map((invite) => (
-            <InviteRow key={invite.id} invite={invite} />
+          {invites.map((invite, index) => (
+            <InviteRow
+              earnedAmount={earnedByReferralId?.[invite.id]}
+              invite={invite}
+              key={invite.id}
+              position={index + 1}
+            />
           ))}
         </div>
       )}
@@ -57,10 +70,28 @@ export default function InviteTracker({
   );
 }
 
-function InviteRow({ invite }: { invite: ReferralInvite }) {
+function InviteRow({
+  invite,
+  position,
+  earnedAmount,
+}: {
+  invite: ReferralInvite;
+  /** 1-based order among the referrer's own invites — powers "this is your
+   * Nth referral" copy. */
+  position: number;
+  earnedAmount?: number;
+}) {
   const meta = INVITE_STATUS_META[invite.status];
   const reached = inviteStageIndex(invite.status);
   const returned = invite.status === "returned";
+  const remindable =
+    invite.status === "link_shared" ||
+    invite.status === "signed_up" ||
+    invite.status === "order_placed";
+
+  const remind = () => {
+    shareOnWhatsApp(buildReminderMessage(invite.name));
+  };
 
   return (
     <div
@@ -133,6 +164,23 @@ function InviteRow({ invite }: { invite: ReferralInvite }) {
         <p className="mt-1 pl-7 text-[11px] text-foreground/45 leading-snug">
           Your coupon unlocks once their order clears the return window.
         </p>
+      )}
+
+      {invite.status === "completed" && earnedAmount !== undefined && (
+        <p className="mt-1 pl-7 text-[11px] text-primary leading-snug">
+          This is your referral #{position} — you got ₹{earnedAmount}.
+        </p>
+      )}
+
+      {remindable && (
+        <button
+          className="mt-3 inline-flex cursor-pointer items-center rounded-full border border-border px-3 py-1.5 font-semibold text-foreground/70 text-xs transition-colors hover:bg-secondary"
+          data-testid={`referral-invite-remind-${invite.id}`}
+          onClick={remind}
+          type="button"
+        >
+          Remind
+        </button>
       )}
     </div>
   );

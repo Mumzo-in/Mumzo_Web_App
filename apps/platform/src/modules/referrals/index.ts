@@ -1,4 +1,3 @@
-export { default as AllCoupons } from "./components/all-coupons";
 export { default as CouponList } from "./components/coupon-list";
 export {
   default as EarningsList,

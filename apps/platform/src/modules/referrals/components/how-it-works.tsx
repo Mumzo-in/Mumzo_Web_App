@@ -1,32 +1,34 @@
-import { Gift, PartyPopper, Send } from "lucide-react";
+import { Gift, Send } from "lucide-react";
 
-const BASE_STEPS = [
-  {
-    icon: Send,
-    title: "Share your code",
-    description: "Send your referral link or code to a friend on WhatsApp.",
-  },
-  {
-    icon: PartyPopper,
-    title: "They sign up & order",
-    description: "Your friend signs up and places their first order.",
-  },
-] as const;
-
-/** Gamified 3-step explainer — how the referral programme works. */
+/** Gamified 2-step explainer — how the referral programme works. */
 export default function HowItWorks({
   refereeReward,
 }: {
-  /** The referee's first-order reward, in whole rupees — the referrer earns
-   * the same amount, so this one number covers "you both get" accurately. */
+  /** The referee's first-order reward, in whole rupees. */
   refereeReward: number;
 }) {
   const steps = [
-    ...BASE_STEPS,
     {
+      id: "share",
+      icon: Send,
+      title: "Share your code",
+      description: "Send your referral link or code to a friend on WhatsApp.",
+    },
+    {
+      id: "they-get",
       icon: Gift,
-      title: `You both get coupons worth ₹${refereeReward}`,
-      description: "Once their order clears the return window, you both earn.",
+      title: (
+        <>
+          They get <span className="text-primary">₹{refereeReward} off</span>
+        </>
+      ),
+      description: `Your friend signs up and gets ₹${refereeReward} off on their first order.`,
+    },
+    {
+      id: "you-get",
+      icon: Gift,
+      title: `You get coupons worth ₹${refereeReward}`,
+      description: `Once your friend completes their first order, you get coupons worth ₹${refereeReward}.`,
     },
   ];
 
@@ -39,7 +41,7 @@ export default function HowItWorks({
           <div
             className="flex items-start gap-4 rounded-3xl border border-border/60 bg-accent/30 p-4"
             data-testid={`referral-how-it-works-${index + 1}`}
-            key={step.title}
+            key={step.id}
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <step.icon size={18} />

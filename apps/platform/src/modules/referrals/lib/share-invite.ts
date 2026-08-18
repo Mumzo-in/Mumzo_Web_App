@@ -29,6 +29,13 @@ export function buildInviteMessage(
   ].join("\n");
 }
 
+/** Nudge for a friend who's mid-funnel (shared/signed up/ordered but not yet
+ * settled) — deliberately short, no code repeated, since they already have
+ * the link from the original invite. */
+export function buildReminderMessage(friendName: string) {
+  return `Hey ${friendName}! Just checking in — don't forget to finish your first Mumzo order to unlock your discount 💛`;
+}
+
 /** Native share sheet when available, WhatsApp link otherwise. */
 export async function shareInvite(text: string) {
   if (navigator.share) {

@@ -212,7 +212,11 @@ export async function onOrderReturned(orderId: string) {
 /**
  * The settlement sweep's unit of work: one referral whose return window has
  * passed with no return. Marks it `completed`, increments the referrer's
- * count, and issues a coupon for every newly-crossed tier threshold.
+ * count, and issues a coupon at the referrer's *current* tier rate — every
+ * successful referral pays out, not just the ones that land exactly on a
+ * tier threshold. The rate is the highest active tier whose threshold the
+ * referrer has now reached (so referral #3 under tiers at 1/2/5 still pays
+ * tier 2's rate, not nothing).
  *
  * Runs one referral at a time (not batched) so a single bad row can't abort
  * the whole sweep — the caller loops and catches per-row.
@@ -231,11 +235,11 @@ export async function settleReferral(referralId: string) {
   );
 
   const tiers = await repo.findActiveTiers();
-  const justUnlocked = tiers.find(
-    (tier) => tier.threshold === updatedCode.successfulReferrals,
-  );
+  const currentTier = tiers
+    .filter((tier) => tier.threshold <= updatedCode.successfulReferrals)
+    .at(-1);
 
-  if (!justUnlocked) {
+  if (!currentTier) {
     return { referralId: row.id, couponId: null };
   }
 
@@ -260,14 +264,14 @@ export async function settleReferral(referralId: string) {
   }
 
   const referrerName = await repo.findUserName(row.referrerUserId);
-  const couponCode = `REF${toWholeRupees(justUnlocked.couponAmount)}-${randomUUID()
+  const couponCode = `REF${toWholeRupees(currentTier.couponAmount)}-${randomUUID()
     .slice(0, 5)
     .toUpperCase()}`;
 
   const couponId = await repo.issueTierCoupon({
     referrerUserId: row.referrerUserId,
     code: couponCode,
-    amountPaise: justUnlocked.couponAmount,
+    amountPaise: currentTier.couponAmount,
     // Usable immediately — no separate claim step. `settleOnDelivery` only
     // decides *when* settlement (this function) runs, not whether the
     // reward needs claiming afterward.
@@ -280,8 +284,8 @@ export async function settleReferral(referralId: string) {
     referralId: row.id,
     couponId,
     referrerName,
-    tierName: justUnlocked.name,
-    amount: toWholeRupees(justUnlocked.couponAmount),
+    tierName: currentTier.name,
+    amount: toWholeRupees(currentTier.couponAmount),
   };
 }
 

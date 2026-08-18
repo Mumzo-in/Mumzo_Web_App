@@ -3,51 +3,28 @@ import { useEffect, useState } from "react";
 import ConfettiBurst from "./confetti-burst";
 
 /**
- * The headline "here's what Mumzo has saved you" moment — deliberately big,
- * bold, and celebratory (confetti on mount) so it reads as a reward, not a
- * quiet stat line. Breaks the total into its real sources instead of
- * lumping "referred a friend" and "was referred" under one misleading
- * "earned by referring friends" label.
+ * The headline "here's what you've earned by referring" moment — big, bold,
+ * celebratory (confetti on mount). Deliberately just two numbers: your total
+ * earnings and how many successful referrals produced them — everything
+ * else (welcome coupon, order savings) lives elsewhere so this card reads as
+ * "your referral track record," not a catch-all savings tally.
  */
 export default function RewardsSummary({
   referrerEarnings,
-  welcomeCouponAmount,
-  orderSavings,
+  successfulReferrals,
 }: {
   /** Tier coupons earned by referring friends who then ordered. */
   referrerEarnings: number;
-  /** Welcome coupon(s) received for being referred — not "earned" by
-   * referring anyone, so it gets its own honest label. */
-  welcomeCouponAmount: number;
-  orderSavings: number;
+  successfulReferrals: number;
 }) {
-  const total = referrerEarnings + welcomeCouponAmount + orderSavings;
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    if (total <= 0) return;
+    if (referrerEarnings <= 0) return;
     setShowConfetti(true);
     const timer = setTimeout(() => setShowConfetti(false), 1200);
     return () => clearTimeout(timer);
-  }, [total]);
-
-  const tiles = [
-    referrerEarnings > 0 && {
-      key: "referrer",
-      amount: referrerEarnings,
-      label: "Earned by referring friends",
-    },
-    welcomeCouponAmount > 0 && {
-      key: "welcome",
-      amount: welcomeCouponAmount,
-      label: "Your welcome coupon",
-    },
-    {
-      key: "orders",
-      amount: orderSavings,
-      label: "Saved with coupons on orders",
-    },
-  ].filter(Boolean) as { key: string; amount: number; label: string }[];
+  }, [referrerEarnings]);
 
   return (
     <div
@@ -56,36 +33,34 @@ export default function RewardsSummary({
     >
       {showConfetti && <ConfettiBurst />}
 
-      <p className="kicker text-primary">Your rewards</p>
+      <p className="kicker text-primary">Your earnings</p>
       <p className="mt-3 flex items-center justify-center gap-2 font-editorial text-6xl text-ink tracking-tighter sm:text-7xl">
         <PartyPopper
           className="shrink-0 text-primary"
           size={40}
           strokeWidth={1.5}
         />
-        <span data-testid="rewards-total-saved">₹{total}</span>
+        <span data-testid="rewards-total-saved">₹{referrerEarnings}</span>
       </p>
       <p className="mt-2 font-semibold text-foreground/70 text-sm">
-        saved with Mumzo so far
+        earned by referring friends
       </p>
 
-      <div
-        className="mx-auto mt-6 grid max-w-2xl gap-3"
-        style={{
-          gridTemplateColumns: `repeat(${Math.min(tiles.length, 3)}, minmax(0, 1fr))`,
-        }}
-      >
-        {tiles.map((tile) => (
-          <div
-            className="rounded-2xl border border-border/60 bg-white/70 p-4"
-            key={tile.key}
-          >
-            <p className="font-editorial text-2xl text-ink tracking-tight">
-              ₹{tile.amount}
-            </p>
-            <p className="mt-0.5 text-foreground/60 text-xs">{tile.label}</p>
-          </div>
-        ))}
+      <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border/60 bg-white/70 p-4">
+          <p className="font-editorial text-2xl text-ink tracking-tight">
+            ₹{referrerEarnings}
+          </p>
+          <p className="mt-0.5 text-foreground/60 text-xs">Total earnings</p>
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-white/70 p-4">
+          <p className="font-editorial text-2xl text-ink tracking-tight">
+            {successfulReferrals}
+          </p>
+          <p className="mt-0.5 text-foreground/60 text-xs">
+            Successful referrals
+          </p>
+        </div>
       </div>
     </div>
   );

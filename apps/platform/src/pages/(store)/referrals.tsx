@@ -4,10 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { sessionQueryOptions } from "@/modules/auth";
-import { listMyAssignedCoupons } from "@/modules/cart";
-import { fetchOrderSavings } from "@/modules/orders/api/orders-api";
 import {
-  AllCoupons,
   HowItWorks,
   InviteTracker,
   ReferralHero,
@@ -39,16 +36,6 @@ function ReferralsPage() {
     queryFn: getMyReferralProgram,
     enabled: isAuthed,
   });
-  const assignedQuery = useQuery({
-    queryKey: ["coupons", "me"],
-    queryFn: listMyAssignedCoupons,
-    enabled: isAuthed,
-  });
-  const savingsQuery = useQuery({
-    queryKey: ["orders", "savings"],
-    queryFn: fetchOrderSavings,
-    enabled: isAuthed,
-  });
 
   const program = isAuthed
     ? myQuery.data
@@ -65,15 +52,20 @@ function ReferralsPage() {
         }
       : undefined;
 
-  const referrerCouponIds = new Set((program?.coupons ?? []).map((c) => c.id));
-  // `/coupons/me` returns every coupon assigned to the user, which includes
-  // the referrer's own tier coupons already counted via `program.coupons` —
-  // excluding those here isolates the referee's welcome coupon(s) so the
-  // two figures never double-count the same coupon.
-  const welcomeCouponAmount = (assignedQuery.data ?? [])
-    .filter((c) => !referrerCouponIds.has(c.id))
-    .filter((c) => c.status === "active" || c.status === "used")
-    .reduce((sum, c) => sum + c.discountAmount, 0);
+  // Tier coupons are issued in the order referrals complete, so the Nth
+  // completed invite in the feed corresponds to `coupons[N-1]` — the same
+  // pairing `EarningsList` already relies on for its per-tier rows.
+  const completedInvites = (program?.invites ?? []).filter(
+    (invite) => invite.status === "completed",
+  );
+  const earnedByReferralId = Object.fromEntries(
+    completedInvites
+      .map((invite, index) => {
+        const coupon = program?.coupons[index];
+        return coupon ? [invite.id, coupon.discountAmount] : null;
+      })
+      .filter((entry): entry is [string, number] => entry !== null),
+  );
 
   if (!program) {
     return (
@@ -95,9 +87,8 @@ function ReferralsPage() {
       {isAuthed && (
         <section className="mt-6">
           <RewardsSummary
-            orderSavings={savingsQuery.data?.totalSaved ?? 0}
             referrerEarnings={totalEarnings(program.coupons)}
-            welcomeCouponAmount={welcomeCouponAmount}
+            successfulReferrals={program.successfulReferrals}
           />
         </section>
       )}
@@ -121,13 +112,10 @@ function ReferralsPage() {
 
       {isAuthed && program.hasOrdered && program.invites.length > 0 && (
         <section className="mt-6">
-          <InviteTracker invites={program.invites} />
-        </section>
-      )}
-
-      {isAuthed && (assignedQuery.data?.length ?? 0) > 0 && (
-        <section className="mt-6">
-          <AllCoupons coupons={assignedQuery.data ?? []} />
+          <InviteTracker
+            earnedByReferralId={earnedByReferralId}
+            invites={program.invites}
+          />
         </section>
       )}
 
