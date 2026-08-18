@@ -33,3 +33,18 @@ export const onboardingResultSchema = z
     onboardedAt: z.string(),
   })
   .openapi("OnboardingResult");
+
+export const checkPhoneQuerySchema = z.object({
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(/^\+91\d{10}$/, "phoneNumber must be a +91 E.164 number")
+    .openapi({
+      param: { name: "phoneNumber", in: "query" },
+      example: "+919876543210",
+    }),
+});
+
+export const checkPhoneResultSchema = z
+  .object({ exists: z.boolean() })
+  .openapi("CheckPhoneResult");

@@ -37,3 +37,14 @@ export function completeOnboarding(
     body: input,
   });
 }
+
+/** Checks whether a phone number already has an account — called before
+ * sending the signup OTP so a returning number is redirected to log in
+ * instead of starting a second, redundant signup. */
+export function checkPhoneExists(phoneNumber: string): Promise<{
+  exists: boolean;
+}> {
+  return apiRequest<{ exists: boolean }>("/profile/check-phone", {
+    query: { phoneNumber },
+  });
+}

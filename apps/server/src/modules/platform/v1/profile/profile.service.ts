@@ -9,6 +9,17 @@ import { eq } from "drizzle-orm";
 import { badRequest } from "@/core/errors";
 import { applyCodeOnSignup } from "../referrals/referrals.service";
 
+/** Used to gate signup OTP sends — an existing account's phone should never
+ * be allowed to start a second (redundant) signup. */
+export async function checkPhoneExists(phoneNumber: string) {
+  const [row] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.phoneNumber, phoneNumber))
+    .limit(1);
+  return { exists: Boolean(row) };
+}
+
 type OnboardingInput = {
   name: string;
   email?: string;

@@ -9,23 +9,41 @@ import { useEffect, useState } from "react";
 import { usePopupStore } from "@/core/hooks/use-popup-store";
 import { cartQueryKey, mergeCartApi } from "@/modules/cart";
 import { useServiceability } from "@/modules/location";
+import { validateReferralCode } from "@/modules/referrals/api/referrals-api";
 import { authClient } from "../../api/auth-client";
-import { completeOnboarding } from "../../api/onboarding-api";
+import { checkPhoneExists, completeOnboarding } from "../../api/onboarding-api";
 
 const RESEND_SECONDS = 30;
 
-/** Mode → referral → details → OTP, in that order — the visitor picks
- * login-vs-signup first (so the rest of the form reads correctly), then a
- * friend's code (if any) is asked before the account exists so it's never
- * an afterthought squeezed into a later step. */
-type Step = "mode" | "referral-choice" | "referral-code" | "details" | "otp";
+/** Rejects obviously-fake test numbers (all one digit, or a straight
+ * ascending/descending run) before we ever hit the OTP provider. */
+function isFakePhoneNumber(phone: string) {
+  if (/^(\d)\1{9}$/.test(phone)) return true;
+  const ascending = "0123456789";
+  const descending = "9876543210";
+  return ascending.includes(phone) || descending.includes(phone);
+}
 
-/** Login skips the referral question entirely (a code only ever applies to
- * a brand-new account) — the progress dots reflect each mode's actual path
- * rather than a step neither flow visits. */
+/** Mode → referral → phone → OTP → name, in that order — the visitor picks
+ * login-vs-signup first (so the rest of the form reads correctly), a
+ * friend's code (if any) is asked before the account exists so it's never
+ * an afterthought squeezed into a later step, and — for a new account —
+ * name is only collected once the phone number is verified. */
+type Step =
+  | "mode"
+  | "referral-choice"
+  | "referral-code"
+  | "phone"
+  | "otp"
+  | "name";
+
+/** Login skips the referral question and the name step entirely — a code
+ * only ever applies to a brand-new account, and an existing account already
+ * has a name. The progress dots reflect each mode's actual path rather than
+ * a step neither flow visits. */
 const STEP_ORDER_BY_MODE: Record<"login" | "register", Step[]> = {
-  login: ["mode", "details", "otp"],
-  register: ["mode", "referral-choice", "details", "otp"],
+  login: ["mode", "phone", "otp"],
+  register: ["mode", "referral-choice", "phone", "otp", "name"],
 };
 
 function toE164(phone: string) {
@@ -98,7 +116,7 @@ export default function SignInForm({
       // Login never asks about a referral code — codes only ever apply to
       // a brand-new account, so this goes straight to phone + OTP.
       setHasReferral(false);
-      setStep("details");
+      setStep("phone");
       return;
     }
     setStep(refParam ? "referral-code" : "referral-choice");
@@ -117,30 +135,65 @@ export default function SignInForm({
   const chooseReferral = (has: boolean) => {
     setFormError(null);
     setHasReferral(has);
-    setStep(has ? "referral-code" : "details");
+    setStep(has ? "referral-code" : "phone");
   };
 
-  const confirmReferralCode = (e: React.FormEvent) => {
+  const [checkingReferral, setCheckingReferral] = useState(false);
+
+  const confirmReferralCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!referralCode.trim()) {
-      setFormError("Enter a referral code, or go back and skip it");
+    const code = referralCode.trim().toUpperCase();
+    if (!code) {
+      // No code entered — continue without one rather than block signup.
+      setHasReferral(false);
+      setReferralCode("");
+      setFormError(null);
+      setStep("phone");
       return;
     }
     setFormError(null);
-    setStep("details");
+    setCheckingReferral(true);
+    try {
+      await validateReferralCode(code);
+      setStep("phone");
+    } catch {
+      // Invalid code — don't block signup, just drop it and continue.
+      setHasReferral(false);
+      setReferralCode("");
+      setStep("phone");
+    } finally {
+      setCheckingReferral(false);
+    }
   };
 
   const sendOtp = async () => {
-    if (mode === "register" && !name.trim()) {
-      setFormError("Please enter your name");
-      return;
-    }
     if (phone.length !== 10) {
       setFormError("Please enter a valid 10-digit phone number");
       return;
     }
+    if (isFakePhoneNumber(phone)) {
+      setFormError("Please enter a valid phone number");
+      return;
+    }
     setFormError(null);
     setSending(true);
+
+    if (mode === "register") {
+      try {
+        const { exists } = await checkPhoneExists(toE164(phone));
+        if (exists) {
+          setSending(false);
+          setFormError(
+            "This number is already registered. Please log in instead.",
+          );
+          return;
+        }
+      } catch {
+        // Best-effort — if the lookup itself fails, fall through to OTP
+        // rather than block signup on an unrelated outage.
+      }
+    }
+
     const { error } = await authClient.phoneNumber.sendOtp({
       phoneNumber: toE164(phone),
     });
@@ -209,29 +262,24 @@ export default function SignInForm({
     // applies to the former — an existing account logging back in through
     // a referral link must not silently pick up a fresh welcome coupon.
     const isNewAccount = !freshSession?.user?.onboardedAt;
+    setVerifying(false);
+
+    if (isNewAccount) {
+      // Name is collected next, after the phone number is verified.
+      setStep("name");
+      return;
+    }
+
     const code =
       hasReferral && referralCode.trim()
         ? referralCode.trim().toUpperCase()
         : undefined;
-
-    if (isNewAccount) {
-      try {
-        await completeOnboarding({
-          name: name.trim() || toE164(phone),
-          referralCode: code,
-        });
-      } catch {
-        // Best-effort — a signed-in session with a still-placeholder name is
-        // recoverable from the profile page; it must not block sign-in.
-      }
-
-      setVerifying(false);
+    if (code) {
       showPopup({
-        variant: "success",
-        title: "Welcome to Mumzo!",
-        description: code
-          ? "Your account is ready and the referral code has been applied."
-          : "Your account is ready.",
+        variant: "info",
+        title: "Welcome back!",
+        description:
+          "You're already a Mumzo member, so this referral code wasn't applied — it's only for new accounts.",
         actionLabel: "Continue",
         onAction: () =>
           finishSignIn(() =>
@@ -239,25 +287,43 @@ export default function SignInForm({
           ),
       });
     } else {
-      setVerifying(false);
-      if (code) {
-        showPopup({
-          variant: "info",
-          title: "Welcome back!",
-          description:
-            "You're already a Mumzo member, so this referral code wasn't applied — it's only for new accounts.",
-          actionLabel: "Continue",
-          onAction: () =>
-            finishSignIn(() =>
-              navigate({ href: safeRedirectTarget(redirectParam) }),
-            ),
-        });
-      } else {
+      finishSignIn(() => navigate({ href: safeRedirectTarget(redirectParam) }));
+    }
+  };
+
+  const [savingName, setSavingName] = useState(false);
+
+  const finishOnboarding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setFormError("Please enter your name");
+      return;
+    }
+    setFormError(null);
+    setSavingName(true);
+    const code =
+      hasReferral && referralCode.trim()
+        ? referralCode.trim().toUpperCase()
+        : undefined;
+    try {
+      await completeOnboarding({ name: name.trim(), referralCode: code });
+    } catch {
+      // Best-effort — a signed-in session with a still-placeholder name is
+      // recoverable from the profile page; it must not block sign-in.
+    }
+    setSavingName(false);
+    showPopup({
+      variant: "success",
+      title: "Welcome to Mumzo!",
+      description: code
+        ? "Your account is ready and the referral code has been applied."
+        : "Your account is ready.",
+      actionLabel: "Continue",
+      onAction: () =>
         finishSignIn(() =>
           navigate({ href: safeRedirectTarget(redirectParam) }),
-        );
-      }
-    }
+        ),
+    });
   };
 
   const handleResend = () => {
@@ -273,19 +339,21 @@ export default function SignInForm({
     setFormError(null);
     if (step === "referral-code") {
       setStep("referral-choice");
-    } else if (step === "details") {
+    } else if (step === "phone") {
       if (mode === "login") setStep("mode");
       else setStep(hasReferral ? "referral-code" : "referral-choice");
     } else if (step === "otp") {
-      setStep("details");
+      setStep("phone");
     } else if (step === "referral-choice") {
       setStep("mode");
     }
+    // "name" has no back — it only follows a verified OTP, and re-verifying
+    // would send a fresh code for no reason.
   };
 
   return (
     <div className="w-full p-8 sm:p-10">
-      {step !== "mode" && (
+      {step !== "mode" && step !== "name" && (
         <button
           type="button"
           onClick={goBack}
@@ -399,7 +467,10 @@ export default function SignInForm({
       )}
 
       {step === "referral-code" && (
-        <form onSubmit={confirmReferralCode} className="space-y-5">
+        <form
+          onSubmit={(e) => void confirmReferralCode(e)}
+          className="space-y-5"
+        >
           <h1 className="mb-2 font-editorial text-3xl text-foreground">
             Enter your code
           </h1>
@@ -423,39 +494,24 @@ export default function SignInForm({
 
           <Button
             type="submit"
+            disabled={checkingReferral}
             className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
           >
-            Continue →
+            {checkingReferral ? "Checking…" : "Continue →"}
           </Button>
         </form>
       )}
 
-      {step === "details" && (
+      {step === "phone" && (
         <form onSubmit={handleSendOtp} className="space-y-5">
           <h1 className="mb-2 font-editorial text-3xl text-foreground">
-            {mode === "login" ? "Log in" : "Tell us about you"}
+            {mode === "login" ? "Log in" : "Enter your number"}
           </h1>
           <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
             {mode === "login"
               ? "Enter your mobile number to continue"
-              : "Your name and mobile number"}
+              : "We'll send you a one-time code to verify it's you"}
           </p>
-
-          {mode === "register" && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Your name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your full name"
-                className="h-11 rounded-xl"
-                data-testid="web-signin-name-input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-              />
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
@@ -473,7 +529,7 @@ export default function SignInForm({
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
-                autoFocus={mode === "login"}
+                autoFocus
               />
             </div>
           </div>
@@ -547,6 +603,40 @@ export default function SignInForm({
             )}
           </div>
         </>
+      )}
+
+      {step === "name" && (
+        <form onSubmit={(e) => void finishOnboarding(e)} className="space-y-5">
+          <h1 className="mb-2 font-editorial text-3xl text-foreground">
+            Tell us about you
+          </h1>
+          <p className="mb-6 text-foreground/60 text-xs leading-relaxed">
+            You're verified — what should we call you?
+          </p>
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Your name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Enter your full name"
+              className="h-11 rounded-xl"
+              data-testid="web-signin-name-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={savingName}
+            data-testid="web-signin-finish-button"
+            className="mt-2 h-11 w-full cursor-pointer rounded-full bg-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/95"
+          >
+            {savingName ? "Saving…" : "Finish →"}
+          </Button>
+        </form>
       )}
 
       {step === "mode" && showModeLinks && (
