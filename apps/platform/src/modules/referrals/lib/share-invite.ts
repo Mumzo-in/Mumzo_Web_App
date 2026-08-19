@@ -20,9 +20,9 @@ export function buildInviteMessage(
     : "You've been invited to Mumzo";
 
   return [
-    `${opener} \u{1F476}\u{1F49B}`,
+    opener,
     "",
-    "Mumzo delivers baby & mom essentials in 10 minutes — the stuff you need, right when you need it.",
+    "Mumzo delivers baby & mom essentials in 10 minutes - the stuff you need, right when you need it.",
     "",
     `Sign up with my code ${code} and get ₹${refereeReward} off your first order:`,
     link,
@@ -33,7 +33,7 @@ export function buildInviteMessage(
  * settled) — deliberately short, no code repeated, since they already have
  * the link from the original invite. */
 export function buildReminderMessage(friendName: string) {
-  return `Hey ${friendName}! Just checking in — don't forget to finish your first Mumzo order to unlock your discount 💛`;
+  return `Hey ${friendName}! Just checking in - don't forget to finish your first Mumzo order to unlock your discount!`;
 }
 
 /** Native share sheet when available, WhatsApp link otherwise. */

@@ -43,7 +43,7 @@ export default function TierLadder({
             : "Sign up to start unlocking rewards."
           : upcoming
             ? `${referralsToNext(program)} more to unlock ₹${upcoming.reward.amount}`
-            : "All tiers unlocked 💜"}
+            : "All tiers unlocked"}
       </p>
 
       <div className="mt-6 flex flex-col">

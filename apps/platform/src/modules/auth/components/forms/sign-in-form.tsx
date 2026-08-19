@@ -185,9 +185,18 @@ export default function SignInForm({
         const { exists } = await checkPhoneExists(toE164(phone));
         if (exists) {
           setSending(false);
-          showError(
-            "This number is already registered. Please log in instead.",
-          );
+          showPopup({
+            variant: "error",
+            title: "Already registered",
+            description:
+              "This number already has a Mumzo account. Log in instead.",
+            actionLabel: "Go to login",
+            onAction: () => {
+              setMode("login");
+              setHasReferral(false);
+              setStep("phone");
+            },
+          });
           return;
         }
       } catch {
