@@ -92,7 +92,7 @@ app.get("/:code", async (c) => {
     const html = sharePageHtml({
       title: "You're invited to Mumzo",
       description:
-        "Mumzo delivers baby & mom essentials in 10 minutes — the stuff you need, right when you need it.",
+        "Mumzo delivers baby & mom essentials in 10 minutes - the stuff you need, right when you need it.",
       image: `${serverOrigin}/api/v1/og/default`,
       squareImage,
       redirectTo,

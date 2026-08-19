@@ -161,7 +161,7 @@ export async function createOrder(
     const [orderRow] = await tx
       .insert(order)
       .values({
-        userId: input.customerId ?? null,
+        userId: input.customerId ?? actor,
         hubId: hubRow.id,
         status: "confirmed",
         addressLabel: input.addressLabel,
