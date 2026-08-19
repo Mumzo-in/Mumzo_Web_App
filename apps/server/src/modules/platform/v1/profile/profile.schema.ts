@@ -31,6 +31,10 @@ export const onboardingResultSchema = z
     name: z.string(),
     email: z.string().optional(),
     onboardedAt: z.string(),
+    /** True only when a referral code was submitted AND actually applied —
+     * false both when no code was given and when it was rejected (invalid,
+     * self-referral, already used). */
+    referralApplied: z.boolean(),
   })
   .openapi("OnboardingResult");
 

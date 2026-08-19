@@ -79,15 +79,19 @@ export async function completeOnboarding(
     );
   }
 
-  // Best-effort and fire-and-forget: an invalid code, a self-referral, or
-  // "already used a code" must never fail — or slow down — onboarding. The
-  // profile write above already committed, so this runs after the response
-  // instead of blocking it (issuing the welcome coupon is several sequential
-  // DB round trips).
+  // Best-effort, but awaited: an invalid code, a self-referral, or "already
+  // used a code" must never fail the onboarding write above (it already
+  // committed) — but the caller does need to know whether the code actually
+  // took, so the client isn't left claiming "applied" when it silently
+  // wasn't. `referralApplied` reflects the true outcome.
+  let referralApplied = false;
   if (input.referralCode) {
-    applyCodeOnSignup(userId, input.referralCode).catch((error) => {
+    try {
+      await applyCodeOnSignup(userId, input.referralCode);
+      referralApplied = true;
+    } catch (error) {
       console.error(`Failed to apply referral code for user ${userId}:`, error);
-    });
+    }
   }
 
   return {
@@ -95,5 +99,6 @@ export async function completeOnboarding(
     name: input.name,
     email: input.email,
     onboardedAt: now.toISOString(),
+    referralApplied,
   };
 }

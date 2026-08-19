@@ -314,8 +314,13 @@ export default function SignInForm({
       hasReferral && referralCode.trim()
         ? referralCode.trim().toUpperCase()
         : undefined;
+    let referralApplied = false;
     try {
-      await completeOnboarding({ name: name.trim(), referralCode: code });
+      const result = await completeOnboarding({
+        name: name.trim(),
+        referralCode: code,
+      });
+      referralApplied = result.referralApplied;
     } catch {
       // Best-effort — a signed-in session with a still-placeholder name is
       // recoverable from the profile page; it must not block sign-in.
@@ -324,9 +329,11 @@ export default function SignInForm({
     showPopup({
       variant: "success",
       title: "Welcome to Mumzo!",
-      description: code
+      description: referralApplied
         ? "Your account is ready and the referral code has been applied."
-        : "Your account is ready.",
+        : code
+          ? "Your account is ready — that referral code couldn't be applied."
+          : "Your account is ready.",
       actionLabel: "Continue",
       onAction: () =>
         finishSignIn(() =>

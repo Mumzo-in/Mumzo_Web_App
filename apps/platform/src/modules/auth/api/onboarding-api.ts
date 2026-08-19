@@ -27,6 +27,8 @@ export type OnboardingResult = {
   name: string;
   email: string;
   onboardedAt: string;
+  /** True only when a referral code was submitted AND actually applied. */
+  referralApplied: boolean;
 };
 
 export function completeOnboarding(
