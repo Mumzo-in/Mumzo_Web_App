@@ -1,7 +1,7 @@
 import { Button } from "@mumzo/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
+import { ChevronDown, MapPin, ShoppingBag, User } from "lucide-react";
 import { useModalStore } from "@/core/hooks/use-modal-store";
 import { useRequireAuth } from "@/modules/auth";
 import { useCart } from "@/modules/cart";
@@ -41,15 +41,6 @@ export default function Header() {
         <SearchBar />
 
         {/* Right cluster */}
-        <Link
-          to="/notifications"
-          data-testid="web-notifications-btn"
-          aria-label="Notifications"
-          className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-white text-foreground transition-colors hover:text-primary"
-        >
-          <Bell size={18} />
-          <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
-        </Link>
         <button
           type="button"
           onClick={() =>
@@ -93,7 +84,7 @@ export default function Header() {
 
       {/* Mobile Header (matches custom design) */}
       <div className="flex flex-col gap-3.5 px-4 py-3 md:hidden">
-        {/* Row 1: Logo, location selector & Notification bell */}
+        {/* Row 1: Logo & location selector */}
         <div className="flex items-center justify-between gap-2">
           <Link
             to="/"
@@ -125,17 +116,6 @@ export default function Header() {
               </p>
             </div>
           </button>
-
-          {/* Notification bell */}
-          <Link
-            to="/notifications"
-            data-testid="web-notifications-btn-mobile"
-            aria-label="Notifications"
-            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/60 bg-white transition-transform active:scale-95"
-          >
-            <Bell size={18} className="text-foreground" />
-            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full border border-white bg-primary" />
-          </Link>
         </div>
 
         {/* Row 2: Search Input */}

@@ -106,11 +106,17 @@ export default function SignInForm({
   const [timer, setTimer] = useState(RESEND_SECONDS);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
   const showPopup = usePopupStore((s) => s.showPopup);
 
+  const showError = (description: string) => {
+    showPopup({
+      variant: "error",
+      title: "Something's not right",
+      description,
+    });
+  };
+
   const chooseMode = (next: "login" | "register") => {
-    setFormError(null);
     setMode(next);
     if (next === "login") {
       // Login never asks about a referral code — codes only ever apply to
@@ -133,7 +139,6 @@ export default function SignInForm({
   }, [step, timer]);
 
   const chooseReferral = (has: boolean) => {
-    setFormError(null);
     setHasReferral(has);
     setStep(has ? "referral-code" : "phone");
   };
@@ -147,11 +152,9 @@ export default function SignInForm({
       // No code entered — continue without one rather than block signup.
       setHasReferral(false);
       setReferralCode("");
-      setFormError(null);
       setStep("phone");
       return;
     }
-    setFormError(null);
     setCheckingReferral(true);
     try {
       await validateReferralCode(code);
@@ -168,14 +171,13 @@ export default function SignInForm({
 
   const sendOtp = async () => {
     if (phone.length !== 10) {
-      setFormError("Please enter a valid 10-digit phone number");
+      showError("Please enter a valid 10-digit phone number");
       return;
     }
     if (isFakePhoneNumber(phone)) {
-      setFormError("Please enter a valid phone number");
+      showError("Please enter a valid phone number");
       return;
     }
-    setFormError(null);
     setSending(true);
 
     if (mode === "register") {
@@ -183,7 +185,7 @@ export default function SignInForm({
         const { exists } = await checkPhoneExists(toE164(phone));
         if (exists) {
           setSending(false);
-          setFormError(
+          showError(
             "This number is already registered. Please log in instead.",
           );
           return;
@@ -199,7 +201,7 @@ export default function SignInForm({
     });
     setSending(false);
     if (error) {
-      setFormError(error.message ?? "Could not send the OTP. Try again.");
+      showError(error.message ?? "Could not send the OTP. Try again.");
       return;
     }
     setStep("otp");
@@ -222,18 +224,17 @@ export default function SignInForm({
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length !== 6) {
-      setFormError("Please enter a 6-digit OTP");
+      showError("Please enter a 6-digit OTP");
       return;
     }
     setVerifying(true);
-    setFormError(null);
     const { error } = await authClient.phoneNumber.verify({
       phoneNumber: toE164(phone),
       code: otp,
     });
     if (error) {
       setVerifying(false);
-      setFormError(error.message ?? "That code didn't work. Try again.");
+      showError(error.message ?? "That code didn't work. Try again.");
       return;
     }
 
@@ -296,10 +297,9 @@ export default function SignInForm({
   const finishOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setFormError("Please enter your name");
+      showError("Please enter your name");
       return;
     }
-    setFormError(null);
     setSavingName(true);
     const code =
       hasReferral && referralCode.trim()
@@ -336,7 +336,6 @@ export default function SignInForm({
     step === "referral-code" ? 1 : stepOrder.indexOf(step);
 
   const goBack = () => {
-    setFormError(null);
     if (step === "referral-code") {
       setStep("referral-choice");
     } else if (step === "phone") {
@@ -378,12 +377,6 @@ export default function SignInForm({
           </div>
         ))}
       </div>
-
-      {formError && (
-        <p className="-mt-2 mb-4 text-center text-destructive text-xs">
-          {formError}
-        </p>
-      )}
 
       {step === "mode" && (
         <div>
