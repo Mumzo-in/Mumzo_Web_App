@@ -7,7 +7,6 @@ export type {
   BabyAgeBucket,
   CategoryRevenuePoint,
   HubPoint,
-  NewVsReturningPoint,
   OrderStatusPoint,
   OverviewAnalytics,
   PaymentModePoint,

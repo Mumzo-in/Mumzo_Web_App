@@ -21,7 +21,7 @@ const TREND_TINT = {
 } as const;
 
 export function MetricCard({ metric }: { metric: DashboardMetric }) {
-  const Icon = TREND_ICON[metric.trend];
+  const Icon = metric.trend ? TREND_ICON[metric.trend] : null;
 
   return (
     <Card className="shadow-warm" data-testid={`admin-metric-${metric.id}`}>
@@ -31,11 +31,17 @@ export function MetricCard({ metric }: { metric: DashboardMetric }) {
           {metric.value}
         </span>
         <span className="flex items-center gap-1.5 text-xs">
-          <Icon className={cn("size-3.5", TREND_TINT[metric.trend])} />
-          <span className={cn("numeric font-medium", TREND_TINT[metric.trend])}>
-            {metric.changePct > 0 ? "+" : ""}
-            {metric.changePct}%
-          </span>
+          {Icon && metric.trend ? (
+            <>
+              <Icon className={cn("size-3.5", TREND_TINT[metric.trend])} />
+              <span
+                className={cn("numeric font-medium", TREND_TINT[metric.trend])}
+              >
+                {(metric.changePct ?? 0) > 0 ? "+" : ""}
+                {metric.changePct}%
+              </span>
+            </>
+          ) : null}
           <span className="text-muted-foreground">{metric.hint}</span>
         </span>
       </CardContent>

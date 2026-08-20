@@ -20,10 +20,11 @@ export function getOrder(id: string): Promise<AdminOrderDetail> {
 export function updateOrderStatus(
   id: string,
   status: OrderStatus,
+  note?: string,
 ): Promise<AdminOrderDetail> {
   return apiRequest<AdminOrderDetail>(`/orders/${id}/status`, {
     method: "PATCH",
-    body: { status },
+    body: { status, note },
   });
 }
 

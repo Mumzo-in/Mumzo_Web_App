@@ -1,14 +1,12 @@
 import { apiRequest } from "@/core/api/client";
+import {
+  ORDER_STATUS_META,
+  type OrderStatus,
+  PAYMENT_METHOD_LABELS,
+} from "@/modules/orders";
 import { ageInMonths, getUsersGrowth, listUsers } from "@/modules/users";
 import {
   bucketBabyAges,
-  buildMockCategoryRevenue,
-  buildMockHubRevenue,
-  buildMockNewVsReturning,
-  buildMockOrderStatus,
-  buildMockPaymentMode,
-  buildMockRevenue,
-  buildMockSlaBreachPct,
   type OverviewAnalytics,
   type RecentUserRow,
 } from "../data/overview-analytics-data";
@@ -19,12 +17,42 @@ type UserCounts = {
   newUsersChangePct: number;
 };
 
+type OrderAnalytics = {
+  totalRevenue: number;
+  totalOrders: number;
+  aov: number;
+  revenueTrend: { date: string; revenue: number; orders: number }[];
+  orderStatus: { status: string; count: number }[];
+  hubRevenue: {
+    hubId: string;
+    hubName: string;
+    revenue: number;
+    orders: number;
+  }[];
+  paymentMethod: { method: string; count: number }[];
+};
+
+type CategorySalesPoint = { name: string; value: number };
+
 function getUserCounts(): Promise<UserCounts> {
   return apiRequest<UserCounts>("/dashboard/user-counts");
 }
 
 function getRecentUsers(): Promise<RecentUserRow[]> {
   return apiRequest<RecentUserRow[]>("/dashboard/recent-users");
+}
+
+function getOrderAnalytics(range: {
+  from: string;
+  to: string;
+}): Promise<OrderAnalytics> {
+  return apiRequest<OrderAnalytics>("/dashboard/analytics", {
+    query: range,
+  });
+}
+
+function getCategorySales(): Promise<CategorySalesPoint[]> {
+  return apiRequest<CategorySalesPoint[]>("/dashboard/category-sales");
 }
 
 function formatMoney(rupees: number): string {
@@ -49,56 +77,54 @@ async function getBabyAgeBuckets() {
 }
 
 /**
- * Cross-domain business overview — spec'd at api-plan `GET /admin/analytics`
- * (revenue, orders, users combined), not built server-side.
+ * Cross-domain business overview for the range picked in the UI. Revenue,
+ * order counts, order status, category/hub/payment breakdowns, total users,
+ * user growth, recent signups, and baby-age buckets are all real, sourced
+ * from `GET /admin/v1/dashboard/analytics` + `/category-sales` +
+ * `/user-counts` + `/recent-users` + `/users/growth`.
  *
- * User growth, total-users metric, recent signups, and baby-age buckets are
- * real; revenue/order/category/hub/payment/SLA numbers are deterministic
- * mock data seeded from the date range — there's no `order` table yet, so
- * nothing here is fabricated as if it were live.
+ * Category sales are all-time (that endpoint has no range filter) — every
+ * other series is scoped to the picked `from`/`to`.
  */
 export async function getOverviewAnalytics(range: {
   from: string;
   to: string;
 }): Promise<OverviewAnalytics> {
-  const [userCounts, userGrowth, recentUsers, babyAgeBuckets] =
-    await Promise.all([
-      getUserCounts(),
-      getUsersGrowth(range),
-      getRecentUsers(),
-      getBabyAgeBuckets(),
-    ]);
-
-  const revenue = buildMockRevenue(range.from, range.to);
-  const totalRevenue = revenue.reduce((sum, point) => sum + point.revenue, 0);
-  const totalOrders = revenue.reduce((sum, point) => sum + point.orders, 0);
-  const aov = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+  const [
+    userCounts,
+    userGrowth,
+    recentUsers,
+    babyAgeBuckets,
+    orderAnalytics,
+    categorySales,
+  ] = await Promise.all([
+    getUserCounts(),
+    getUsersGrowth(range),
+    getRecentUsers(),
+    getBabyAgeBuckets(),
+    getOrderAnalytics(range),
+    getCategorySales(),
+  ]);
 
   return {
     metrics: [
       {
         id: "revenue",
         label: "Revenue",
-        value: formatMoney(totalRevenue),
-        changePct: 8.4,
-        trend: "up",
-        hint: "vs previous period",
+        value: formatMoney(orderAnalytics.totalRevenue),
+        hint: "in selected range",
       },
       {
         id: "orders",
         label: "Orders",
-        value: totalOrders.toLocaleString("en-IN"),
-        changePct: 5.1,
-        trend: "up",
-        hint: "vs previous period",
+        value: orderAnalytics.totalOrders.toLocaleString("en-IN"),
+        hint: "in selected range",
       },
       {
         id: "aov",
         label: "Average order value",
-        value: formatMoney(aov),
-        changePct: -1.6,
-        trend: "down",
-        hint: "vs previous period",
+        value: formatMoney(orderAnalytics.aov),
+        hint: "in selected range",
       },
       {
         id: "total-users",
@@ -114,14 +140,24 @@ export async function getOverviewAnalytics(range: {
         hint: `${userCounts.newUsers.toLocaleString("en-IN")} new in last 24h`,
       },
     ],
-    revenue,
-    orderStatus: buildMockOrderStatus(revenue),
-    categoryRevenue: buildMockCategoryRevenue(revenue),
-    hubRevenue: buildMockHubRevenue(revenue),
-    paymentMode: buildMockPaymentMode(revenue),
-    slaBreachPct: buildMockSlaBreachPct(range.from),
+    revenue: orderAnalytics.revenueTrend,
+    orderStatus: orderAnalytics.orderStatus.map((row) => ({
+      status: row.status,
+      label: ORDER_STATUS_META[row.status as OrderStatus]?.label ?? row.status,
+      count: row.count,
+    })),
+    categoryRevenue: categorySales,
+    hubRevenue: orderAnalytics.hubRevenue.map((row) => ({
+      hub: row.hubName,
+      revenue: row.revenue,
+      orders: row.orders,
+    })),
+    paymentMode: orderAnalytics.paymentMethod.map((row) => ({
+      mode: row.method,
+      label: PAYMENT_METHOD_LABELS[row.method] ?? row.method,
+      count: row.count,
+    })),
     userGrowth,
-    newVsReturning: buildMockNewVsReturning(range.from, userCounts.totalUsers),
     babyAgeBuckets,
     recentUsers,
   };

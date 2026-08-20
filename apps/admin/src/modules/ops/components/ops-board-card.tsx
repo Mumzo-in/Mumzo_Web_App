@@ -1,15 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@mumzo/ui/components/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@mumzo/ui/components/dropdown-menu";
 import { cn } from "@mumzo/ui/lib/utils";
-import { GripHorizontal, MoreVertical } from "lucide-react";
-import { formatMoney } from "@/core/components/format";
+import { GripHorizontal, X } from "lucide-react";
+import { formatDateTime, formatMoney } from "@/core/components/format";
 import {
   type AdminOrderSummary,
   PAYMENT_METHOD_LABELS,
@@ -73,53 +67,55 @@ export function OpsBoardCard({
         className="flex cursor-pointer flex-col gap-2 p-3 text-left transition-colors hover:bg-accent/40"
       >
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col gap-0.5">
-            <span className="font-medium text-foreground text-sm">
-              #{order.id.slice(0, 8).toUpperCase()}
-            </span>
-            <span className="text-muted-foreground text-xs">
-              {order.hubName}
-            </span>
-          </div>
+          <span className="font-semibold text-foreground text-sm">
+            #{order.id.slice(0, 8).toUpperCase()}
+          </span>
+          <span className="numeric font-semibold text-foreground text-sm">
+            {formatMoney(order.total)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="numeric text-muted-foreground text-xs">
+            {formatDateTime(order.placedAt)}
+          </span>
+          <span className="text-muted-foreground text-xs">
+            {PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}
+          </span>
         </div>
 
         <div className="flex flex-col gap-0.5">
           <span className="text-foreground text-xs">{order.customerName}</span>
           <span className="numeric text-muted-foreground text-xs">
             {order.itemCount} item{order.itemCount === 1 ? "" : "s"} ·{" "}
-            {formatMoney(order.total)} ·{" "}
-            {PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}
+            {order.hubName}
           </span>
         </div>
       </button>
 
-      <div className="flex items-center justify-end border-border/60 border-t px-1 py-1">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                className="rounded-none p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                data-testid={`ops-board-card-${order.id}-menu`}
-              />
-            }
-          >
-            <MoreVertical className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewDetail(order)}>
-              View detail
-            </DropdownMenuItem>
-            {order.status !== "delivered" && order.status !== "cancelled" && (
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onCancel(order)}
-              >
-                Cancel order
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="flex items-center justify-between border-border/60 border-t">
+        <button
+          type="button"
+          onClick={() => onViewDetail(order)}
+          data-testid={`ops-board-card-${order.id}-view`}
+          className="flex-1 px-2 py-1.5 text-center text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground"
+        >
+          View detail
+        </button>
+        {order.status !== "delivered" && order.status !== "cancelled" && (
+          <>
+            <div className="h-full w-px self-stretch bg-border/60" />
+            <button
+              type="button"
+              onClick={() => onCancel(order)}
+              data-testid={`ops-board-card-${order.id}-cancel`}
+              className="flex flex-1 items-center justify-center gap-1 px-2 py-1.5 text-center text-destructive text-xs transition-colors hover:bg-destructive/10"
+            >
+              <X className="size-3" />
+              Cancel
+            </button>
+          </>
+        )}
       </div>
     </Card>
   );

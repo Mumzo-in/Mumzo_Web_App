@@ -7,9 +7,10 @@ export type DashboardMetric = {
   label: string;
   /** Pre-formatted for display; the real endpoint returns raw + formatted. */
   value: string;
-  /** Percentage change vs the previous period. */
-  changePct: number;
-  trend: MetricTrend;
+  /** Percentage change vs the previous period. Omitted where there's no real
+   * previous-period comparison to show (e.g. an arbitrary date range). */
+  changePct?: number;
+  trend?: MetricTrend;
   hint: string;
 };
 

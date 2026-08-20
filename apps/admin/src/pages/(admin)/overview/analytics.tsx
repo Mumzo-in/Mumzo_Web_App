@@ -5,6 +5,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@mumzo/ui/components/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyTitle,
+} from "@mumzo/ui/components/empty";
 import { Skeleton } from "@mumzo/ui/components/skeleton";
 import {
   Tabs,
@@ -122,7 +127,7 @@ function AnalyticsPage() {
           />
           <HorizontalBarChart
             title="Revenue by Category"
-            description="Top category contribution"
+            description="All-time contribution (not range-filtered)"
             data={data?.categoryRevenue}
             isLoading={isLoading}
             categoryKey="name"
@@ -135,34 +140,14 @@ function AnalyticsPage() {
       </TabsContent>
 
       <TabsContent value="orders" className="flex flex-col gap-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {isLoading || !orderMetrics ? (
-            METRIC_SKELETONS.slice(0, 3).map((key) => (
-              <Skeleton key={key} className="h-32 rounded-2xl" />
-            ))
-          ) : (
-            <>
-              {orderMetrics.map((metric) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading || !orderMetrics
+            ? METRIC_SKELETONS.slice(0, 3).map((key) => (
+                <Skeleton key={key} className="h-32 rounded-2xl" />
+              ))
+            : orderMetrics.map((metric) => (
                 <MetricCard key={metric.id} metric={metric} />
               ))}
-              <Card
-                className="shadow-warm"
-                data-testid="admin-metric-sla-breach"
-              >
-                <CardContent className="flex flex-col gap-2 p-5">
-                  <span className="text-muted-foreground text-sm">
-                    SLA breach rate
-                  </span>
-                  <span className="numeric font-editorial text-3xl tracking-tighter">
-                    {data?.slaBreachPct}%
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    of in-flight orders past promised time
-                  </span>
-                </CardContent>
-              </Card>
-            </>
-          )}
         </div>
 
         <RevenueOrdersChart data={data?.revenue} isLoading={isLoading} />
@@ -226,15 +211,23 @@ function AnalyticsPage() {
         <UserGrowthChart data={data?.userGrowth} isLoading={isLoading} />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <HorizontalBarChart
-            title="New vs Returning"
-            description="Mock — needs order history to compute for real"
-            data={data?.newVsReturning}
-            isLoading={isLoading}
-            categoryKey="label"
-            valueKey="count"
-            valueLabel="Users"
-          />
+          <Card className="shadow-warm">
+            <CardHeader>
+              <CardTitle className="text-lg">New vs Returning</CardTitle>
+              <CardDescription>
+                Needs a purchase-history join to compute for real
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Empty>
+                <EmptyTitle>Not available yet</EmptyTitle>
+                <EmptyDescription>
+                  This needs to be built — repeat-purchase segmentation isn't
+                  wired up on the backend yet.
+                </EmptyDescription>
+              </Empty>
+            </CardContent>
+          </Card>
           <HorizontalBarChart
             title="Baby Age Distribution"
             description="Sampled from registered baby profiles"

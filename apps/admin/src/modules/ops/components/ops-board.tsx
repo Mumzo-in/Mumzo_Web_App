@@ -32,13 +32,14 @@ import {
   updateOrderStatus,
 } from "@/modules/orders";
 import { BOARD_COLUMNS, type BoardColumnStatus } from "../data/ops-board-data";
+import CancelOrderDialog from "./cancel-order-dialog";
 import OpsBoardCard from "./ops-board-card";
 import OpsBoardColumn from "./ops-board-column";
 import OpsBoardToolbar from "./ops-board-toolbar";
 import OpsCancelledBadge from "./ops-cancelled-badge";
 import OrderDetailDialog from "./order-detail-dialog";
 
-const TODAY_RANGE = resolveDateRangePreset("today");
+const DEFAULT_RANGE = resolveDateRangePreset("thisMonth");
 /** Board polls rather than pushing — no websocket infra exists yet. */
 const REFETCH_INTERVAL_MS = 20_000;
 /** Stable empty-array reference for columns with no orders — a fresh `[]`
@@ -58,8 +59,11 @@ function isValidStatus(id: string): id is BoardColumnStatus {
 export function OpsBoard() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [range, setRange] = useState<DateRange>(TODAY_RANGE);
+  const [range, setRange] = useState<DateRange>(DEFAULT_RANGE);
   const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+  const [cancelOrder, setCancelOrder] = useState<AdminOrderSummary | null>(
+    null,
+  );
   const [activeOrder, setActiveOrder] = useState<AdminOrderSummary | null>(
     null,
   );
@@ -113,14 +117,16 @@ export function OpsBoard() {
     return map;
   }, [ordersForDay]);
 
-  const cancelledCount = ordersForDay.filter(
+  const returnedCount = ordersForDay.filter(
     (order) =>
-      order.status === "cancelled" ||
-      order.status === "return_requested" ||
-      order.status === "returned",
+      order.status === "return_requested" || order.status === "returned",
   ).length;
 
-  async function moveOrder(orderId: string, status: OrderStatus) {
+  async function moveOrder(
+    orderId: string,
+    status: OrderStatus,
+    note?: string,
+  ) {
     const previous = queryClient.getQueryData(queryKeys.orders.list(range));
 
     // Optimistic — avoids a visual snap-back while the PATCH is in flight.
@@ -138,7 +144,7 @@ export function OpsBoard() {
     );
 
     try {
-      await updateOrderStatus(orderId, status);
+      await updateOrderStatus(orderId, status, note);
     } catch (error) {
       queryClient.setQueryData(queryKeys.orders.list(range), previous);
       toast.error(
@@ -200,6 +206,11 @@ export function OpsBoard() {
       return;
     }
 
+    if (targetStatus === "cancelled") {
+      setCancelOrder(order);
+      return;
+    }
+
     setPendingMove({ order, targetStatus });
   }
 
@@ -212,7 +223,11 @@ export function OpsBoard() {
   }
 
   function handleCancel(order: AdminOrderSummary) {
-    void moveOrder(order.id, "cancelled");
+    setCancelOrder(order);
+  }
+
+  function handleConfirmCancel(order: AdminOrderSummary, reason: string) {
+    void moveOrder(order.id, "cancelled", reason);
   }
 
   function handleViewDetail(order: AdminOrderSummary) {
@@ -228,7 +243,7 @@ export function OpsBoard() {
         onRangeChange={setRange}
       />
 
-      <OpsCancelledBadge count={cancelledCount} />
+      <OpsCancelledBadge count={returnedCount} />
 
       <DndContext
         sensors={sensors}
@@ -266,6 +281,14 @@ export function OpsBoard() {
         onOpenChange={(open) => {
           if (!open) setDetailOrderId(null);
         }}
+      />
+
+      <CancelOrderDialog
+        order={cancelOrder}
+        onOpenChange={(open) => {
+          if (!open) setCancelOrder(null);
+        }}
+        onConfirm={handleConfirmCancel}
       />
 
       <AlertDialog
