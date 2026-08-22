@@ -9,6 +9,7 @@ import couponsRoutes from "./coupons/coupons.module";
 import customerEventsRoutes from "./customer-events/customer-events.module";
 import dashboardRoutes from "./dashboard";
 import devicesRoutes from "./devices/devices.module";
+import expensesRoutes from "./expenses/expenses.module";
 import hubsRoutes from "./hubs/hubs.module";
 import inventoryRoutes from "./inventory/inventory.module";
 import ordersRoutes from "./orders/orders.module";
@@ -44,6 +45,7 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/orders", router: ordersRoutes },
   { path: "/referrals", router: referralsRoutes },
   { path: "/hubs", router: hubsRoutes },
+  { path: "/expenses", router: expensesRoutes },
   { path: "/refunds", router: refundsRoutes },
   { path: "/service-areas", router: serviceAreasRoutes },
   { path: "/inventory", router: inventoryRoutes },

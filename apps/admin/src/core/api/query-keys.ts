@@ -46,6 +46,12 @@ export const queryKeys = {
   },
   bundles: domainKeys("bundles"),
   hubs: domainKeys("hubs"),
+  expenses: {
+    ...domainKeys("expenses"),
+    summary: (params: ListParams = {}) =>
+      ["expenses", "summary", params] as const,
+    riders: () => ["expenses", "riders"] as const,
+  },
   serviceAreas: domainKeys("service-areas"),
   inventory: domainKeys("inventory"),
   /** Categories are keyed by slug, not id (api-plan §15c). */

@@ -15,6 +15,7 @@ import { Route as adminIndexRouteImport } from './pages/(admin)/index'
 import { Route as AuthLoginRouteImport } from './pages/auth/login'
 import { Route as adminStaffIndexRouteImport } from './pages/(admin)/staff/index'
 import { Route as adminRolesIndexRouteImport } from './pages/(admin)/roles/index'
+import { Route as adminExpensesIndexRouteImport } from './pages/(admin)/expenses/index'
 import { Route as adminStaffAuditLogRouteImport } from './pages/(admin)/staff/audit-log'
 import { Route as adminSettingsProfileRouteImport } from './pages/(admin)/settings/profile'
 import { Route as adminSettingsActivityLogsRouteImport } from './pages/(admin)/settings/activity-logs'
@@ -32,6 +33,7 @@ import { Route as adminFinanceTaxRouteImport } from './pages/(admin)/finance/tax
 import { Route as adminFinanceRefundsRouteImport } from './pages/(admin)/finance/refunds'
 import { Route as adminFinanceReconciliationRouteImport } from './pages/(admin)/finance/reconciliation'
 import { Route as adminFinanceCampaignsRouteImport } from './pages/(admin)/finance/campaigns'
+import { Route as adminExpensesNewRouteImport } from './pages/(admin)/expenses/new'
 import { Route as adminCustomersSegmentsRouteImport } from './pages/(admin)/customers/segments'
 import { Route as adminCustomersReviewsRouteImport } from './pages/(admin)/customers/reviews'
 import { Route as adminCustomersJourneysRouteImport } from './pages/(admin)/customers/journeys'
@@ -44,6 +46,7 @@ import { Route as adminLegalPagesIndexRouteImport } from './pages/(admin)/legal/
 import { Route as adminFinanceSubscriptionsIndexRouteImport } from './pages/(admin)/finance/subscriptions/index'
 import { Route as adminFinancePaymentsIndexRouteImport } from './pages/(admin)/finance/payments/index'
 import { Route as adminFinanceCouponsIndexRouteImport } from './pages/(admin)/finance/coupons/index'
+import { Route as adminExpensesExpenseIdIndexRouteImport } from './pages/(admin)/expenses/$expenseId/index'
 import { Route as adminCustomersBroadcastsIndexRouteImport } from './pages/(admin)/customers/broadcasts/index'
 import { Route as adminCatalogVendorsIndexRouteImport } from './pages/(admin)/catalog/vendors/index'
 import { Route as adminCatalogProductsIndexRouteImport } from './pages/(admin)/catalog/products/index'
@@ -62,6 +65,7 @@ import { Route as adminFinanceSubscriptionsUpcomingRouteImport } from './pages/(
 import { Route as adminFinancePaymentsFailedRouteImport } from './pages/(admin)/finance/payments/failed'
 import { Route as adminFinancePaymentsPaymentIdRouteImport } from './pages/(admin)/finance/payments/$paymentId'
 import { Route as adminFinanceCouponsNewRouteImport } from './pages/(admin)/finance/coupons/new'
+import { Route as adminExpensesExpenseIdEditRouteImport } from './pages/(admin)/expenses/$expenseId/edit'
 import { Route as adminCustomersBroadcastsNewRouteImport } from './pages/(admin)/customers/broadcasts/new'
 import { Route as adminCatalogVendorsNewRouteImport } from './pages/(admin)/catalog/vendors/new'
 import { Route as adminCatalogProductsNewRouteImport } from './pages/(admin)/catalog/products/new'
@@ -109,6 +113,11 @@ const adminStaffIndexRoute = adminStaffIndexRouteImport.update({
 const adminRolesIndexRoute = adminRolesIndexRouteImport.update({
   id: '/roles/',
   path: '/roles/',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
+const adminExpensesIndexRoute = adminExpensesIndexRouteImport.update({
+  id: '/expenses/',
+  path: '/expenses/',
   getParentRoute: () => adminLayoutRoute,
 } as any)
 const adminStaffAuditLogRoute = adminStaffAuditLogRouteImport.update({
@@ -201,6 +210,11 @@ const adminFinanceCampaignsRoute = adminFinanceCampaignsRouteImport.update({
   path: '/finance/campaigns',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminExpensesNewRoute = adminExpensesNewRouteImport.update({
+  id: '/expenses/new',
+  path: '/expenses/new',
+  getParentRoute: () => adminLayoutRoute,
+} as any)
 const adminCustomersSegmentsRoute = adminCustomersSegmentsRouteImport.update({
   id: '/customers/segments',
   path: '/customers/segments',
@@ -265,6 +279,12 @@ const adminFinanceCouponsIndexRoute =
   adminFinanceCouponsIndexRouteImport.update({
     id: '/finance/coupons/',
     path: '/finance/coupons/',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
+const adminExpensesExpenseIdIndexRoute =
+  adminExpensesExpenseIdIndexRouteImport.update({
+    id: '/expenses/$expenseId/',
+    path: '/expenses/$expenseId/',
     getParentRoute: () => adminLayoutRoute,
   } as any)
 const adminCustomersBroadcastsIndexRoute =
@@ -370,6 +390,12 @@ const adminFinanceCouponsNewRoute = adminFinanceCouponsNewRouteImport.update({
   path: '/finance/coupons/new',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminExpensesExpenseIdEditRoute =
+  adminExpensesExpenseIdEditRouteImport.update({
+    id: '/expenses/$expenseId/edit',
+    path: '/expenses/$expenseId/edit',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminCustomersBroadcastsNewRoute =
   adminCustomersBroadcastsNewRouteImport.update({
     id: '/customers/broadcasts/new',
@@ -490,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/customers/journeys': typeof adminCustomersJourneysRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
   '/customers/segments': typeof adminCustomersSegmentsRoute
+  '/expenses/new': typeof adminExpensesNewRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/finance/reconciliation': typeof adminFinanceReconciliationRoute
   '/finance/refunds': typeof adminFinanceRefundsRoute
@@ -507,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/expenses/': typeof adminExpensesIndexRoute
   '/roles/': typeof adminRolesIndexRoute
   '/staff/': typeof adminStaffIndexRoute
   '/catalog/brands/new': typeof adminCatalogBrandsNewRoute
@@ -517,6 +545,7 @@ export interface FileRoutesByFullPath {
   '/catalog/products/new': typeof adminCatalogProductsNewRoute
   '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
+  '/expenses/$expenseId/edit': typeof adminExpensesExpenseIdEditRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -535,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/catalog/products/': typeof adminCatalogProductsIndexRoute
   '/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
+  '/expenses/$expenseId/': typeof adminExpensesExpenseIdIndexRoute
   '/finance/coupons/': typeof adminFinanceCouponsIndexRoute
   '/finance/payments/': typeof adminFinancePaymentsIndexRoute
   '/finance/subscriptions/': typeof adminFinanceSubscriptionsIndexRoute
@@ -563,6 +593,7 @@ export interface FileRoutesByTo {
   '/customers/journeys': typeof adminCustomersJourneysRoute
   '/customers/reviews': typeof adminCustomersReviewsRoute
   '/customers/segments': typeof adminCustomersSegmentsRoute
+  '/expenses/new': typeof adminExpensesNewRoute
   '/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/finance/reconciliation': typeof adminFinanceReconciliationRoute
   '/finance/refunds': typeof adminFinanceRefundsRoute
@@ -580,6 +611,7 @@ export interface FileRoutesByTo {
   '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/expenses': typeof adminExpensesIndexRoute
   '/roles': typeof adminRolesIndexRoute
   '/staff': typeof adminStaffIndexRoute
   '/catalog/brands/new': typeof adminCatalogBrandsNewRoute
@@ -590,6 +622,7 @@ export interface FileRoutesByTo {
   '/catalog/products/new': typeof adminCatalogProductsNewRoute
   '/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
+  '/expenses/$expenseId/edit': typeof adminExpensesExpenseIdEditRoute
   '/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -608,6 +641,7 @@ export interface FileRoutesByTo {
   '/catalog/products': typeof adminCatalogProductsIndexRoute
   '/catalog/vendors': typeof adminCatalogVendorsIndexRoute
   '/customers/broadcasts': typeof adminCustomersBroadcastsIndexRoute
+  '/expenses/$expenseId': typeof adminExpensesExpenseIdIndexRoute
   '/finance/coupons': typeof adminFinanceCouponsIndexRoute
   '/finance/payments': typeof adminFinancePaymentsIndexRoute
   '/finance/subscriptions': typeof adminFinanceSubscriptionsIndexRoute
@@ -638,6 +672,7 @@ export interface FileRoutesById {
   '/(admin)/customers/journeys': typeof adminCustomersJourneysRoute
   '/(admin)/customers/reviews': typeof adminCustomersReviewsRoute
   '/(admin)/customers/segments': typeof adminCustomersSegmentsRoute
+  '/(admin)/expenses/new': typeof adminExpensesNewRoute
   '/(admin)/finance/campaigns': typeof adminFinanceCampaignsRoute
   '/(admin)/finance/reconciliation': typeof adminFinanceReconciliationRoute
   '/(admin)/finance/refunds': typeof adminFinanceRefundsRoute
@@ -655,6 +690,7 @@ export interface FileRoutesById {
   '/(admin)/settings/activity-logs': typeof adminSettingsActivityLogsRoute
   '/(admin)/settings/profile': typeof adminSettingsProfileRoute
   '/(admin)/staff/audit-log': typeof adminStaffAuditLogRoute
+  '/(admin)/expenses/': typeof adminExpensesIndexRoute
   '/(admin)/roles/': typeof adminRolesIndexRoute
   '/(admin)/staff/': typeof adminStaffIndexRoute
   '/(admin)/catalog/brands/new': typeof adminCatalogBrandsNewRoute
@@ -665,6 +701,7 @@ export interface FileRoutesById {
   '/(admin)/catalog/products/new': typeof adminCatalogProductsNewRoute
   '/(admin)/catalog/vendors/new': typeof adminCatalogVendorsNewRoute
   '/(admin)/customers/broadcasts/new': typeof adminCustomersBroadcastsNewRoute
+  '/(admin)/expenses/$expenseId/edit': typeof adminExpensesExpenseIdEditRoute
   '/(admin)/finance/coupons/new': typeof adminFinanceCouponsNewRoute
   '/(admin)/finance/payments/$paymentId': typeof adminFinancePaymentsPaymentIdRoute
   '/(admin)/finance/payments/failed': typeof adminFinancePaymentsFailedRoute
@@ -683,6 +720,7 @@ export interface FileRoutesById {
   '/(admin)/catalog/products/': typeof adminCatalogProductsIndexRoute
   '/(admin)/catalog/vendors/': typeof adminCatalogVendorsIndexRoute
   '/(admin)/customers/broadcasts/': typeof adminCustomersBroadcastsIndexRoute
+  '/(admin)/expenses/$expenseId/': typeof adminExpensesExpenseIdIndexRoute
   '/(admin)/finance/coupons/': typeof adminFinanceCouponsIndexRoute
   '/(admin)/finance/payments/': typeof adminFinancePaymentsIndexRoute
   '/(admin)/finance/subscriptions/': typeof adminFinanceSubscriptionsIndexRoute
@@ -713,6 +751,7 @@ export interface FileRouteTypes {
     | '/customers/journeys'
     | '/customers/reviews'
     | '/customers/segments'
+    | '/expenses/new'
     | '/finance/campaigns'
     | '/finance/reconciliation'
     | '/finance/refunds'
@@ -730,6 +769,7 @@ export interface FileRouteTypes {
     | '/settings/activity-logs'
     | '/settings/profile'
     | '/staff/audit-log'
+    | '/expenses/'
     | '/roles/'
     | '/staff/'
     | '/catalog/brands/new'
@@ -740,6 +780,7 @@ export interface FileRouteTypes {
     | '/catalog/products/new'
     | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
+    | '/expenses/$expenseId/edit'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
     | '/finance/payments/failed'
@@ -758,6 +799,7 @@ export interface FileRouteTypes {
     | '/catalog/products/'
     | '/catalog/vendors/'
     | '/customers/broadcasts/'
+    | '/expenses/$expenseId/'
     | '/finance/coupons/'
     | '/finance/payments/'
     | '/finance/subscriptions/'
@@ -786,6 +828,7 @@ export interface FileRouteTypes {
     | '/customers/journeys'
     | '/customers/reviews'
     | '/customers/segments'
+    | '/expenses/new'
     | '/finance/campaigns'
     | '/finance/reconciliation'
     | '/finance/refunds'
@@ -803,6 +846,7 @@ export interface FileRouteTypes {
     | '/settings/activity-logs'
     | '/settings/profile'
     | '/staff/audit-log'
+    | '/expenses'
     | '/roles'
     | '/staff'
     | '/catalog/brands/new'
@@ -813,6 +857,7 @@ export interface FileRouteTypes {
     | '/catalog/products/new'
     | '/catalog/vendors/new'
     | '/customers/broadcasts/new'
+    | '/expenses/$expenseId/edit'
     | '/finance/coupons/new'
     | '/finance/payments/$paymentId'
     | '/finance/payments/failed'
@@ -831,6 +876,7 @@ export interface FileRouteTypes {
     | '/catalog/products'
     | '/catalog/vendors'
     | '/customers/broadcasts'
+    | '/expenses/$expenseId'
     | '/finance/coupons'
     | '/finance/payments'
     | '/finance/subscriptions'
@@ -860,6 +906,7 @@ export interface FileRouteTypes {
     | '/(admin)/customers/journeys'
     | '/(admin)/customers/reviews'
     | '/(admin)/customers/segments'
+    | '/(admin)/expenses/new'
     | '/(admin)/finance/campaigns'
     | '/(admin)/finance/reconciliation'
     | '/(admin)/finance/refunds'
@@ -877,6 +924,7 @@ export interface FileRouteTypes {
     | '/(admin)/settings/activity-logs'
     | '/(admin)/settings/profile'
     | '/(admin)/staff/audit-log'
+    | '/(admin)/expenses/'
     | '/(admin)/roles/'
     | '/(admin)/staff/'
     | '/(admin)/catalog/brands/new'
@@ -887,6 +935,7 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/products/new'
     | '/(admin)/catalog/vendors/new'
     | '/(admin)/customers/broadcasts/new'
+    | '/(admin)/expenses/$expenseId/edit'
     | '/(admin)/finance/coupons/new'
     | '/(admin)/finance/payments/$paymentId'
     | '/(admin)/finance/payments/failed'
@@ -905,6 +954,7 @@ export interface FileRouteTypes {
     | '/(admin)/catalog/products/'
     | '/(admin)/catalog/vendors/'
     | '/(admin)/customers/broadcasts/'
+    | '/(admin)/expenses/$expenseId/'
     | '/(admin)/finance/coupons/'
     | '/(admin)/finance/payments/'
     | '/(admin)/finance/subscriptions/'
@@ -972,6 +1022,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/roles/'
       preLoaderRoute: typeof adminRolesIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/expenses/': {
+      id: '/(admin)/expenses/'
+      path: '/expenses'
+      fullPath: '/expenses/'
+      preLoaderRoute: typeof adminExpensesIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/staff/audit-log': {
@@ -1093,6 +1150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminFinanceCampaignsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
+    '/(admin)/expenses/new': {
+      id: '/(admin)/expenses/new'
+      path: '/expenses/new'
+      fullPath: '/expenses/new'
+      preLoaderRoute: typeof adminExpensesNewRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
     '/(admin)/customers/segments': {
       id: '/(admin)/customers/segments'
       path: '/customers/segments'
@@ -1175,6 +1239,13 @@ declare module '@tanstack/react-router' {
       path: '/finance/coupons'
       fullPath: '/finance/coupons/'
       preLoaderRoute: typeof adminFinanceCouponsIndexRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/expenses/$expenseId/': {
+      id: '/(admin)/expenses/$expenseId/'
+      path: '/expenses/$expenseId'
+      fullPath: '/expenses/$expenseId/'
+      preLoaderRoute: typeof adminExpensesExpenseIdIndexRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/customers/broadcasts/': {
@@ -1301,6 +1372,13 @@ declare module '@tanstack/react-router' {
       path: '/finance/coupons/new'
       fullPath: '/finance/coupons/new'
       preLoaderRoute: typeof adminFinanceCouponsNewRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/expenses/$expenseId/edit': {
+      id: '/(admin)/expenses/$expenseId/edit'
+      path: '/expenses/$expenseId/edit'
+      fullPath: '/expenses/$expenseId/edit'
+      preLoaderRoute: typeof adminExpensesExpenseIdEditRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/customers/broadcasts/new': {
@@ -1447,6 +1525,7 @@ interface adminLayoutRouteChildren {
   adminCustomersJourneysRoute: typeof adminCustomersJourneysRoute
   adminCustomersReviewsRoute: typeof adminCustomersReviewsRoute
   adminCustomersSegmentsRoute: typeof adminCustomersSegmentsRoute
+  adminExpensesNewRoute: typeof adminExpensesNewRoute
   adminFinanceCampaignsRoute: typeof adminFinanceCampaignsRoute
   adminFinanceReconciliationRoute: typeof adminFinanceReconciliationRoute
   adminFinanceRefundsRoute: typeof adminFinanceRefundsRoute
@@ -1464,6 +1543,7 @@ interface adminLayoutRouteChildren {
   adminSettingsActivityLogsRoute: typeof adminSettingsActivityLogsRoute
   adminSettingsProfileRoute: typeof adminSettingsProfileRoute
   adminStaffAuditLogRoute: typeof adminStaffAuditLogRoute
+  adminExpensesIndexRoute: typeof adminExpensesIndexRoute
   adminRolesIndexRoute: typeof adminRolesIndexRoute
   adminStaffIndexRoute: typeof adminStaffIndexRoute
   adminCatalogBrandsNewRoute: typeof adminCatalogBrandsNewRoute
@@ -1474,6 +1554,7 @@ interface adminLayoutRouteChildren {
   adminCatalogProductsNewRoute: typeof adminCatalogProductsNewRoute
   adminCatalogVendorsNewRoute: typeof adminCatalogVendorsNewRoute
   adminCustomersBroadcastsNewRoute: typeof adminCustomersBroadcastsNewRoute
+  adminExpensesExpenseIdEditRoute: typeof adminExpensesExpenseIdEditRoute
   adminFinanceCouponsNewRoute: typeof adminFinanceCouponsNewRoute
   adminFinancePaymentsPaymentIdRoute: typeof adminFinancePaymentsPaymentIdRoute
   adminFinancePaymentsFailedRoute: typeof adminFinancePaymentsFailedRoute
@@ -1492,6 +1573,7 @@ interface adminLayoutRouteChildren {
   adminCatalogProductsIndexRoute: typeof adminCatalogProductsIndexRoute
   adminCatalogVendorsIndexRoute: typeof adminCatalogVendorsIndexRoute
   adminCustomersBroadcastsIndexRoute: typeof adminCustomersBroadcastsIndexRoute
+  adminExpensesExpenseIdIndexRoute: typeof adminExpensesExpenseIdIndexRoute
   adminFinanceCouponsIndexRoute: typeof adminFinanceCouponsIndexRoute
   adminFinancePaymentsIndexRoute: typeof adminFinancePaymentsIndexRoute
   adminFinanceSubscriptionsIndexRoute: typeof adminFinanceSubscriptionsIndexRoute
@@ -1519,6 +1601,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCustomersJourneysRoute: adminCustomersJourneysRoute,
   adminCustomersReviewsRoute: adminCustomersReviewsRoute,
   adminCustomersSegmentsRoute: adminCustomersSegmentsRoute,
+  adminExpensesNewRoute: adminExpensesNewRoute,
   adminFinanceCampaignsRoute: adminFinanceCampaignsRoute,
   adminFinanceReconciliationRoute: adminFinanceReconciliationRoute,
   adminFinanceRefundsRoute: adminFinanceRefundsRoute,
@@ -1536,6 +1619,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminSettingsActivityLogsRoute: adminSettingsActivityLogsRoute,
   adminSettingsProfileRoute: adminSettingsProfileRoute,
   adminStaffAuditLogRoute: adminStaffAuditLogRoute,
+  adminExpensesIndexRoute: adminExpensesIndexRoute,
   adminRolesIndexRoute: adminRolesIndexRoute,
   adminStaffIndexRoute: adminStaffIndexRoute,
   adminCatalogBrandsNewRoute: adminCatalogBrandsNewRoute,
@@ -1546,6 +1630,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogProductsNewRoute: adminCatalogProductsNewRoute,
   adminCatalogVendorsNewRoute: adminCatalogVendorsNewRoute,
   adminCustomersBroadcastsNewRoute: adminCustomersBroadcastsNewRoute,
+  adminExpensesExpenseIdEditRoute: adminExpensesExpenseIdEditRoute,
   adminFinanceCouponsNewRoute: adminFinanceCouponsNewRoute,
   adminFinancePaymentsPaymentIdRoute: adminFinancePaymentsPaymentIdRoute,
   adminFinancePaymentsFailedRoute: adminFinancePaymentsFailedRoute,
@@ -1565,6 +1650,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminCatalogProductsIndexRoute: adminCatalogProductsIndexRoute,
   adminCatalogVendorsIndexRoute: adminCatalogVendorsIndexRoute,
   adminCustomersBroadcastsIndexRoute: adminCustomersBroadcastsIndexRoute,
+  adminExpensesExpenseIdIndexRoute: adminExpensesExpenseIdIndexRoute,
   adminFinanceCouponsIndexRoute: adminFinanceCouponsIndexRoute,
   adminFinancePaymentsIndexRoute: adminFinancePaymentsIndexRoute,
   adminFinanceSubscriptionsIndexRoute: adminFinanceSubscriptionsIndexRoute,

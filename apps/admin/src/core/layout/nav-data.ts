@@ -148,14 +148,7 @@ export const NAV_SECTIONS: NavSection[] = [
     groups: [
       {
         label: "Ledger",
-        items: [
-          { label: "All Expenses", to: "/expenses", comingSoon: true },
-          {
-            label: "Claims & Payouts",
-            to: "/expenses/payouts",
-            comingSoon: true,
-          },
-        ],
+        items: [{ label: "All Expenses", to: "/expenses" }],
       },
     ],
   },
