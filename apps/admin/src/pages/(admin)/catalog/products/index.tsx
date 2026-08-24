@@ -1,6 +1,6 @@
 import { Button } from "@mumzo/ui/components/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { z } from "zod";
 import PageHeader from "@/core/components/page-header";
 import { ProductTable } from "@/modules/product";
@@ -17,21 +17,34 @@ export const Route = createFileRoute("/(admin)/catalog/products/")({
 
 function RouteComponent() {
   const canCreate = usePermission("product", "create");
+  const canImport = usePermission("import", "create");
   const { stock } = Route.useSearch();
 
   return (
     <>
       <PageHeader
         actions={
-          canCreate ? (
-            <Button
-              data-testid="admin-products-new"
-              render={<Link to="/catalog/products/new" />}
-            >
-              <Plus data-icon="inline-start" />
-              New product
-            </Button>
-          ) : undefined
+          <div className="flex gap-2">
+            {canImport && (
+              <Button
+                data-testid="admin-products-bulk-import"
+                variant="outline"
+                render={<Link to="/catalog/products/bulk" />}
+              >
+                <Upload data-icon="inline-start" />
+                Bulk import
+              </Button>
+            )}
+            {canCreate && (
+              <Button
+                data-testid="admin-products-new"
+                render={<Link to="/catalog/products/new" />}
+              >
+                <Plus data-icon="inline-start" />
+                New product
+              </Button>
+            )}
+          </div>
         }
         description={
           stock === "low"
