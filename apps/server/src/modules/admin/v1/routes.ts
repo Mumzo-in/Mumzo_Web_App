@@ -11,6 +11,7 @@ import dashboardRoutes from "./dashboard";
 import devicesRoutes from "./devices/devices.module";
 import expensesRoutes from "./expenses/expenses.module";
 import hubsRoutes from "./hubs/hubs.module";
+import importsRoutes from "./imports/imports.module";
 import inventoryRoutes from "./inventory/inventory.module";
 import ordersRoutes from "./orders/orders.module";
 import productsRoutes from "./products/products.module";
@@ -45,6 +46,7 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/orders", router: ordersRoutes },
   { path: "/referrals", router: referralsRoutes },
   { path: "/hubs", router: hubsRoutes },
+  { path: "/imports", router: importsRoutes },
   { path: "/expenses", router: expensesRoutes },
   { path: "/refunds", router: refundsRoutes },
   { path: "/service-areas", router: serviceAreasRoutes },

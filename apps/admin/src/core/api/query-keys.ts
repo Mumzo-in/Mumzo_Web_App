@@ -99,4 +99,8 @@ export const queryKeys = {
       ["referral-participants", "invites", participantId] as const,
     coupons: domainKeys("referral-coupons"),
   },
+  imports: {
+    job: (id: string) => ["imports", "job", id] as const,
+    jobErrors: (id: string) => ["imports", "job-errors", id] as const,
+  },
 } as const;

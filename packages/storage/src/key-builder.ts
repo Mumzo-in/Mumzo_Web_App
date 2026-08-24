@@ -31,7 +31,7 @@ export function buildTmpKey(sessionId: string, slot: string): string {
  *   → "mumzo/private/invoices/ord_abc/invoice.pdf"
  */
 export function buildPrivateKey(
-  entity: "invoices" | "exports",
+  entity: "invoices" | "exports" | "imports",
   id: string,
   filename: string,
 ): string {

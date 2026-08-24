@@ -1,6 +1,7 @@
 export { r2 } from "./client";
 export { copyObject } from "./copy";
 export { deleteObject, deleteObjects } from "./delete";
+export { getObject } from "./download";
 export {
   buildKey,
   buildPrivateKey,

@@ -43,6 +43,7 @@ export const statement = {
   report: ["read", "export"],
   upload: ["create", "delete"],
   activityLog: ["read"],
+  import: ["create", "read"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -70,6 +71,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   report: "Reports",
   upload: "Media uploads",
   activityLog: "Activity logs",
+  import: "Bulk imports",
 };
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -146,6 +148,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       report: ["read", "export"],
       upload: ["create", "delete"],
       activityLog: ["read"],
+      import: ["create", "read"],
     },
   },
   {
@@ -172,6 +175,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       report: ["read", "export"],
       upload: ["create", "delete"],
       activityLog: ["read"],
+      import: ["create", "read"],
     },
   },
   {
@@ -187,6 +191,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
       review: ["read", "moderate"],
       report: ["read"],
       upload: ["create", "delete"],
+      import: ["create", "read"],
     },
   },
   {
