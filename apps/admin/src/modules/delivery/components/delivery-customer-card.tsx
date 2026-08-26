@@ -9,6 +9,7 @@ import {
 import { Separator } from "@mumzo/ui/components/separator";
 import { MapPin, Navigation, Phone } from "lucide-react";
 import type { DeliveryRun } from "../data/delivery-data";
+import { buildDirectionsUrl } from "../data/maps";
 
 type DeliveryCustomerCardProps = {
   run: DeliveryRun;
@@ -17,10 +18,9 @@ type DeliveryCustomerCardProps = {
 /** Who and where — the two things a rider looks at first, with one-tap call
  * and navigate actions since this is read on a phone at the door. */
 export function DeliveryCustomerCard({ run }: DeliveryCustomerCardProps) {
-  const mapsHref =
-    run.latitude !== null && run.longitude !== null
-      ? `https://www.google.com/maps/search/?api=1&query=${run.latitude},${run.longitude}`
-      : null;
+  // Works from coordinates when the address has them, and from the address
+  // text when it does not — so the button is never dead.
+  const directionsHref = buildDirectionsUrl(run);
 
   return (
     <Card data-testid="delivery-customer-card">
@@ -68,15 +68,16 @@ export function DeliveryCustomerCard({ run }: DeliveryCustomerCardProps) {
             <Phone data-icon />
             Call
           </Button>
-          {mapsHref ? (
+          {directionsHref ? (
             <Button
-              variant="outline"
               className="flex-1"
-              data-testid="delivery-navigate"
-              render={<a href={mapsHref} target="_blank" rel="noreferrer" />}
+              data-testid="delivery-directions"
+              render={
+                <a href={directionsHref} target="_blank" rel="noreferrer" />
+              }
             >
               <Navigation data-icon />
-              Navigate
+              Directions
             </Button>
           ) : null}
         </div>

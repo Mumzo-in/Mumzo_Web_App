@@ -395,6 +395,8 @@ export async function getOrder(orderId: string) {
     addressLandmark: row.order.addressLandmark,
     addressPincode: row.order.addressPincode,
     addressCity: row.order.addressCity,
+    addressLat: row.order.addressLat,
+    addressLng: row.order.addressLng,
     subtotal: toWholeRupees(row.order.subtotal),
     gstAmount: toWholeRupees(row.order.gstAmount),
     deliveryFee: toWholeRupees(row.order.deliveryFee),

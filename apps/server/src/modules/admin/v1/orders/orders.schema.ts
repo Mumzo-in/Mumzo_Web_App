@@ -119,6 +119,8 @@ export const orderDetailSchema = z
     addressLandmark: z.string().nullable(),
     addressPincode: z.string(),
     addressCity: z.string(),
+    addressLat: z.number().nullable(),
+    addressLng: z.number().nullable(),
     subtotal: z.number().int(),
     gstAmount: z.number().int(),
     deliveryFee: z.number().int(),

@@ -156,8 +156,8 @@ async function buildRun(token: string, orderId: string, riderId: string) {
     addressLandmark: detail.addressLandmark,
     addressCity: detail.addressCity,
     addressPincode: detail.addressPincode,
-    latitude: null,
-    longitude: null,
+    latitude: detail.addressLat,
+    longitude: detail.addressLng,
     hubName: detail.hubName,
     itemCount: detail.items.reduce((sum, item) => sum + item.qty, 0),
     items: detail.items.map((item) => ({

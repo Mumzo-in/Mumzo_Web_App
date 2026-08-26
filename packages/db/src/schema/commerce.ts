@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  doublePrecision,
   index,
   integer,
   pgTable,
@@ -118,6 +119,11 @@ export const order = pgTable(
     addressLandmark: text("address_landmark"),
     addressPincode: text("address_pincode").notNull(),
     addressCity: text("address_city").notNull(),
+    /** Part of the same snapshot — nullable because only addresses resolved
+     * via the map picker carry coordinates. Riders navigate by these when
+     * present and by the address text otherwise. */
+    addressLat: doublePrecision("address_lat"),
+    addressLng: doublePrecision("address_lng"),
 
     /** All amounts in integer paise. */
     subtotal: integer("subtotal").notNull(),
