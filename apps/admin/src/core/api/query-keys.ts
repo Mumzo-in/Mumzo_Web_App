@@ -53,6 +53,7 @@ export const queryKeys = {
     riders: () => ["expenses", "riders"] as const,
   },
   serviceAreas: domainKeys("service-areas"),
+  riders: domainKeys("riders"),
   inventory: domainKeys("inventory"),
   /** Categories are keyed by slug, not id (api-plan §15c). */
   categories: {

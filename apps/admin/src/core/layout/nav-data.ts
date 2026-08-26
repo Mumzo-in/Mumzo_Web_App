@@ -68,7 +68,10 @@ export const NAV_SECTIONS: NavSection[] = [
     groups: [
       {
         label: "Fulfillment",
-        items: [{ label: "Orders", to: "/operations/orders" }],
+        items: [
+          { label: "Orders", to: "/operations/orders" },
+          { label: "Delivery Partners", to: "/operations/riders" },
+        ],
       },
       {
         label: "Catalog",

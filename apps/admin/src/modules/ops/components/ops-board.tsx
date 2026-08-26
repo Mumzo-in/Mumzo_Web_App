@@ -25,13 +25,19 @@ import { toast } from "sonner";
 import { queryKeys } from "@/core/api/query-keys";
 import type { DateRange } from "@/core/components/date-range/date-range-presets";
 import { resolveDateRangePreset } from "@/core/components/date-range/date-range-presets";
+import { DeliveryLinkDialog } from "@/modules/delivery";
 import {
   type AdminOrderSummary,
   listOrders,
   type OrderStatus,
   updateOrderStatus,
 } from "@/modules/orders";
-import { BOARD_COLUMNS, type BoardColumnStatus } from "../data/ops-board-data";
+import { type Rider, RiderPickerDialog } from "@/modules/riders";
+import {
+  BOARD_COLUMNS,
+  type BoardColumnStatus,
+  OPTIONAL_COLUMN_STATUSES,
+} from "../data/ops-board-data";
 import CancelOrderDialog from "./cancel-order-dialog";
 import OpsBoardCard from "./ops-board-card";
 import OpsBoardColumn from "./ops-board-column";
@@ -67,6 +73,13 @@ export function OpsBoard() {
   const [activeOrder, setActiveOrder] = useState<AdminOrderSummary | null>(
     null,
   );
+  /** Order whose delivery link is being shared — set when a move lands in
+   * `out_for_delivery`, so ops is handed the rider link immediately. */
+  const [linkOrder, setLinkOrder] = useState<AdminOrderSummary | null>(null);
+  /** Dispatch staged behind the rider picker — `out_for_delivery` needs a
+   * rider before the move can go through. */
+  const [pendingDispatch, setPendingDispatch] =
+    useState<AdminOrderSummary | null>(null);
   /** Staged forward move awaiting an explicit "are you sure" confirmation. */
   const [pendingMove, setPendingMove] = useState<{
     order: AdminOrderSummary;
@@ -126,6 +139,7 @@ export function OpsBoard() {
     orderId: string,
     status: OrderStatus,
     note?: string,
+    riderId?: string,
   ) {
     const previous = queryClient.getQueryData(queryKeys.orders.list(range));
 
@@ -144,7 +158,7 @@ export function OpsBoard() {
     );
 
     try {
-      await updateOrderStatus(orderId, status, note);
+      await updateOrderStatus(orderId, status, note, riderId);
     } catch (error) {
       queryClient.setQueryData(queryKeys.orders.list(range), previous);
       toast.error(
@@ -211,15 +225,78 @@ export function OpsBoard() {
       return;
     }
 
+    // A forward drag may jump over optional steps only. Any *required* step
+    // in between has to be walked through — mirrors ALLOWED_TRANSITIONS on
+    // the server, which is the real gate.
+    const skippedRequired = BOARD_COLUMNS.slice(
+      originIndex + 1,
+      targetIndex,
+    ).filter(
+      (column) =>
+        column.status !== "cancelled" &&
+        !OPTIONAL_COLUMN_STATUSES.includes(column.status),
+    );
+
+    if (skippedRequired.length > 0) {
+      toast.error(
+        `Move the order through ${skippedRequired
+          .map((column) => `"${column.label}"`)
+          .join(" and ")} first.`,
+      );
+      return;
+    }
+
     setPendingMove({ order, targetStatus });
   }
+
+  /** Optional columns a staged move jumps over — surfaced in the confirm
+   * dialog so skipping a step is deliberate rather than accidental. */
+  const skippedLabels = useMemo(() => {
+    if (!pendingMove) {
+      return [];
+    }
+    const originStatus =
+      pendingMove.order.status === "pending_payment"
+        ? "confirmed"
+        : pendingMove.order.status;
+    const originIndex = BOARD_COLUMNS.findIndex(
+      (column) => column.status === originStatus,
+    );
+    const targetIndex = BOARD_COLUMNS.findIndex(
+      (column) => column.status === pendingMove.targetStatus,
+    );
+    return BOARD_COLUMNS.slice(originIndex + 1, targetIndex)
+      .filter((column) => OPTIONAL_COLUMN_STATUSES.includes(column.status))
+      .map((column) => column.label);
+  }, [pendingMove]);
 
   function handleConfirmMove() {
     if (!pendingMove) {
       return;
     }
-    void moveOrder(pendingMove.order.id, pendingMove.targetStatus);
+    const { order, targetStatus } = pendingMove;
     setPendingMove(null);
+
+    if (targetStatus === "out_for_delivery") {
+      setPendingDispatch(order);
+      return;
+    }
+
+    void moveOrder(order.id, targetStatus);
+  }
+
+  async function handleRiderChosen(rider: Rider) {
+    const order = pendingDispatch;
+    setPendingDispatch(null);
+    if (!order) {
+      return;
+    }
+    await moveOrder(order.id, "out_for_delivery", undefined, rider.id);
+    setLinkOrder({ ...order, status: "out_for_delivery" });
+  }
+
+  function handleShareLink(order: AdminOrderSummary) {
+    setLinkOrder(order);
   }
 
   function handleCancel(order: AdminOrderSummary) {
@@ -257,9 +334,11 @@ export function OpsBoard() {
               key={column.status}
               status={column.status}
               label={column.label}
+              optional={column.optional}
               orders={ordersByStatus.get(column.status) ?? EMPTY_ORDERS}
               onCancel={handleCancel}
               onViewDetail={handleViewDetail}
+              onShareLink={handleShareLink}
             />
           ))}
         </div>
@@ -270,6 +349,7 @@ export function OpsBoard() {
               order={activeOrder}
               onCancel={handleCancel}
               onViewDetail={handleViewDetail}
+              onShareLink={handleShareLink}
               overlay
             />
           ) : null}
@@ -280,6 +360,26 @@ export function OpsBoard() {
         orderId={detailOrderId}
         onOpenChange={(open) => {
           if (!open) setDetailOrderId(null);
+        }}
+      />
+
+      <RiderPickerDialog
+        open={pendingDispatch !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDispatch(null);
+        }}
+        onConfirm={(rider) => void handleRiderChosen(rider)}
+        orderLabel={
+          pendingDispatch
+            ? `#${pendingDispatch.id.slice(0, 8).toUpperCase()}`
+            : undefined
+        }
+      />
+
+      <DeliveryLinkDialog
+        order={linkOrder}
+        onOpenChange={(open) => {
+          if (!open) setLinkOrder(null);
         }}
       />
 
@@ -308,7 +408,11 @@ export function OpsBoard() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingMove
-                ? `Order #${pendingMove.order.id.slice(0, 8).toUpperCase()} will move to this step. This can't be undone from here.`
+                ? `Order #${pendingMove.order.id.slice(0, 8).toUpperCase()} will move to this step.${
+                    skippedLabels.length > 0
+                      ? ` ${skippedLabels.join(" and ")} will be skipped.`
+                      : ""
+                  } This can't be undone from here.`
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@mumzo/ui/components/card";
 import { cn } from "@mumzo/ui/lib/utils";
-import { GripHorizontal, X } from "lucide-react";
+import { GripHorizontal, Share2, X } from "lucide-react";
 import { formatDateTime, formatMoney } from "@/core/components/format";
 import {
   type AdminOrderSummary,
@@ -13,6 +13,7 @@ type OpsBoardCardProps = {
   order: AdminOrderSummary;
   onCancel: (order: AdminOrderSummary) => void;
   onViewDetail: (order: AdminOrderSummary) => void;
+  onShareLink: (order: AdminOrderSummary) => void;
   /** True for the floating copy rendered inside `DragOverlay` — not sortable
    * itself, just a visual clone that follows the pointer. */
   overlay?: boolean;
@@ -22,6 +23,7 @@ export function OpsBoardCard({
   order,
   onCancel,
   onViewDetail,
+  onShareLink,
   overlay = false,
 }: OpsBoardCardProps) {
   const {
@@ -102,6 +104,20 @@ export function OpsBoardCard({
         >
           View detail
         </button>
+        {order.status === "out_for_delivery" && (
+          <>
+            <div className="h-full w-px self-stretch bg-border/60" />
+            <button
+              type="button"
+              onClick={() => onShareLink(order)}
+              data-testid={`ops-board-card-${order.id}-share`}
+              className="flex flex-1 items-center justify-center gap-1 px-2 py-1.5 text-center text-primary text-xs transition-colors hover:bg-primary/10"
+            >
+              <Share2 className="size-3" />
+              Link
+            </button>
+          </>
+        )}
         {order.status !== "delivered" && order.status !== "cancelled" && (
           <>
             <div className="h-full w-px self-stretch bg-border/60" />

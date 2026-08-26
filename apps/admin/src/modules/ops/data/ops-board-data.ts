@@ -14,11 +14,22 @@ export type BoardColumnStatus = Exclude<
 export const BOARD_COLUMNS: {
   status: BoardColumnStatus;
   label: string;
+  /** Optional steps can be skipped by a forward drag. `shipped` is optional
+   * because a 10-minute hub delivery goes straight from packed to a rider —
+   * there is no separate shipping leg — while a longer-haul order still
+   * passes through it. */
+  optional?: boolean;
 }[] = [
   { status: "confirmed", label: "Order placed" },
   { status: "packed", label: "Packed" },
-  { status: "shipped", label: "Shipped" },
+  { status: "shipped", label: "Shipped", optional: true },
   { status: "out_for_delivery", label: "Out for delivery" },
   { status: "delivered", label: "Delivered" },
   { status: "cancelled", label: "Cancelled" },
 ];
+
+/** Statuses a forward drag is allowed to jump over. */
+export const OPTIONAL_COLUMN_STATUSES: BoardColumnStatus[] =
+  BOARD_COLUMNS.filter((column) => column.optional).map(
+    (column) => column.status,
+  );

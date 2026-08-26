@@ -27,7 +27,24 @@ export type OrderStatusUpdatedEvent = {
   emittedAt: string;
 };
 
-export type AdminRealtimeEvent = OrderCreatedEvent | OrderStatusUpdatedEvent;
+/** A rider closed out a delivery from the public link. Carries who and why,
+ * which `order.status_updated` does not. */
+export type DeliveryCompletedEvent = {
+  type: "delivery.completed";
+  data: {
+    orderId: string;
+    outcome: string;
+    riderId: string;
+    riderName: string | null;
+    reason: string | null;
+  };
+  emittedAt: string;
+};
+
+export type AdminRealtimeEvent =
+  | OrderCreatedEvent
+  | OrderStatusUpdatedEvent
+  | DeliveryCompletedEvent;
 
 export function isAdminRealtimeEvent(
   value: unknown,

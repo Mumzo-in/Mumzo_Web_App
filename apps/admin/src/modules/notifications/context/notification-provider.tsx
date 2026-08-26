@@ -132,6 +132,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useAdminRealtime((event) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
 
+    // A rider closed an order from the delivery link — surface it, since
+    // nobody in the panel performed this move.
+    if (event.type === "delivery.completed") {
+      const label = `#${event.data.orderId.slice(0, 8).toUpperCase()}`;
+      const who = event.data.riderName ?? "A rider";
+      const why = event.data.reason ? ` — ${event.data.reason}` : "";
+      const message = `${label} ${event.data.outcome} by ${who}${why}`;
+
+      if (event.data.outcome === "delivered") {
+        toast.success(message);
+      } else {
+        toast.warning(message);
+      }
+      showBrowserNotification(`Order ${event.data.outcome}`, message);
+      return;
+    }
+
     if (event.type !== "order.created") {
       return;
     }

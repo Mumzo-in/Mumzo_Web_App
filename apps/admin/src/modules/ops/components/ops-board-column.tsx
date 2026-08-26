@@ -15,6 +15,10 @@ type OpsBoardColumnProps = {
   orders: AdminOrderSummary[];
   onCancel: (order: AdminOrderSummary) => void;
   onViewDetail: (order: AdminOrderSummary) => void;
+  onShareLink: (order: AdminOrderSummary) => void;
+  /** Rendered as a hint under the column title — optional steps can be
+   * skipped by dragging past them. */
+  optional?: boolean;
 };
 
 export function OpsBoardColumn({
@@ -23,6 +27,8 @@ export function OpsBoardColumn({
   orders,
   onCancel,
   onViewDetail,
+  onShareLink,
+  optional = false,
 }: OpsBoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const itemIds = useMemo(() => orders.map((order) => order.id), [orders]);
@@ -30,7 +36,14 @@ export function OpsBoardColumn({
   return (
     <div className="flex h-full min-w-72 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between px-1">
-        <span className="font-medium text-foreground text-sm">{label}</span>
+        <span className="flex items-center gap-1.5 font-medium text-foreground text-sm">
+          {label}
+          {optional ? (
+            <span className="rounded-full bg-secondary px-2 py-0.5 font-normal text-[10px] text-muted-foreground">
+              Optional
+            </span>
+          ) : null}
+        </span>
         <span className="numeric text-muted-foreground text-xs">
           {orders.length}
         </span>
@@ -56,6 +69,7 @@ export function OpsBoardColumn({
                 order={order}
                 onCancel={onCancel}
                 onViewDetail={onViewDetail}
+                onShareLink={onShareLink}
               />
             ))
           )}

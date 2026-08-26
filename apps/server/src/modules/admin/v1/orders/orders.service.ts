@@ -13,6 +13,7 @@ import {
   orderStatusLog,
   payment,
 } from "@mumzo/db/schema/commerce";
+import { rider } from "@mumzo/db/schema/delivery";
 import { notify } from "@mumzo/notifications";
 import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
@@ -22,6 +23,10 @@ import { logActivity } from "@/core";
 import { badRequest, notFound } from "@/core/errors";
 import type { AppEnv } from "@/core/types";
 import { toWholeRupees } from "@/lib/money";
+import {
+  getDeliveryLinkForOrder,
+  issueDeliveryLink,
+} from "@/modules/platform/v1/delivery/delivery-link";
 import {
   onFirstOrderPlaced,
   onOrderDelivered,
@@ -411,13 +416,22 @@ export async function getOrder(orderId: string) {
 }
 
 /** Legal forward transitions per docs/order-checkout-flow.md's status graph.
- * Terminal states (delivered/cancelled/returned) have no further moves. */
+ * Terminal states (delivered/cancelled/returned) have no further moves.
+ *
+ * `shipped` is an *optional* step: a 10-minute hub delivery hands a packed
+ * order straight to a rider with no separate shipping leg, so `packed` may go
+ * directly to `out_for_delivery`. Longer-haul orders still pass through
+ * `shipped`. Note this skips only that one step — `out_for_delivery` stays
+ * mandatory, since dispatch is what mints the rider's delivery link. */
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   pending_payment: ["confirmed", "cancelled"],
   confirmed: ["packed", "cancelled"],
-  packed: ["shipped", "cancelled"],
+  packed: ["shipped", "out_for_delivery", "cancelled"],
   shipped: ["out_for_delivery", "cancelled"],
-  out_for_delivery: ["delivered", "cancelled"],
+  // `returned` covers a rider bringing goods back from the door (damaged,
+  // refused, wrong item) — a real outcome of a delivery run, distinct from a
+  // post-delivery `return_requested` raised by the customer later.
+  out_for_delivery: ["delivered", "cancelled", "returned"],
   delivered: ["return_requested"],
   return_requested: ["returned", "delivered"],
   returned: [],
@@ -426,7 +440,7 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 
 export async function updateOrderStatus(
   orderId: string,
-  input: { status: string; note?: string },
+  input: { status: string; note?: string; riderId?: string },
   actor: string,
   c?: Context<AppEnv>,
 ) {
@@ -444,6 +458,16 @@ export async function updateOrderStatus(
     throw badRequest(
       `Cannot move an order from "${row.status}" to "${input.status}".`,
     );
+  }
+
+  // Dispatching mints the rider link, so ops always has one to share the
+  // moment the order lands in `out_for_delivery`. Idempotent — re-dispatching
+  // reuses the open link rather than invalidating one already sent out.
+  if (input.status === "out_for_delivery") {
+    if (!input.riderId) {
+      throw badRequest("Choose a rider before dispatching this order.");
+    }
+    await issueDeliveryLink(orderId, input.riderId);
   }
 
   await db.transaction(async (tx) => {
@@ -515,8 +539,12 @@ export async function updateOrderStatus(
 
 /** Best-effort side effects fired after an order status transition commits.
  * Each hook gets its own try/catch — referrals and review prompts are
- * unrelated concerns, so one failing must never block the other. */
-async function handleOrderStatusSideEffects(
+ * unrelated concerns, so one failing must never block the other.
+ *
+ * Exported because the public delivery link closes orders too: a rider
+ * marking an order delivered must settle referrals and queue the review
+ * prompt exactly as a staff move would. */
+export async function handleOrderStatusSideEffects(
   userId: string,
   orderId: string,
   status: string,
@@ -543,4 +571,67 @@ async function handleOrderStatusSideEffects(
       console.error(`Review prompt hook failed for order ${orderId}:`, error);
     }
   }
+}
+
+/** The rider link for a dispatched order, for the ops share dialog. */
+export async function getOrderDeliveryLink(orderId: string) {
+  const link = await getDeliveryLinkForOrder(orderId);
+
+  if (!link) {
+    return {
+      token: null,
+      outcome: null,
+      riderName: null,
+      riderPhone: null,
+      accessCode: null,
+    };
+  }
+
+  // The code ops reads out belongs to the rider the link was issued to —
+  // there is no per-link code, so without an assigned rider there is nothing
+  // to share.
+  const [assigned] = link.riderId
+    ? await db
+        .select({
+          name: rider.name,
+          phone: rider.phone,
+          accessCode: rider.accessCode,
+        })
+        .from(rider)
+        .where(eq(rider.id, link.riderId))
+        .limit(1)
+    : [];
+
+  return {
+    token: link.token,
+    outcome: link.outcome,
+    riderName: assigned?.name ?? null,
+    riderPhone: assigned?.phone ?? null,
+    accessCode: assigned?.accessCode ?? null,
+  };
+}
+
+/**
+ * Assign or reassign the rider on an already-dispatched order.
+ *
+ * Repairs orders that reached `out_for_delivery` before a rider was required,
+ * and covers a legitimate hand-off mid-run. Minting is idempotent, so an
+ * order that already has a live link keeps the same URL.
+ */
+export async function assignOrderRider(orderId: string, riderId: string) {
+  const [row] = await db
+    .select({ status: order.status })
+    .from(order)
+    .where(eq(order.id, orderId))
+    .limit(1);
+
+  if (!row) {
+    throw notFound("Order");
+  }
+  if (row.status !== "out_for_delivery") {
+    throw badRequest("Only a dispatched order can be assigned to a rider.");
+  }
+
+  await issueDeliveryLink(orderId, riderId);
+  return getOrderDeliveryLink(orderId);
 }

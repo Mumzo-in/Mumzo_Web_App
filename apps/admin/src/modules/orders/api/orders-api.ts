@@ -21,10 +21,12 @@ export function updateOrderStatus(
   id: string,
   status: OrderStatus,
   note?: string,
+  /** Required when dispatching — who is taking the order out. */
+  riderId?: string,
 ): Promise<AdminOrderDetail> {
   return apiRequest<AdminOrderDetail>(`/orders/${id}/status`, {
     method: "PATCH",
-    body: { status, note },
+    body: { status, note, riderId },
   });
 }
 
@@ -56,5 +58,31 @@ export function createOrder(
   return apiRequest<AdminOrderDetail>("/orders", {
     method: "POST",
     body: input,
+  });
+}
+
+export type OrderDeliveryLink = {
+  token: string | null;
+  outcome: string | null;
+  riderName: string | null;
+  riderPhone: string | null;
+  /** The assigned rider's code — what ops reads out to them. */
+  accessCode: string | null;
+};
+
+/** The rider link minted when the order was dispatched. */
+export function getOrderDeliveryLink(id: string): Promise<OrderDeliveryLink> {
+  return apiRequest<OrderDeliveryLink>(`/orders/${id}/delivery-link`);
+}
+
+/** Assign or reassign the rider on a dispatched order — also mints the link
+ * if the order predates the rider requirement. */
+export function assignOrderRider(
+  id: string,
+  riderId: string,
+): Promise<OrderDeliveryLink> {
+  return apiRequest<OrderDeliveryLink>(`/orders/${id}/assign-rider`, {
+    method: "POST",
+    body: { riderId },
   });
 }

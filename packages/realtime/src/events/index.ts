@@ -6,4 +6,8 @@
 import "./orders";
 
 export { defineEvent, getEvent } from "../core/registry";
-export { orderCreatedEvent, orderStatusUpdatedEvent } from "./orders";
+export {
+  deliveryCompletedEvent,
+  orderCreatedEvent,
+  orderStatusUpdatedEvent,
+} from "./orders";

@@ -29,6 +29,10 @@ export const listOrdersQuerySchema = z.object({
 export const updateOrderStatusSchema = z.object({
   status: z.enum(ORDER_STATUSES),
   note: z.string().max(500).optional(),
+  /** Required when dispatching (`out_for_delivery`) — the rider who is taking
+   * the order. Binding it here means the delivery link is tied to one person
+   * from the moment it is minted. */
+  riderId: z.string().uuid().optional(),
 });
 
 /** One line item for a manually-created (phone/walk-in) order — a product
@@ -127,3 +131,18 @@ export const orderDetailSchema = z
     placedAt: z.string(),
   })
   .openapi("AdminOrderDetail");
+
+/** The rider link for a dispatched order. `token` is null when the order has
+ * not been dispatched yet. */
+export const deliveryLinkSchema = z.object({
+  token: z.string().nullable(),
+  outcome: z.string().nullable(),
+  riderName: z.string().nullable(),
+  riderPhone: z.string().nullable(),
+  /** The assigned rider's standing code — what ops reads out to them. */
+  accessCode: z.string().nullable(),
+});
+
+export const assignRiderSchema = z.object({
+  riderId: z.string().uuid(),
+});

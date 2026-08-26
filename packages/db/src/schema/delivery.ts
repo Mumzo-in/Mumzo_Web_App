@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   doublePrecision,
@@ -8,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { hub } from "./catalog";
@@ -27,6 +28,13 @@ export const rider = pgTable("rider", {
   vehicleNumber: text("vehicle_number"),
   licenseNumber: text("license_number"),
   kycVerified: boolean("kyc_verified").default(false).notNull(),
+  /** Standing personal code the rider types to unlock a delivery link. It is
+   * the sole proof of identity on that public page — the code *is* who they
+   * are — so it must be unique, and is rotatable if leaked.
+   *
+   * Generated automatically when the rider is created — ops never issues one
+   * by hand. Nullable only for rows that predate this column. */
+  accessCode: text("access_code").unique(),
   photoUrl: text("photo_url"),
   currentLat: doublePrecision("current_lat"),
   currentLng: doublePrecision("current_lng"),
@@ -86,6 +94,56 @@ export const deliveryAssignment = pgTable(
   ],
 );
 
+/**
+ * deliveryLink — a shareable, unauthenticated rider link for one order.
+ *
+ * Minted when ops moves an order to `out_for_delivery`. The `token` is the
+ * address; the rider's own `rider.accessCode` is the credential. A link stays
+ * valid until it records an `outcome` — there is no clock-based expiry, so a
+ * rider can close the tab, lose signal, or hand off and reopen the same link
+ * later. Once an outcome lands the link is spent and read-only, which is what
+ * keeps a delivered order from being re-reported.
+ *
+ * One *open* link per order is enforced by a partial unique index below;
+ * spent links are kept for the audit trail.
+ */
+export const deliveryLink = pgTable(
+  "delivery_link",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => order.id, { onDelete: "cascade" }),
+    /** Random, unguessable URL token — never derived from the order id. */
+    token: text("token").notNull().unique(),
+    /** Set on the first successful code entry, and never reassigned: it is the
+     * record of who actually handled this delivery. */
+    riderId: uuid("rider_id").references(() => rider.id, {
+      onDelete: "set null",
+    }),
+    unlockedAt: timestamp("unlocked_at"),
+    /** delivered | cancelled | returned — null while the link is still live. */
+    outcome: text("outcome"),
+    outcomeReason: text("outcome_reason"),
+    outcomeAt: timestamp("outcome_at"),
+    /** Counts wrong-code attempts so a brute-forced link can be locked out. */
+    failedAttempts: integer("failed_attempts").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("delivery_link_order_id_idx").on(table.orderId),
+    index("delivery_link_token_idx").on(table.token),
+    // At most one unspent link per order; historical spent ones are exempt.
+    uniqueIndex("delivery_link_open_order_idx")
+      .on(table.orderId)
+      .where(sql`${table.outcome} is null`),
+  ],
+);
+
 // Relations declarations
 
 export const riderRelations = relations(rider, ({ one, many }) => ({
@@ -113,3 +171,14 @@ export const deliveryAssignmentRelations = relations(
     }),
   }),
 );
+
+export const deliveryLinkRelations = relations(deliveryLink, ({ one }) => ({
+  order: one(order, {
+    fields: [deliveryLink.orderId],
+    references: [order.id],
+  }),
+  rider: one(rider, {
+    fields: [deliveryLink.riderId],
+    references: [rider.id],
+  }),
+}));

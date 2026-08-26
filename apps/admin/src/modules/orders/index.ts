@@ -1,9 +1,12 @@
 export {
+  assignOrderRider,
   type CreateOrderInput,
   type CreateOrderLineInput,
   createOrder,
   getOrder,
+  getOrderDeliveryLink,
   listOrders,
+  type OrderDeliveryLink,
   updateOrderStatus,
 } from "./api/orders-api";
 export { default as NewOrderDialog } from "./components/new-order-dialog";
