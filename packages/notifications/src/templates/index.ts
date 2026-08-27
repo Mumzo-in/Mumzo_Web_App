@@ -9,4 +9,9 @@ import "./order-status-updated";
 import "./referral-coupon-issued";
 import "./review-prompt-requested";
 
-export { defineTemplate, getTemplate, renderTemplate } from "./registry";
+export {
+  defineTemplate,
+  getTemplate,
+  listTemplates,
+  renderTemplate,
+} from "./registry";

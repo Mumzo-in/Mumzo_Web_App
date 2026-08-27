@@ -9,10 +9,15 @@
  * worker registered at the root scope is fetched by the browser directly,
  * so it cannot use bare module specifiers the way app code does.
  *
- * Config is inlined rather than read from import.meta.env because this file
- * is served verbatim from `public/` and never passes through Vite's
- * transform. These values are public client config — the same ones Firebase
- * embeds in any web bundle — not secrets.
+ * Config arrives as query params on the registration URL rather than being
+ * inlined here: this file is served verbatim from `public/` and never
+ * passes through Vite's transform, so it cannot read `import.meta.env`, and
+ * a hardcoded copy silently drifts from `.env` — which initialises a
+ * *different* Firebase app that receives nothing at all, with no error to
+ * show for it.
+ *
+ * These are public client values, the same ones Firebase embeds in any web
+ * bundle, so passing them through the URL leaks nothing.
  */
 
 importScripts(
@@ -22,13 +27,15 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js",
 );
 
+const params = new URL(self.location.href).searchParams;
+
 firebase.initializeApp({
-  apiKey: "AIzaSyBuORouryjvIqCVOhcJyCoAsSVJWSCJcNA",
-  authDomain: "mumzo-dev.firebaseapp.com",
-  projectId: "mumzo-dev",
-  storageBucket: "mumzo-dev.firebasestorage.app",
-  messagingSenderId: "1072118091491",
-  appId: "1:1072118091491:web:d10e35db43a3cf7d17bfa1",
+  apiKey: params.get("apiKey"),
+  authDomain: params.get("authDomain"),
+  projectId: params.get("projectId"),
+  storageBucket: params.get("storageBucket"),
+  messagingSenderId: params.get("messagingSenderId"),
+  appId: params.get("appId"),
 });
 
 const messaging = firebase.messaging();
@@ -38,18 +45,35 @@ const messaging = firebase.messaging();
  * in the app instead, which shows the in-app toast. The two must not both
  * fire for one notification, hence the split.
  */
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   const title = payload.notification?.title ?? "Mumzo";
   const body = payload.notification?.body ?? "";
   const deeplink = payload.data?.deeplink || "/";
+
+  // Hand the payload to any open admin tab so its notification tray records
+  // the event even though this arrived while the tab was unfocused. Without
+  // this the tray only ever sees messages that landed on a focused tab, and
+  // anything that arrived in the background is lost once its OS popup is
+  // dismissed — which is exactly the case the tray exists for.
+  const clients = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+  for (const client of clients) {
+    client.postMessage({ type: "mumzo:notification", payload });
+  }
 
   self.registration.showNotification(title, {
     body,
     icon: "/logo.png",
     badge: "/logo.png",
-    // Collapses repeat notifications for the same order into one entry
-    // rather than stacking five as an order moves through its statuses.
-    tag: payload.data?.orderId ? `order-${payload.data.orderId}` : undefined,
+    // Collapses repeats of the *same event* for one order into a single
+    // tray entry. Scoped by template as well as order: keyed on the order
+    // alone, a "delivered" notification would silently replace the "new
+    // order" one rather than appearing alongside it.
+    tag: payload.data?.orderId
+      ? `${payload.data.templateId || "notification"}-${payload.data.orderId}`
+      : undefined,
     data: { deeplink },
   });
 });

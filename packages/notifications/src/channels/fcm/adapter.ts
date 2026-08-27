@@ -203,9 +203,15 @@ function buildMessage(payload: RenderedNotification) {
    * entries as an order walks through its statuses. FCM calls this
    * `collapseKey` on Android and `apns-collapse-id` on iOS; both cap at
    * one pending message per key per device.
+   *
+   * Scoped per template, not per order. Keyed on `orderId` alone, the
+   * *different* events for one order collapse into each other — a
+   * "delivered" message silently replaces the "new order" one instead of
+   * arriving, which reads as the notification never being sent at all.
+   * Only repeats of the same event should supersede one another.
    */
   const collapseKey = payload.data?.orderId
-    ? `order-${payload.data.orderId}`
+    ? `${payload.data.templateId ?? "notification"}-${payload.data.orderId}`
     : undefined;
 
   return {

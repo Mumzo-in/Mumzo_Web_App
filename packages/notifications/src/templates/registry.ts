@@ -28,6 +28,13 @@ export function getTemplate(id: string): TemplateDefinition {
   return template;
 }
 
+/** Every registered template. Powers the admin playground's template
+ * picker, so a newly added template appears there without a second
+ * registration step. */
+export function listTemplates(): TemplateDefinition[] {
+  return [...registry.values()];
+}
+
 export function renderTemplate(
   id: string,
   channel: Channel,

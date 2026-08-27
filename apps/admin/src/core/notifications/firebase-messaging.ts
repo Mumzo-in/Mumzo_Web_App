@@ -72,9 +72,27 @@ async function registerServiceWorker(): Promise<
 > {
   if (!("serviceWorker" in navigator)) return undefined;
 
-  return navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-    scope: "/",
+  // The worker is served straight from `public/` and never sees Vite's env
+  // substitution, so its Firebase config travels in the query string. A
+  // hardcoded copy inside the file drifts from `.env` silently: the worker
+  // then initialises a different Firebase app and receives nothing, with no
+  // error anywhere to explain why.
+  //
+  // The URL is also the worker's cache key, so changing config here
+  // installs a fresh worker rather than leaving a stale one running.
+  const query = new URLSearchParams({
+    apiKey: env.VITE_FIREBASE_API_KEY ?? "",
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? "",
+    projectId: env.VITE_FIREBASE_PROJECT_ID ?? "",
+    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? "",
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "",
+    appId: env.VITE_FIREBASE_APP_ID ?? "",
   });
+
+  return navigator.serviceWorker.register(
+    `/firebase-messaging-sw.js?${query.toString()}`,
+    { scope: "/" },
+  );
 }
 
 /**
@@ -139,8 +157,30 @@ export async function getExistingFcmToken(): Promise<string | null> {
 export async function onForegroundMessage(
   handler: (payload: MessagePayload) => void,
 ): Promise<() => void> {
-  const messaging = await getMessagingInstance();
-  if (!messaging) return () => undefined;
+  // Two sources, because neither alone is sufficient. `onMessage` fires
+  // only while the tab is focused; the service worker relays everything
+  // that arrived while it wasn't. A message that reaches both is deduped
+  // downstream by its notification id.
+  const unsubscribers: (() => void)[] = [];
 
-  return onMessage(messaging, handler);
+  if ("serviceWorker" in navigator) {
+    const relay = (event: MessageEvent) => {
+      if (event.data?.type === "mumzo:notification" && event.data.payload) {
+        handler(event.data.payload as MessagePayload);
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", relay);
+    unsubscribers.push(() =>
+      navigator.serviceWorker.removeEventListener("message", relay),
+    );
+  }
+
+  const messaging = await getMessagingInstance();
+  if (messaging) {
+    unsubscribers.push(onMessage(messaging, handler));
+  }
+
+  return () => {
+    for (const unsubscribe of unsubscribers) unsubscribe();
+  };
 }

@@ -20,6 +20,7 @@ import { Route as adminRolesIndexRouteImport } from './pages/(admin)/roles/index
 import { Route as adminExpensesIndexRouteImport } from './pages/(admin)/expenses/index'
 import { Route as adminStaffAuditLogRouteImport } from './pages/(admin)/staff/audit-log'
 import { Route as adminSettingsProfileRouteImport } from './pages/(admin)/settings/profile'
+import { Route as adminSettingsNotificationsRouteImport } from './pages/(admin)/settings/notifications'
 import { Route as adminSettingsActivityLogsRouteImport } from './pages/(admin)/settings/activity-logs'
 import { Route as adminPlatformSystemRouteImport } from './pages/(admin)/platform/system'
 import { Route as adminPlatformIntegrationsRouteImport } from './pages/(admin)/platform/integrations'
@@ -143,6 +144,12 @@ const adminSettingsProfileRoute = adminSettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => adminLayoutRoute,
 } as any)
+const adminSettingsNotificationsRoute =
+  adminSettingsNotificationsRouteImport.update({
+    id: '/settings/notifications',
+    path: '/settings/notifications',
+    getParentRoute: () => adminLayoutRoute,
+  } as any)
 const adminSettingsActivityLogsRoute =
   adminSettingsActivityLogsRouteImport.update({
     id: '/settings/activity-logs',
@@ -557,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
   '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
+  '/settings/notifications': typeof adminSettingsNotificationsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/expenses/': typeof adminExpensesIndexRoute
@@ -637,6 +645,7 @@ export interface FileRoutesByTo {
   '/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/platform/system': typeof adminPlatformSystemRoute
   '/settings/activity-logs': typeof adminSettingsActivityLogsRoute
+  '/settings/notifications': typeof adminSettingsNotificationsRoute
   '/settings/profile': typeof adminSettingsProfileRoute
   '/staff/audit-log': typeof adminStaffAuditLogRoute
   '/expenses': typeof adminExpensesIndexRoute
@@ -720,6 +729,7 @@ export interface FileRoutesById {
   '/(admin)/platform/integrations': typeof adminPlatformIntegrationsRoute
   '/(admin)/platform/system': typeof adminPlatformSystemRoute
   '/(admin)/settings/activity-logs': typeof adminSettingsActivityLogsRoute
+  '/(admin)/settings/notifications': typeof adminSettingsNotificationsRoute
   '/(admin)/settings/profile': typeof adminSettingsProfileRoute
   '/(admin)/staff/audit-log': typeof adminStaffAuditLogRoute
   '/(admin)/expenses/': typeof adminExpensesIndexRoute
@@ -802,6 +812,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/system'
     | '/settings/activity-logs'
+    | '/settings/notifications'
     | '/settings/profile'
     | '/staff/audit-log'
     | '/expenses/'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/system'
     | '/settings/activity-logs'
+    | '/settings/notifications'
     | '/settings/profile'
     | '/staff/audit-log'
     | '/expenses'
@@ -964,6 +976,7 @@ export interface FileRouteTypes {
     | '/(admin)/platform/integrations'
     | '/(admin)/platform/system'
     | '/(admin)/settings/activity-logs'
+    | '/(admin)/settings/notifications'
     | '/(admin)/settings/profile'
     | '/(admin)/staff/audit-log'
     | '/(admin)/expenses/'
@@ -1102,6 +1115,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof adminSettingsProfileRouteImport
+      parentRoute: typeof adminLayoutRoute
+    }
+    '/(admin)/settings/notifications': {
+      id: '/(admin)/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof adminSettingsNotificationsRouteImport
       parentRoute: typeof adminLayoutRoute
     }
     '/(admin)/settings/activity-logs': {
@@ -1615,6 +1635,7 @@ interface adminLayoutRouteChildren {
   adminPlatformIntegrationsRoute: typeof adminPlatformIntegrationsRoute
   adminPlatformSystemRoute: typeof adminPlatformSystemRoute
   adminSettingsActivityLogsRoute: typeof adminSettingsActivityLogsRoute
+  adminSettingsNotificationsRoute: typeof adminSettingsNotificationsRoute
   adminSettingsProfileRoute: typeof adminSettingsProfileRoute
   adminStaffAuditLogRoute: typeof adminStaffAuditLogRoute
   adminExpensesIndexRoute: typeof adminExpensesIndexRoute
@@ -1693,6 +1714,7 @@ const adminLayoutRouteChildren: adminLayoutRouteChildren = {
   adminPlatformIntegrationsRoute: adminPlatformIntegrationsRoute,
   adminPlatformSystemRoute: adminPlatformSystemRoute,
   adminSettingsActivityLogsRoute: adminSettingsActivityLogsRoute,
+  adminSettingsNotificationsRoute: adminSettingsNotificationsRoute,
   adminSettingsProfileRoute: adminSettingsProfileRoute,
   adminStaffAuditLogRoute: adminStaffAuditLogRoute,
   adminExpensesIndexRoute: adminExpensesIndexRoute,

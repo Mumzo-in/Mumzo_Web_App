@@ -101,27 +101,32 @@ function NewOrderToastCard({
 }
 
 /**
- * The single owner of the admin WS connection (via `useAdminRealtime`) and
- * the client-side order-notification tray — bell badge count, popover list,
- * and the new-order sound/toast all read from this one place. Mount once,
+ * The client-side notification tray — bell badge count, popover list, and
+ * the new-order sound/toast all read from this one place. Mount once,
  * globally (see `pages/(admin)/_layout.tsx`), so every page shares one
- * connection and one notification history instead of re-subscribing per
- * route. See docs/infra/realtime-architecture.md for the server side.
+ * notification history instead of re-subscribing per route.
+ *
+ * FCM is the only feed; the admin websocket it used to own was removed in
+ * favour of push. See docs/infra/notifications-architecture.md.
  */
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   /**
-   * Order ids the realtime feed has already surfaced this session.
+   * Orders whose arrival toast and chime have already fired this session.
    *
-   * `order.created` reaches a focused tab twice — once over the WS feed and
-   * once as an FCM foreground message — because the push exists for tabs
-   * that are closed or backgrounded. Whichever arrives first claims the id;
-   * the other is dropped, so staff see one toast and hear one chime.
+   * One message can reach the handler twice — `onMessage` on a focused tab,
+   * plus the service worker relay — and this keeps the noisy half of the
+   * response (sound, toast) to once per order.
    */
   const seenOrderIds = useRef(new Set<string>());
 
   const { data: hubs } = useQuery(hubsAllQueryOptions);
+
+  // Read by the message handler without being a dependency of the effect
+  // that installs it — see the note on that effect's dependency array.
+  const hubsRef = useRef(hubs);
+  hubsRef.current = hubs;
 
   // Auto-unlock audio on the first gesture anywhere on the site
   useEffect(() => {
@@ -146,12 +151,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
    * everything arrives over one channel; the templates in
    * `@mumzo/notifications` set it alongside `orderId`.
    *
-   * Background messages go to `firebase-messaging-sw.js` instead — the
-   * browser routes each message to exactly one of the two, so nothing here
-   * needs to guard against the service worker also having shown it.
+   * Messages arrive from two sources: `onMessage` while the tab is
+   * focused, and a relay from `firebase-messaging-sw.js` for everything
+   * that landed while it wasn't. Both feed this one handler, so the tray
+   * records background events too — `push()` dedupes the overlap.
    */
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
 
     onForegroundMessage((payload) => {
       // Any order event means the board is stale, whatever it was.
@@ -161,21 +168,56 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (!orderId) return;
 
       const templateId = payload.data?.templateId;
+      const base = {
+        orderId,
+        receivedAt: new Date().toISOString(),
+        read: false,
+      };
+
+      /**
+       * Every kind lands in the bell/panel — that tray is the record of
+       * what happened while nobody was looking, so dropping an event here
+       * makes it unrecoverable once its toast fades.
+       *
+       * Deduped on the notification's own id rather than on arrival time:
+       * one message can reach this handler twice (once via `onMessage`,
+       * once relayed by the service worker), and a timestamped id would
+       * make those two look like two distinct events.
+       */
+      function push(notification: OrderNotification) {
+        setNotifications((prev) =>
+          prev.some((existing) => existing.id === notification.id)
+            ? prev
+            : [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
+        );
+      }
 
       // A rider closed an order from the delivery link — surface it, since
       // nobody in the panel performed this move.
       if (templateId === "admin.delivery.completed") {
-        const message = payload.notification?.body ?? "Delivery updated";
-        if (payload.data?.outcome === "delivered") {
-          toast.success(message);
-        } else {
-          toast.warning(message);
-        }
+        push({
+          ...base,
+          id: `${orderId}-delivery-${payload.data?.outcome ?? ""}`,
+          kind: "delivery.completed",
+          outcome: payload.data?.outcome ?? "delivered",
+          detail: payload.notification?.body ?? "Delivery updated",
+        });
         return;
       }
 
-      // Status hops just refresh the board — a toast per hop would be five
-      // toasts for one order's journey.
+      // Status hops are recorded but stay quiet: a toast per hop would be
+      // five toasts for one order's journey.
+      if (templateId === "admin.order.status_updated") {
+        push({
+          ...base,
+          id: `${orderId}-status-${payload.data?.toStatus ?? ""}`,
+          kind: "order.status_updated",
+          fromStatus: payload.data?.fromStatus ?? "",
+          toStatus: payload.data?.toStatus ?? "",
+        });
+        return;
+      }
+
       if (templateId !== "order.created") {
         return;
       }
@@ -189,23 +231,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const addressName = payload.data?.addressName ?? "Customer";
       const hubId = payload.data?.hubId ?? "";
 
-      setNotifications((prev) =>
-        [
-          {
-            id: `${orderId}-${Date.now()}`,
-            orderId,
-            hubId,
-            total,
-            addressName,
-            receivedAt: new Date().toISOString(),
-            read: false,
-          },
-          ...prev,
-        ].slice(0, MAX_NOTIFICATIONS),
-      );
+      push({
+        ...base,
+        id: `${orderId}-created`,
+        kind: "order.created",
+        hubId,
+        total,
+        addressName,
+      });
       playSound("newOrder");
 
-      const hubName = hubs?.find((h) => h.id === hubId)?.name ?? "Unknown Hub";
+      const hubName =
+        hubsRef.current?.find((h) => h.id === hubId)?.name ?? "Unknown Hub";
       toast.custom(
         (id) => (
           <NewOrderToastCard
@@ -220,14 +257,26 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       );
     })
       .then((fn) => {
+        if (cancelled) {
+          fn();
+          return;
+        }
         unsubscribe = fn;
       })
       .catch((error) => {
         console.error("[notifications] foreground listener failed:", error);
       });
 
-    return () => unsubscribe?.();
-  }, [queryClient, hubs]);
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+    // Subscribes once for the lifetime of the provider. `hubs` is read
+    // through a ref rather than listed here on purpose: it arrives from an
+    // async query, and depending on it tore the listener down and rebuilt
+    // it mid-session — `onForegroundMessage` is itself async, so every
+    // message that landed during that gap was dropped.
+  }, [queryClient]);
 
   const markAllRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));

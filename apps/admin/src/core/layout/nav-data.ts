@@ -169,6 +169,7 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: "Roles & Permissions", to: "/roles" },
           { label: "Static Pages", to: "/legal/pages" },
           { label: "Activity Logs", to: "/settings/activity-logs" },
+          { label: "Notifications", to: "/settings/notifications" },
         ],
       },
     ],

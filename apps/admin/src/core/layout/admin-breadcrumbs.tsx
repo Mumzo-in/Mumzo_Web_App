@@ -51,7 +51,12 @@ export function AdminBreadcrumbs() {
         {trail.map((crumb, index) => {
           const last = index === trail.length - 1 && !hasDetailCrumb;
           return (
-            <Fragment key={crumb.to}>
+            // `to` alone is not unique: on a section's own landing page the
+            // section crumb and the item crumb share a path (both "/" on the
+            // dashboard), which React reports as a duplicate key. Pairing it
+            // with the label makes the identity unique without falling back
+            // to the array index.
+            <Fragment key={`${crumb.to}:${crumb.label}`}>
               <BreadcrumbItem>
                 {last ? (
                   <BreadcrumbPage>{crumb.label}</BreadcrumbPage>

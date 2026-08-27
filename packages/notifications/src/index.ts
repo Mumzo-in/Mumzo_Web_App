@@ -43,7 +43,12 @@ export {
   type NotificationWorker,
   startNotificationWorker,
 } from "./core/worker";
-export { defineTemplate, getTemplate, renderTemplate } from "./templates";
+export {
+  defineTemplate,
+  getTemplate,
+  listTemplates,
+  renderTemplate,
+} from "./templates";
 export {
   NOTIFICATION_TEMPLATE,
   type NotificationTemplateId,
