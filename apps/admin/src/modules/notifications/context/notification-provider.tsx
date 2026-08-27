@@ -84,6 +84,15 @@ function toNotification(
         detail: payload.notification?.body ?? "Delivery updated",
       };
 
+    case "admin.order.cancelled":
+      return {
+        ...base,
+        id: `${orderId}-cancelled`,
+        kind: "order.cancelled",
+        fromStatus: data.fromStatus ?? "",
+        reason: data.reason ?? "",
+      };
+
     default:
       return null;
   }
@@ -220,10 +229,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const isNew = push(notification);
       if (!isNew) return;
 
-      // Only a new order interrupts with sound — a chime per status hop
-      // would be five chimes for one order's journey.
+      // Only events worth looking up for make a sound: a new order to
+      // pack, a cancellation to stop packing, and a delivery closing out.
+      // A chime per status hop would be five chimes for one order's
+      // journey, which trains staff to ignore all of them.
+      //
+      // A failed delivery deliberately gets no sound rather than the
+      // success one — it shares the `delivery.completed` template, and the
+      // cheerful chime would read as "delivered" to anyone not looking.
       if (notification.kind === "order.created") {
         playSound("newOrder");
+      } else if (notification.kind === "order.cancelled") {
+        playSound("orderCancelled");
+      } else if (
+        notification.kind === "delivery.completed" &&
+        notification.outcome === "delivered"
+      ) {
+        playSound("orderDelivered");
       }
 
       const hubName =

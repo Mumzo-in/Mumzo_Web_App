@@ -577,5 +577,35 @@ export async function cancelOrder(
     console.error(`Failed to log order.cancelled event for ${orderId}:`, error);
   });
 
+  // Staff need this immediately — an order cancelled mid-pack is wasted
+  // work until someone notices. Best-effort, like every other post-commit
+  // side effect here: the cancellation has already been written.
+  notify
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ADMIN.ORDER_CANCELLED, {
+      orderId,
+      fromStatus: row.status,
+      reason: reason ?? null,
+    })
+    .catch((error) => {
+      console.error(
+        `Failed to enqueue admin.order.cancelled for ${orderId}:`,
+        error,
+      );
+    });
+
+  // Confirms to the customer that the cancellation actually went through.
+  notify
+    .send({
+      userId,
+      templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
+      data: { orderId, status: "cancelled" },
+    })
+    .catch((error) => {
+      console.error(
+        `Failed to enqueue cancellation notification for ${orderId}:`,
+        error,
+      );
+    });
+
   return getOrder(userId, orderId);
 }

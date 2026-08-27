@@ -11,6 +11,10 @@ export {
   fetchOrders,
   placeOrder,
 } from "./api/orders-api";
+export {
+  CancelOrderDialog,
+  canCancelOrder,
+} from "./components/cancel-order-dialog";
 export { default as OrderCard } from "./components/order-card";
 export {
   OrderCardSkeleton,

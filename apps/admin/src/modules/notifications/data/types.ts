@@ -30,6 +30,13 @@ export type OrderNotification = {
       /** Present when the copy came from the notification itself. */
       detail: string;
     }
+  | {
+      kind: "order.cancelled";
+      /** What the order was doing when it was cancelled — "packed" means
+       * work already done, "confirmed" means none. */
+      fromStatus: string;
+      reason: string;
+    }
 );
 
 export type NotificationKind = OrderNotification["kind"];

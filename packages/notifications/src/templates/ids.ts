@@ -31,6 +31,8 @@ export const NOTIFICATION_TEMPLATE = {
     ORDER_STATUS_UPDATED: "admin.order.status_updated",
     /** A rider closed a delivery from the public delivery link. */
     DELIVERY_COMPLETED: "admin.delivery.completed",
+    /** The customer cancelled — staff must stop packing. */
+    ORDER_CANCELLED: "admin.order.cancelled",
   },
 
   /** Referral programme. */

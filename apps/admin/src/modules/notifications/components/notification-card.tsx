@@ -1,7 +1,13 @@
 import { Badge } from "@mumzo/ui/components/badge";
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, PackagePlus, TriangleAlert, Truck } from "lucide-react";
+import {
+  Ban,
+  CheckCircle2,
+  PackagePlus,
+  TriangleAlert,
+  Truck,
+} from "lucide-react";
 import { formatDateTime, formatMoney } from "@/core/components/format";
 import type { OrderNotification } from "../data/types";
 
@@ -23,6 +29,15 @@ function presentation(notification: OrderNotification) {
         tone: "text-primary bg-primary/10",
         title: "Order updated",
         summary: `${notification.fromStatus} → ${notification.toStatus}`,
+      };
+    case "order.cancelled":
+      return {
+        icon: Ban,
+        tone: "text-status-danger bg-status-danger/10",
+        title: "Order cancelled",
+        summary: notification.reason
+          ? `Was "${notification.fromStatus}" — ${notification.reason}`
+          : `Cancelled from "${notification.fromStatus}"`,
       };
     default: {
       const failed = notification.outcome !== "delivered";

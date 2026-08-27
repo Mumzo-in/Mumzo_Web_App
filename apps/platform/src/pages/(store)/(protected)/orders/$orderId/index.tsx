@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import Breadcrumbs from "@/core/components/breadcrumbs";
 import { rupee } from "@/modules/cart";
 import {
+  CancelOrderDialog,
+  canCancelOrder,
   formatOrderDate,
   OrderDetailSkeleton,
   OrderStatusTimeline,
@@ -212,6 +214,9 @@ function OrderDetailPage() {
               <RotateCcw size={15} />
               Reorder
             </button>
+            {canCancelOrder(order.status) && (
+              <CancelOrderDialog orderId={order.id} />
+            )}
             {order.status === "delivered" && (
               <Link
                 to="/orders/$orderId/return"

@@ -2,6 +2,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { cn } from "@mumzo/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import {
+  Ban,
   CheckCircle2,
   type LucideIcon,
   ShoppingBag,
@@ -59,6 +60,17 @@ function describe(
         rows: [
           { label: "From", value: notification.fromStatus || "—" },
           { label: "To", value: notification.toStatus || "—" },
+        ],
+      };
+
+    case "order.cancelled":
+      return {
+        icon: Ban,
+        heading: "Order cancelled",
+        accent: "danger",
+        rows: [
+          { label: "Was", value: notification.fromStatus || "—" },
+          { label: "Reason", value: notification.reason || "Not given" },
         ],
       };
 
