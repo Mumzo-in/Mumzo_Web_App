@@ -23,8 +23,14 @@ export const env = createEnv({
      * Max connections per process. Postgres allocates ~10 MB each, so this is
      * sized deliberately rather than left to the driver default: with 2 API
      * containers plus a worker this must stay well under `max_connections`.
+     *
+     * Sized for the notification worker sharing this pool with the API (see
+     * `NOTIFICATION_WORKER_CONCURRENCY`): a burst of sends must not be able
+     * to starve request handlers of connections. Raise this in lockstep with
+     * worker concurrency, and drop it back toward 10 once the worker moves
+     * to its own process with its own pool.
      */
-    DATABASE_POOL_MAX: intFromEnv(10),
+    DATABASE_POOL_MAX: intFromEnv(20),
     /** Drop a pooled connection after this many seconds idle. */
     DATABASE_IDLE_TIMEOUT: intFromEnv(30),
     /** Fail fast rather than queueing forever when the pool is saturated. */
@@ -106,6 +112,15 @@ export const env = createEnv({
      * provider (Upstash/Elasticache) would carry credentials in the URL.
      */
     REDIS_URL: z.url().startsWith("redis").default("redis://localhost:6379"),
+    /**
+     * How many notification jobs the worker processes at once. Each job
+     * holds a pooled connection while it reads devices and writes its log
+     * rows, so this trades directly against `DATABASE_POOL_MAX` — the
+     * worker must never be able to claim every connection and leave request
+     * handlers waiting. Kept well under the pool while the worker shares a
+     * process with the API.
+     */
+    NOTIFICATION_WORKER_CONCURRENCY: intFromEnv(5),
     /** Firebase service account — project id from the Firebase console. */
     FCM_PROJECT_ID: z.string().min(1).optional(),
     /** Firebase service account client email (`...@<project>.iam.gserviceaccount.com`). */

@@ -29,14 +29,31 @@ export async function sendToAllStaff(
   templateId: string,
   data: unknown,
 ): Promise<void> {
+  const template = getTemplate(templateId);
+  template.dataSchema.parse(data);
+
   const recipients = await db
     .selectDistinct({ staffUserId: staffDevice.staffUserId })
     .from(staffDevice)
     .where(eq(staffDevice.isActive, true));
 
-  await Promise.all(
-    recipients.map((r) =>
-      send({ userId: r.staffUserId, templateId, data, audience: "staff" }),
-    ),
+  if (recipients.length === 0) {
+    return;
+  }
+
+  // One round-trip for the whole fan-out rather than one per recipient —
+  // `send()` in a `Promise.all` issued N enqueues per order, which at even
+  // a modest staff count is the bulk of this call's cost. Validation is
+  // hoisted above so a bad payload still fails once, at the call site.
+  await getNotificationQueue().addBulk(
+    recipients.map((r) => ({
+      name: templateId,
+      data: {
+        userId: r.staffUserId,
+        templateId,
+        data,
+        audience: "staff" as const,
+      },
+    })),
   );
 }

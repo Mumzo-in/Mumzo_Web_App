@@ -1,3 +1,4 @@
+import { env } from "@mumzo/env/server";
 import { Worker } from "bullmq";
 
 import { processNotificationJob } from "./dispatcher";
@@ -16,7 +17,7 @@ export function startNotificationWorker() {
     },
     {
       connection: createRedisConnection(),
-      concurrency: 10,
+      concurrency: env.NOTIFICATION_WORKER_CONCURRENCY,
     },
   );
 

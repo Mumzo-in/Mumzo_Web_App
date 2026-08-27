@@ -234,7 +234,7 @@ export async function findUserName(userId: string) {
 
 /** Referrals stuck in `order_placed` whose return window has passed — the
  * settlement sweep's work queue. */
-export async function findDueForSettlement(now: Date) {
+export async function findDueForSettlement(now: Date, limit: number) {
   return db
     .select()
     .from(referral)
@@ -243,7 +243,9 @@ export async function findDueForSettlement(now: Date) {
         eq(referral.status, "order_placed"),
         lte(referral.returnWindowEnd, now),
       ),
-    );
+    )
+    .orderBy(referral.returnWindowEnd)
+    .limit(limit);
 }
 
 export async function listInvitesForReferrer(referrerUserId: string) {

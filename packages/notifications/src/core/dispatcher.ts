@@ -4,11 +4,16 @@ import {
   staffDevice,
   userDevice,
 } from "@mumzo/db/schema/notifications";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { getAdapter } from "../channels";
 import { renderTemplate } from "../templates";
-import type { Audience, NotificationJobPayload } from "./types";
+import type {
+  Audience,
+  Channel,
+  NotificationJobPayload,
+  SendResult,
+} from "./types";
 
 /** A device row shape common to `userDevice` and `staffDevice` — the two
  * tables are structurally identical (see notifications.ts schema comments
@@ -50,54 +55,87 @@ export async function processNotificationJob(job: NotificationJobPayload) {
             ),
           );
 
-  await Promise.all(
-    devices.map((device) => sendToDevice(job, audience, device)),
-  );
-}
-
-async function sendToDevice(
-  job: NotificationJobPayload,
-  audience: Audience,
-  device: DeviceRow,
-) {
-  const channel = device.channel as "fcm" | "web-push";
-  const rendered = renderTemplate(job.templateId, channel, job.data);
-  const adapter = getAdapter(channel);
-
-  const result = await adapter.send(rendered, {
-    id: device.id,
-    userId: job.userId,
-    channel,
-    token: device.token,
-  });
-
-  const recipientColumn =
-    audience === "staff" ? { staffUserId: job.userId } : { userId: job.userId };
-
-  if (result.ok) {
-    await db.insert(notificationLog).values({
-      ...recipientColumn,
-      templateId: job.templateId,
-      channel,
-      status: "sent",
-      providerMessageId: result.providerMessageId,
-    });
+  if (devices.length === 0) {
     return;
   }
 
-  await db.insert(notificationLog).values({
-    ...recipientColumn,
-    templateId: job.templateId,
-    channel,
-    status: "failed",
-    error: result.error,
-  });
+  const outcomes = await Promise.all(
+    devices.map((device) => sendToDevice(job, device)),
+  );
 
-  if (result.permanent) {
+  // One multi-row INSERT for the whole job rather than one per device: a
+  // broadcast fan-out would otherwise issue a separate round-trip (and a
+  // separate index update on all three `notification_log` indexes) for
+  // every device it touches.
+  const recipientColumn =
+    audience === "staff" ? { staffUserId: job.userId } : { userId: job.userId };
+
+  await db.insert(notificationLog).values(
+    outcomes.map((outcome) => ({
+      ...recipientColumn,
+      templateId: job.templateId,
+      channel: outcome.channel,
+      status: outcome.result.ok ? "sent" : "failed",
+      providerMessageId: outcome.result.ok
+        ? outcome.result.providerMessageId
+        : undefined,
+      error: outcome.result.ok ? undefined : outcome.result.error,
+    })),
+  );
+
+  // Dead tokens are deactivated in one statement per table for the same
+  // reason — `permanent` failures cluster (an expired FCM project, a
+  // browser that dropped every subscription), so this is rarely one row.
+  const deadDeviceIds = outcomes
+    .filter((outcome) => !outcome.result.ok && outcome.result.permanent)
+    .map((outcome) => outcome.deviceId);
+
+  if (deadDeviceIds.length > 0) {
     const table = audience === "staff" ? staffDevice : userDevice;
     await db
       .update(table)
       .set({ isActive: false })
-      .where(eq(table.id, device.id));
+      .where(inArray(table.id, deadDeviceIds));
+  }
+}
+
+type SendOutcome = {
+  deviceId: string;
+  channel: Channel;
+  result: SendResult;
+};
+
+/** Sends to one device and reports what happened — deliberately does no DB
+ * work of its own so the caller can batch every device's result into a
+ * single write. Never throws: an adapter blowing up is recorded as a
+ * non-permanent failure so one dead device can't fail the whole job. */
+async function sendToDevice(
+  job: NotificationJobPayload,
+  device: DeviceRow,
+): Promise<SendOutcome> {
+  const channel = device.channel as Channel;
+
+  try {
+    const rendered = renderTemplate(job.templateId, channel, job.data);
+    const adapter = getAdapter(channel);
+
+    const result = await adapter.send(rendered, {
+      id: device.id,
+      userId: job.userId,
+      channel,
+      token: device.token,
+    });
+
+    return { deviceId: device.id, channel, result };
+  } catch (error) {
+    return {
+      deviceId: device.id,
+      channel,
+      result: {
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown send error",
+        permanent: false,
+      },
+    };
   }
 }
