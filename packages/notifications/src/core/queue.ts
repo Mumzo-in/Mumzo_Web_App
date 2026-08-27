@@ -1,25 +1,62 @@
-import { Queue } from "bullmq";
+import { db } from "@mumzo/db";
+import { notificationJob } from "@mumzo/db/schema/notifications";
 
-import { createRedisConnection } from "./redis";
 import type { NotificationJobPayload } from "./types";
 
-export const NOTIFICATION_QUEUE_NAME = "notifications";
+/** LISTEN/NOTIFY channel name. Shared by the trigger in migration 0016 and
+ * the worker's listener — they must agree exactly. */
+export const NOTIFICATION_CHANNEL = "notification_job";
 
-let queue: Queue<NotificationJobPayload> | undefined;
+/**
+ * Default priority. Transactional sends leave this alone; bulk/marketing
+ * fan-out should enqueue at a higher number so it sorts behind them.
+ */
+export const PRIORITY_TRANSACTIONAL = 100;
+export const PRIORITY_BULK = 500;
 
-/** Lazily created singleton — the queue only needs a Redis connection once
- * something actually calls `notify.send()`, not at module import time. */
-export function getNotificationQueue() {
-  if (!queue) {
-    queue = new Queue<NotificationJobPayload>(NOTIFICATION_QUEUE_NAME, {
-      connection: createRedisConnection(),
-      defaultJobOptions: {
-        attempts: 5,
-        backoff: { type: "exponential", delay: 5_000 },
-        removeOnComplete: { age: 60 * 60 * 24 * 7 }, // 7 days
-        removeOnFail: { age: 60 * 60 * 24 * 30 }, // 30 days
-      },
-    });
+type EnqueueOptions = {
+  priority?: number;
+  /** Delay before the job first becomes runnable. */
+  delayMs?: number;
+};
+
+function toRow(job: NotificationJobPayload, options?: EnqueueOptions) {
+  return {
+    templateId: job.templateId,
+    userId: job.userId,
+    audience: job.audience ?? "customer",
+    payload: job.data,
+    priority: options?.priority ?? PRIORITY_TRANSACTIONAL,
+    runAfter: options?.delayMs
+      ? new Date(Date.now() + options.delayMs)
+      : new Date(),
+  };
+}
+
+/** Enqueues one job. The INSERT trigger fires `pg_notify`, waking an idle
+ * worker without waiting for its next poll. */
+export async function enqueue(
+  job: NotificationJobPayload,
+  options?: EnqueueOptions,
+): Promise<void> {
+  await db.insert(notificationJob).values(toRow(job, options));
+}
+
+/**
+ * Enqueues many jobs in one INSERT. Chunked because a single statement with
+ * tens of thousands of rows is both a very large query and a long lock —
+ * fan-out callers pass the whole recipient list and let this split it.
+ */
+export async function enqueueMany(
+  jobs: NotificationJobPayload[],
+  options?: EnqueueOptions,
+): Promise<void> {
+  const CHUNK_SIZE = 1_000;
+
+  for (let i = 0; i < jobs.length; i += CHUNK_SIZE) {
+    const chunk = jobs.slice(i, i + CHUNK_SIZE);
+    await db
+      .insert(notificationJob)
+      .values(chunk.map((j) => toRow(j, options)));
   }
-  return queue;
 }

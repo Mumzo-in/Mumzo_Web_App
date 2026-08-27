@@ -20,6 +20,19 @@ export const env = createEnv({
      */
     DATABASE_URL: z.url().startsWith("postgres"),
     /**
+     * Direct (non-pooled) connection, bypassing PgBouncer.
+     *
+     * Required by the notification worker's LISTEN/NOTIFY listener:
+     * Supabase's pooler runs in transaction mode, which multiplexes sessions
+     * across backends and so never delivers asynchronous NOTIFY to a client
+     * — verified against this project's pooler, where LISTEN silently
+     * receives nothing. Session-scoped features need the direct port.
+     *
+     * Optional: without it the worker falls back to `DATABASE_URL` and runs
+     * on its poll interval alone, which is correct but higher-latency.
+     */
+    DATABASE_DIRECT_URL: z.url().startsWith("postgres").optional(),
+    /**
      * Max connections per process. Postgres allocates ~10 MB each, so this is
      * sized deliberately rather than left to the driver default: with 2 API
      * containers plus a worker this must stay well under `max_connections`.

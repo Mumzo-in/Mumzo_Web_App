@@ -3,7 +3,7 @@ import { staffDevice } from "@mumzo/db/schema/notifications";
 import { eq } from "drizzle-orm";
 
 import { getTemplate } from "../templates";
-import { getNotificationQueue } from "./queue";
+import { enqueue, enqueueMany } from "./queue";
 import type { NotificationJobInput } from "./types";
 
 /**
@@ -15,7 +15,7 @@ export async function send(input: NotificationJobInput) {
   const template = getTemplate(input.templateId);
   template.dataSchema.parse(input.data);
 
-  await getNotificationQueue().add(input.templateId, input);
+  await enqueue(input);
 }
 
 /**
@@ -45,15 +45,12 @@ export async function sendToAllStaff(
   // `send()` in a `Promise.all` issued N enqueues per order, which at even
   // a modest staff count is the bulk of this call's cost. Validation is
   // hoisted above so a bad payload still fails once, at the call site.
-  await getNotificationQueue().addBulk(
+  await enqueueMany(
     recipients.map((r) => ({
-      name: templateId,
-      data: {
-        userId: r.staffUserId,
-        templateId,
-        data,
-        audience: "staff" as const,
-      },
+      userId: r.staffUserId,
+      templateId,
+      data,
+      audience: "staff" as const,
     })),
   );
 }

@@ -1,7 +1,9 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
+  integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -152,4 +154,71 @@ export const notificationLogRelations = relations(
       references: [staffUser.id],
     }),
   }),
+);
+
+/**
+ * The notification queue itself — this table *is* the queue, not a mirror of
+ * one. Replaces BullMQ/Redis, which was the only consumer of Redis in the
+ * whole monorepo and so carried a dedicated ElastiCache instance to serve a
+ * workload of well under one job per second.
+ *
+ * Durability lives here; `pg_notify` is only a doorbell that wakes an idle
+ * worker sooner than its next poll. NOTIFY payloads are dropped entirely
+ * when no session is listening, so the worker must always keep polling as
+ * well — a queue that relies on NOTIFY alone silently loses every job
+ * enqueued during a worker restart.
+ *
+ * Claiming is `SELECT ... FOR UPDATE SKIP LOCKED` (see `core/claim.ts`):
+ * concurrent workers skip each other's locked rows instead of blocking, so
+ * two workers can never process the same job. This is the same mechanism
+ * behind river, graphile-worker, and Oban.
+ */
+export const notificationJob = pgTable(
+  "notification_job",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    templateId: text("template_id").notNull(),
+    /** The template's validated `data` payload, stored verbatim. */
+    payload: jsonb("payload").notNull(),
+    /** "customer" | "staff" — which id space `userId` belongs to. */
+    audience: text("audience").notNull().default("customer"),
+    userId: text("user_id").notNull(),
+    /** "pending" | "processing" | "completed" | "failed" | "dead". */
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(5),
+    /**
+     * Earliest time this job may be claimed. Backoff is implemented by
+     * pushing this into the future rather than by sleeping a worker, so a
+     * retry costs nothing while it waits and survives a restart.
+     */
+    runAfter: timestamp("run_after").defaultNow().notNull(),
+    /**
+     * Lower runs first. Transactional sends (order status) must not queue
+     * behind a marketing broadcast that enqueued 100k rows a moment
+     * earlier.
+     */
+    priority: integer("priority").notNull().default(100),
+    lastError: text("last_error"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    /**
+     * The claim query's only index. Partial, because completed rows vastly
+     * outnumber pending ones within a retention window and would otherwise
+     * bloat it — this keeps the index roughly the size of the backlog
+     * rather than the size of the history.
+     */
+    index("notification_job_claim_idx")
+      .on(table.priority, table.runAfter)
+      .where(sql`${table.status} = 'pending'`),
+    /** Retention sweep + DLQ listing both filter on status alone. */
+    index("notification_job_status_idx").on(table.status, table.createdAt),
+    index("notification_job_templateId_idx").on(table.templateId),
+  ],
 );

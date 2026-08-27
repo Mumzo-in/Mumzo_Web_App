@@ -12,15 +12,15 @@
   "dependencies": {
     "@mumzo/db": "workspace:*",
     "@mumzo/env": "workspace:*",
-    "bullmq": "^5.34.5",
     "drizzle-orm": "^0.45.2",
     "firebase-admin": "^13.0.2",
-    "ioredis": "^5.4.2",
+    "pg": "^8.22.0",
     "web-push": "^3.6.7",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@mumzo/config": "workspace:*",
+    "@types/pg": "^8.20.0",
     "@types/web-push": "^3.6.4",
     "typescript": "catalog:"
   }
