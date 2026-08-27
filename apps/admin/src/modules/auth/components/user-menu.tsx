@@ -20,6 +20,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, ShieldAlert, User } from "lucide-react";
 import { humanizeRoleKey, resolveRole, roleKeys } from "@/core/auth/roles";
+import { unregisterDevice } from "@/modules/notifications";
 import { sessionQueryOptions } from "..";
 import { authClient } from "../api/auth-client";
 
@@ -152,7 +153,13 @@ export function UserMenu({
         <DropdownMenuItem
           className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-status-danger text-xs transition-colors hover:bg-status-danger/10 hover:text-status-danger"
           data-testid="admin-sign-out"
-          onClick={() => {
+          onClick={async () => {
+            // Before signing out, not after: the DELETE is authenticated by
+            // the session cookie, so it has to happen while the session is
+            // still valid. Awaited rather than fired off, or the sign-out
+            // would race it. Never throws — see `unregisterDevice`.
+            await unregisterDevice();
+
             authClient.signOut({
               fetchOptions: {
                 onSuccess: () => {

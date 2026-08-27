@@ -7,13 +7,13 @@ import {
   use,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
 
 import { queryKeys } from "@/core/api/query-keys";
-import { showBrowserNotification } from "@/core/notifications";
-import { useAdminRealtime } from "@/core/realtime";
+import { onForegroundMessage } from "@/core/notifications";
 import { playSound, unlockAudio } from "@/core/sound";
 import { hubsAllQueryOptions } from "@/modules/hub";
 import type { OrderNotification } from "../data/types";
@@ -111,6 +111,15 @@ function NewOrderToastCard({
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
+  /**
+   * Order ids the realtime feed has already surfaced this session.
+   *
+   * `order.created` reaches a focused tab twice — once over the WS feed and
+   * once as an FCM foreground message — because the push exists for tabs
+   * that are closed or backgrounded. Whichever arrives first claims the id;
+   * the other is dropped, so staff see one toast and hear one chime.
+   */
+  const seenOrderIds = useRef(new Set<string>());
 
   const { data: hubs } = useQuery(hubsAllQueryOptions);
 
@@ -129,67 +138,96 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useAdminRealtime((event) => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+  /**
+   * FCM foreground messages — the only live feed the panel has since the
+   * admin websocket was removed.
+   *
+   * `templateId` is what distinguishes one event from another now that
+   * everything arrives over one channel; the templates in
+   * `@mumzo/notifications` set it alongside `orderId`.
+   *
+   * Background messages go to `firebase-messaging-sw.js` instead — the
+   * browser routes each message to exactly one of the two, so nothing here
+   * needs to guard against the service worker also having shown it.
+   */
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
 
-    // A rider closed an order from the delivery link — surface it, since
-    // nobody in the panel performed this move.
-    if (event.type === "delivery.completed") {
-      const label = `#${event.data.orderId.slice(0, 8).toUpperCase()}`;
-      const who = event.data.riderName ?? "A rider";
-      const why = event.data.reason ? ` — ${event.data.reason}` : "";
-      const message = `${label} ${event.data.outcome} by ${who}${why}`;
+    onForegroundMessage((payload) => {
+      // Any order event means the board is stale, whatever it was.
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
 
-      if (event.data.outcome === "delivered") {
-        toast.success(message);
-      } else {
-        toast.warning(message);
+      const orderId = payload.data?.orderId;
+      if (!orderId) return;
+
+      const templateId = payload.data?.templateId;
+
+      // A rider closed an order from the delivery link — surface it, since
+      // nobody in the panel performed this move.
+      if (templateId === "admin.delivery.completed") {
+        const message = payload.notification?.body ?? "Delivery updated";
+        if (payload.data?.outcome === "delivered") {
+          toast.success(message);
+        } else {
+          toast.warning(message);
+        }
+        return;
       }
-      showBrowserNotification(`Order ${event.data.outcome}`, message);
-      return;
-    }
 
-    if (event.type !== "order.created") {
-      return;
-    }
+      // Status hops just refresh the board — a toast per hop would be five
+      // toasts for one order's journey.
+      if (templateId !== "order.created") {
+        return;
+      }
 
-    const notification: OrderNotification = {
-      id: `${event.data.orderId}-${event.emittedAt}`,
-      orderId: event.data.orderId,
-      hubId: event.data.hubId,
-      total: event.data.total,
-      addressName: event.data.addressName,
-      receivedAt: event.emittedAt,
-      read: false,
-    };
+      // The same order can arrive twice if a token is registered on two
+      // rows for one staff member; the tray must not double-count it.
+      if (seenOrderIds.current.has(orderId)) return;
+      seenOrderIds.current.add(orderId);
 
-    setNotifications((prev) =>
-      [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
-    );
-    playSound("newOrder");
+      const total = Number(payload.data?.total ?? 0);
+      const addressName = payload.data?.addressName ?? "Customer";
+      const hubId = payload.data?.hubId ?? "";
 
-    const hubName =
-      hubs?.find((h) => h.id === event.data.hubId)?.name ?? "Unknown Hub";
-    toast.custom(
-      (id) => (
-        <NewOrderToastCard
-          orderId={event.data.orderId}
-          total={event.data.total}
-          addressName={event.data.addressName}
-          hubName={hubName}
-          onClose={() => toast.dismiss(id)}
-        />
-      ),
-      {
-        duration: 15000,
-      },
-    );
+      setNotifications((prev) =>
+        [
+          {
+            id: `${orderId}-${Date.now()}`,
+            orderId,
+            hubId,
+            total,
+            addressName,
+            receivedAt: new Date().toISOString(),
+            read: false,
+          },
+          ...prev,
+        ].slice(0, MAX_NOTIFICATIONS),
+      );
+      playSound("newOrder");
 
-    showBrowserNotification(
-      "New order",
-      `₹${event.data.total} — ${event.data.addressName}`,
-    );
-  });
+      const hubName = hubs?.find((h) => h.id === hubId)?.name ?? "Unknown Hub";
+      toast.custom(
+        (id) => (
+          <NewOrderToastCard
+            orderId={orderId}
+            total={total}
+            addressName={addressName}
+            hubName={hubName}
+            onClose={() => toast.dismiss(id)}
+          />
+        ),
+        { duration: 15000 },
+      );
+    })
+      .then((fn) => {
+        unsubscribe = fn;
+      })
+      .catch((error) => {
+        console.error("[notifications] foreground listener failed:", error);
+      });
+
+    return () => unsubscribe?.();
+  }, [queryClient, hubs]);
 
   const markAllRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));

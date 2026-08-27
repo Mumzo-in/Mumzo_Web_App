@@ -1,6 +1,5 @@
 import { db, deliveryLink, order, orderStatusLog, rider } from "@mumzo/db";
 import { notify } from "@mumzo/notifications";
-import { ROOMS, realtime } from "@mumzo/realtime";
 import { eq } from "drizzle-orm";
 import { badRequest, forbidden, notFound } from "@/core/errors";
 
@@ -250,33 +249,31 @@ export async function completeDeliveryRun(
   });
 
   // Best-effort fan-out — the status change has already committed, so none of
-  // these may fail the rider's update. The board listens on
-  // `order.status_updated`, so that is published too rather than only the
-  // rider-specific event.
-  realtime
-    .publish(ROOMS.adminOrders, "order.status_updated", {
+  // these may fail the rider's update. Staff are reached by push only: the
+  // admin websocket feed was removed, so this is the sole path to the board.
+  notify
+    .sendToAllStaff("admin.order.status_updated", {
       orderId: link.orderId,
       fromStatus: current.status,
       toStatus: nextStatus,
     })
     .catch((error) => {
       console.error(
-        `Failed to publish order.status_updated for ${link.orderId}:`,
+        `Failed to enqueue admin.order.status_updated for ${link.orderId}:`,
         error,
       );
     });
 
-  realtime
-    .publish(ROOMS.adminOrders, "delivery.completed", {
+  notify
+    .sendToAllStaff("admin.delivery.completed", {
       orderId: link.orderId,
       outcome,
-      riderId: match.id,
       riderName: match.name ?? null,
       reason: reason ?? null,
     })
     .catch((error) => {
       console.error(
-        `Failed to publish delivery.completed for ${link.orderId}:`,
+        `Failed to enqueue admin.delivery.completed for ${link.orderId}:`,
         error,
       );
     });

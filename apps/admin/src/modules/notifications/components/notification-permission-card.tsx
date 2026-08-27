@@ -3,6 +3,7 @@ import { Button } from "@mumzo/ui/components/button";
 import { BellRing } from "lucide-react";
 import { useEffect, useState } from "react";
 import { unlockAudio } from "@/core/sound";
+import { usePushRegistration } from "../hooks/use-push-registration";
 
 const DISMISSED_STORAGE_KEY = "mumzo-admin.notif-permission-dismissed";
 
@@ -22,6 +23,7 @@ export function NotificationPermissionCard() {
   const [permission, setPermission] = useState<NotificationPermission | null>(
     null,
   );
+  const { enable: enablePush, isRegistering } = usePushRegistration();
 
   useEffect(() => {
     setDismissed(window.localStorage.getItem(DISMISSED_STORAGE_KEY) === "true");
@@ -40,9 +42,13 @@ export function NotificationPermissionCard() {
   async function enable() {
     unlockAudio();
 
-    if (hasNotificationApi() && Notification.permission === "default") {
-      const result = await Notification.requestPermission();
-      setPermission(result);
+    // Registers the device with the API as well as prompting — the prompt
+    // alone only unlocks the browser's own notification popup, which does
+    // nothing for pushes sent while every admin tab is closed.
+    await enablePush();
+
+    if (hasNotificationApi()) {
+      setPermission(Notification.permission);
     }
 
     dismiss();
@@ -67,9 +73,10 @@ export function NotificationPermissionCard() {
         <Button
           size="sm"
           onClick={enable}
+          disabled={isRegistering}
           data-testid="notification-permission-enable"
         >
-          Enable
+          {isRegistering ? "Enabling…" : "Enable"}
         </Button>
       </div>
     </Alert>

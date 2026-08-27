@@ -135,6 +135,16 @@ export const env = createEnv({
      */
     NOTIFICATION_WORKER_CONCURRENCY: intFromEnv(5),
     /** Firebase service account — project id from the Firebase console. */
+    /**
+     * Path to a Firebase service-account JSON, relative to the repo root.
+     * The alternative to setting `FCM_PROJECT_ID`/`FCM_CLIENT_EMAIL`/
+     * `FCM_PRIVATE_KEY` individually — the file is what the Firebase
+     * console hands you, so pointing at it avoids transcribing a multi-line
+     * PEM into `.env`. Takes precedence when both are present.
+     *
+     * The file holds a live private key: keep it gitignored.
+     */
+    FCM_SERVICE_ACCOUNT_PATH: z.string().min(1).optional(),
     FCM_PROJECT_ID: z.string().min(1).optional(),
     /** Firebase service account client email (`...@<project>.iam.gserviceaccount.com`). */
     FCM_CLIENT_EMAIL: z.string().min(1).optional(),

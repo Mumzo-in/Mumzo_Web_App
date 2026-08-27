@@ -25,6 +25,7 @@
     "@tanstack/react-table": "^8.21.3",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "firebase": "^12.18.0",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",

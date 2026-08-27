@@ -59,9 +59,7 @@ export async function processNotificationJob(job: NotificationJobPayload) {
     return;
   }
 
-  const outcomes = await Promise.all(
-    devices.map((device) => sendToDevice(job, device)),
-  );
+  const outcomes = await sendToDevices(job, devices);
 
   // One multi-row INSERT for the whole job rather than one per device: a
   // broadcast fan-out would otherwise issue a separate round-trip (and a
@@ -104,6 +102,90 @@ type SendOutcome = {
   channel: Channel;
   result: SendResult;
 };
+
+/**
+ * Sends one notification to every device, grouped by channel so an adapter
+ * with a batch API (FCM's `sendEach`, 500 tokens per call) is used once per
+ * channel instead of once per device.
+ *
+ * Results are re-associated with their originating device by position
+ * within each channel group — `sendMany` guarantees input order — because
+ * the caller deactivates rows by id and a mismatch here would unsubscribe
+ * the wrong device.
+ */
+async function sendToDevices(
+  job: NotificationJobPayload,
+  devices: DeviceRow[],
+): Promise<SendOutcome[]> {
+  const byChannel = new Map<Channel, DeviceRow[]>();
+
+  for (const device of devices) {
+    const channel = device.channel as Channel;
+    const group = byChannel.get(channel);
+    if (group) {
+      group.push(device);
+    } else {
+      byChannel.set(channel, [device]);
+    }
+  }
+
+  const groups = await Promise.all(
+    [...byChannel].map(([channel, group]) =>
+      sendChannelGroup(job, channel, group),
+    ),
+  );
+
+  return groups.flat();
+}
+
+async function sendChannelGroup(
+  job: NotificationJobPayload,
+  channel: Channel,
+  devices: DeviceRow[],
+): Promise<SendOutcome[]> {
+  const adapter = getAdapter(channel);
+
+  // No batch API, or nothing to batch — the per-device path is equivalent
+  // and avoids paying for a grouped call with a single member.
+  if (!adapter.sendMany || devices.length === 1) {
+    return Promise.all(devices.map((device) => sendToDevice(job, device)));
+  }
+
+  try {
+    const rendered = renderTemplate(job.templateId, channel, job.data);
+
+    const results = await adapter.sendMany(
+      rendered,
+      devices.map((device) => ({
+        id: device.id,
+        userId: job.userId,
+        channel,
+        token: device.token,
+      })),
+    );
+
+    return devices.map((device, index) => ({
+      deviceId: device.id,
+      channel,
+      result: results[index] ?? {
+        ok: false as const,
+        error: "Adapter returned no result for this device",
+        permanent: false,
+      },
+    }));
+  } catch (error) {
+    // A render or whole-batch failure is not any single device's fault.
+    return devices.map((device) => ({
+      deviceId: device.id,
+      channel,
+      result: {
+        ok: false as const,
+        error: error instanceof Error ? error.message : "Unknown send error",
+        permanent: false,
+      },
+    }));
+  }
+}
 
 /** Sends to one device and reports what happened — deliberately does no DB
  * work of its own so the caller can batch every device's result into a

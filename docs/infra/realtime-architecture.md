@@ -1,5 +1,26 @@
 # Mumzo — Realtime (WebSocket) Architecture
 
+> **⚠️ REMOVED — this document describes a system that no longer exists.**
+>
+> The admin websocket feed and the `@mumzo/realtime` package were removed in
+> favour of FCM push as the single delivery channel. `packages/realtime`,
+> `apps/server/src/modules/admin/v1/ws`, and `apps/admin/src/core/realtime`
+> are all deleted; the server's default export no longer carries a
+> `websocket` handler.
+>
+> Staff events (`order.created`, `admin.order.status_updated`,
+> `admin.delivery.completed`) now travel as FCM notifications — see
+> [notifications-architecture.md](./notifications-architecture.md). The
+> admin panel reacts to them via `onForegroundMessage` in
+> `notification-provider.tsx`, keyed on the `templateId` in each message's
+> data payload.
+>
+> **Consequence to be aware of:** a staff member who denies notification
+> permission, or whose browser cannot do push, receives no live updates at
+> all. There is no websocket fallback any more.
+>
+> Kept for historical context only.
+
 Live admin feed for order events, built as an extensible pub/sub layer —
 not a one-off "broadcast new orders" handler. Any future feature (chat,
 live delivery tracking, inventory alerts) plugs into the same connection

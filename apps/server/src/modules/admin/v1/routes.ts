@@ -24,7 +24,6 @@ import staffRoutes from "./staff";
 import uploadsRoutes from "./uploads/uploads.module";
 import usersRoutes from "./users/users.module";
 import vendorsRoutes from "./vendors/vendors.module";
-import wsRoutes from "./ws/ws.module";
 
 /**
  * Mount table for `/api/v1/admin/*`.
@@ -55,7 +54,6 @@ export const adminRoutes: { path: string; router: Hono<AppEnv> }[] = [
   { path: "/inventory", router: inventoryRoutes },
   { path: "/uploads", router: uploadsRoutes },
   { path: "/users", router: usersRoutes },
-  { path: "/ws", router: wsRoutes },
   { path: "/activity-logs", router: activityLogsRoutes },
   { path: "/customer-events", router: customerEventsRoutes },
 ];

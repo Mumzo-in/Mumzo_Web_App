@@ -4,7 +4,6 @@ import {
   startNotificationWorker,
   startRetentionSweep,
 } from "@mumzo/notifications";
-import { websocket } from "@mumzo/realtime/bun";
 
 import {
   commonErrorResponses,
@@ -101,8 +100,6 @@ mountOpenAPI(app);
 
 export type AppType = typeof router;
 
-// Bun's implicit-serve form only starts a WebSocket-capable server when the
-// default export carries a `websocket` handler alongside `fetch` — a plain
-// Hono instance (which only exposes `fetch`) isn't enough. See
-// docs/infra/realtime-architecture.md for the upgrade flow this enables.
-export default { fetch: app.fetch, websocket };
+// Plain fetch handler — the admin websocket feed was removed in favour of
+// FCM push, so there is no upgrade path left for Bun to serve.
+export default { fetch: app.fetch };

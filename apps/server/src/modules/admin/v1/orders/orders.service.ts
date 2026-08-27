@@ -15,7 +15,6 @@ import {
 } from "@mumzo/db/schema/commerce";
 import { rider } from "@mumzo/db/schema/delivery";
 import { notify } from "@mumzo/notifications";
-import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { Context } from "hono";
 import type { z } from "zod";
@@ -239,15 +238,18 @@ export async function createOrder(
     return orderRow.id;
   });
 
-  realtime
-    .publish(ROOMS.adminOrders, "order.created", {
+  notify
+    .sendToAllStaff("order.created", {
       orderId,
-      hubId: hubRow.id,
       total: totals.total,
       addressName: input.customerName,
+      hubId: hubRow.id,
     })
     .catch((error) => {
-      console.error(`Failed to publish order.created for ${orderId}:`, error);
+      console.error(
+        `Failed to enqueue order.created push for ${orderId}:`,
+        error,
+      );
     });
 
   if (input.customerId) {
@@ -501,7 +503,7 @@ export async function updateOrderStatus(
 
   // Best-effort — neither call must fail the status update that already
   // committed. notify.send() only enqueues (fast Redis round-trip, not a
-  // wait on delivery); realtime.publish() is a fire-and-forget in-memory fan-out.
+  // wait on delivery).
   if (row.userId) {
     notify
       .send({
@@ -517,15 +519,15 @@ export async function updateOrderStatus(
       });
   }
 
-  realtime
-    .publish(ROOMS.adminOrders, "order.status_updated", {
+  notify
+    .sendToAllStaff("admin.order.status_updated", {
       orderId,
       fromStatus: row.status,
       toStatus: input.status,
     })
     .catch((error) => {
       console.error(
-        `Failed to publish order.status_updated for ${orderId}:`,
+        `Failed to enqueue admin.order.status_updated for ${orderId}:`,
         error,
       );
     });

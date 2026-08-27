@@ -17,7 +17,6 @@ import {
 } from "@mumzo/db/schema/commerce";
 import { coupon } from "@mumzo/db/schema/marketing";
 import { notify } from "@mumzo/notifications";
-import { ROOMS, realtime } from "@mumzo/realtime";
 import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { logCustomerEvent } from "@/core/customer-event";
@@ -338,21 +337,9 @@ export async function placeOrder(
       };
     });
 
-  // Best-effort — neither call must fail an order that already committed.
-  // realtime.publish() is the live in-app feed for staff with the dashboard
-  // open; notify.sendToAllStaff() is the OS-level push for when it isn't
-  // focused. See docs/infra/realtime-architecture.md for how they relate.
-  realtime
-    .publish(ROOMS.adminOrders, "order.created", {
-      orderId,
-      hubId: hubRow.id,
-      total: totals.total,
-      addressName: addressRow.name,
-    })
-    .catch((error) => {
-      console.error(`Failed to publish order.created for ${orderId}:`, error);
-    });
-
+  // Best-effort — must not fail an order that already committed. Staff are
+  // reached by FCM push alone (`notify.sendToAllStaff` below); the admin
+  // websocket feed that used to mirror this event has been removed.
   logCustomerEvent({
     userId,
     action: "order.placed",
@@ -368,6 +355,7 @@ export async function placeOrder(
       orderId,
       total: totals.total,
       addressName: addressRow.name,
+      hubId: hubRow.id,
     })
     .catch((error) => {
       console.error(

@@ -36,6 +36,16 @@ export interface ChannelAdapter {
     payload: RenderedNotification,
     target: DeviceTarget,
   ): Promise<SendResult>;
+  /**
+   * Optional batched send. Returns one result per target, in input order,
+   * so the caller can map each outcome back to the device row it came
+   * from. Adapters without a batch API simply omit this and the dispatcher
+   * falls back to concurrent `send()` calls.
+   */
+  sendMany?(
+    payload: RenderedNotification,
+    targets: DeviceTarget[],
+  ): Promise<SendResult[]>;
 }
 
 /** Which device table the dispatcher queries — customer sends read
