@@ -104,20 +104,38 @@ async function registerServiceWorker(): Promise<
  */
 export async function acquireFcmToken(): Promise<string | null> {
   const messaging = await getMessagingInstance();
-  if (!messaging) return null;
+  if (!messaging) {
+    console.warn(
+      isPushConfigured()
+        ? "[fcm] cannot acquire token — messaging unsupported here"
+        : "[fcm] cannot acquire token — Firebase config incomplete",
+    );
+    return null;
+  }
 
   const permission = await Notification.requestPermission();
+  console.info(`[fcm] notification permission: ${permission}`);
   if (permission !== "granted") return null;
 
   try {
     const registration = await registerServiceWorker();
+    console.info(
+      `[fcm] service worker registered, scope: ${registration?.scope ?? "(none)"}`,
+    );
 
-    return await getToken(messaging, {
+    const token = await getToken(messaging, {
       vapidKey: env.VITE_FIREBASE_VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
+
+    console.info(
+      token
+        ? `[fcm] token acquired: ${token.slice(0, 16)}…`
+        : "[fcm] getToken returned empty — no token issued",
+    );
+    return token;
   } catch (error) {
-    console.error("[notifications] failed to acquire FCM token:", error);
+    console.error("[fcm] failed to acquire token:", error);
     return null;
   }
 }
@@ -166,6 +184,7 @@ export async function onForegroundMessage(
   if ("serviceWorker" in navigator) {
     const relay = (event: MessageEvent) => {
       if (event.data?.type === "mumzo:notification" && event.data.payload) {
+        logMessage("service-worker relay", event.data.payload);
         handler(event.data.payload as MessagePayload);
       }
     };
@@ -173,14 +192,53 @@ export async function onForegroundMessage(
     unsubscribers.push(() =>
       navigator.serviceWorker.removeEventListener("message", relay),
     );
+    console.info("[fcm] listening for service-worker relays (background)");
+  } else {
+    console.warn(
+      "[fcm] no serviceWorker support — background messages cannot be relayed",
+    );
   }
 
   const messaging = await getMessagingInstance();
   if (messaging) {
-    unsubscribers.push(onMessage(messaging, handler));
+    unsubscribers.push(
+      onMessage(messaging, (payload) => {
+        logMessage("onMessage (tab focused)", payload);
+        handler(payload);
+      }),
+    );
+    console.info("[fcm] listening for foreground messages");
+  } else {
+    // The single most common reason nothing arrives: config missing, or a
+    // browser/context FCM cannot run in. Say which, rather than staying
+    // silent and looking like a delivery failure.
+    console.warn(
+      isPushConfigured()
+        ? "[fcm] messaging unsupported in this browser/context — foreground messages will NOT arrive"
+        : "[fcm] Firebase config incomplete (VITE_FIREBASE_*) — push is disabled",
+    );
   }
 
   return () => {
     for (const unsubscribe of unsubscribers) unsubscribe();
   };
+}
+
+/** One grouped line per received message, naming which path delivered it —
+ * the two arrive through different mechanisms, and knowing which one fired
+ * is most of the diagnosis when a notification doesn't show up. */
+function logMessage(source: string, payload: MessagePayload) {
+  const data = payload.data ?? {};
+  console.groupCollapsed(
+    `[fcm] ← ${data.templateId ?? "(no templateId)"} via ${source}`,
+  );
+  console.log("title:", payload.notification?.title);
+  console.log("body :", payload.notification?.body);
+  console.log("data :", data);
+  if (!data.templateId) {
+    console.warn(
+      "no data.templateId — the notification tray keys off this and will ignore the message",
+    );
+  }
+  console.groupEnd();
 }

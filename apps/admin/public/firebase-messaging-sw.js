@@ -50,6 +50,13 @@ messaging.onBackgroundMessage(async (payload) => {
   const body = payload.notification?.body ?? "";
   const deeplink = payload.data?.deeplink || "/";
 
+  // Visible under the service worker's own console in DevTools
+  // (Application → Service Workers → inspect), not the page console.
+  console.info(
+    `[fcm-sw] background message: ${payload.data?.templateId ?? "(no templateId)"}`,
+    payload.data,
+  );
+
   // Hand the payload to any open admin tab so its notification tray records
   // the event even though this arrived while the tab was unfocused. Without
   // this the tray only ever sees messages that landed on a focused tab, and
@@ -62,6 +69,7 @@ messaging.onBackgroundMessage(async (payload) => {
   for (const client of clients) {
     client.postMessage({ type: "mumzo:notification", payload });
   }
+  console.info(`[fcm-sw] relayed to ${clients.length} open tab(s)`);
 
   self.registration.showNotification(title, {
     body,

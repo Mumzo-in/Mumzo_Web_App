@@ -13,6 +13,7 @@ export { DeviceRegistry } from "./components/device-registry";
 export { NotificationBell } from "./components/notification-bell";
 export { NotificationPermissionCard } from "./components/notification-permission-card";
 export { NotificationPlayground } from "./components/notification-playground";
+export { NotificationToastCard } from "./components/notification-toast-card";
 export {
   NotificationProvider,
   useNotifications,

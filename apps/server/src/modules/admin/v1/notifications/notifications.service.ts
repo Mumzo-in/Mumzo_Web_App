@@ -190,34 +190,52 @@ function audienceOf(id: string): "staff" | "customer" {
     : "customer";
 }
 
-export function listTemplateInfo() {
-  return listTemplates().map((template) => {
-    let preview = { title: "", body: "", deeplink: null as string | null };
+/**
+ * Templates the playground offers.
+ *
+ * Defaults to staff-facing only. The customer templates
+ * (`order.status_updated`, `referral.coupon_issued`,
+ * `review.prompt_requested`) are live in production code but there are no
+ * registered customer devices yet, so a test send of one queues, dispatches,
+ * finds nothing to deliver to, and completes — looking like a failure while
+ * behaving correctly. They come back into the picker on their own once the
+ * storefront registers devices.
+ *
+ * Deliberately a filter, not a deletion: these templates have real callers
+ * in the order, referral, and review flows.
+ */
+export function listTemplateInfo(audience?: "staff" | "customer" | "all") {
+  const scope = audience ?? "staff";
 
-    // A template whose sample values don't satisfy its schema still needs
-    // to appear in the picker — it just can't show a preview.
-    try {
-      const rendered = renderTemplate(template.id, "fcm", SAMPLE_VALUES);
-      preview = {
-        title: rendered.title,
-        body: rendered.body,
-        deeplink: rendered.deeplink ?? null,
-      };
-    } catch {
-      preview = {
-        title: "(preview unavailable)",
-        body: "Sample data does not satisfy this template's schema.",
-        deeplink: null,
-      };
-    }
+  return listTemplates()
+    .filter((template) => scope === "all" || audienceOf(template.id) === scope)
+    .map((template) => {
+      let preview = { title: "", body: "", deeplink: null as string | null };
 
-    return {
-      id: template.id,
-      audience: audienceOf(template.id),
-      fields: describeFields(template.dataSchema),
-      preview,
-    };
-  });
+      // A template whose sample values don't satisfy its schema still needs
+      // to appear in the picker — it just can't show a preview.
+      try {
+        const rendered = renderTemplate(template.id, "fcm", SAMPLE_VALUES);
+        preview = {
+          title: rendered.title,
+          body: rendered.body,
+          deeplink: rendered.deeplink ?? null,
+        };
+      } catch {
+        preview = {
+          title: "(preview unavailable)",
+          body: "Sample data does not satisfy this template's schema.",
+          deeplink: null,
+        };
+      }
+
+      return {
+        id: template.id,
+        audience: audienceOf(template.id),
+        fields: describeFields(template.dataSchema),
+        preview,
+      };
+    });
 }
 
 /**

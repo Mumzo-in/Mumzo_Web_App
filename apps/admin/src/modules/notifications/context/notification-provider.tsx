@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ShoppingBag, X } from "lucide-react";
+import type { MessagePayload } from "firebase/messaging";
 import {
   createContext,
   type ReactNode,
@@ -16,6 +15,7 @@ import { queryKeys } from "@/core/api/query-keys";
 import { onForegroundMessage } from "@/core/notifications";
 import { playSound, unlockAudio } from "@/core/sound";
 import { hubsAllQueryOptions } from "@/modules/hub";
+import { NotificationToastCard } from "../components/notification-toast-card";
 import type { OrderNotification } from "../data/types";
 
 const MAX_NOTIFICATIONS = 50;
@@ -32,72 +32,61 @@ const NotificationContext = createContext<NotificationContextValue | null>(
   null,
 );
 
-function NewOrderToastCard({
-  orderId,
-  total,
-  addressName,
-  hubName,
-  onClose,
-}: {
+/** Fields every notification carries, before its kind-specific ones. */
+type NotificationBase = {
   orderId: string;
-  total: number;
-  addressName: string;
-  hubName: string;
-  onClose: () => void;
-}) {
-  return (
-    <div className="relative flex w-80 flex-col gap-3 rounded-2xl border border-rose-100 bg-rose-50/95 p-4 text-left shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 rounded-full p-1 text-rose-400 hover:bg-rose-100 hover:text-rose-700"
-        type="button"
-      >
-        <X className="size-4" />
-      </button>
+  receivedAt: string;
+  read: boolean;
+};
 
-      {/* Header */}
-      <div className="flex items-center gap-2 text-rose-700">
-        <div className="flex size-8 items-center justify-center rounded-full bg-rose-100">
-          <ShoppingBag className="size-4 animate-pulse text-rose-600" />
-        </div>
-        <div>
-          <h4 className="font-semibold text-sm">New Order Received!</h4>
-          <span className="font-mono text-[10px] text-rose-500 uppercase tracking-wider">
-            #{orderId.slice(0, 8)}
-          </span>
-        </div>
-      </div>
+/**
+ * Maps one FCM message to a tray notification, or null when no kind
+ * matches.
+ *
+ * The id is derived from the message's own content rather than the clock:
+ * the same event can arrive twice (foreground listener plus service-worker
+ * relay), and a timestamped id would make those look like two events.
+ */
+function toNotification(
+  templateId: string | undefined,
+  orderId: string,
+  base: NotificationBase,
+  payload: MessagePayload,
+): OrderNotification | null {
+  const data = payload.data ?? {};
 
-      {/* Details */}
-      <div className="flex flex-col gap-1 text-rose-900/90 text-sm">
-        <div className="flex justify-between border-rose-200/50 border-b pb-1">
-          <span className="text-rose-600 text-xs">Hub</span>
-          <span className="font-medium">{hubName}</span>
-        </div>
-        <div className="flex justify-between border-rose-200/50 border-b pb-1">
-          <span className="text-rose-600 text-xs">Customer</span>
-          <span className="max-w-[160px] truncate font-medium">
-            {addressName}
-          </span>
-        </div>
-        <div className="flex items-baseline justify-between pt-1">
-          <span className="text-rose-600 text-xs">Total</span>
-          <span className="font-bold text-lg text-rose-800">₹{total}</span>
-        </div>
-      </div>
+  switch (templateId) {
+    case "order.created":
+      return {
+        ...base,
+        id: `${orderId}-created`,
+        kind: "order.created",
+        hubId: data.hubId ?? "",
+        total: Number(data.total ?? 0),
+        addressName: data.addressName ?? "Customer",
+      };
 
-      {/* Footer link */}
-      <Link
-        to="/operations/orders/$orderId"
-        params={{ orderId }}
-        onClick={onClose}
-        className="flex w-full items-center justify-center rounded-xl bg-rose-600 py-2 text-center font-semibold text-white text-xs shadow-sm transition-colors hover:bg-rose-700 active:bg-rose-800"
-      >
-        View Order Details
-      </Link>
-    </div>
-  );
+    case "admin.order.status_updated":
+      return {
+        ...base,
+        id: `${orderId}-status-${data.toStatus ?? ""}`,
+        kind: "order.status_updated",
+        fromStatus: data.fromStatus ?? "",
+        toStatus: data.toStatus ?? "",
+      };
+
+    case "admin.delivery.completed":
+      return {
+        ...base,
+        id: `${orderId}-delivery-${data.outcome ?? ""}`,
+        kind: "delivery.completed",
+        outcome: data.outcome ?? "delivered",
+        detail: payload.notification?.body ?? "Delivery updated",
+      };
+
+    default:
+      return null;
+  }
 }
 
 /**
@@ -113,13 +102,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   /**
-   * Orders whose arrival toast and chime have already fired this session.
+   * Notification ids already surfaced this session.
    *
    * One message can reach the handler twice — `onMessage` on a focused tab,
-   * plus the service worker relay — and this keeps the noisy half of the
-   * response (sound, toast) to once per order.
+   * plus the service worker relay — so this keeps both the tray entry and
+   * the toast/chime to once per event. Held in a ref rather than derived
+   * from state so the check is synchronous: two messages arriving in the
+   * same tick would both read a stale `notifications` array.
    */
-  const seenOrderIds = useRef(new Set<string>());
+  const seenIds = useRef(new Set<string>());
 
   const { data: hubs } = useQuery(hubsAllQueryOptions);
 
@@ -165,7 +156,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
 
       const orderId = payload.data?.orderId;
-      if (!orderId) return;
+      if (!orderId) {
+        console.warn(
+          "[notifications] ignoring message with no data.orderId:",
+          payload.data,
+        );
+        return;
+      }
 
       const templateId = payload.data?.templateId;
       const base = {
@@ -184,71 +181,61 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
        * once relayed by the service worker), and a timestamped id would
        * make those two look like two distinct events.
        */
-      function push(notification: OrderNotification) {
-        setNotifications((prev) =>
-          prev.some((existing) => existing.id === notification.id)
-            ? prev
-            : [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
+      function push(notification: OrderNotification): boolean {
+        // `setNotifications` may run its updater twice under StrictMode, so
+        // "was this new?" is decided against a ref the updater doesn't
+        // touch — deciding inside the updater would make the toast fire
+        // twice in development.
+        if (seenIds.current.has(notification.id)) {
+          console.info(`[notifications] duplicate ignored: ${notification.id}`);
+          return false;
+        }
+        seenIds.current.add(notification.id);
+
+        console.info(
+          `[notifications] → tray: ${notification.kind} (${notification.id})`,
         );
+        setNotifications((prev) =>
+          [notification, ...prev].slice(0, MAX_NOTIFICATIONS),
+        );
+        return true;
       }
 
-      // A rider closed an order from the delivery link — surface it, since
-      // nobody in the panel performed this move.
-      if (templateId === "admin.delivery.completed") {
-        push({
-          ...base,
-          id: `${orderId}-delivery-${payload.data?.outcome ?? ""}`,
-          kind: "delivery.completed",
-          outcome: payload.data?.outcome ?? "delivered",
-          detail: payload.notification?.body ?? "Delivery updated",
-        });
+      // Build the notification from the message, then take one shared path
+      // for every kind. A per-kind branch that also had to remember to
+      // raise its own toast is how delivery events ended up recorded but
+      // invisible.
+      const notification = toNotification(templateId, orderId, base, payload);
+
+      if (!notification) {
+        // Reached only by a template the tray has no case for — worth a
+        // line, since the symptom (nothing appears) is identical to the
+        // message never arriving at all.
+        console.warn(
+          `[notifications] no tray handler for templateId "${templateId}" — message ignored`,
+        );
         return;
       }
 
-      // Status hops are recorded but stay quiet: a toast per hop would be
-      // five toasts for one order's journey.
-      if (templateId === "admin.order.status_updated") {
-        push({
-          ...base,
-          id: `${orderId}-status-${payload.data?.toStatus ?? ""}`,
-          kind: "order.status_updated",
-          fromStatus: payload.data?.fromStatus ?? "",
-          toStatus: payload.data?.toStatus ?? "",
-        });
-        return;
+      const isNew = push(notification);
+      if (!isNew) return;
+
+      // Only a new order interrupts with sound — a chime per status hop
+      // would be five chimes for one order's journey.
+      if (notification.kind === "order.created") {
+        playSound("newOrder");
       }
-
-      if (templateId !== "order.created") {
-        return;
-      }
-
-      // The same order can arrive twice if a token is registered on two
-      // rows for one staff member; the tray must not double-count it.
-      if (seenOrderIds.current.has(orderId)) return;
-      seenOrderIds.current.add(orderId);
-
-      const total = Number(payload.data?.total ?? 0);
-      const addressName = payload.data?.addressName ?? "Customer";
-      const hubId = payload.data?.hubId ?? "";
-
-      push({
-        ...base,
-        id: `${orderId}-created`,
-        kind: "order.created",
-        hubId,
-        total,
-        addressName,
-      });
-      playSound("newOrder");
 
       const hubName =
-        hubsRef.current?.find((h) => h.id === hubId)?.name ?? "Unknown Hub";
+        notification.kind === "order.created"
+          ? (hubsRef.current?.find((h) => h.id === notification.hubId)?.name ??
+            "Unknown Hub")
+          : "";
+
       toast.custom(
         (id) => (
-          <NewOrderToastCard
-            orderId={orderId}
-            total={total}
-            addressName={addressName}
+          <NotificationToastCard
+            notification={notification}
             hubName={hubName}
             onClose={() => toast.dismiss(id)}
           />

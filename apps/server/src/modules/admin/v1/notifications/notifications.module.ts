@@ -30,7 +30,11 @@ const notifications = app
     return c.json({ success: true as const, data }, 200);
   })
   .openapi(listTemplatesRoute, async (c) => {
-    return c.json({ success: true as const, data: listTemplateInfo() }, 200);
+    const { audience } = c.req.valid("query");
+    return c.json(
+      { success: true as const, data: listTemplateInfo(audience) },
+      200,
+    );
   })
   .openapi(testSendRoute, async (c) => {
     const staffUser = c.get("user");

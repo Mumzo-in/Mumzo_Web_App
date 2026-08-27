@@ -34,6 +34,13 @@ export const listTemplatesRoute = createRoute({
   tags: [TAG],
   summary: "List notification templates with their fields and a preview",
   security: [{ cookieAuth: [] }],
+  request: {
+    query: z.object({
+      /** Defaults to staff-facing: customer templates have no registered
+       * devices to deliver to yet, so testing one looks like a failure. */
+      audience: z.enum(["staff", "customer", "all"]).default("staff"),
+    }),
+  },
   responses: {
     200: jsonContent(
       successSchema(z.array(templateInfoSchema)),
