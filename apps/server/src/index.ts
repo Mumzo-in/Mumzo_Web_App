@@ -1,6 +1,9 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { checkDbConnection, pool } from "@mumzo/db";
-import { startNotificationWorker } from "@mumzo/notifications";
+import {
+  startNotificationWorker,
+  startRetentionSweep,
+} from "@mumzo/notifications";
 import { websocket } from "@mumzo/realtime/bun";
 
 import {
@@ -22,6 +25,11 @@ const app = createApp();
 // alongside the DB pool on shutdown so an in-flight send isn't abandoned.
 const notificationWorker = startNotificationWorker();
 
+// Trims `notification_job`: without it the queue table grows without bound,
+// since the table *is* the queue now and nothing prunes it automatically the
+// way BullMQ did. Completed jobs are kept 7 days, dead ones 30.
+const retentionSweep = startRetentionSweep();
+
 // In-process referral settlement sweep — see referrals.sweep.ts. Same
 // lifecycle as the notification worker: closed on shutdown so an in-flight
 // sweep isn't abandoned mid-batch.
@@ -33,6 +41,7 @@ const reviewPromptSweep = startReviewPromptSweep();
 async function shutdown(signal: string) {
   console.log(`[server] ${signal} received, shutting down...`);
   await notificationWorker.close();
+  retentionSweep.close();
   referralSweep.close();
   reviewPromptSweep.close();
   await pool.end();

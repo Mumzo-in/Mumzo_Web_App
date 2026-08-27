@@ -8,6 +8,17 @@ export {
   reclaimStalledJobs,
 } from "./core/claim";
 export {
+  countDeadJobsByTemplate,
+  type DeadJob,
+  discardJob,
+  getQueueStats,
+  listDeadJobs,
+  retryDeadJobs,
+  retryJob,
+  runRetentionSweep,
+  startRetentionSweep,
+} from "./core/dlq";
+export {
   enqueue,
   enqueueMany,
   PRIORITY_BULK,

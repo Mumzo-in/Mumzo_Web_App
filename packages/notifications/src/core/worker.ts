@@ -2,6 +2,7 @@ import { env } from "@mumzo/env/server";
 import { Client } from "pg";
 
 import {
+  backoffMs,
   type ClaimedJob,
   claimJobs,
   completeJob,
@@ -10,6 +11,7 @@ import {
   toJobPayload,
 } from "./claim";
 import { processNotificationJob } from "./dispatcher";
+import { log } from "./log";
 import { NOTIFICATION_CHANNEL } from "./queue";
 
 /**
@@ -58,21 +60,41 @@ export function startNotificationWorker(): NotificationWorker {
   let listenRetryTimer: ReturnType<typeof setTimeout> | undefined;
 
   async function runJob(job: ClaimedJob) {
+    const startedAt = Date.now();
+
     try {
       await processNotificationJob(toJobPayload(job));
       await completeJob(job.id);
+      log.info({
+        event: "job.completed",
+        jobId: job.id,
+        templateId: job.templateId,
+        userId: job.userId,
+        audience: job.audience,
+        attempts: job.attempts,
+        durationMs: Date.now() - startedAt,
+      });
     } catch (error) {
       const outcome = await failJob(job, error);
+      const common = {
+        jobId: job.id,
+        templateId: job.templateId,
+        userId: job.userId,
+        audience: job.audience,
+        attempts: job.attempts,
+        maxAttempts: job.maxAttempts,
+        durationMs: Date.now() - startedAt,
+        error,
+      };
+
       if (outcome === "dead") {
-        console.error(
-          `[notifications] job ${job.id} (${job.templateId}) dead after ${job.attempts} attempts:`,
-          error,
-        );
+        log.error({ event: "job.dead", ...common });
       } else {
-        console.warn(
-          `[notifications] job ${job.id} (${job.templateId}) attempt ${job.attempts} failed, retrying:`,
-          error,
-        );
+        log.warn({
+          event: "job.retrying",
+          retryInMs: backoffMs(job.attempts),
+          ...common,
+        });
       }
     }
   }
@@ -98,7 +120,7 @@ export function startNotificationWorker(): NotificationWorker {
         }
       } while (wakePending && !stopped);
     } catch (error) {
-      console.error("[notifications] drain failed:", error);
+      log.error({ event: "drain.failed", error });
     } finally {
       draining = false;
     }
@@ -106,7 +128,7 @@ export function startNotificationWorker(): NotificationWorker {
 
   function wake() {
     drain().catch((error) => {
-      console.error("[notifications] wake failed:", error);
+      log.error({ event: "wake.failed", error });
     });
   }
 
@@ -135,7 +157,7 @@ export function startNotificationWorker(): NotificationWorker {
     });
 
     client.on("error", (error) => {
-      console.error("[notifications] listener connection error:", error);
+      log.error({ event: "listener.error", error });
       scheduleListenerRetry();
     });
 
@@ -146,7 +168,7 @@ export function startNotificationWorker(): NotificationWorker {
       // nobody heard — sweep once now rather than waiting for a poll.
       wake();
     } catch (error) {
-      console.error("[notifications] failed to start listener:", error);
+      log.error({ event: "listener.start_failed", error });
       scheduleListenerRetry();
     }
   }
@@ -163,13 +185,13 @@ export function startNotificationWorker(): NotificationWorker {
     listenRetryTimer = setTimeout(() => {
       listenRetryTimer = undefined;
       startListener().catch((error) => {
-        console.error("[notifications] listener retry failed:", error);
+        log.error({ event: "listener.retry_failed", error });
       });
     }, LISTEN_RETRY_MS);
   }
 
   startListener().catch((error) => {
-    console.error("[notifications] listener startup failed:", error);
+    log.error({ event: "listener.startup_failed", error });
   });
 
   const pollTimer = setInterval(wake, POLL_INTERVAL_MS);
@@ -178,21 +200,19 @@ export function startNotificationWorker(): NotificationWorker {
     reclaimStalledJobs(STALLED_JOB_TIMEOUT_MS)
       .then((count) => {
         if (count > 0) {
-          console.warn(
-            `[notifications] reclaimed ${count} stalled job(s) from a dead worker.`,
-          );
+          log.warn({ event: "jobs.reclaimed", count });
           wake();
         }
       })
       .catch((error) => {
-        console.error("[notifications] stalled-job reclaim failed:", error);
+        log.error({ event: "reclaim.failed", error });
       });
   }, RECLAIM_INTERVAL_MS);
 
   // Run once at boot: a previous process that was killed mid-job left its
   // rows in `processing`, and nothing else would ever pick them up.
   reclaimStalledJobs(STALLED_JOB_TIMEOUT_MS).catch((error) => {
-    console.error("[notifications] initial stalled-job reclaim failed:", error);
+    log.error({ event: "reclaim.initial_failed", error });
   });
 
   return {
