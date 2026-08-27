@@ -1,7 +1,13 @@
 import type { NotificationTemplateId } from "../templates/ids";
 import type { NotificationApp } from "./apps";
 
-export const CHANNELS = ["fcm", "web-push", "email", "sms"] as const;
+export const CHANNELS = [
+  "fcm",
+  "web-push",
+  "email",
+  "sms",
+  "whatsapp",
+] as const;
 export type Channel = (typeof CHANNELS)[number];
 
 /** What a template's `render` function produces for a given channel. */

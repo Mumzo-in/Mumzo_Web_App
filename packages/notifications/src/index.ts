@@ -3,6 +3,18 @@ import { send, sendToAllStaff } from "./core/notify";
 export const notify = { send, sendToAllStaff };
 
 export {
+  isWhatsAppConfigured,
+  listTemplates as listWhatsAppTemplates,
+  normalisePhone,
+} from "./channels/whatsapp/client";
+export { whatsappRender } from "./channels/whatsapp/render";
+export {
+  isSendable as isWhatsAppTemplateSendable,
+  toPositionalParams,
+  WHATSAPP_TEMPLATE,
+  type WhatsAppTemplateKey,
+} from "./channels/whatsapp/templates";
+export {
   DEFAULT_NOTIFICATION_APP,
   isNotificationApp,
   NOTIFICATION_APPS,
