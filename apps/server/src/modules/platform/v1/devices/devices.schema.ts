@@ -15,6 +15,13 @@ export const registerDeviceSchema = z
     deviceId: z.string().trim().min(1).max(200),
     channel: z.enum(["fcm", "web-push"]),
     platform: z.enum(["ios", "android", "web"]),
+    /**
+     * Which client is registering. The storefront PWA and the mobile app
+     * share one Firebase project today, so this is recorded rather than
+     * acted on — it exists so the two can be split onto separate projects
+     * later without backfilling every historical device row.
+     */
+    app: z.enum(["platform", "mobile"]).default("platform"),
     token: z.string().trim().min(1),
   })
   .openapi("RegisterDeviceInput");

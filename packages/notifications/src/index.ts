@@ -3,6 +3,13 @@ import { send, sendToAllStaff } from "./core/notify";
 export const notify = { send, sendToAllStaff };
 
 export {
+  DEFAULT_NOTIFICATION_APP,
+  isNotificationApp,
+  NOTIFICATION_APPS,
+  type NotificationApp,
+  toNotificationApp,
+} from "./core/apps";
+export {
   completeJob,
   failJob,
   reclaimStalledJobs,
@@ -37,3 +44,7 @@ export {
   startNotificationWorker,
 } from "./core/worker";
 export { defineTemplate, getTemplate, renderTemplate } from "./templates";
+export {
+  NOTIFICATION_TEMPLATE,
+  type NotificationTemplateId,
+} from "./templates/ids";

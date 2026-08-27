@@ -1,4 +1,4 @@
-import { getTemplate, renderTemplate } from "@mumzo/notifications";
+import { NOTIFICATION_TEMPLATE, notify } from "@mumzo/notifications";
 
 import { badRequest, notFound } from "@/core/errors";
 import * as repo from "./reviews.repo";
@@ -10,26 +10,27 @@ const GUARANTEED_PROMPT_ORDER_COUNT = 5;
 const THROTTLE_EVERY_NTH_ORDER = 3;
 
 /**
- * Stand-in for the real push/SMS/email send — the template is real
- * (registered + schema-validated, so this proves the payload shape is
- * correct) but dispatch is a console.log until the delivery channel for
- * this template is wired up. Swapping in `notify.send(...)` here is a
- * one-line change once that's ready.
+ * Real send. This was a console.log stub pending "delayed/scheduled
+ * sends", which the Postgres-backed queue now supports natively via a
+ * job's `run_after` — the sweep decides *whether* to prompt, and the queue
+ * handles the rest.
  *
- * TODO(notifications): replace this console.log with a real
- * `notify.send({ userId, templateId: "review.prompt_requested", data })`
- * call once delayed/scheduled sends are supported — see
- * packages/notifications' worker/queue docs for the gap this depends on.
+ * Best-effort: a failed enqueue must not roll back `markNotified`, or the
+ * sweep would re-prompt the same order on its next pass.
  */
 function notifyReviewPromptRequested(userId: string, orderId: string) {
-  getTemplate("review.prompt_requested"); // throws if the template is misregistered
-  const rendered = renderTemplate("review.prompt_requested", "fcm", {
-    orderId,
-  });
-  console.log(
-    `[notify:stub] review.prompt_requested -> user ${userId}:`,
-    rendered,
-  );
+  notify
+    .send({
+      userId,
+      templateId: NOTIFICATION_TEMPLATE.REVIEW.PROMPT_REQUESTED,
+      data: { orderId },
+    })
+    .catch((error) => {
+      console.error(
+        `Failed to enqueue review prompt for order ${orderId}:`,
+        error,
+      );
+    });
 }
 
 /**

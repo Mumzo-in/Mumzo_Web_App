@@ -37,6 +37,10 @@ export const userDevice = pgTable(
     deviceId: text("device_id").notNull(),
     channel: text("channel").notNull(), // "fcm" | "web-push"
     platform: text("platform").notNull(), // "ios" | "android" | "web"
+    // Which client registered this token: "admin" | "platform" | "mobile".
+    // All three share one Firebase project today; the column exists so they
+    // can be split later without backfilling historical rows.
+    app: text("app").notNull().default("platform"),
     // FCM registration token, or the full PushSubscription JSON for web-push.
     token: text("token").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
@@ -81,6 +85,8 @@ export const staffDevice = pgTable(
     deviceId: text("device_id").notNull(),
     channel: text("channel").notNull(), // "fcm" | "web-push"
     platform: text("platform").notNull(), // "ios" | "android" | "web"
+    /** Staff devices are always the admin client — see `userDevice.app`. */
+    app: text("app").notNull().default("admin"),
     token: text("token").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
@@ -130,15 +136,41 @@ export const notificationLog = pgTable(
     }),
     templateId: text("template_id").notNull(),
     channel: text("channel").notNull(), // "fcm" | "web-push" | "email" | "sms"
-    status: text("status").notNull(), // "queued" | "sent" | "failed"
+    /** Which client this send targeted — "admin" | "platform" | "mobile". */
+    app: text("app").notNull().default("platform"),
+    /**
+     * "queued" | "sent" | "failed" | "delivered".
+     *
+     * `sent` means the provider accepted the message, which is all FCM's
+     * synchronous response actually tells us. `delivered` is only ever
+     * written by an out-of-band receipt (a WhatsApp status webhook, an FCM
+     * delivery-data export) — so a row resting at `sent` means "handed
+     * off", not "arrived", and the distinction matters when debugging a
+     * "why didn't I get it" report.
+     */
+    status: text("status").notNull(),
     providerMessageId: text("provider_message_id"),
     error: text("error"),
+    /** Provider error code (e.g. `messaging/invalid-argument`), kept
+     * separate from the human-readable message so failures can be grouped
+     * and counted without string matching. */
+    errorCode: text("error_code"),
+    /** Which device row this attempt targeted, for tracing a single
+     * device's history. Nullable: address-based channels (WhatsApp, email)
+     * have no device row. */
+    deviceId: uuid("device_id"),
+    /** When the provider confirmed actual delivery, if it ever does. */
+    deliveredAt: timestamp("delivered_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     index("notification_log_userId_idx").on(table.userId),
     index("notification_log_staffUserId_idx").on(table.staffUserId),
     index("notification_log_templateId_idx").on(table.templateId),
+    /** Delivery-receipt webhooks look a row up by the provider's own id. */
+    index("notification_log_providerMessageId_idx").on(table.providerMessageId),
+    /** "What failed today, and how often" — the triage query. */
+    index("notification_log_status_idx").on(table.status, table.createdAt),
   ],
 );
 

@@ -1,4 +1,4 @@
-import { notify } from "@mumzo/notifications";
+import { NOTIFICATION_TEMPLATE, notify } from "@mumzo/notifications";
 
 import * as repo from "./referrals.repo";
 import { settleReferral } from "./referrals.service";
@@ -52,7 +52,7 @@ export async function runSettlementSweep() {
           await notify
             .send({
               userId: row.referrerUserId,
-              templateId: "referral.coupon_issued",
+              templateId: NOTIFICATION_TEMPLATE.REFERRAL.COUPON_ISSUED,
               data: {
                 tierName: result.tierName,
                 amount: result.amount,

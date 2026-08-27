@@ -14,7 +14,7 @@ import {
   payment,
 } from "@mumzo/db/schema/commerce";
 import { rider } from "@mumzo/db/schema/delivery";
-import { notify } from "@mumzo/notifications";
+import { NOTIFICATION_TEMPLATE, notify } from "@mumzo/notifications";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { Context } from "hono";
 import type { z } from "zod";
@@ -239,7 +239,7 @@ export async function createOrder(
   });
 
   notify
-    .sendToAllStaff("order.created", {
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ORDER.NEW, {
       orderId,
       total: totals.total,
       addressName: input.customerName,
@@ -256,7 +256,7 @@ export async function createOrder(
     notify
       .send({
         userId: input.customerId,
-        templateId: "order.status_updated",
+        templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
         data: { orderId, status: "confirmed" },
       })
       .catch((error) => {
@@ -508,7 +508,7 @@ export async function updateOrderStatus(
     notify
       .send({
         userId: row.userId,
-        templateId: "order.status_updated",
+        templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
         data: { orderId, status: input.status },
       })
       .catch((error) => {
@@ -520,7 +520,7 @@ export async function updateOrderStatus(
   }
 
   notify
-    .sendToAllStaff("admin.order.status_updated", {
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ADMIN.ORDER_STATUS_UPDATED, {
       orderId,
       fromStatus: row.status,
       toStatus: input.status,

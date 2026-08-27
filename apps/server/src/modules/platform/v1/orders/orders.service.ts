@@ -16,7 +16,7 @@ import {
   payment,
 } from "@mumzo/db/schema/commerce";
 import { coupon } from "@mumzo/db/schema/marketing";
-import { notify } from "@mumzo/notifications";
+import { NOTIFICATION_TEMPLATE, notify } from "@mumzo/notifications";
 import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { logCustomerEvent } from "@/core/customer-event";
@@ -351,7 +351,7 @@ export async function placeOrder(
   });
 
   notify
-    .sendToAllStaff("order.created", {
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ORDER.NEW, {
       orderId,
       total: totals.total,
       addressName: addressRow.name,

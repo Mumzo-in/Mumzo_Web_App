@@ -35,6 +35,7 @@ export async function registerStaffDevice(
       deviceId: input.deviceId,
       channel: input.channel,
       platform: input.platform,
+      app: "admin",
       token: input.token,
       isActive: true,
       lastSeenAt: /* @__PURE__ */ new Date(),
@@ -44,6 +45,7 @@ export async function registerStaffDevice(
       set: {
         channel: input.channel,
         platform: input.platform,
+        app: "admin",
         token: input.token,
         isActive: true,
         lastSeenAt: /* @__PURE__ */ new Date(),

@@ -1,3 +1,6 @@
+import type { NotificationTemplateId } from "../templates/ids";
+import type { NotificationApp } from "./apps";
+
 export const CHANNELS = ["fcm", "web-push", "email", "sms"] as const;
 export type Channel = (typeof CHANNELS)[number];
 
@@ -17,6 +20,9 @@ export type DeviceTarget = {
   userId: string;
   channel: Channel;
   token: string;
+  /** Which client this token came from. Unused while all three share one
+   * Firebase project; the seam for per-app credentials later. */
+  app: NotificationApp;
 };
 
 export type SendResult =
@@ -24,6 +30,10 @@ export type SendResult =
   | {
       ok: false;
       error: string;
+      /** Provider's own code (e.g. `messaging/invalid-argument`), when the
+       * failure carried one — lets failures be grouped by cause instead of
+       * by matching on message text. */
+      errorCode?: string;
       /** Token is dead — caller should deactivate the device. */
       permanent: boolean;
     };
@@ -58,7 +68,9 @@ export type Audience = "customer" | "staff";
  * `audience` implies — a customer `user.id` or a `staff_user.id`. */
 export type NotificationJobInput = {
   userId: string;
-  templateId: string;
+  /** Use `NOTIFICATION_TEMPLATE.*` — a bare string that isn't a registered
+   * id is a compile error here rather than a throw inside the worker. */
+  templateId: NotificationTemplateId;
   data: unknown;
   audience?: Audience;
 };

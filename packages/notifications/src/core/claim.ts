@@ -2,6 +2,7 @@ import { db } from "@mumzo/db";
 import { notificationJob } from "@mumzo/db/schema/notifications";
 import { eq, sql } from "drizzle-orm";
 
+import type { NotificationTemplateId } from "../templates/ids";
 import type { Audience, NotificationJobPayload } from "./types";
 
 /** Base delay for the retry backoff, matching the policy this queue
@@ -18,7 +19,14 @@ const BACKOFF_MAX_MS = 30 * 60 * 1000; // 30 minutes
  */
 export type ClaimedJob = {
   id: string;
-  templateId: string;
+  /**
+   * Narrowed on the way out of the DB rather than validated: a row whose
+   * `template_id` is no longer a registered id (a template renamed since
+   * the job was enqueued) must still reach the dispatcher, which throws a
+   * clear "Unknown notification template" and lets the job retry into the
+   * DLQ. Rejecting it here would strand the row in `processing` instead.
+   */
+  templateId: NotificationTemplateId;
   userId: string;
   audience: Audience;
   payload: unknown;
@@ -78,7 +86,7 @@ export async function claimJobs(limit: number): Promise<ClaimedJob[]> {
 
   return rows.rows.map((row) => ({
     id: row.id,
-    templateId: row.template_id,
+    templateId: row.template_id as NotificationTemplateId,
     userId: row.user_id,
     audience: row.audience === "staff" ? "staff" : "customer",
     payload: row.payload,

@@ -3,6 +3,7 @@ import { staffDevice } from "@mumzo/db/schema/notifications";
 import { eq } from "drizzle-orm";
 
 import { getTemplate } from "../templates";
+import type { NotificationTemplateId } from "../templates/ids";
 import { enqueue, enqueueMany } from "./queue";
 import type { NotificationJobInput } from "./types";
 
@@ -26,7 +27,7 @@ export async function send(input: NotificationJobInput) {
  * delivery failure/retry never affects another's.
  */
 export async function sendToAllStaff(
-  templateId: string,
+  templateId: NotificationTemplateId,
   data: unknown,
 ): Promise<void> {
   const template = getTemplate(templateId);

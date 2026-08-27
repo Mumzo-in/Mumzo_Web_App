@@ -8,6 +8,8 @@ import { and, eq, inArray } from "drizzle-orm";
 
 import { getAdapter } from "../channels";
 import { renderTemplate } from "../templates";
+import { toNotificationApp } from "./apps";
+import { log } from "./log";
 import type {
   Audience,
   Channel,
@@ -23,13 +25,23 @@ type DeviceRow = {
   channel: string;
   token: string;
   isActive: boolean;
+  app: string;
 };
+
+/** Pulls the provider's own error code off a failure, so failures can be
+ * grouped by cause without matching on message text. */
+function errorCodeOf(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error) {
+    return String((error as { code: unknown }).code);
+  }
+  return undefined;
+}
 
 /** Runs one notification job to completion: render once per channel, fan
  * out to every active device the recipient has, log every attempt. Never
  * throws for a single device's send failure — only a template/data bug
- * propagates (BullMQ retries the whole job on that, which is correct: it'll
- * fail the same way every time until the bug is fixed, so retrying is
+ * propagates (the queue retries the whole job on that, which is correct:
+ * it'll fail the same way every time until the bug is fixed, so retrying is
  * cheap and the job eventually lands in the dead-letter queue for
  * visibility). */
 export async function processNotificationJob(job: NotificationJobPayload) {
@@ -56,15 +68,32 @@ export async function processNotificationJob(job: NotificationJobPayload) {
           );
 
   if (devices.length === 0) {
+    // Worth a line: "the push never arrived" is far more often no
+    // registered device than a delivery failure, and without this the job
+    // completes leaving no trace of why nothing was sent.
+    log.warn({
+      event: "dispatch.no_devices",
+      templateId: job.templateId,
+      userId: job.userId,
+      audience,
+    });
     return;
   }
+
+  log.info({
+    event: "dispatch.started",
+    templateId: job.templateId,
+    userId: job.userId,
+    audience,
+    count: devices.length,
+  });
 
   const outcomes = await sendToDevices(job, devices);
 
   // One multi-row INSERT for the whole job rather than one per device: a
   // broadcast fan-out would otherwise issue a separate round-trip (and a
-  // separate index update on all three `notification_log` indexes) for
-  // every device it touches.
+  // separate index update on every `notification_log` index) for each
+  // device it touches.
   const recipientColumn =
     audience === "staff" ? { staffUserId: job.userId } : { userId: job.userId };
 
@@ -73,13 +102,49 @@ export async function processNotificationJob(job: NotificationJobPayload) {
       ...recipientColumn,
       templateId: job.templateId,
       channel: outcome.channel,
+      app: outcome.app,
+      deviceId: outcome.deviceId,
+      // "sent" = the provider accepted it. Actual receipt is only ever
+      // confirmed out-of-band, which is what `delivered` is reserved for.
       status: outcome.result.ok ? "sent" : "failed",
       providerMessageId: outcome.result.ok
         ? outcome.result.providerMessageId
         : undefined,
       error: outcome.result.ok ? undefined : outcome.result.error,
+      errorCode: outcome.result.ok ? undefined : outcome.errorCode,
     })),
   );
+
+  // Per-device outcome lines, so a "why didn't this arrive" question can be
+  // answered from logs alone without querying the DB.
+  for (const outcome of outcomes) {
+    if (outcome.result.ok) {
+      log.info({
+        event: "notification.sent",
+        templateId: job.templateId,
+        userId: job.userId,
+        audience,
+        channel: outcome.channel,
+        app: outcome.app,
+        deviceId: outcome.deviceId,
+        providerMessageId: outcome.result.providerMessageId,
+      });
+      continue;
+    }
+
+    log.error({
+      event: "notification.failed",
+      templateId: job.templateId,
+      userId: job.userId,
+      audience,
+      channel: outcome.channel,
+      app: outcome.app,
+      deviceId: outcome.deviceId,
+      errorCode: outcome.errorCode,
+      permanent: outcome.result.permanent,
+      error: outcome.result.error,
+    });
+  }
 
   // Dead tokens are deactivated in one statement per table for the same
   // reason — `permanent` failures cluster (an expired FCM project, a
@@ -94,12 +159,23 @@ export async function processNotificationJob(job: NotificationJobPayload) {
       .update(table)
       .set({ isActive: false })
       .where(inArray(table.id, deadDeviceIds));
+
+    log.warn({
+      event: "devices.deactivated",
+      templateId: job.templateId,
+      userId: job.userId,
+      audience,
+      count: deadDeviceIds.length,
+    });
   }
 }
 
 type SendOutcome = {
   deviceId: string;
   channel: Channel;
+  app: string;
+  /** Provider error code, when the failure carried one. */
+  errorCode?: string;
   result: SendResult;
 };
 
@@ -161,23 +237,32 @@ async function sendChannelGroup(
         userId: job.userId,
         channel,
         token: device.token,
+        app: toNotificationApp(device.app),
       })),
     );
 
-    return devices.map((device, index) => ({
-      deviceId: device.id,
-      channel,
-      result: results[index] ?? {
+    return devices.map((device, index) => {
+      const result = results[index] ?? {
         ok: false as const,
         error: "Adapter returned no result for this device",
         permanent: false,
-      },
-    }));
+      };
+
+      return {
+        deviceId: device.id,
+        channel,
+        app: device.app,
+        errorCode: result.ok ? undefined : result.errorCode,
+        result,
+      };
+    });
   } catch (error) {
     // A render or whole-batch failure is not any single device's fault.
     return devices.map((device) => ({
       deviceId: device.id,
       channel,
+      app: device.app,
+      errorCode: errorCodeOf(error),
       result: {
         ok: false as const,
         error: error instanceof Error ? error.message : "Unknown send error",
@@ -206,13 +291,22 @@ async function sendToDevice(
       userId: job.userId,
       channel,
       token: device.token,
+      app: toNotificationApp(device.app),
     });
 
-    return { deviceId: device.id, channel, result };
+    return {
+      deviceId: device.id,
+      channel,
+      app: device.app,
+      errorCode: result.ok ? undefined : result.errorCode,
+      result,
+    };
   } catch (error) {
     return {
       deviceId: device.id,
       channel,
+      app: device.app,
+      errorCode: errorCodeOf(error),
       result: {
         ok: false,
         error: error instanceof Error ? error.message : "Unknown send error",

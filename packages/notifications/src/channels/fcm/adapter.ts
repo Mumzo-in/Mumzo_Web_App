@@ -179,6 +179,7 @@ function toFailure(error: unknown): SendResult {
   return {
     ok: false,
     error: error instanceof Error ? error.message : "Unknown FCM error",
+    errorCode: errorCodeOf(error),
     permanent: isPermanent(error),
   };
 }

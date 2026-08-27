@@ -9,6 +9,8 @@ export interface RegisterDeviceInput {
   deviceId: string;
   channel: "fcm" | "web-push";
   platform: "ios" | "android" | "web";
+  /** Which client registered this token — see the schema for why. */
+  app: "platform" | "mobile";
   token: string;
 }
 
@@ -50,6 +52,7 @@ export async function registerDevice(
       deviceId: input.deviceId,
       channel: input.channel,
       platform: input.platform,
+      app: input.app,
       token: input.token,
       isActive: true,
       lastSeenAt: /* @__PURE__ */ new Date(),
@@ -60,6 +63,7 @@ export async function registerDevice(
         phone: authUser?.phoneNumber ?? null,
         channel: input.channel,
         platform: input.platform,
+        app: input.app,
         token: input.token,
         isActive: true,
         lastSeenAt: /* @__PURE__ */ new Date(),

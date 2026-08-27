@@ -17,6 +17,13 @@ type LogFields = {
   userId?: string;
   audience?: string;
   channel?: string;
+  /** Which client the send targeted — "admin" | "platform" | "mobile". */
+  app?: string;
+  deviceId?: string;
+  providerMessageId?: string;
+  errorCode?: string;
+  /** Whether a failure means the token is dead (vs. worth retrying). */
+  permanent?: boolean;
   attempts?: number;
   maxAttempts?: number;
   retryInMs?: number;

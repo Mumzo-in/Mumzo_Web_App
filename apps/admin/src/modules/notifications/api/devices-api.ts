@@ -47,6 +47,8 @@ export async function registerDevice(token: string): Promise<StaffDevice> {
       platform: "web",
       token,
     },
+    // NB: staff devices are always the "admin" client, so the server sets
+    // `app` itself rather than trusting a value from the browser.
   });
 
   window.localStorage.setItem(DEVICE_ROW_STORAGE_KEY, device.id);

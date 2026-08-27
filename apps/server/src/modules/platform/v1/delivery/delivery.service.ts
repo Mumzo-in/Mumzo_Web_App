@@ -1,5 +1,5 @@
 import { db, deliveryLink, order, orderStatusLog, rider } from "@mumzo/db";
-import { notify } from "@mumzo/notifications";
+import { NOTIFICATION_TEMPLATE, notify } from "@mumzo/notifications";
 import { eq } from "drizzle-orm";
 import { badRequest, forbidden, notFound } from "@/core/errors";
 
@@ -252,7 +252,7 @@ export async function completeDeliveryRun(
   // these may fail the rider's update. Staff are reached by push only: the
   // admin websocket feed was removed, so this is the sole path to the board.
   notify
-    .sendToAllStaff("admin.order.status_updated", {
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ADMIN.ORDER_STATUS_UPDATED, {
       orderId: link.orderId,
       fromStatus: current.status,
       toStatus: nextStatus,
@@ -265,7 +265,7 @@ export async function completeDeliveryRun(
     });
 
   notify
-    .sendToAllStaff("admin.delivery.completed", {
+    .sendToAllStaff(NOTIFICATION_TEMPLATE.ADMIN.DELIVERY_COMPLETED, {
       orderId: link.orderId,
       outcome,
       riderName: match.name ?? null,
@@ -282,7 +282,7 @@ export async function completeDeliveryRun(
     notify
       .send({
         userId: current.userId,
-        templateId: "order.status_updated",
+        templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
         data: { orderId: link.orderId, status: nextStatus },
       })
       .catch((error) => {
