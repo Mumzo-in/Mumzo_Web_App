@@ -10,6 +10,7 @@
     }
   },
   "dependencies": {
+    "@kapso/whatsapp-cloud-api": "^0.3.0",
     "@mumzo/db": "workspace:*",
     "@mumzo/env": "workspace:*",
     "drizzle-orm": "^0.45.2",

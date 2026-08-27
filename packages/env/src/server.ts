@@ -160,6 +160,39 @@ export const env = createEnv({
     VAPID_PRIVATE_KEY: z.string().min(1).optional(),
     /** `mailto:` contact required by the Web Push protocol's VAPID claims. */
     VAPID_SUBJECT: z.string().startsWith("mailto:").optional(),
+    /**
+     * Kapso API key — Kapso proxies the Meta Cloud API, so this replaces a
+     * Meta access token. Sent as the `X-API-Key` header.
+     */
+    KAPSO_API_KEY: z.string().min(1).optional(),
+    /**
+     * Meta's id for the sending WhatsApp number (the numeric "Phone number
+     * ID" from the WhatsApp Manager, *not* the phone number itself).
+     */
+    WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
+    /**
+     * Kapso's REST base. Note this is `app.kapso.ai`, not the `api.` host —
+     * the latter serves the marketing site and 404s every API path.
+     */
+    KAPSO_BASE_URL: z.url().default("https://app.kapso.ai/api/v1"),
+    /**
+     * WhatsApp Business Account id. Template listing is scoped to the WABA
+     * rather than the phone number, so this is what the catalogue sync
+     * filters on — an API key can see more than one.
+     */
+    WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().min(1).optional(),
+    /**
+     * Kapso's own id for the WhatsApp config (its wrapper around the
+     * phone number). Distinct from `WHATSAPP_PHONE_NUMBER_ID`, which is
+     * Meta's.
+     */
+    WHATSAPP_CONFIG_ID: z.string().min(1).optional(),
+    /**
+     * Default country dialling code for stored phone numbers that lack
+     * one. WhatsApp requires full international format; Mumzo's signup
+     * stores Indian numbers, often as bare 10-digit strings.
+     */
+    WHATSAPP_DEFAULT_COUNTRY_CODE: z.string().default("91"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
