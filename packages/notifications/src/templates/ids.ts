@@ -23,6 +23,9 @@ export const NOTIFICATION_TEMPLATE = {
     NEW: "order.created",
     /** Status moved (confirmed → packed → …), written for the customer. */
     STATUS_UPDATED: "order.status_updated",
+    /** Order placed and confirmed — carries the cart contents, which no
+     * other status message has access to. */
+    CONFIRMED: "order.confirmed",
   },
 
   /** Staff-facing dashboard events. */

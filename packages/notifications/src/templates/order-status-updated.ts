@@ -13,6 +13,9 @@ const dataSchema = z.object({
   /** Set on terminal statuses that WhatsApp templates render — a
    * cancellation reason, a delivery time, or a failure cause. */
   detail: z.string().optional(),
+  /** Rider's name, resolved by the order service when a delivery is
+   * assigned. Only `out_for_delivery` renders it. */
+  riderName: z.string().optional(),
 });
 
 type Data = z.infer<typeof dataSchema>;
@@ -28,9 +31,12 @@ type Data = z.infer<typeof dataSchema>;
  *   delivery; two messages minutes apart is how people mute a business.
  * - `return_requested` / `returned` — handled by the return templates,
  *   which carry pickup and refund detail this payload doesn't have.
+ *
+ * `confirmed` is absent too, but for a different reason: it has its own
+ * template (`order.confirmed`), fired at order creation where the cart
+ * contents still exist.
  */
 const STATUS_TO_WHATSAPP: Partial<Record<string, WhatsAppTemplateKey>> = {
-  confirmed: "ORDER_CONFIRMED",
   packed: "ORDER_PACKED",
   out_for_delivery: "ORDER_OUT_FOR_DELIVERY",
   delivered: "ORDER_DELIVERED",
@@ -87,10 +93,26 @@ function renderWhatsApp(data: Data) {
         reason: data.detail?.trim() || "No reason was given.",
       });
 
-    // Both need parameters this payload doesn't carry (items/total/address
-    // for confirmation, rider/ETA for dispatch), and neither template is
-    // approved yet. Their sends are raised from the order service, where
-    // that data is in hand.
+    case "ORDER_OUT_FOR_DELIVERY":
+      return whatsappRender(
+        "ORDER_OUT_FOR_DELIVERY",
+        {
+          customerName: name,
+          orderId: id,
+          // Falls back rather than skipping the message: knowing a rider
+          // is on the way still beats silence, and an empty parameter
+          // would be rejected outright.
+          riderName: data.riderName?.trim() || "Your rider",
+          // No live ETA source yet — the promise the storefront makes is
+          // ten minutes, so the message matches it.
+          etaMinutes: "10",
+        },
+        { buttonParams },
+      );
+
+    // Needs items/total/address, which this payload doesn't carry — the
+    // confirmation send is raised from the order service, where the cart
+    // is still in hand.
     default:
       return undefined;
   }

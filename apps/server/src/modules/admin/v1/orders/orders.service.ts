@@ -449,7 +449,14 @@ export async function updateOrderStatus(
   c?: Context<AppEnv>,
 ) {
   const [row] = await db
-    .select({ id: order.id, status: order.status, userId: order.userId })
+    .select({
+      id: order.id,
+      status: order.status,
+      userId: order.userId,
+      // Carried into the customer notification: the WhatsApp templates
+      // greet by name, and Meta rejects an empty parameter outright.
+      addressName: order.addressName,
+    })
     .from(order)
     .where(eq(order.id, orderId))
     .limit(1);
@@ -505,11 +512,30 @@ export async function updateOrderStatus(
   // committed. notify.send() only enqueues (fast Redis round-trip, not a
   // wait on delivery).
   if (row.userId) {
+    // The out-for-delivery message names the rider, which is the single
+    // most useful thing in it — resolved here because this is the only
+    // place the assignment is known. Left undefined for every other
+    // status, where the template doesn't ask for it.
+    let riderName: string | undefined;
+    if (input.status === "out_for_delivery" && input.riderId) {
+      const [assigned] = await db
+        .select({ name: rider.name })
+        .from(rider)
+        .where(eq(rider.id, input.riderId))
+        .limit(1);
+      riderName = assigned?.name;
+    }
+
     notify
       .send({
         userId: row.userId,
         templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
-        data: { orderId, status: input.status },
+        data: {
+          orderId,
+          status: input.status,
+          customerName: row.addressName,
+          riderName,
+        },
       })
       .catch((error) => {
         console.error(

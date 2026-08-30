@@ -80,12 +80,20 @@ export type WhatsAppTemplateDefinition = {
 export const WHATSAPP_TEMPLATE = {
   // ---------------------------------------------------------------- order
 
+  /**
+   * Points at `order_confirmation_v2`, not the original: the `en`
+   * `order_confirmation` was approved with **zero** variables (its body is
+   * a fixed "your order is confirmed" sentence) and so cannot carry an
+   * order number, and the `en_US` one is Meta's stock shipping sample.
+   */
   ORDER_CONFIRMED: {
-    name: "order_confirmation",
+    name: "order_confirmation_v2",
     language: "en",
     category: "utility",
-    status: "approved",
+    status: "in_review",
     params: ["customerName", "orderId", "items", "total", "address"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Order placed and confirmed.",
   },
 
@@ -93,7 +101,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_packed",
     language: "en",
     category: "utility",
-    status: "approved",
+    status: "in_review",
     params: ["customerName", "orderId"],
     buttonParams: ["orderId"],
     buttonIndex: 0,
@@ -109,8 +117,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_out_for_delivery",
     language: "en",
     category: "utility",
-    status: "not_submitted",
+    status: "in_review",
     params: ["customerName", "orderId", "riderName", "etaMinutes"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Rider is on the way, with ETA.",
   },
 
@@ -118,7 +128,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_delivered",
     language: "en",
     category: "utility",
-    status: "approved",
+    status: "in_review",
     params: ["orderId", "deliveredAt"],
     buttonParams: ["orderId"],
     buttonIndex: 0,
@@ -129,7 +139,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_delivery_failed",
     language: "en",
     category: "utility",
-    status: "approved",
+    status: "in_review",
     params: ["customerName", "orderId", "reason"],
     buttonParams: ["orderId"],
     buttonIndex: 1,
@@ -163,7 +173,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "return_requested",
     language: "en",
     category: "utility",
-    status: "approved",
+    status: "in_review",
     params: ["orderId", "reviewHours"],
     buttonParams: ["orderId"],
     buttonIndex: 0,
@@ -184,7 +194,7 @@ export const WHATSAPP_TEMPLATE = {
   REFERRAL_REWARD_EARNED: {
     name: "referral_reward_earned",
     language: "en",
-    category: "utility",
+    category: "marketing",
     status: "approved",
     // Mirrors `referral.coupon_issued`, which carries tier + amount only —
     // there is no friend name or coupon code available at that call site.
@@ -193,16 +203,18 @@ export const WHATSAPP_TEMPLATE = {
   },
 
   /**
-   * Approved as **marketing**, not utility — so it will not deliver
-   * outside the 24-hour window without opt-in, even though it is fired by
-   * a transactional event. Worth resubmitting with utility-safe wording.
+   * Points at `review_request_v2`. The original was approved as
+   * **marketing** — asking a general opinion reads as promotional to
+   * Meta's reviewers — which meant it only delivered inside the 24-hour
+   * window, so most prompts silently never arrived. The v2 copy names a
+   * specific delivered order, which is what qualifies it as utility.
    */
   REVIEW_REQUEST: {
-    name: "review_request",
+    name: "review_request_v2",
     language: "en",
-    category: "marketing",
-    status: "approved",
-    params: ["customerName"],
+    category: "utility",
+    status: "in_review",
+    params: ["orderId"],
     buttonParams: ["orderId"],
     buttonIndex: 0,
     description: "Post-delivery rating prompt.",

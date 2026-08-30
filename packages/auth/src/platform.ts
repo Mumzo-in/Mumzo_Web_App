@@ -1,6 +1,7 @@
 import { createDb } from "@mumzo/db";
 import { account, session, user, verification } from "@mumzo/db/schema/auth";
 import { env } from "@mumzo/env/server";
+import { registerWhatsAppRecipient } from "@mumzo/notifications";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
@@ -121,6 +122,26 @@ export function createPlatformAuth() {
         },
         otpLength: 6,
         expiresIn: 300,
+        /**
+         * Registers the freshly verified number as a WhatsApp recipient,
+         * so order updates can reach it. Done here rather than from the
+         * client because the address is the verified phone itself, not a
+         * token the app can supply.
+         *
+         * Best-effort: a failure here must not fail the login. The
+         * customer is signed in either way, and the next verification
+         * re-attempts the upsert.
+         */
+        callbackOnVerification: async ({ user: verifiedUser }) => {
+          try {
+            await registerWhatsAppRecipient(verifiedUser.id);
+          } catch (error) {
+            console.error(
+              `[auth] WhatsApp recipient registration failed for ${verifiedUser.id}:`,
+              error,
+            );
+          }
+        },
         signUpOnVerification: {
           // Better Auth requires an email on the user row. Customers never
           // supply one, so derive a non-routable placeholder — the phone

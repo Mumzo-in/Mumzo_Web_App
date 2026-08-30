@@ -106,6 +106,24 @@ async function requireOwnedAddress(userId: string, addressId: string) {
   return row;
 }
 
+/**
+ * Condenses order lines into one short phrase for a notification.
+ *
+ * Caps at two names plus a remainder count: WhatsApp truncates long
+ * parameters mid-word, and "Pampers Premium Care, Cerelac Rice and 4 more"
+ * survives that where a full product list does not.
+ */
+function summariseItems(rows: { nameSnapshot: string; qty: number }[]): string {
+  if (rows.length === 0) return "your items";
+
+  const shown = rows
+    .slice(0, 2)
+    .map((r) => (r.qty > 1 ? `${r.nameSnapshot} (${r.qty})` : r.nameSnapshot));
+  const rest = rows.length - shown.length;
+
+  return rest > 0 ? `${shown.join(", ")} and ${rest} more` : shown.join(", ");
+}
+
 function toPublicOrderItem(row: {
   id: string;
   productId: string;
@@ -362,6 +380,28 @@ export async function placeOrder(
         `Failed to enqueue staff notification for order ${orderId}:`,
         error,
       );
+    });
+
+  // Customer's own confirmation. Fired here rather than from the status
+  // transition because this is the only point the cart contents are still
+  // in hand — every later message has just an order id.
+  notify
+    .send({
+      userId,
+      templateId: NOTIFICATION_TEMPLATE.ORDER.CONFIRMED,
+      data: {
+        orderId,
+        customerName: addressRow.name,
+        // Two items plus a count, rather than the whole list: WhatsApp
+        // truncates long parameters, and "and 4 more" stays readable
+        // where a wall of product names does not.
+        items: summariseItems(orderItemRows),
+        total: totals.total,
+        address: `${addressRow.line1}, ${addressRow.city}`,
+      },
+    })
+    .catch((error) => {
+      console.error(`Failed to enqueue order.confirmed for ${orderId}:`, error);
     });
 
   // COD orders are created already `confirmed` (no payment-gateway step),

@@ -206,7 +206,12 @@ export async function completeDeliveryRun(
   }
 
   const [current] = await db
-    .select({ status: order.status, userId: order.userId })
+    .select({
+      status: order.status,
+      userId: order.userId,
+      // The customer-facing templates greet by name.
+      addressName: order.addressName,
+    })
     .from(order)
     .where(eq(order.id, link.orderId))
     .limit(1);
@@ -283,7 +288,21 @@ export async function completeDeliveryRun(
       .send({
         userId: current.userId,
         templateId: NOTIFICATION_TEMPLATE.ORDER.STATUS_UPDATED,
-        data: { orderId: link.orderId, status: nextStatus },
+        data: {
+          orderId: link.orderId,
+          status: nextStatus,
+          customerName: current.addressName ?? undefined,
+          // Carries the delivery time on success and the rider's stated
+          // cause on failure — the WhatsApp templates render both, and
+          // Meta rejects an empty parameter outright.
+          detail:
+            outcome === "delivered"
+              ? new Date().toLocaleTimeString("en-IN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })
+              : (reason ?? undefined),
+        },
       })
       .catch((error) => {
         console.error(

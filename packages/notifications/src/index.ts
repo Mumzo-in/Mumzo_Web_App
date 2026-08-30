@@ -12,6 +12,7 @@ export {
   sendOtpViaWhatsApp,
   sweepOtpAttempts,
 } from "./channels/whatsapp/otp";
+export { registerWhatsAppRecipient } from "./channels/whatsapp/recipients";
 export { whatsappRender } from "./channels/whatsapp/render";
 export {
   applyStatusUpdates,

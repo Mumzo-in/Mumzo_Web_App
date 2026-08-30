@@ -5,6 +5,7 @@
 import "./admin-delivery-completed";
 import "./admin-order-cancelled";
 import "./admin-order-status-updated";
+import "./order-confirmed";
 import "./order-created";
 import "./order-status-updated";
 import "./referral-coupon-issued";

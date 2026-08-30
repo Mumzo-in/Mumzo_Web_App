@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { whatsappRender } from "../channels/whatsapp/render";
 import { defineTemplate } from "./registry";
 
 const dataSchema = z.object({
@@ -17,4 +18,12 @@ export const reviewPromptRequestedTemplate = defineTemplate({
     deeplink: `/orders/${data.orderId}`,
     data: { orderId: data.orderId },
   }),
+  renderForChannel: {
+    whatsapp: (data) =>
+      whatsappRender(
+        "REVIEW_REQUEST",
+        { orderId: data.orderId.slice(0, 8).toUpperCase() },
+        { buttonParams: [data.orderId] },
+      ),
+  },
 });
