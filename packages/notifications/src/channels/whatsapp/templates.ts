@@ -62,6 +62,9 @@ export type WhatsAppTemplateDefinition = {
    * independent of the body's.
    */
   readonly buttonParams?: readonly string[];
+  /** Which button carries the dynamic URL parameter. Not always 0 — a
+   * template with a quick-reply button first has its URL button at 1. */
+  readonly buttonIndex?: number;
   /** Why this template exists / what fires it. */
   readonly description: string;
 };
@@ -81,7 +84,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_confirmation",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["customerName", "orderId", "items", "total", "address"],
     description: "Order placed and confirmed.",
   },
@@ -90,8 +93,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_packed",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["customerName", "orderId"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Order packed, awaiting a rider.",
   },
 
@@ -113,8 +118,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_delivered",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["orderId", "deliveredAt"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Delivery completed successfully.",
   },
 
@@ -122,8 +129,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_delivery_failed",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["customerName", "orderId", "reason"],
+    buttonParams: ["orderId"],
+    buttonIndex: 1,
     description: "Delivery attempt failed.",
   },
 
@@ -131,7 +140,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_cancelled",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     // `reason` sits mid-sentence in the approved copy: Meta rejects empty
     // parameters at send time, so callers must pass a fallback sentence
     // rather than "" when no reason was given.
@@ -143,7 +152,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "order_refund_processed",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["amount", "orderId", "refundMethod", "workingDays"],
     description: "Refund issued for a cancelled or returned order.",
   },
@@ -154,8 +163,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "return_requested",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["orderId", "reviewHours"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Return request received.",
   },
 
@@ -163,7 +174,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "return_approved",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     params: ["orderId", "items", "pickupSlot", "refundAmount"],
     description: "Return approved with a pickup slot.",
   },
@@ -174,7 +185,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "referral_reward_earned",
     language: "en",
     category: "utility",
-    status: "in_review",
+    status: "approved",
     // Mirrors `referral.coupon_issued`, which carries tier + amount only —
     // there is no friend name or coupon code available at that call site.
     params: ["customerName", "tierName", "amount"],
@@ -190,21 +201,29 @@ export const WHATSAPP_TEMPLATE = {
     name: "review_request",
     language: "en",
     category: "marketing",
-    status: "in_review",
+    status: "approved",
     params: ["customerName"],
+    buttonParams: ["orderId"],
+    buttonIndex: 0,
     description: "Post-delivery rating prompt.",
   },
 
   /**
-   * Not yet submitted. Meta supplies the copy for authentication
-   * templates; the code is both the body parameter and the copy-code
-   * button parameter, so it appears in `params` and `buttonParams`.
+   * **Rejected by Meta as INCORRECT_CATEGORY.** It was submitted as
+   * `utility`, but Meta requires verification codes to be
+   * `authentication` — which also means Meta supplies the copy rather
+   * than accepting free text, and the template must carry a copy-code
+   * button whose parameter repeats the code.
+   *
+   * Recorded here (rather than removed) so the send path is complete and
+   * the adapter refuses it with a readable reason until it is resubmitted
+   * under the right category.
    */
   LOGIN_OTP: {
-    name: "mumzo_login_otp",
-    language: "en",
+    name: "otp_login",
+    language: "en_US",
     category: "authentication",
-    status: "not_submitted",
+    status: "rejected",
     params: ["code"],
     buttonParams: ["code"],
     description: "Phone login / signup verification code.",
@@ -216,7 +235,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "cart_abandoned",
     language: "en",
     category: "marketing",
-    status: "in_review",
+    status: "approved",
     params: ["customerName", "items"],
     description: "Abandoned cart nudge. Requires opt-in.",
   },
@@ -225,8 +244,10 @@ export const WHATSAPP_TEMPLATE = {
     name: "back_in_stock",
     language: "en",
     category: "marketing",
-    status: "in_review",
+    status: "approved",
     params: ["customerName", "productName"],
+    buttonParams: ["productSlug"],
+    buttonIndex: 0,
     description: "Watched product restocked. Requires opt-in.",
   },
 
@@ -238,7 +259,7 @@ export const WHATSAPP_TEMPLATE = {
     name: "promo_broadcast",
     language: "en",
     category: "marketing",
-    status: "in_review",
+    status: "approved",
     params: ["message"],
     description: "Generic marketing broadcast. Requires opt-in.",
   },

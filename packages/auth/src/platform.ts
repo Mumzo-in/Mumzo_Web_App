@@ -109,8 +109,15 @@ export function createPlatformAuth() {
     },
     plugins: [
       phoneNumber({
-        sendOTP: async ({ phoneNumber: to, code }) => {
-          await sendOtp(to, code);
+        sendOTP: async ({ phoneNumber: to, code }, request) => {
+          // Passed through for per-IP rate limiting, so one host cannot
+          // cycle codes through many numbers. Same header the shared
+          // config trusts for Better Auth's own limiter — see the note
+          // there on why `x-forwarded-for` is safe in this topology.
+          const forwarded = request?.headers?.get("x-forwarded-for");
+          const ipAddress = forwarded?.split(",")[0]?.trim();
+
+          await sendOtp(to, code, ipAddress);
         },
         otpLength: 6,
         expiresIn: 300,

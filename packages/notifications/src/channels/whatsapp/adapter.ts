@@ -165,14 +165,32 @@ async function send(
   // `buttonParams` is absent from the union rather than optional on it.
   const hasButtonParams = "buttonParams" in definition;
 
+  const buttonParameters = hasButtonParams
+    ? paramsOf(payload, "whatsappButtonParams")
+    : undefined;
+
+  // Meta rejects the whole send with 131008 when a template's dynamic URL
+  // button gets no parameter, so this is caught here with a readable
+  // message rather than as an opaque provider error.
+  if (hasButtonParams && !buttonParameters?.length) {
+    return {
+      ok: false,
+      error: `WhatsApp template "${definition.name}" has a dynamic URL button but the render supplied no button parameter.`,
+      errorCode: "missing_button_param",
+      permanent: true,
+    };
+  }
+
   const result = await sendTemplateMessage({
     phone,
     templateName: definition.name,
     language: definition.language,
     parameters: paramsOf(payload, "whatsappParams"),
-    buttonParameters: hasButtonParams
-      ? paramsOf(payload, "whatsappButtonParams")
-      : undefined,
+    buttonParameters,
+    buttonIndex:
+      "buttonIndex" in definition
+        ? (definition.buttonIndex as number)
+        : undefined,
   });
 
   if (result.ok) {

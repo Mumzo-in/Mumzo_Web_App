@@ -1,4 +1,5 @@
 import { env } from "@mumzo/env/server";
+import { sendOtpViaWhatsApp } from "@mumzo/notifications";
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -61,13 +62,38 @@ export const sharedAuthConfig = {
  * Throws outside development on purpose. A silent console.log in production
  * would look like a working OTP flow while every user is locked out.
  */
-export async function sendOtp(phoneNumber: string, code: string) {
-  if (env.NODE_ENV !== "development") {
-    throw new Error(
-      "SMS provider not configured — cannot deliver OTP. " +
-        "Wire MSG91 (requires DLT registration) before deploying.",
-    );
+export async function sendOtp(
+  phoneNumber: string,
+  code: string,
+  ipAddress?: string,
+) {
+  const result = await sendOtpViaWhatsApp({ phoneNumber, code, ipAddress });
+
+  if (result.ok) {
+    return;
   }
 
-  console.warn(`[auth] OTP for ${phoneNumber}: ${code}`);
+  // Rate limiting is a legitimate outcome, not a fault — surface the
+  // message so the UI can say "slow down" rather than "something broke".
+  if (result.reason === "rate_limited") {
+    throw new Error(result.message);
+  }
+
+  /**
+   * In development, fall through to the log so the flow stays testable
+   * while the WhatsApp OTP template is unapproved — Meta rejected the
+   * first submission as INCORRECT_CATEGORY (it must be `authentication`,
+   * not `utility`).
+   *
+   * Anywhere else this throws: a console.log in production would look
+   * like a working OTP flow while every user is locked out.
+   */
+  if (env.NODE_ENV === "development") {
+    console.warn(
+      `[auth] WhatsApp OTP unavailable (${result.reason}: ${result.message}) — code for ${phoneNumber}: ${code}`,
+    );
+    return;
+  }
+
+  throw new Error(`Could not deliver OTP: ${result.message}`);
 }

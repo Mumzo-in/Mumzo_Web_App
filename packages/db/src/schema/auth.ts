@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Customer auth — the storefront. Phone + OTP.
@@ -108,3 +115,33 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+/**
+ * OTP send attempts, for rate limiting.
+ *
+ * Postgres rather than Redis on purpose: this is the only feature that
+ * would have needed Redis, and one table plus an index is far cheaper than
+ * a managed instance for a handful of writes per minute. The same
+ * reasoning that moved the notification queue off BullMQ applies here.
+ *
+ * Rows are transient — a retention sweep discards anything older than the
+ * longest window, so the table stays small enough for the index to live in
+ * memory.
+ */
+export const otpAttempt = pgTable(
+  "otp_attempt",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** Normalised phone number the code was requested for. */
+    phoneNumber: text("phone_number").notNull(),
+    /** Requester IP, so one host can't cycle through many numbers. */
+    ipAddress: text("ip_address"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    /** The rate-limit query: "attempts for this number since T". */
+    index("otp_attempt_phone_idx").on(table.phoneNumber, table.createdAt),
+    /** The per-IP variant of the same question. */
+    index("otp_attempt_ip_idx").on(table.ipAddress, table.createdAt),
+  ],
+);

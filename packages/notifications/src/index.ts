@@ -7,7 +7,17 @@ export {
   listTemplates as listWhatsAppTemplates,
   normalisePhone,
 } from "./channels/whatsapp/client";
+export {
+  type OtpSendResult,
+  sendOtpViaWhatsApp,
+  sweepOtpAttempts,
+} from "./channels/whatsapp/otp";
 export { whatsappRender } from "./channels/whatsapp/render";
+export {
+  applyStatusUpdates,
+  deactivateUndeliverable,
+  type WhatsAppStatusUpdate,
+} from "./channels/whatsapp/status";
 export {
   isSendable as isWhatsAppTemplateSendable,
   toPositionalParams,

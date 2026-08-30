@@ -176,6 +176,12 @@ export const env = createEnv({
      */
     KAPSO_BASE_URL: z.url().default("https://app.kapso.ai/api/v1"),
     /**
+     * Kapso's Meta Cloud API proxy — a different host from
+     * `KAPSO_BASE_URL`, speaking Meta's Graph dialect. Message sends go
+     * here; the template catalogue goes to the REST base above.
+     */
+    KAPSO_META_BASE_URL: z.url().default("https://api.kapso.ai/meta/whatsapp"),
+    /**
      * WhatsApp Business Account id. Template listing is scoped to the WABA
      * rather than the phone number, so this is what the catalogue sync
      * filters on — an API key can see more than one.
@@ -187,6 +193,21 @@ export const env = createEnv({
      * Meta's.
      */
     WHATSAPP_CONFIG_ID: z.string().min(1).optional(),
+    /**
+     * Meta app secret, used to verify the `X-Hub-Signature-256` on
+     * delivery webhooks. **Not** the Kapso API key — this one is Meta's,
+     * from the app's Basic Settings.
+     *
+     * Without it the webhook cannot prove a callback came from Meta, so
+     * the endpoint rejects everything rather than trusting unsigned
+     * status updates that would let anyone mark a message delivered.
+     */
+    WHATSAPP_APP_SECRET: z.string().min(1).optional(),
+    /**
+     * The token echoed back during Meta's `GET` subscription handshake.
+     * Chosen by us and entered into the Meta/Kapso webhook config.
+     */
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
     /**
      * Default country dialling code for stored phone numbers that lack
      * one. WhatsApp requires full international format; Mumzo's signup

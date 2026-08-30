@@ -101,6 +101,7 @@
       "name": "@mumzo/server",
       "dependencies": {
         "@hono/zod-openapi": "^1.5.1",
+        "@kapso/whatsapp-cloud-api": "^0.3.0",
         "@mumzo/auth": "workspace:*",
         "@mumzo/cache": "workspace:*",
         "@mumzo/db": "workspace:*",
@@ -132,6 +133,7 @@
       "dependencies": {
         "@mumzo/db": "workspace:*",
         "@mumzo/env": "workspace:*",
+        "@mumzo/notifications": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.2",

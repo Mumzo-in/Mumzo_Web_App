@@ -3,13 +3,14 @@ import { env } from "@mumzo/env/server";
 /**
  * Kapso REST client.
  *
- * Deliberately a small hand-rolled fetch wrapper rather than
- * `@kapso/whatsapp-cloud-api`: that SDK targets Meta's Graph shape through
- * a proxy host (`api.kapso.ai/meta/whatsapp`) which currently 404s for this
- * account, while the working surface is Kapso's own REST API at
- * `app.kapso.ai/api/v1` with a different payload shape. Wrapping the two
- * endpoints we actually use is less code than adapting the SDK to an
- * endpoint it doesn't model.
+ * A small hand-rolled fetch wrapper over the two Kapso surfaces we use,
+ * which are genuinely different APIs sharing one key:
+ *
+ * - Sends go to `api.kapso.ai/meta/whatsapp/v23.0` in Meta Graph shape.
+ * - The template catalogue lives at `app.kapso.ai/api/v1` in Kapso shape.
+ *
+ * The version segment is mandatory on the first — without it the proxy
+ * serves a 404 HTML page rather than an API error.
  *
  * Shared by the notification worker and (later) the OTP path, so it holds
  * no per-send state.
@@ -66,6 +67,38 @@ async function kapsoFetch(
 }
 
 /**
+ * Meta Graph API version. Kapso's proxy requires it in the path — omitting
+ * it returns the marketing site's 404 page rather than an API error, which
+ * is an easy hour to lose.
+ */
+const META_API_VERSION = "v23.0";
+
+/**
+ * Calls the Meta Cloud API through Kapso's proxy.
+ *
+ * Separate host and shape from `kapsoFetch`: sends speak Meta's Graph
+ * dialect via `api.kapso.ai/meta/whatsapp`, while Kapso's own REST
+ * resources (the template catalogue) live at `app.kapso.ai/api/v1`. Two
+ * genuinely different APIs behind one API key.
+ */
+async function metaFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const { apiKey } = requireConfig();
+
+  return fetch(`${env.KAPSO_META_BASE_URL}/${META_API_VERSION}${path}`, {
+    ...init,
+    headers: {
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+      ...init.headers,
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+}
+
+/**
  * Normalises a phone number to the digits-only international form Kapso
  * expects.
  *
@@ -104,6 +137,8 @@ export async function sendTemplateMessage(input: {
   parameters: string[];
   /** Parameters for a dynamic URL button, when the template has one. */
   buttonParameters?: string[];
+  /** Which button index those parameters belong to. */
+  buttonIndex?: number;
 }): Promise<KapsoSendResult> {
   const components: Record<string, unknown>[] = [];
 
@@ -118,7 +153,9 @@ export async function sendTemplateMessage(input: {
     components.push({
       type: "button",
       sub_type: "url",
-      index: "0",
+      // Not always "0": a template whose first button is a quick reply
+      // has its URL button at index 1, and Meta rejects a mismatch.
+      index: String(input.buttonIndex ?? 0),
       parameters: input.buttonParameters.map((text) => ({
         type: "text",
         text,
@@ -128,17 +165,17 @@ export async function sendTemplateMessage(input: {
 
   let response: Response;
   try {
-    response = await kapsoFetch("/whatsapp_messages", {
+    response = await metaFetch(`/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       method: "POST",
       body: JSON.stringify({
-        phone_number: input.phone,
-        message: {
-          type: "template",
-          template: {
-            name: input.templateName,
-            language: { code: input.language },
-            ...(components.length > 0 ? { components } : {}),
-          },
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: input.phone,
+        type: "template",
+        template: {
+          name: input.templateName,
+          language: { code: input.language },
+          ...(components.length > 0 ? { components } : {}),
         },
       }),
     });

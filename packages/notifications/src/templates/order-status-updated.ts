@@ -58,18 +58,26 @@ function renderWhatsApp(data: Data) {
   const id = shortId(data.orderId);
   const name = data.customerName?.trim() || "there";
 
+  // Templates with a dynamic URL button need its parameter too: Meta
+  // rejects the send outright (131008) when a `{{1}}` button is left
+  // unfilled. The full uuid goes in the link even though the body shows
+  // the short id — the link has to actually resolve.
+  const buttonParams = [data.orderId];
+
   switch (key) {
     case "ORDER_PACKED":
-      return whatsappRender("ORDER_PACKED", {
-        customerName: name,
-        orderId: id,
-      });
+      return whatsappRender(
+        "ORDER_PACKED",
+        { customerName: name, orderId: id },
+        { buttonParams },
+      );
 
     case "ORDER_DELIVERED":
-      return whatsappRender("ORDER_DELIVERED", {
-        orderId: id,
-        deliveredAt: data.detail?.trim() || "just now",
-      });
+      return whatsappRender(
+        "ORDER_DELIVERED",
+        { orderId: id, deliveredAt: data.detail?.trim() || "just now" },
+        { buttonParams },
+      );
 
     case "ORDER_CANCELLED":
       return whatsappRender("ORDER_CANCELLED", {

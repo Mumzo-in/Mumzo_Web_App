@@ -15,6 +15,7 @@ import {
 import referralSharePage from "./modules/platform/v1/referrals/referral-share-page";
 import { startReferralSettlementSweep } from "./modules/platform/v1/referrals/referrals.sweep";
 import { startReviewPromptSweep } from "./modules/platform/v1/reviews/reviews.sweep";
+import whatsappWebhook from "./modules/webhooks/whatsapp";
 import router from "./router";
 
 const app = createApp();
@@ -91,6 +92,10 @@ app.openapi(healthRoute, async (c) => {
 // just live in the SPA. Mounted outside /api/v1 to match the public
 // `/r/:code` path real users and link previews actually hit.
 app.route("/r", referralSharePage);
+
+// Provider callbacks. Outside /api/v1 because the URL is registered in the
+// Meta/Kapso console and cannot be versioned on our side.
+app.route("/webhooks", whatsappWebhook);
 
 app.route("/", router);
 
